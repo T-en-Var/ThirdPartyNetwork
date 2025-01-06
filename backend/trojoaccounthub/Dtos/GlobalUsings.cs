@@ -1,0 +1,12 @@
+﻿global using trojoaccounthub.Dtos.Content;
+global using trojoaccounthub.Dtos.Network;
+global using trojoaccounthub.Dtos.NetworkPermission;
+global using trojoaccounthub.Dtos.NetworkRole;
+global using trojoaccounthub.Dtos.NetworkUserPermission;
+global using trojoaccounthub.Dtos.NetworkUserRole;
+global using trojoaccounthub.Dtos.NetworkUser;
+global using trojoaccounthub.Dtos.Permission;
+global using trojoaccounthub.Dtos.Role;
+global using trojoaccounthub.Dtos.User;
+global using trojoaccounthub.Dtos.UserProxy;
+global using trojoaccounthub.Dtos.Common.Ommitables;
