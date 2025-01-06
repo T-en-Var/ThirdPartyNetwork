@@ -3,11 +3,11 @@
     public interface INetworkUserRoleService : IBaseService
     {
         ICollection<NetworkUserRoleDto> GetAll();
-        ICollection<NetworkUserRoleDto> GetByNetworkUserId(int id);
-        ICollection<NetworkUserRoleDto> GetByRoleId(int id);
-        NetworkUserRoleDto? GetByIds(int networkUserId, int roleId);
-        NetworkUserRoleDto? Create(int networkId, CreateNetworkUserRoleDto networkUserRole);
-        NetworkUserRoleDto? Update(int networkId, int roleId, UpdateNetworkUserRoleDto networkUserRole);
-        bool DeleteById(int id);
+        ICollection<NetworkUserRoleDto> GetByNetworkUserId(Guid id);
+        ICollection<NetworkUserRoleDto> GetByRoleId(Guid id);
+        NetworkUserRoleDto? GetByIds(Guid networkUserId, Guid roleId);
+        NetworkUserRoleDto? Create(Guid networkId, CreateNetworkUserRoleDto networkUserRole);
+        NetworkUserRoleDto? Update(Guid networkId, Guid roleId, UpdateNetworkUserRoleDto networkUserRole);
+        bool DeleteById(Guid id);
     }
 }

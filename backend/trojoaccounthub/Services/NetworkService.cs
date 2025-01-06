@@ -28,7 +28,7 @@ namespace trojoaccounthub.Services
             return _mapper.Map<NetworkDto>(network);
         }
 
-        public bool DeleteById(int id)
+        public bool DeleteById(Guid id)
         {
             throw new NotImplementedException();
         }
@@ -38,12 +38,12 @@ namespace trojoaccounthub.Services
             throw new NotImplementedException();
         }
 
-        public NetworkDto? GetById(int id)
+        public NetworkDto? GetById(Guid id)
         {
             throw new NotImplementedException();
         }
 
-        public NetworkDto? Update(int id, UpdateNetworkDto updateNetworkDto)
+        public NetworkDto? Update(Guid id, UpdateNetworkDto updateNetworkDto)
         {
             throw new NotImplementedException();
         }

@@ -4,9 +4,9 @@ namespace trojoaccounthub.Interfaces.Repositories
 {
     public interface IUserRepository : IBaseRepository
     {
-        bool Exists(int id);
+        bool Exists(Guid id);
         ICollection<User> GetAll();
-        User? GetById(int id);
+        User? GetById(Guid id);
         User? Create(User user);
         User? Update(User user);
         bool Delete(User user);

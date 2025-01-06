@@ -4,9 +4,9 @@
     {
         ICollection<UserProxyDto> GetAll();
         ICollection<UserProxyDto> GetByUserId();
-        UserProxyDto? GetById(int id);
+        UserProxyDto? GetById(Guid id);
         UserProxyDto? Create(CreateUserProxyDto userProxy);
-        UserProxyDto? Update(int id, UpdateUserProxyDto userProxy);
-        bool DeleteById(int id);
+        UserProxyDto? Update(Guid id, UpdateUserProxyDto userProxy);
+        bool DeleteById(Guid id);
     }
 }

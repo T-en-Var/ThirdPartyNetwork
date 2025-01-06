@@ -4,10 +4,10 @@ namespace trojoaccounthub.Interfaces.Repositories
 {
     public interface IUserProxyRepository : IBaseRepository
     {
-        bool Exists(int id);
+        bool Exists(Guid id);
         ICollection<UserProxy> GetAll();
-        ICollection<UserProxy> GetByUserId(int id);
-        UserProxy? GetById(int id);
+        ICollection<UserProxy> GetByUserId(Guid id);
+        UserProxy? GetById(Guid id);
         UserProxy? Create(UserProxy userProxy);
         UserProxy? Update(UserProxy userProxy);
         bool Delete(UserProxy userProxy);

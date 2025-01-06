@@ -20,7 +20,7 @@ namespace trojoaccounthub.Repositories
             return Save();
         }
 
-        public bool Exists(int id)
+        public bool Exists(Guid id)
         {
             return _context.Users.Any(u => u.Id == id);
         }
@@ -30,7 +30,7 @@ namespace trojoaccounthub.Repositories
             return [.. _context.Users];
         }
 
-        public User? GetById(int id)
+        public User? GetById(Guid id)
         {
             return _context.Users.Find(id);
         }

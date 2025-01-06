@@ -2,7 +2,7 @@
 {
     public class CreateNetworkUserDto
     {
-        public required int NetworkId { get; set; }
-        public required int UserProxyId { get; set; }
+        public required Guid NetworkId { get; set; }
+        public required Guid UserProxyId { get; set; }
     }
 }

@@ -3,10 +3,10 @@
     public interface IContentService : IBaseService
     {
         ICollection<ContentDto> GetAll();
-        ICollection<ContentDto> GetByNetworkId(int networkId);
-        ContentDto? GetById(int id);
-        ContentDto? Create(int networkId, CreateContentDto content);
-        ContentDto? UpdateById(int id, UpdateContentDto content);
-        bool DeleteById(int id);
+        ICollection<ContentDto> GetByNetworkId(Guid networkId);
+        ContentDto? GetById(Guid id);
+        ContentDto? Create(Guid networkId, CreateContentDto content);
+        ContentDto? UpdateById(Guid id, UpdateContentDto content);
+        bool DeleteById(Guid id);
     }
 }

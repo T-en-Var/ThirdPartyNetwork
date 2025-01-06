@@ -3,11 +3,11 @@
     public interface INetworkUserPermissionService : IBaseService
     {
         ICollection<NetworkUserPermissionDto> GetAll();
-        ICollection<NetworkUserPermissionDto> GetByNetworkId(int id);
-        ICollection<NetworkUserPermissionDto> GetByPermissionId(int id);
-        NetworkUserPermissionDto? GetByIds(int networkUserId, int permissionId);
-        NetworkUserPermissionDto? Create(int networkId, CreateNetworkUserPermissionDto networkUserPermission);
-        NetworkUserPermissionDto? Update(int networkUserId, int permissionId, UpdateNetworkUserPermissionDto networkUserPermission);
-        bool DeleteById(int id);
+        ICollection<NetworkUserPermissionDto> GetByNetworkId(Guid id);
+        ICollection<NetworkUserPermissionDto> GetByPermissionId(Guid id);
+        NetworkUserPermissionDto? GetByIds(Guid networkUserId, Guid permissionId);
+        NetworkUserPermissionDto? Create(Guid networkId, CreateNetworkUserPermissionDto networkUserPermission);
+        NetworkUserPermissionDto? Update(Guid networkUserId, Guid permissionId, UpdateNetworkUserPermissionDto networkUserPermission);
+        bool DeleteById(Guid id);
     }
 }

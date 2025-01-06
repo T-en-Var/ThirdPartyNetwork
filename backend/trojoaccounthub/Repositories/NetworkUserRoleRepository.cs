@@ -19,7 +19,7 @@ namespace trojoaccounthub.Repositories
             return Save();
         }
 
-        public bool Exists(int networkUserId, int roleId)
+        public bool Exists(Guid networkUserId, Guid roleId)
         {
             return _context.NetworkUserRoles.Any(nur => nur.NetworkUserId == networkUserId && nur.RoleId == roleId);
         }
@@ -29,17 +29,17 @@ namespace trojoaccounthub.Repositories
             return [.. _context.NetworkUserRoles];
         }
 
-        public NetworkUserRole? GetByIds(int networkUserId, int roleId)
+        public NetworkUserRole? GetByIds(Guid networkUserId, Guid roleId)
         {
             return _context.NetworkUserRoles.Find(networkUserId, roleId);
         }
 
-        public ICollection<NetworkUserRole> GetByNetworkUserId(int id)
+        public ICollection<NetworkUserRole> GetByNetworkUserId(Guid id)
         {
             return [.. _context.NetworkUserRoles.Where(nur => nur.NetworkUserId == id)];
         }
 
-        public ICollection<NetworkUserRole> GetByRoleId(int id)
+        public ICollection<NetworkUserRole> GetByRoleId(Guid id)
         {
             return [.. _context.NetworkUserRoles.Where(nur => nur.RoleId == id)];
         }

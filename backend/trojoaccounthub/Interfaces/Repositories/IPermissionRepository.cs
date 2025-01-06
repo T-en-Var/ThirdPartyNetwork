@@ -4,9 +4,9 @@ namespace trojoaccounthub.Interfaces.Repositories
 {
     public interface IPermissionRepository : IBaseRepository
     {
-        bool Exists(int id);
+        bool Exists(Guid id);
         ICollection<Permission> GetAll();
-        Permission? GetById(int id);
+        Permission? GetById(Guid id);
         Permission? Create(Permission permission);
         Permission? Update(Permission permission);
         bool Delete(Permission permission);

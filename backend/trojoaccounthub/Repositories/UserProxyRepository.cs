@@ -21,7 +21,7 @@ namespace trojoaccounthub.Repositories
             return Save();
         }
 
-        public bool Exists(int id)
+        public bool Exists(Guid id)
         {
             return _context.UserProxies.Any(up => up.Id == id);
         }
@@ -31,12 +31,12 @@ namespace trojoaccounthub.Repositories
             return [.. _context.UserProxies];
         }
 
-        public UserProxy? GetById(int id)
+        public UserProxy? GetById(Guid id)
         {
             return _context.UserProxies.Find(id);
         }
 
-        public ICollection<UserProxy> GetByUserId(int id)
+        public ICollection<UserProxy> GetByUserId(Guid id)
         {
             return [.. _context.UserProxies.Where(up => up.User.Id == id)];
         }
