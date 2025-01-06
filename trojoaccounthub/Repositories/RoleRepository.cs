@@ -20,7 +20,7 @@ namespace trojoaccounthub.Repositories
             return Save();
         }
 
-        public bool Exists(int id)
+        public bool Exists(Guid id)
         {
             return _context.Roles.Any(r => r.Id == id);
         }
@@ -30,7 +30,7 @@ namespace trojoaccounthub.Repositories
             return [.. _context.Roles];
         }
 
-        public Role? GetById(int id)
+        public Role? GetById(Guid id)
         {
             return _context.Roles.Find(id);
         }

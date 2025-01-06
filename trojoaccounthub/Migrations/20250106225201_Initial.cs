@@ -1,12 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace trojoaccounthub.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -15,8 +15,7 @@ namespace trojoaccounthub.Migrations
                 name: "Networks",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
@@ -28,8 +27,7 @@ namespace trojoaccounthub.Migrations
                 name: "Permissions",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
                     Description = table.Column<string>(type: "text", nullable: false)
                 },
@@ -42,8 +40,7 @@ namespace trojoaccounthub.Migrations
                 name: "Roles",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
@@ -55,8 +52,7 @@ namespace trojoaccounthub.Migrations
                 name: "Users",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -67,10 +63,9 @@ namespace trojoaccounthub.Migrations
                 name: "Contents",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Value = table.Column<string>(type: "text", nullable: false),
-                    NetworkId = table.Column<int>(type: "integer", nullable: false)
+                    NetworkId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -87,8 +82,8 @@ namespace trojoaccounthub.Migrations
                 name: "NetworkPermissions",
                 columns: table => new
                 {
-                    NetworkId = table.Column<int>(type: "integer", nullable: false),
-                    PermissionId = table.Column<int>(type: "integer", nullable: false),
+                    NetworkId = table.Column<Guid>(type: "uuid", nullable: false),
+                    PermissionId = table.Column<Guid>(type: "uuid", nullable: false),
                     IsRequired = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
@@ -112,8 +107,8 @@ namespace trojoaccounthub.Migrations
                 name: "NetworkRoles",
                 columns: table => new
                 {
-                    NetworkId = table.Column<int>(type: "integer", nullable: false),
-                    RoleId = table.Column<int>(type: "integer", nullable: false)
+                    NetworkId = table.Column<Guid>(type: "uuid", nullable: false),
+                    RoleId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -136,8 +131,7 @@ namespace trojoaccounthub.Migrations
                 name: "UserProxies",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Username = table.Column<string>(type: "text", nullable: false),
                     FirstName = table.Column<string>(type: "text", nullable: false),
                     LastName = table.Column<string>(type: "text", nullable: false),
@@ -145,7 +139,7 @@ namespace trojoaccounthub.Migrations
                     Password = table.Column<string>(type: "text", nullable: false),
                     ProfilePicture = table.Column<string>(type: "text", nullable: false),
                     IsDefault = table.Column<bool>(type: "boolean", nullable: false),
-                    UserId = table.Column<int>(type: "integer", nullable: false)
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -159,25 +153,24 @@ namespace trojoaccounthub.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "NetworksUsers",
+                name: "NetworkUsers",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    NetworkId = table.Column<int>(type: "integer", nullable: false),
-                    UserProxyId = table.Column<int>(type: "integer", nullable: false)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    NetworkId = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserProxyId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_NetworksUsers", x => x.Id);
+                    table.PrimaryKey("PK_NetworkUsers", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_NetworksUsers_Networks_NetworkId",
+                        name: "FK_NetworkUsers_Networks_NetworkId",
                         column: x => x.NetworkId,
                         principalTable: "Networks",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_NetworksUsers_UserProxies_UserProxyId",
+                        name: "FK_NetworkUsers_UserProxies_UserProxyId",
                         column: x => x.UserProxyId,
                         principalTable: "UserProxies",
                         principalColumn: "Id",
@@ -188,17 +181,17 @@ namespace trojoaccounthub.Migrations
                 name: "NetworkUserPermissions",
                 columns: table => new
                 {
-                    NetworkUserId = table.Column<int>(type: "integer", nullable: false),
-                    PermissionId = table.Column<int>(type: "integer", nullable: false),
-                    IsRequired = table.Column<bool>(type: "boolean", nullable: false)
+                    NetworkUserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    PermissionId = table.Column<Guid>(type: "uuid", nullable: false),
+                    IsAccepted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_NetworkUserPermissions", x => new { x.NetworkUserId, x.PermissionId });
                     table.ForeignKey(
-                        name: "FK_NetworkUserPermissions_NetworksUsers_NetworkUserId",
+                        name: "FK_NetworkUserPermissions_NetworkUsers_NetworkUserId",
                         column: x => x.NetworkUserId,
-                        principalTable: "NetworksUsers",
+                        principalTable: "NetworkUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
@@ -213,16 +206,16 @@ namespace trojoaccounthub.Migrations
                 name: "NetworkUserRoles",
                 columns: table => new
                 {
-                    NetworkUserId = table.Column<int>(type: "integer", nullable: false),
-                    RoleId = table.Column<int>(type: "integer", nullable: false)
+                    NetworkUserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    RoleId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_NetworkUserRoles", x => new { x.NetworkUserId, x.RoleId });
                     table.ForeignKey(
-                        name: "FK_NetworkUserRoles_NetworksUsers_NetworkUserId",
+                        name: "FK_NetworkUserRoles_NetworkUsers_NetworkUserId",
                         column: x => x.NetworkUserId,
-                        principalTable: "NetworksUsers",
+                        principalTable: "NetworkUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
@@ -249,16 +242,6 @@ namespace trojoaccounthub.Migrations
                 column: "RoleId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_NetworksUsers_NetworkId",
-                table: "NetworksUsers",
-                column: "NetworkId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_NetworksUsers_UserProxyId",
-                table: "NetworksUsers",
-                column: "UserProxyId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_NetworkUserPermissions_PermissionId",
                 table: "NetworkUserPermissions",
                 column: "PermissionId");
@@ -267,6 +250,16 @@ namespace trojoaccounthub.Migrations
                 name: "IX_NetworkUserRoles_RoleId",
                 table: "NetworkUserRoles",
                 column: "RoleId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_NetworkUsers_NetworkId",
+                table: "NetworkUsers",
+                column: "NetworkId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_NetworkUsers_UserProxyId",
+                table: "NetworkUsers",
+                column: "UserProxyId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserProxies_UserId",
@@ -296,7 +289,7 @@ namespace trojoaccounthub.Migrations
                 name: "Permissions");
 
             migrationBuilder.DropTable(
-                name: "NetworksUsers");
+                name: "NetworkUsers");
 
             migrationBuilder.DropTable(
                 name: "Roles");

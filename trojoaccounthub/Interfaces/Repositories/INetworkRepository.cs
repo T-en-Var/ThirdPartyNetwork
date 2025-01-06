@@ -4,9 +4,9 @@ namespace trojoaccounthub.Interfaces.Repositories
 {
     public interface INetworkRepository : IBaseRepository
     {
-        bool Exists(int id);
+        bool Exists(Guid id);
         ICollection<Network> GetAll();
-        Network? GetById(int id);
+        Network? GetById(Guid id);
         Network? GetByName(string name);
         Network? Create(Network network);
         Network? Update(Network network);

@@ -28,7 +28,7 @@ namespace trojoaccounthub.Repositories
             return Save();
         }
 
-        public bool Exists(int id)
+        public bool Exists(Guid id)
         {
             return _context.Networks.Any(n => n.Id == id);
         }
@@ -38,7 +38,7 @@ namespace trojoaccounthub.Repositories
             return [.. _context.Networks];
         }
 
-        public Network? GetById(int id)
+        public Network? GetById(Guid id)
         {
             return _context.Networks.Find(id);
         }

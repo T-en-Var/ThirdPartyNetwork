@@ -19,7 +19,7 @@ namespace trojoaccounthub.Repositories
             return Save();
         }
 
-        public bool Exists(int networkUserId, int permissionId)
+        public bool Exists(Guid networkUserId, Guid permissionId)
         {
             return _context.NetworkUserPermissions.Any(nup =>  nup.NetworkUserId == networkUserId && nup.PermissionId == permissionId);
         }
@@ -29,17 +29,17 @@ namespace trojoaccounthub.Repositories
             return [.. _context.NetworkUserPermissions];
         }
 
-        public NetworkUserPermission? GetByIds(int networkUserId, int permissionId)
+        public NetworkUserPermission? GetByIds(Guid networkUserId, Guid permissionId)
         {
             return _context.NetworkUserPermissions.Find(networkUserId, permissionId);
         }
 
-        public ICollection<NetworkUserPermission> GetByNetworkUserId(int id)
+        public ICollection<NetworkUserPermission> GetByNetworkUserId(Guid id)
         {
             return [.. _context.NetworkUserPermissions.Where(nup => nup.NetworkUserId == id)];
         }
 
-        public ICollection<NetworkUserPermission> GetByPermissionId(int id)
+        public ICollection<NetworkUserPermission> GetByPermissionId(Guid id)
         {
             return [.. _context.NetworkUserPermissions.Where(nup => nup.PermissionId == id)];
         }

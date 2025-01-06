@@ -4,11 +4,11 @@ namespace trojoaccounthub.Interfaces.Repositories
 {
     public interface INetworkPermissionRepository : IBaseRepository
     {
-        bool Exists(int networkId, int permissionId);
+        bool Exists(Guid networkId, Guid permissionId);
         ICollection<NetworkPermission> GetAll();
-        ICollection<NetworkPermission> GetByNetworkId(int id);
-        ICollection<NetworkPermission> GetByPermissionId(int id);
-        NetworkPermission? GetByIds(int networkId, int permissiondId);
+        ICollection<NetworkPermission> GetByNetworkId(Guid id);
+        ICollection<NetworkPermission> GetByPermissionId(Guid id);
+        NetworkPermission? GetByIds(Guid networkId, Guid permissiondId);
         NetworkPermission? Create(NetworkPermission networkPermission);
         NetworkPermission? Update(NetworkPermission networkPermission);
         bool Delete(NetworkPermission networkPermission);

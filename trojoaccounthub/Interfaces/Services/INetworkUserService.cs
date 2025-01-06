@@ -3,11 +3,11 @@
     public interface INetworkUserService : IBaseService
     {
         ICollection<NetworkUserDto> GetAll();
-        ICollection<NetworkUserDto> GetByNetworkId(int id);
-        ICollection<NetworkUserDto> GetByuserProxyId(int id);
-        NetworkUserDto? GetById(int id);
-        NetworkUserDto? Create(int networkId, NetworkUserDto networkUser);
-        NetworkUserDto? Update(int id, NetworkUserDto networkUser);
-        bool DeleteById(int id);
+        ICollection<NetworkUserDto> GetByNetworkId(Guid id);
+        ICollection<NetworkUserDto> GetByuserProxyId(Guid id);
+        NetworkUserDto? GetById(Guid id);
+        NetworkUserDto? Create(Guid networkId, NetworkUserDto networkUser);
+        NetworkUserDto? Update(Guid id, NetworkUserDto networkUser);
+        bool DeleteById(Guid id);
     }
 }

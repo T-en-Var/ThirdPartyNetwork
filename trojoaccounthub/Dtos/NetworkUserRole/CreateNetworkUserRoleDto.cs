@@ -2,7 +2,7 @@
 {
     public class CreateNetworkUserRoleDto
     {
-        public required int NetworkUserId { get; set; }
-        public required int RoleId { get; set; }
+        public required Guid NetworkUserId { get; set; }
+        public required Guid RoleId { get; set; }
     }
 }

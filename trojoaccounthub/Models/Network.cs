@@ -2,7 +2,7 @@
 {
     public class Network
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         public required string Name { get; set; }
         public ICollection<Content> Contents { get; set; } = new List<Content>();
         public ICollection<NetworkUser> NetworkUsers { get; set; } = new List<NetworkUser>();

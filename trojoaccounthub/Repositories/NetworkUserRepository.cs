@@ -19,7 +19,7 @@ namespace trojoaccounthub.Repositories
             return Save();
         }
 
-        public bool Exists(int id)
+        public bool Exists(Guid id)
         {
             return _context.NetworkUsers.Any(nu => nu.Id == id);
         }
@@ -29,17 +29,17 @@ namespace trojoaccounthub.Repositories
             return [.. _context.NetworkUsers];
         }
 
-        public NetworkUser? GetById(int id)
+        public NetworkUser? GetById(Guid id)
         {
             return _context.NetworkUsers.Find(id);
         }
 
-        public ICollection<NetworkUser> GetByNetworkId(int id)
+        public ICollection<NetworkUser> GetByNetworkId(Guid id)
         {
             return [.. _context.NetworkUsers.Where(nu => nu.NetworkId == id)];
         }
 
-        public ICollection<NetworkUser> GetByUserProxyId(int id)
+        public ICollection<NetworkUser> GetByUserProxyId(Guid id)
         {
             return [.. _context.NetworkUsers.Where(nu => nu.UserProxyId == id)];
         }

@@ -19,7 +19,7 @@ namespace trojoaccounthub.Repositories
             return Save();
         }
 
-        public bool Exists(int id)
+        public bool Exists(Guid id)
         {
             return _context.Permissions.Any(p => p.Id == id);
         }
@@ -29,7 +29,7 @@ namespace trojoaccounthub.Repositories
             return [.. _context.Permissions];
         }
 
-        public Permission? GetById(int id)
+        public Permission? GetById(Guid id)
         {
             return _context.Permissions.Find(id);
         }

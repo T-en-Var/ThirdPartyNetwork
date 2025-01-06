@@ -29,7 +29,7 @@ namespace trojoaccounthub.Controllers
         [HttpGet("{id}")]
         [ProducesResponseType(200, Type = typeof(NetworkDto))]
         [ProducesResponseType(404)]
-        public IActionResult GetNetworkById(int id)
+        public IActionResult GetNetworkById(Guid id)
         {
             NetworkDto? network = _service.GetById(id);
             return StatusCode(200, network);
@@ -48,7 +48,7 @@ namespace trojoaccounthub.Controllers
         }
 
         [HttpPatch("/{id}/")]
-        public IActionResult Update(int id, UpdateNetworkDto networkUpdate)
+        public IActionResult Update(Guid id, UpdateNetworkDto networkUpdate)
         {
             NetworkDto? network = _service.Update(id, networkUpdate);
             return network == null

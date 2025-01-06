@@ -4,11 +4,11 @@ namespace trojoaccounthub.Interfaces.Repositories
 {
     public interface INetworkUserRoleRepository : IBaseRepository
     {
-        bool Exists(int networkUserId, int roleId);
+        bool Exists(Guid networkUserId, Guid roleId);
         ICollection<NetworkUserRole> GetAll();
-        ICollection<NetworkUserRole> GetByNetworkUserId(int id);
-        ICollection<NetworkUserRole> GetByRoleId(int id);
-        NetworkUserRole? GetByIds(int networkUserId, int roleId);
+        ICollection<NetworkUserRole> GetByNetworkUserId(Guid id);
+        ICollection<NetworkUserRole> GetByRoleId(Guid id);
+        NetworkUserRole? GetByIds(Guid networkUserId, Guid roleId);
         NetworkUserRole? Create(NetworkUserRole networkUserRole);
         NetworkUserRole? Update(NetworkUserRole networkUserRole);
         bool Delete(NetworkUserRole networkUserRole);
