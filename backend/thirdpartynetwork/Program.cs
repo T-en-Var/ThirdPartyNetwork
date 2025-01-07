@@ -1,6 +1,7 @@
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
+using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -14,6 +15,8 @@ using thirdpartynetwork.Swagger;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
+
+Env.Load();
 
 builder.Services.AddAuthentication(x =>
 {
@@ -62,7 +65,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
 builder.Services.AddDbContext<DataContext>(options =>
 {
-    options.UseNpgsql(config.GetConnectionString("DefaultConnection"));
+    options.UseNpgsql(Environment.GetEnvironmentVariable("DB_CONNECTION_STRING"));
 });
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();

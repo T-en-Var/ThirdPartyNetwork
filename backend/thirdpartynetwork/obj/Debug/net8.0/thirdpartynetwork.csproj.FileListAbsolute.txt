@@ -252,3 +252,5 @@ C:\Users\tijme\source\repos\ThirdPartyNetwork\thirdpartynetwork\obj\Debug\net8.0
 C:\Users\tijme\source\repos\ThirdPartyNetwork\thirdpartynetwork\obj\Debug\net8.0\thirdpartynetwork.pdb
 C:\Users\tijme\source\repos\ThirdPartyNetwork\thirdpartynetwork\obj\Debug\net8.0\thirdpartynetwork.genruntimeconfig.cache
 C:\Users\tijme\source\repos\ThirdPartyNetwork\thirdpartynetwork\obj\Debug\net8.0\ref\thirdpartynetwork.dll
+C:\Users\tijme\source\repos\ThirdPartyNetwork\thirdpartynetwork\bin\Debug\net8.0\DotNetEnv.dll
+C:\Users\tijme\source\repos\ThirdPartyNetwork\thirdpartynetwork\bin\Debug\net8.0\Sprache.dll
