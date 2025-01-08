@@ -25,7 +25,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Migrations\" />
+    <Folder Include="Application\" />
+    <Folder Include="Core\" />
+    <Folder Include="Core\Migrations\" />
+    <Folder Include="Presentation\" />
   </ItemGroup>
 
 </Project>

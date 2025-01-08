@@ -16,6 +16,7 @@ namespace thirdpartynetwork.Helper
 
         public async Task InvokeAsync(HttpContext context)
         {
+            _logger.LogError("Hey!");
             System.Diagnostics.Debug.WriteLine("Hoi!");
             System.Diagnostics.Debug.WriteLine(context);
             try

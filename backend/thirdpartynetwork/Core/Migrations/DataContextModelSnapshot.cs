@@ -8,7 +8,7 @@ using thirdpartynetwork.Data;
 
 #nullable disable
 
-namespace thirdpartynetwork.Migrations
+namespace thirdpartynetwork.Core.Migrations
 {
     [DbContext(typeof(DataContext))]
     partial class DataContextModelSnapshot : ModelSnapshot

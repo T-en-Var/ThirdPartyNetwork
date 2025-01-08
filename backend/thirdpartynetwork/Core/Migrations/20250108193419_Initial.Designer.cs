@@ -9,10 +9,10 @@ using thirdpartynetwork.Data;
 
 #nullable disable
 
-namespace thirdpartynetwork.Migrations
+namespace thirdpartynetwork.Core.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250106225201_Initial")]
+    [Migration("20250108193419_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
