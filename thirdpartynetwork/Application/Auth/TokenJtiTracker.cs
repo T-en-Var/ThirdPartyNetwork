@@ -10,6 +10,8 @@ public class JtiTracker
 // TODO: Add timer to clean up tree.
 // Have it check the timer, if expired, check tree for still active timers
 
+// TODO: Check if I've reinvented the wheel here lol 
+
 public static class TokenJtiTracker
 {
     private static readonly List<JtiTracker> JtiTree = [];
