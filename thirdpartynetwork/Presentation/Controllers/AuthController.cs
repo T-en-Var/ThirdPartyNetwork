@@ -13,7 +13,7 @@ public class AuthController : ControllerBase
     [ProducesResponseType(401)]
     public IActionResult CreateNetwork([FromBody] LoginDto login)
     {
-        var jwt = TokenGenerator.GenerateToken(Guid.NewGuid(), login.Username);
+        var jwt = TokenGenerator.GenerateAccessToken(Guid.NewGuid(), login.Username);
         var tokenDto = new TokenDto()
         {
             AccessToken = jwt,

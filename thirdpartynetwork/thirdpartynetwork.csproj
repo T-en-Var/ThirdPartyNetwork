@@ -25,7 +25,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Application\" />
     <Folder Include="Core\" />
     <Folder Include="Core\Migrations\" />
     <Folder Include="Presentation\" />
