@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using thirdpartynetwork.Dtos;
-using thirdpartynetwork.Exceptions;
 
 namespace thirdpartynetwork.Controllers;
 
@@ -16,13 +16,12 @@ public class NetworkController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize]
     [ProducesResponseType(200, Type = typeof(IEnumerable<NetworkDto>))]
     public IActionResult GetNetworks()
     {
         ICollection<NetworkDto> networks = _service.GetAll();
-        return networks == null
-            ? throw new UnableToHttpException("fetch Networks")
-            : StatusCode(200, networks);
+        return StatusCode(200, networks);
     }
 
     [HttpGet("{id}")]
@@ -41,17 +40,13 @@ public class NetworkController : ControllerBase
     public IActionResult CreateNetwork([FromBody] CreateNetworkDto networkCreate)
     {
         NetworkDto? network = _service.Create(networkCreate);
-        return network == null 
-            ? throw new UnableToHttpException("create Network") 
-            : StatusCode(201, network);
+        return StatusCode(201, network);
     }
 
     [HttpPatch("/{id}/")]
     public IActionResult Update(Guid id, UpdateNetworkDto networkUpdate)
     {
         NetworkDto? network = _service.Update(id, networkUpdate);
-        return network == null
-            ? throw new UnableToHttpException("update Network")
-            : StatusCode(200, network);
+        return StatusCode(200, network);
     }
 }

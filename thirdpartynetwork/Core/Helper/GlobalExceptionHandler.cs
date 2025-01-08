@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Diagnostics;
 using System.Text.Json;
+using Microsoft.IdentityModel.Tokens;
 using thirdpartynetwork.Exceptions;
 
 namespace thirdpartynetwork.Helper
@@ -15,12 +16,17 @@ namespace thirdpartynetwork.Helper
 
         public ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
         {
-            _logger.LogError(exception, "Unhandled exception occurred.");
+            // _logger.LogError(exception, "Unhandled exception occurred.");
 
             httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
             httpContext.Response.ContentType = "application/json";
             
             var message = "An unexpected error occurred. Please try again later.";
+
+            if (!exception.Message.IsNullOrEmpty())
+            {
+                message = exception.Message;
+            }
 
             if (exception is BaseHttpException baseHttpException)
             {

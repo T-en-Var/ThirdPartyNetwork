@@ -7,13 +7,11 @@ namespace thirdpartynetwork.Helper;
 
 public class TokenGenerator
 {
-    private static readonly string? TokenSecret = Environment.GetEnvironmentVariable("TOKEN_SECRET");
+    private static readonly string TokenSecret = Environment.GetEnvironmentVariable("TOKEN_SECRET")!;
     private static readonly TimeSpan TokenLifetime = TimeSpan.FromHours(24);
     
     public static string GenerateToken(Guid userId, string username)
     {
-        if (TokenSecret.IsNullOrEmpty()) throw new ArgumentNullException(nameof(TokenSecret));
-            
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.UTF8.GetBytes(TokenSecret);
 
@@ -21,7 +19,7 @@ public class TokenGenerator
         {
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new(JwtRegisteredClaimNames.Name, username),
-            new("userid", "some noodle"),
+            new("uid", userId.ToString()),
         };
 
         var tokenDescriptor = new SecurityTokenDescriptor

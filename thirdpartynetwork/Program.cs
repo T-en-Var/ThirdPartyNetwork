@@ -29,7 +29,7 @@ builder.Services.AddAuthentication(x =>
     {
         ValidIssuer = config["JwtSettings:Issuer"],
         ValidAudience = config["JwtSettings:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["JwtSettings:Key"]!)),
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("TOKEN_SECRET")!)),
         ValidateIssuer = true,
         ValidateAudience = true,
         ValidateLifetime = true,
@@ -78,6 +78,7 @@ if (args.Length == 1 && args[0].ToLower() == "seeddata")
 
 // Middlewares
 app.UseMiddleware<CustomExceptionMiddleware>();
+app.UseExceptionHandler();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -92,7 +93,6 @@ app.UseAuthorization();
 app.UseAuthorization();
 
 app.MapControllers();
-app.UseExceptionHandler();
 
 app.Run();
 

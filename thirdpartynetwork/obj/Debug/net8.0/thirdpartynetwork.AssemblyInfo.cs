@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("thirdpartynetwork")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+cbcbaf97cc11789d621ad0bc1ff82bd9ee3cff0b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+721cb524ab0eac12d7426c8395b5f5af2f6696bf")]
 [assembly: System.Reflection.AssemblyProductAttribute("thirdpartynetwork")]
 [assembly: System.Reflection.AssemblyTitleAttribute("thirdpartynetwork")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
