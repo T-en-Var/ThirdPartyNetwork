@@ -7,6 +7,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using thirdpartynetwork;
+using thirdpartynetwork.Application.Auth;
 using thirdpartynetwork.Data;
 using thirdpartynetwork.Helper;
 using thirdpartynetwork.Repositories;
@@ -53,10 +54,14 @@ builder.Services.AddControllers().AddJsonOptions(o => {
 
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
+// Cache for JtiCacheService.
+builder.Services.AddDistributedMemoryCache();
+
 // Add Repositories
 builder.Services.AddScoped<INetworkRepository, NetworkRepository>();
 
 // Add Services
+builder.Services.AddScoped<JtiCacheService>();
 builder.Services.AddScoped<INetworkService, NetworkService>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

@@ -1,12 +1,11 @@
 {
   "Version": 1,
-  "Hash": "Sr5QF1XbNRxsO96iBnRSHPUms26vOHKt1w7vr0GsYeU=",
+  "Hash": "Hd5DTdOWmFWnzVOTRgOifVz3vhzVGfl/FbieQfMF7u0=",
   "Source": "thirdpartynetwork",
   "BasePath": "_content/thirdpartynetwork",
   "Mode": "Default",
   "ManifestType": "Build",
   "ReferencedProjectsConfiguration": [],
   "DiscoveryPatterns": [],
-  "Assets": [],
-  "Endpoints": []
+  "Assets": []
 }
