@@ -1,4 +1,4 @@
-﻿namespace thirdpartynetwork.Dtos.Common.Ommitables
+﻿namespace thirdpartynetwork.Application.Dtos.Common.Ommitables
 {
     public class OmmitableContent
     {

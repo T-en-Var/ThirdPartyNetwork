@@ -1,6 +1,6 @@
-﻿using thirdpartynetwork.Dtos.Role;
+﻿using thirdpartynetwork.Application.Dtos.Role;
 
-namespace thirdpartynetwork.Dtos.NetworkRole
+namespace thirdpartynetwork.Application.Dtos.NetworkRole
 {
     public class NetworkRoleDto
     {

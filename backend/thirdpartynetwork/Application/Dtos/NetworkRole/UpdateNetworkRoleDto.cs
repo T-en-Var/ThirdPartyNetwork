@@ -1,4 +1,4 @@
-﻿namespace thirdpartynetwork.Dtos.NetworkRole
+﻿namespace thirdpartynetwork.Application.Dtos.NetworkRole
 {
     public class UpdateNetworkRoleDto
     {

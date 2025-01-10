@@ -1,4 +1,4 @@
-﻿using thirdpartynetwork.Dtos.UserProxy;
+﻿using thirdpartynetwork.Application.Dtos.UserProxy;
 
 namespace thirdpartynetwork.Core.Interfaces.Services
 {

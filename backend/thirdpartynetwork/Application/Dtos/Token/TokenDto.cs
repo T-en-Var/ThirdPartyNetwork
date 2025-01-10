@@ -1,4 +1,4 @@
-namespace thirdpartynetwork.Dtos.Token;
+namespace thirdpartynetwork.Application.Dtos.Token;
 
 public class TokenDto
 {

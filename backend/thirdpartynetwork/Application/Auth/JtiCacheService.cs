@@ -4,7 +4,7 @@ namespace thirdpartynetwork.Application.Auth;
 
 public class JtiCacheService
 {
-    public class JtiTracker
+    private class JtiTracker
     {
         public required string Jti { get; init; }
         public JtiTracker? Next { get; set; }

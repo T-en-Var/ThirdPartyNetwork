@@ -1,7 +1,7 @@
-﻿using thirdpartynetwork.Dtos.NetworkUser;
-using thirdpartynetwork.Dtos.Role;
+﻿using thirdpartynetwork.Application.Dtos.NetworkUser;
+using thirdpartynetwork.Application.Dtos.Role;
 
-namespace thirdpartynetwork.Dtos.NetworkUserRole
+namespace thirdpartynetwork.Application.Dtos.NetworkUserRole
 {
     public class NetworkUserRoleDto
     {

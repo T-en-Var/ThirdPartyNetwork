@@ -1,5 +1,5 @@
-﻿using thirdpartynetwork.Dtos.Network;
-using thirdpartynetwork.Dtos.NetworkPermission;
+﻿using thirdpartynetwork.Application.Dtos.Network;
+using thirdpartynetwork.Application.Dtos.NetworkPermission;
 
 namespace thirdpartynetwork.Core.Interfaces.Services
 {

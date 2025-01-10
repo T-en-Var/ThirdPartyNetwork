@@ -1,4 +1,4 @@
-﻿namespace thirdpartynetwork.Dtos.User
+﻿namespace thirdpartynetwork.Application.Dtos.User
 {
     public class CreateUserDto
     {

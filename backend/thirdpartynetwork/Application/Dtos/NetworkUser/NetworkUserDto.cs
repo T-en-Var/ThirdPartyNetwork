@@ -1,8 +1,8 @@
-﻿using thirdpartynetwork.Dtos.NetworkUserPermission;
-using thirdpartynetwork.Dtos.NetworkUserRole;
-using thirdpartynetwork.Dtos.UserProxy;
+﻿using thirdpartynetwork.Application.Dtos.NetworkUserPermission;
+using thirdpartynetwork.Application.Dtos.NetworkUserRole;
+using thirdpartynetwork.Application.Dtos.UserProxy;
 
-namespace thirdpartynetwork.Dtos.NetworkUser
+namespace thirdpartynetwork.Application.Dtos.NetworkUser
 {
     public class NetworkUserDto
     {

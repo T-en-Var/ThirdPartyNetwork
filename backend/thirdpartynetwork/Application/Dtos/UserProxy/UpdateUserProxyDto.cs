@@ -1,6 +1,6 @@
-﻿using thirdpartynetwork.Dtos.Common.Ommitables;
+﻿using thirdpartynetwork.Application.Dtos.Common.Ommitables;
 
-namespace thirdpartynetwork.Dtos.UserProxy
+namespace thirdpartynetwork.Application.Dtos.UserProxy
 {
     public class UpdateUserProxyDto : OmmitableUsername
     {

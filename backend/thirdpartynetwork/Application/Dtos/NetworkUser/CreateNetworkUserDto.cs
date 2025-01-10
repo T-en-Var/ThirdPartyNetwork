@@ -1,4 +1,4 @@
-﻿namespace thirdpartynetwork.Dtos.NetworkUser
+﻿namespace thirdpartynetwork.Application.Dtos.NetworkUser
 {
     public class CreateNetworkUserDto
     {

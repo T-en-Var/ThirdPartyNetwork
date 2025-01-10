@@ -1,4 +1,4 @@
-﻿namespace thirdpartynetwork.Dtos.Permission
+﻿namespace thirdpartynetwork.Application.Dtos.Permission
 {
     public class CreatePermissionDto
     {

@@ -1,6 +1,6 @@
-﻿using thirdpartynetwork.Dtos.Common.Ommitables;
+﻿using thirdpartynetwork.Application.Dtos.Common.Ommitables;
 
-namespace thirdpartynetwork.Dtos.NetworkUserPermission
+namespace thirdpartynetwork.Application.Dtos.NetworkUserPermission
 {
     public class UpdateNetworkUserPermissionDto : OmmitableIsAccepted
     {
