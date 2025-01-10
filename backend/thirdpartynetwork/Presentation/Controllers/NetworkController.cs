@@ -6,30 +6,24 @@ namespace thirdpartynetwork.Presentation.Controllers;
 
 [Route("api/networks")]
 [ApiController]
-public class NetworkController : ControllerBase
+public class NetworkController(INetworkService service) : ControllerBase
 {
-    private readonly INetworkService _service;
-
-    public NetworkController(INetworkService service)
-    {
-        _service = service;
-    }
-
     [HttpGet]
     [Authorize]
     [ProducesResponseType(200, Type = typeof(IEnumerable<NetworkDto>))]
     public IActionResult GetNetworks()
     {
-        ICollection<NetworkDto> networks = _service.GetAll();
+        // ClaimsPrincipal User = HttpContext.User;
+        var networks = service.GetAll();
         return StatusCode(200, networks);
     }
 
-    [HttpGet("{id}")]
+    [HttpGet("{id:guid}")]
     [ProducesResponseType(200, Type = typeof(NetworkDto))]
     [ProducesResponseType(404)]
     public IActionResult GetNetworkById(Guid id)
     {
-        NetworkDto? network = _service.GetById(id);
+        var network = service.GetById(id);
         return StatusCode(200, network);
     }
 
@@ -39,14 +33,14 @@ public class NetworkController : ControllerBase
     [ProducesResponseType(500)]
     public IActionResult CreateNetwork([FromBody] CreateNetworkDto networkCreate)
     {
-        NetworkDto? network = _service.Create(networkCreate);
+        var network = service.Create(networkCreate);
         return StatusCode(201, network);
     }
 
-    [HttpPatch("/{id}/")]
+    [HttpPatch("/{id:guid}/")]
     public IActionResult Update(Guid id, UpdateNetworkDto networkUpdate)
     {
-        NetworkDto? network = _service.Update(id, networkUpdate);
+        var network = service.Update(id, networkUpdate);
         return StatusCode(200, network);
     }
 }

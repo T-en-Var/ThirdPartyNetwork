@@ -5,27 +5,18 @@ using thirdpartynetwork.Core.Exceptions;
 
 namespace thirdpartynetwork.Application.Services
 {
-    public class NetworkService : INetworkService
+    public class NetworkService(INetworkRepository networkRepository, IMapper mapper) : INetworkService
     {
-        private readonly INetworkRepository _networkRepository;
-        private readonly IMapper _mapper;
-
-        public NetworkService(INetworkRepository networkRepository, IMapper mapper)
-        {
-            _networkRepository = networkRepository;
-            _mapper = mapper;
-        }
-
         public NetworkDto? Create(CreateNetworkDto createNetworkDto)
         {
-            var nameFound = _networkRepository.GetByName(createNetworkDto.Name);
+            var nameFound = networkRepository.GetByName(createNetworkDto.Name);
             if (nameFound != null)
                 throw new ConflictHttpException("Duplicate Network name.");
 
-            Network? network = _mapper.Map<Network>(createNetworkDto);
-            network = _networkRepository.Create(network);
+            Network? network = mapper.Map<Network>(createNetworkDto);
+            network = networkRepository.Create(network);
             
-            return _mapper.Map<NetworkDto>(network);
+            return mapper.Map<NetworkDto>(network);
         }
 
         public bool DeleteById(Guid id)

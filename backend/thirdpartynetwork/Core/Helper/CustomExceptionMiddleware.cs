@@ -3,26 +3,17 @@ using thirdpartynetwork.Core.Exceptions;
 
 namespace thirdpartynetwork.Core.Helper
 {
-    public class CustomExceptionMiddleware
+    public class CustomExceptionMiddleware(RequestDelegate next, ILogger<CustomExceptionMiddleware> logger)
     {
-        private readonly RequestDelegate _next;
-        private readonly ILogger<CustomExceptionMiddleware> _logger;
-
-        public CustomExceptionMiddleware(RequestDelegate next, ILogger<CustomExceptionMiddleware> logger)
-        {
-            _next = next;
-            _logger = logger;
-        }
-
         public async Task InvokeAsync(HttpContext context)
         {
             try
             {
-                await _next(context);
+                await next(context);
             }
             catch (BaseHttpException ex)
             {
-                _logger.LogError($"CustomHttpException: {ex}");
+                logger.LogError($"CustomHttpException: {ex}");
                 context.Response.StatusCode = ex.StatusCode;
                 context.Response.ContentType = "application/json";
 
@@ -49,7 +40,7 @@ namespace thirdpartynetwork.Core.Helper
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Unhandled exception: {ex}");
+                logger.LogError($"Unhandled exception: {ex}");
                 context.Response.StatusCode = StatusCodes.Status500InternalServerError;
                 await context.Response.WriteAsync("An unexpected error occurred.");
             }
