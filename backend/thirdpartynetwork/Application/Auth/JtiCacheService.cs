@@ -4,28 +4,84 @@ namespace thirdpartynetwork.Application.Auth;
 
 public class JtiCacheService
 {
-    private readonly IDistributedCache _cache;
-
-    public JtiCacheService(IDistributedCache cache)
+    public class JtiTracker
     {
-        _cache = cache;
+        public required string Jti { get; init; }
+        public JtiTracker? Next { get; set; }
+        public DateTime? Expiration { get; set; }
     }
 
-    public async Task<bool> IsJtiValidAsync(string jti)
+    private readonly List<JtiTracker> _jtiTrackers = [];
+
+    public bool IsJtiValid(string jti)
     {
-        return await _cache.GetStringAsync(jti) != null;
+        return _jtiTrackers.Any(t => t.Jti == jti);
     }
 
-    public async Task StoreJtiAsync(string jti, TimeSpan expiry)
+    public void StoreJti(string jti, string? previousJti, TimeSpan expiry)
     {
-        await _cache.SetStringAsync(jti, "used", new DistributedCacheEntryOptions
+        GarbageCollect();
+
+        var newTracker = new JtiTracker
         {
-            AbsoluteExpirationRelativeToNow = expiry
-        });
+            Jti = jti,
+            Expiration = DateTime.UtcNow.Add(expiry)
+        };
+
+        if (previousJti != null) AppendValidateJti(newTracker, previousJti);
+
+        _jtiTrackers.Add(newTracker);
     }
 
-    public async Task RemoveJtiAsync(string jti)
+    private void AppendValidateJti(JtiTracker newTracker, string previousJti)
     {
-        await _cache.RemoveAsync(jti);
+        var previousTracker = _jtiTrackers.Find(t => t.Jti == previousJti);
+        if (previousTracker == null)
+        {
+            throw new UnauthorizedAccessException();
+        }
+
+        if (previousTracker.Next != null)
+        {
+            RemoveTrackerTree(previousTracker);
+            throw new UnauthorizedAccessException();
+        }
+
+        previousTracker.Next = newTracker;
+        previousTracker.Expiration = null;
+    }
+
+    public void RemoveJti(string jti)
+    {
+        GarbageCollect();
+
+        var tracker = _jtiTrackers.Find(t => t.Jti == jti);
+        if (tracker == null) return;
+        RemoveTrackerTree(tracker);
+    }
+
+    private void RemoveTrackerTree(JtiTracker tracker)
+    {
+        if (tracker.Next != null) RemoveTrackerTree(tracker.Next);
+        
+        var childTrackers = _jtiTrackers.FindAll(t => t.Next == tracker);
+        foreach (var childTracker in childTrackers)
+        {
+            RemoveTrackerTree(childTracker);
+        }
+
+        _jtiTrackers.Remove(tracker);
+    }
+
+    private void GarbageCollect()
+    {
+        var expiredTrackers = _jtiTrackers
+            .Where(t => t.Expiration != null && t.Expiration < DateTime.UtcNow)
+            .ToList();
+        
+        foreach (var expiredTracker in expiredTrackers)
+        {
+            RemoveTrackerTree(expiredTracker);
+        }
     }
 }

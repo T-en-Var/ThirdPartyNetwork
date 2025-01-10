@@ -1,25 +1,16 @@
-﻿using Microsoft.EntityFrameworkCore;
-using thirdpartynetwork.Data;
-using thirdpartynetwork.Interfaces.Repositories;
-using thirdpartynetwork.Models;
-using thirdpartynetwork.Dtos.Permission;
+﻿using thirdpartynetwork.Core.Models;
+using thirdpartynetwork.Core.Data;
 
-namespace thirdpartynetwork.Repositories
+namespace thirdpartynetwork.Application.Repositories
 {
-    public class NetworkRepository : BaseRepository, INetworkRepository
+    public class NetworkRepository(DataContext context) : BaseRepository(context), INetworkRepository
     {
-        private readonly DataContext _context;
-
-        public NetworkRepository(DataContext context) : base(context) 
-        {
-            _context = context;
-        }
+        private readonly DataContext _context = context;
 
         public Network? Create(Network network)
         {
             _context.Networks.Add(network);
-            if (!Save()) return null;
-            return network;
+            return !Save() ? null : network;
         }
 
         public bool Delete(Network network)

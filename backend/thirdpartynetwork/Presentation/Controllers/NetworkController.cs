@@ -1,8 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using thirdpartynetwork.Dtos;
 
-namespace thirdpartynetwork.Controllers;
+namespace thirdpartynetwork.Presentation.Controllers;
 
 [Route("api/networks")]
 [ApiController]

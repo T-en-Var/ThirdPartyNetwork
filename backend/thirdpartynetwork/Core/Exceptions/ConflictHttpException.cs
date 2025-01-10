@@ -1,4 +1,4 @@
-﻿namespace thirdpartynetwork.Exceptions
+﻿namespace thirdpartynetwork.Core.Exceptions
 {
     public class ConflictHttpException : BaseHttpException
     {

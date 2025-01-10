@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using thirdpartynetwork.Models;
+using thirdpartynetwork.Core.Models;
 
-namespace thirdpartynetwork.Data
+namespace thirdpartynetwork.Core.Data
 {
     public class DataContext(DbContextOptions<DataContext> options) : DbContext(options)
     {

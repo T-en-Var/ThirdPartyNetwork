@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Diagnostics;
 using System.Text.Json;
 using Microsoft.IdentityModel.Tokens;
-using thirdpartynetwork.Exceptions;
+using thirdpartynetwork.Core.Exceptions;
 
-namespace thirdpartynetwork.Helper
+namespace thirdpartynetwork.Core.Helper
 {
     internal sealed class GlobalExceptionHandler : IExceptionHandler
     {

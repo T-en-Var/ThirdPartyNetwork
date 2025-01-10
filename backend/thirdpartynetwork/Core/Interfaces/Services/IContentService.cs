@@ -1,6 +1,4 @@
-﻿using thirdpartynetwork.Dtos.Content;
-
-namespace thirdpartynetwork.Interfaces.Services
+﻿namespace thirdpartynetwork.Core.Interfaces.Services
 {
     public interface IContentService : IBaseService
     {

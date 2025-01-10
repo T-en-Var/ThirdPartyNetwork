@@ -1,6 +1,6 @@
 ﻿using thirdpartynetwork.Dtos.User;
 
-namespace thirdpartynetwork.Interfaces.Services
+namespace thirdpartynetwork.Core.Interfaces.Services
 {
     public interface IUserService : IBaseService
     {

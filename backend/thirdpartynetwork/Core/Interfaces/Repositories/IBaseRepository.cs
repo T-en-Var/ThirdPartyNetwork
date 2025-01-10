@@ -1,4 +1,4 @@
-﻿namespace thirdpartynetwork.Interfaces.Repositories
+﻿namespace thirdpartynetwork.Core.Interfaces.Repositories
 {
     public interface IBaseRepository
     {

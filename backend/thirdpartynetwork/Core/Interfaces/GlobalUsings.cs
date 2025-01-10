@@ -1,2 +1,2 @@
-﻿global using thirdpartynetwork.Interfaces.Repositories;
-global using thirdpartynetwork.Interfaces.Services;
+﻿global using thirdpartynetwork.Core.Interfaces.Repositories;
+global using thirdpartynetwork.Core.Interfaces.Services;

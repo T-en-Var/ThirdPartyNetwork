@@ -1,16 +1,16 @@
-﻿using thirdpartynetwork.Data;
-using thirdpartynetwork.Interfaces.Repositories;
-using thirdpartynetwork.Models;
+﻿using thirdpartynetwork.Core.Data;
+using thirdpartynetwork.Core.Models;
 
-namespace thirdpartynetwork.Repositories
+namespace thirdpartynetwork.Application.Repositories
 {
-    public class NetworkUserPermissionRepository(DataContext _context) : BaseRepository(_context), INetworkUserPermissionRepository
+    public class NetworkUserPermissionRepository(DataContext context) : BaseRepository(context), INetworkUserPermissionRepository
     {
+        private readonly DataContext _context = context;
+
         public NetworkUserPermission? Create(NetworkUserPermission networkUserPermission)
         {
             _context.NetworkUserPermissions.Add(networkUserPermission);
-            if (!Save()) return null;
-            return networkUserPermission;
+            return !Save() ? null : networkUserPermission;
         }
 
         public bool Delete(NetworkUserPermission networkUserPermission)

@@ -1,12 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
-using thirdpartynetwork.Data;
-using thirdpartynetwork.Interfaces.Repositories;
-using thirdpartynetwork.Models;
+﻿using thirdpartynetwork.Core.Data;
+using thirdpartynetwork.Core.Models;
 
-namespace thirdpartynetwork.Repositories
+namespace thirdpartynetwork.Application.Repositories
 {
-    public class UserRepository(DataContext _context) : BaseRepository(_context), IUserRepository
+    public class UserRepository(DataContext context) : BaseRepository(context), IUserRepository
     {
+        private readonly DataContext _context = context;
+
         public User? Create(User user)
         {
             _context.Users.Add(user);

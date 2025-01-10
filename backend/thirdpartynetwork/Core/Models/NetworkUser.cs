@@ -1,4 +1,4 @@
-﻿namespace thirdpartynetwork.Models
+﻿namespace thirdpartynetwork.Core.Models
 {
     public class NetworkUser
     {

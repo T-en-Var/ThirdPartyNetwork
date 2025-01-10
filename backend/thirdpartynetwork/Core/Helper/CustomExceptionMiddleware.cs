@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
-using thirdpartynetwork.Exceptions;
+using thirdpartynetwork.Core.Exceptions;
 
-namespace thirdpartynetwork.Helper
+namespace thirdpartynetwork.Core.Helper
 {
     public class CustomExceptionMiddleware
     {

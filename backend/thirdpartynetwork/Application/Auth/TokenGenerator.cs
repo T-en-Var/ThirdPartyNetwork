@@ -5,19 +5,13 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace thirdpartynetwork.Application.Auth;
 
-public class TokenGenerator
+public class TokenGenerator(JtiCacheService jtiCacheService)
 {
-    private readonly JtiCacheService _jtiCacheService;
     private static readonly string TokenSecret = Environment.GetEnvironmentVariable("TOKEN_SECRET")!;
-    private static readonly TimeSpan AccessTokenLifetime = TimeSpan.FromHours(24);
+    private static readonly TimeSpan AccessTokenLifetime = TimeSpan.FromMinutes(15);
     private static readonly TimeSpan RefreshTokenLifetime = TimeSpan.FromHours(7 * 24);
-    
-    public TokenGenerator(JtiCacheService jtiCacheService)
-    {
-        _jtiCacheService = jtiCacheService;
-    }
-    
-    public async Task<string> GenerateAccessToken(
+
+    public string GenerateAccessToken(
         Guid userId, 
         string username)
     {
@@ -48,22 +42,13 @@ public class TokenGenerator
         return jwt;
     }
 
-    public async Task<string> GenerateRefreshToken(Guid? previousJti = null)
+    public string GenerateRefreshToken(string? previousJti = null)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.UTF8.GetBytes(TokenSecret);
-
-        if (previousJti.HasValue)
-        {
-            if (!await _jtiCacheService.IsJtiValidAsync(previousJti.Value.ToString()))
-            {
-                await _jtiCacheService.RemoveJtiAsync(previousJti.Value.ToString());
-                throw new UnauthorizedAccessException();
-            }
-        }
         
         var jti = Guid.NewGuid().ToString();
-        await _jtiCacheService.StoreJtiAsync(jti, AccessTokenLifetime);
+        jtiCacheService.StoreJti(jti, previousJti, AccessTokenLifetime);
 
         var claims = new List<Claim>
         {
