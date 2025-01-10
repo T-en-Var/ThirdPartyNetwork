@@ -1,7 +1,7 @@
-﻿using thirdpartynetwork.Dtos.NetworkPermission;
-using thirdpartynetwork.Dtos.NetworkUserPermission;
+﻿using thirdpartynetwork.Application.Dtos.NetworkPermission;
+using thirdpartynetwork.Application.Dtos.NetworkUserPermission;
 
-namespace thirdpartynetwork.Dtos.Permission
+namespace thirdpartynetwork.Application.Dtos.Permission
 {
     public class PermissionDto
     {

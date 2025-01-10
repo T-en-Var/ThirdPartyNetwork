@@ -1,4 +1,4 @@
-﻿namespace thirdpartynetwork.Dtos.NetworkUserRole
+﻿namespace thirdpartynetwork.Application.Dtos.NetworkUserRole
 {
     public class CreateNetworkUserRoleDto
     {

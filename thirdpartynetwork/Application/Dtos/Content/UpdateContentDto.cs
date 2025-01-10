@@ -1,7 +1,7 @@
-﻿using thirdpartynetwork.Dtos.Common.Ommitables;
+﻿using thirdpartynetwork.Application.Dtos.Common.Ommitables;
 using thirdpartynetwork.Helper;
 
-namespace thirdpartynetwork.Dtos.Content
+namespace thirdpartynetwork.Application.Dtos.Content
 {
     public class UpdateContentDto : OmmitableTitle
     {

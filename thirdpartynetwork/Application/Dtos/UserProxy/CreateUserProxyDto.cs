@@ -1,4 +1,4 @@
-﻿namespace thirdpartynetwork.Dtos.UserProxy
+﻿namespace thirdpartynetwork.Application.Dtos.UserProxy
 {
     public class CreateUserProxyDto
     {
@@ -8,6 +8,6 @@
         public required string Email { get; set; }
         public required string Password { get; set; }
         public required string ProfilePicture { get; set; }
-        public required bool IsDefault { get; set; }
+        // public required bool IsDefault { get; set; }
     }
 }

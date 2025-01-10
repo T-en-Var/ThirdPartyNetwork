@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using thirdpartynetwork.Core.Models;
-using thirdpartynetwork.Dtos;
+using thirdpartynetwork.Application.Dtos;
 
 namespace thirdpartynetwork.Core.Helper
 {

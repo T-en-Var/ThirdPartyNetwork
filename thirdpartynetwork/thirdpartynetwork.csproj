@@ -26,6 +26,7 @@
 
   <ItemGroup>
     <Folder Include="Core\" />
+    <Folder Include="Core\Interfaces\Auth\" />
     <Folder Include="Core\Migrations\" />
     <Folder Include="Presentation\" />
   </ItemGroup>

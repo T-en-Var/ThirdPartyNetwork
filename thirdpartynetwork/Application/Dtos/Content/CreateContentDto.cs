@@ -1,4 +1,4 @@
-﻿namespace thirdpartynetwork.Dtos.Content
+﻿namespace thirdpartynetwork.Application.Dtos.Content
 {
     public class CreateContentDto
     {

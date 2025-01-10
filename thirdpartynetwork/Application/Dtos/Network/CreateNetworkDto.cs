@@ -1,4 +1,4 @@
-﻿namespace thirdpartynetwork.Dtos.Network
+﻿namespace thirdpartynetwork.Application.Dtos.Network
 {
     public class CreateNetworkDto
     {

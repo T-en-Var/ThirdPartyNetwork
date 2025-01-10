@@ -1,6 +1,6 @@
-﻿using thirdpartynetwork.Dtos.User;
+﻿using thirdpartynetwork.Application.Dtos.User;
 
-namespace thirdpartynetwork.Dtos.UserProxy
+namespace thirdpartynetwork.Application.Dtos.UserProxy
 {
     public class UserProxyDto
     {

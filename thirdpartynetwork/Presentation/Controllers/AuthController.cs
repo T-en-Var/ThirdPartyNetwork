@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using thirdpartynetwork.Application.Auth;
-using thirdpartynetwork.Dtos.Token;
+using thirdpartynetwork.Application.Dtos.Token;
 
 namespace thirdpartynetwork.Presentation.Controllers;
 

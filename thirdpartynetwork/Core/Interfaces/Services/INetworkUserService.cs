@@ -1,4 +1,4 @@
-﻿using thirdpartynetwork.Dtos.NetworkUser;
+﻿using thirdpartynetwork.Application.Dtos.NetworkUser;
 
 namespace thirdpartynetwork.Core.Interfaces.Services
 {

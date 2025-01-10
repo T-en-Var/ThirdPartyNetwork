@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using thirdpartynetwork.Dtos.Common.Ommitables;
+using thirdpartynetwork.Application.Dtos.Common.Ommitables;
 
-namespace thirdpartynetwork.Dtos.Network
+namespace thirdpartynetwork.Application.Dtos.Network
 {
     public class UpdateNetworkDto
     {
