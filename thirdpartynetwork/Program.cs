@@ -58,12 +58,30 @@ builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 // builder.Services.AddDistributedMemoryCache();
 
 // Add Repositories
+builder.Services.AddScoped<IContentRepository, ContentRepository>();
+builder.Services.AddScoped<INetworkPermissionRepository, NetworkPermissionRepository>();
+builder.Services.AddScoped<INetworkRoleRepository, NetworkRoleRepository>();
 builder.Services.AddScoped<INetworkRepository, NetworkRepository>();
+builder.Services.AddScoped<INetworkUserPermissionRepository, NetworkUserPermissionRepository>();
+builder.Services.AddScoped<INetworkUserRepository, NetworkUserRepository>();
+builder.Services.AddScoped<IPermissionRepository, PermissionRepository>();
+builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+builder.Services.AddScoped<IUserProxyRepository, UserProxyRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 // Add Services
 builder.Services.AddScoped<TokenGenerator>();
 builder.Services.AddScoped<JtiCacheService>();
+builder.Services.AddScoped<IContentService, ContentService>();
+builder.Services.AddScoped<INetworkPermissionService, NetworkPermissionService>();
+builder.Services.AddScoped<INetworkRoleService, NetworkRoleService>();
 builder.Services.AddScoped<INetworkService, NetworkService>();
+builder.Services.AddScoped<INetworkUserPermissionService, NetworkUserPermissionService>();
+builder.Services.AddScoped<INetworkUserService, NetworkUserService>();
+builder.Services.AddScoped<IPermissionService, PermissionService>();
+builder.Services.AddScoped<IRoleService, RoleService>();
+builder.Services.AddScoped<IUserProxyService, UserProxyService>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
