@@ -1,9 +1,9 @@
 ﻿using AutoMapper;
+using thirdpartynetwork.Core.Models;
 using thirdpartynetwork.Dtos;
-using thirdpartynetwork.Exceptions;
-using thirdpartynetwork.Models;
+using thirdpartynetwork.Core.Exceptions;
 
-namespace thirdpartynetwork.Services
+namespace thirdpartynetwork.Application.Services
 {
     public class NetworkService : INetworkService
     {

@@ -1,6 +1,6 @@
 ﻿using thirdpartynetwork.Dtos.Permission;
 
-namespace thirdpartynetwork.Interfaces.Services
+namespace thirdpartynetwork.Core.Interfaces.Services
 {
     public interface IPermissionService : IBaseService
     {

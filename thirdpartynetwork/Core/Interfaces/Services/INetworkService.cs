@@ -1,7 +1,6 @@
 ﻿using thirdpartynetwork.Dtos;
-using thirdpartynetwork.Dtos.Network;
 
-namespace thirdpartynetwork.Interfaces.Services
+namespace thirdpartynetwork.Core.Interfaces.Services
 {
     public interface INetworkService : IBaseService
     {

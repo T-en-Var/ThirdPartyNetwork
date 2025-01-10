@@ -1,7 +1,7 @@
-﻿using thirdpartynetwork.Data;
-using thirdpartynetwork.Interfaces.Repositories;
+﻿using thirdpartynetwork.Core.Data;
+using thirdpartynetwork.Core.Interfaces.Repositories;
 
-namespace thirdpartynetwork.Repositories
+namespace thirdpartynetwork.Application.Repositories
 {
     public abstract class BaseRepository : IBaseRepository
     {

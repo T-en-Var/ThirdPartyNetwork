@@ -8,11 +8,11 @@ using Microsoft.IdentityModel.Tokens;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using thirdpartynetwork;
 using thirdpartynetwork.Application.Auth;
-using thirdpartynetwork.Data;
-using thirdpartynetwork.Helper;
-using thirdpartynetwork.Repositories;
-using thirdpartynetwork.Services;
-using thirdpartynetwork.Swagger;
+using thirdpartynetwork.Core.Data;
+using thirdpartynetwork.Presentation.Swagger;
+using thirdpartynetwork.Application.Repositories;
+using thirdpartynetwork.Application.Services;
+using thirdpartynetwork.Core.Helper;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
@@ -55,12 +55,13 @@ builder.Services.AddControllers().AddJsonOptions(o => {
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 // Cache for JtiCacheService.
-builder.Services.AddDistributedMemoryCache();
+// builder.Services.AddDistributedMemoryCache();
 
 // Add Repositories
 builder.Services.AddScoped<INetworkRepository, NetworkRepository>();
 
 // Add Services
+builder.Services.AddScoped<TokenGenerator>();
 builder.Services.AddScoped<JtiCacheService>();
 builder.Services.AddScoped<INetworkService, NetworkService>();
 

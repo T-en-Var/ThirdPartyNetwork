@@ -1,6 +1,6 @@
 ﻿using thirdpartynetwork.Dtos.NetworkUserPermission;
 
-namespace thirdpartynetwork.Interfaces.Services
+namespace thirdpartynetwork.Core.Interfaces.Services
 {
     public interface INetworkUserPermissionService : IBaseService
     {

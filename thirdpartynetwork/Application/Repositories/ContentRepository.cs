@@ -1,16 +1,16 @@
-﻿using thirdpartynetwork.Data;
-using thirdpartynetwork.Interfaces.Repositories;
-using thirdpartynetwork.Models;
+﻿using thirdpartynetwork.Core.Data;
+using thirdpartynetwork.Core.Models;
 
-namespace thirdpartynetwork.Repositories
+namespace thirdpartynetwork.Application.Repositories
 {
-    public class ContentRepository(DataContext _context) : BaseRepository(_context), IContentRepository
+    public class ContentRepository(DataContext context) : BaseRepository(context), IContentRepository
     {
+        private readonly DataContext _context = context;
+
         public Content? Create(Content content)
         {
             _context.Contents.Add(content);
-            if (!Save()) return null;
-            return content;
+            return !Save() ? null : content;
         }
 
         public bool Delete(Content content)

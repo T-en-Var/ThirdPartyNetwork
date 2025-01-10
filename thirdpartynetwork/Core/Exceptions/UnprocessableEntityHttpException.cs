@@ -1,4 +1,4 @@
-﻿namespace thirdpartynetwork.Exceptions
+﻿namespace thirdpartynetwork.Core.Exceptions
 {
     public class UnprocessableEntityHttpException : BaseHttpException
     {

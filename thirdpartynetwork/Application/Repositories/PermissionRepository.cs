@@ -1,16 +1,16 @@
-﻿using thirdpartynetwork.Data;
-using thirdpartynetwork.Interfaces.Repositories;
-using thirdpartynetwork.Models;
+﻿using thirdpartynetwork.Core.Data;
+using thirdpartynetwork.Core.Models;
 
-namespace thirdpartynetwork.Repositories
+namespace thirdpartynetwork.Application.Repositories
 {
-    public class PermissionRepository(DataContext _context) : BaseRepository(_context), IPermissionRepository
+    public class PermissionRepository(DataContext context) : BaseRepository(context), IPermissionRepository
     {
+        private readonly DataContext _context = context;
+
         public Permission? Create(Permission permission)
         {
             _context.Permissions.Add(permission);
-            if (!Save()) return null;
-            return permission;
+            return !Save() ? null : permission;
         }
 
         public bool Delete(Permission permission)

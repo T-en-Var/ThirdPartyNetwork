@@ -1,6 +1,6 @@
 ﻿using thirdpartynetwork.Dtos.NetworkRole;
 
-namespace thirdpartynetwork.Interfaces.Services
+namespace thirdpartynetwork.Core.Interfaces.Services
 {
     public interface INetworkRoleService : IBaseService
     {

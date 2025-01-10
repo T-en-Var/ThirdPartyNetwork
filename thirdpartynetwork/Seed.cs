@@ -1,17 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using thirdpartynetwork.Data;
-using thirdpartynetwork.Models;
+using thirdpartynetwork.Core.Models;
+using thirdpartynetwork.Core.Data;
 
 namespace thirdpartynetwork
 {
-    public class Seed
+    public class Seed(DataContext context)
     {
-        private readonly DataContext dataContext;
-        public Seed(DataContext context)
-        {
-            this.dataContext = context;
-        }
-
         public void SeedDataContext()
         {
             ClearDatabase();
@@ -40,7 +34,7 @@ namespace thirdpartynetwork
 
             Permission accessUsername = new() { Name = "Access Username", Description = "Allows Network to Access User's Username" };
             Permission accessFirstname = new() { Name = "Access Firstname", Description = "Allows Network to Access User's Firstname" };
-            Permission accessLastename = new() { Name = "Access Lastename", Description = "Allows Network to Access User's Lastename" };
+            Permission accessLastname = new() { Name = "Access Lastname", Description = "Allows Network to Access User's Lastname" };
             Permission accessEmail = new() { Name = "Access Email", Description = "Allows Network to Access User's Email" };
             Permission accessProfilePicture = new() { Name = "Access ProfilePicture", Description = "Allows Network to Access User's ProfilePicture" };
 
@@ -56,7 +50,7 @@ namespace thirdpartynetwork
                 User = new User()
             };
 
-            Models.NetworkUser adminNetworkUser = new()
+            NetworkUser adminNetworkUser = new()
             {
                 UserProxy = adminUser,
                 UserProxyId = adminUser.Id,
@@ -66,12 +60,12 @@ namespace thirdpartynetwork
 
             adminNetworkUser.NetworkUserRoles =
             [
-                new()
+                new NetworkUserRole
                 {
                     Role = adminRole,
                     NetworkUser = adminNetworkUser
                 },
-                new()
+                new NetworkUserRole
                 {
                     Role = userRole,
                     NetworkUser = adminNetworkUser
@@ -80,31 +74,31 @@ namespace thirdpartynetwork
 
             adminNetworkUser.NetworkUserPermissions =
             [
-                new() 
+                new NetworkUserPermission
                 {
                     NetworkUser = adminNetworkUser,
                     Permission = accessUsername,
                     IsAccepted = true,
                 } ,
-                new() 
+                new NetworkUserPermission
                 {
                     NetworkUser = adminNetworkUser,
                     Permission = accessFirstname,
                     IsAccepted = true,
                 },
-                new() 
+                new NetworkUserPermission
                 {
                     NetworkUser = adminNetworkUser,
-                    Permission = accessLastename,
+                    Permission = accessLastname,
                     IsAccepted = true,
                 },
-                new() 
+                new NetworkUserPermission
                 {
                     NetworkUser = adminNetworkUser,
                     Permission = accessEmail,
                     IsAccepted = true,
                 },
-                new() 
+                new NetworkUserPermission
                 {
                     NetworkUser = adminNetworkUser,
                     Permission = accessProfilePicture,
@@ -114,31 +108,31 @@ namespace thirdpartynetwork
 
             network.NetworkPermissions =
             [
-                new()
+                new NetworkPermission
                 {
                     Permission = accessUsername,
                     Network = network,
                     IsRequired = true,
                 },
-                new()
+                new NetworkPermission
                 {
                     Permission = accessFirstname,
                     Network = network,
                     IsRequired = true,
                 },
-                new()
+                new NetworkPermission
                 {
-                    Permission = accessLastename,
+                    Permission = accessLastname,
                     Network = network,
                     IsRequired = true,
                 },
-                new()
+                new NetworkPermission
                 {
                     Permission = accessEmail,
                     Network = network,
                     IsRequired = true,
                 },
-                new()
+                new NetworkPermission
                 {
                     Permission = accessProfilePicture,
                     Network = network,
@@ -148,23 +142,23 @@ namespace thirdpartynetwork
 
             network.NetworkUsers = [ adminNetworkUser ];
 
-            dataContext.Networks.Add(network);
-            dataContext.SaveChanges();
+            context.Networks.Add(network);
+            context.SaveChanges();
         }
 
-        public void ClearDatabase()
+        private void ClearDatabase()
         {
             Console.WriteLine("Clearing database.");
 
-            var dbSets = dataContext.GetType().GetProperties()
+            var dbSets = context.GetType().GetProperties()
                 .Where(p => p.PropertyType.IsGenericType && p.PropertyType.GetGenericTypeDefinition() == typeof(DbSet<>))
                 .Select(p => p.Name)
                 .ToList();
 
-            string tables = string.Join(", ", dbSets.Select(tableName => $"\"{tableName}\""));
-            string truncateCommand = $"TRUNCATE TABLE {tables} RESTART IDENTITY CASCADE;";
+            var tables = string.Join(", ", dbSets.Select(tableName => $"\"{tableName}\""));
+            var truncateCommand = $"TRUNCATE TABLE {tables} RESTART IDENTITY CASCADE;";
 
-            dataContext.Database.ExecuteSqlRaw(truncateCommand);
+            context.Database.ExecuteSqlRaw(truncateCommand);
         }
     }
 }

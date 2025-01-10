@@ -1,6 +1,4 @@
-﻿using System.Security.Cryptography.X509Certificates;
-
-namespace thirdpartynetwork.Models
+﻿namespace thirdpartynetwork.Core.Models
 {
     public class NetworkUserRole
     {

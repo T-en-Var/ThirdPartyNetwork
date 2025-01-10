@@ -1,17 +1,18 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using thirdpartynetwork.Data;
-using thirdpartynetwork.Interfaces.Repositories;
-using thirdpartynetwork.Models;
+using thirdpartynetwork.Core.Data;
+using thirdpartynetwork.Core.Interfaces.Repositories;
+using thirdpartynetwork.Core.Models;
 
-namespace thirdpartynetwork.Repositories
+namespace thirdpartynetwork.Application.Repositories
 {
-    public class NetworkPermissionRepository(DataContext _context) : BaseRepository(_context), INetworkPermissionRepository
+    public class NetworkPermissionRepository(DataContext context) : BaseRepository(context), INetworkPermissionRepository
     {
+        private readonly DataContext _context = context;
+
         public NetworkPermission? Create(NetworkPermission networkPermission)
         {
             _context.NetworkPermissions.Add(networkPermission);
-            if (!Save()) return null;
-            return networkPermission;
+            return !Save() ? null : networkPermission;
         }
 
         public bool Delete(NetworkPermission networkPermission)

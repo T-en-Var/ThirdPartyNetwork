@@ -1,4 +1,4 @@
-﻿namespace thirdpartynetwork.Controllers
+﻿namespace thirdpartynetwork.Presentation.Controllers
 {
     public class RoleController
     {

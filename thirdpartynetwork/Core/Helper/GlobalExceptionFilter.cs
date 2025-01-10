@@ -3,18 +3,18 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using System.Net;
 using System.Web.Http;
 
-namespace thirdpartynetwork.Helper
+namespace thirdpartynetwork.Core.Helper
 {
     public class GlobalExceptionFilter : ExceptionFilterAttribute
     {
-        public void OnException(ExceptionContext context)
+        public override void OnException(ExceptionContext context)
         {
             System.Diagnostics.Debug.WriteLine("Here Exception!");
 
             if (context.Exception is HttpResponseException httpResponseException)
             {
                 // Extract details from HttpResponseException
-                var statusCode = 400; // (int)httpResponseException.StatusCode
+                const int statusCode = 400; // (int)httpResponseException.StatusCode
                 var errorMessage = httpResponseException.Message;
 
                 context.Result = new ObjectResult(new { Error = errorMessage })

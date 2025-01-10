@@ -1,17 +1,17 @@
 ﻿using System.Security;
-using thirdpartynetwork.Data;
-using thirdpartynetwork.Interfaces.Repositories;
-using thirdpartynetwork.Models;
+using thirdpartynetwork.Core.Data;
+using thirdpartynetwork.Core.Models;
 
-namespace thirdpartynetwork.Repositories
+namespace thirdpartynetwork.Application.Repositories
 {
-    public class RoleRepository(DataContext _context) : BaseRepository(_context), IRoleRepository
+    public class RoleRepository(DataContext context) : BaseRepository(context), IRoleRepository
     {
+        private readonly DataContext _context = context;
+
         public Role? Create(Role role)
         {
             _context.Roles.Add(role);
-            if (!Save()) return null;
-            return role;
+            return !Save() ? null : role;
         }
 
         public bool Delete(Role role)

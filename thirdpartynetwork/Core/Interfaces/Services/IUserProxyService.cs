@@ -1,6 +1,6 @@
 ﻿using thirdpartynetwork.Dtos.UserProxy;
 
-namespace thirdpartynetwork.Interfaces.Services
+namespace thirdpartynetwork.Core.Interfaces.Services
 {
     public interface IUserProxyService : IBaseService
     {

@@ -1,16 +1,16 @@
-﻿using thirdpartynetwork.Data;
-using thirdpartynetwork.Interfaces.Repositories;
-using thirdpartynetwork.Models;
+﻿using thirdpartynetwork.Core.Data;
+using thirdpartynetwork.Core.Models;
 
-namespace thirdpartynetwork.Repositories
+namespace thirdpartynetwork.Application.Repositories
 {
-    public class NetworkUserRoleRepository(DataContext _context) : BaseRepository(_context), INetworkUserRoleRepository
+    public class NetworkUserRoleRepository(DataContext context) : BaseRepository(context), INetworkUserRoleRepository
     {
+        private readonly DataContext _context = context;
+
         public NetworkUserRole? Create(NetworkUserRole networkUserRole)
         {
             _context.NetworkUserRoles.Add(networkUserRole);
-            if (!Save()) return null;
-            return networkUserRole;
+            return !Save() ? null : networkUserRole;
         }
 
         public bool Delete(NetworkUserRole networkUserRole)

@@ -1,16 +1,17 @@
-﻿using thirdpartynetwork.Data;
-using thirdpartynetwork.Interfaces.Repositories;
-using thirdpartynetwork.Models;
+﻿using thirdpartynetwork.Core.Data;
+using thirdpartynetwork.Core.Interfaces.Repositories;
+using thirdpartynetwork.Core.Models;
 
-namespace thirdpartynetwork.Repositories
+namespace thirdpartynetwork.Application.Repositories
 {
-    public class NetworkUserRepository(DataContext _context) : BaseRepository(_context), INetworkUserRepository
+    public class NetworkUserRepository(DataContext context) : BaseRepository(context), INetworkUserRepository
     {
+        private readonly DataContext _context = context;
+
         public NetworkUser? Create(NetworkUser networkUser)
         {
             _context.NetworkUsers.Add(networkUser);
-            if (!Save()) return null;
-            return networkUser;
+            return !Save() ? null : networkUser;
         }
 
         public bool Delete(NetworkUser networkUser)

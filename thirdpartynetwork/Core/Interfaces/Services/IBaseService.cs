@@ -1,4 +1,4 @@
-﻿namespace thirdpartynetwork.Interfaces
+﻿namespace thirdpartynetwork.Core.Interfaces.Services
 {
     public interface IBaseService
     {

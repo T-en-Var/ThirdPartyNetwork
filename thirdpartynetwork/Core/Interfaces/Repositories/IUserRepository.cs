@@ -1,6 +1,6 @@
-﻿using thirdpartynetwork.Models;
+﻿using thirdpartynetwork.Core.Models;
 
-namespace thirdpartynetwork.Interfaces.Repositories
+namespace thirdpartynetwork.Core.Interfaces.Repositories
 {
     public interface IUserRepository : IBaseRepository
     {

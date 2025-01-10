@@ -1,18 +1,16 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System.Data;
-using thirdpartynetwork.Data;
-using thirdpartynetwork.Interfaces.Repositories;
-using thirdpartynetwork.Models;
+﻿using thirdpartynetwork.Core.Data;
+using thirdpartynetwork.Core.Models;
 
-namespace thirdpartynetwork.Repositories
+namespace thirdpartynetwork.Application.Repositories
 {
-    public class UserProxyRepository(DataContext _context) : BaseRepository(_context), IUserProxyRepository
+    public class UserProxyRepository(DataContext context) : BaseRepository(context), IUserProxyRepository
     {
+        private readonly DataContext _context = context;
+
         public UserProxy? Create(UserProxy userProxy)
         {
             _context.UserProxies.Add(userProxy);
-            if (!Save()) return null;
-            return userProxy;
+            return !Save() ? null : userProxy;
         }
 
         public bool Delete(UserProxy userProxy)

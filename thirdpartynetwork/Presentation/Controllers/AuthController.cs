@@ -1,9 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using thirdpartynetwork.Application.Auth;
 using thirdpartynetwork.Dtos.Token;
-using thirdpartynetwork.Helper;
 
-namespace thirdpartynetwork.Controllers;
+namespace thirdpartynetwork.Presentation.Controllers;
 
 [Route("api/auth")]
 [ApiController]
@@ -18,12 +17,12 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     [ProducesResponseType(200, Type = typeof(TokenDto))]
     [ProducesResponseType(401)]
-    public async Task<IActionResult> CreateNetwork([FromBody] LoginDto login)
+    public IActionResult CreateNetwork([FromBody] LoginDto login)
     {
-        var accessToken = await _tokenGenerator.GenerateAccessToken(
+        var accessToken = _tokenGenerator.GenerateAccessToken(
             Guid.NewGuid(), 
             login.Username);
-        var refreshToken = await _tokenGenerator.GenerateRefreshToken();
+        var refreshToken = _tokenGenerator.GenerateRefreshToken();
         
         var tokenDto = new TokenDto()
         {

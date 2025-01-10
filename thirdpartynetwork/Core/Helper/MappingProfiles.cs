@@ -1,9 +1,8 @@
 ﻿using AutoMapper;
+using thirdpartynetwork.Core.Models;
 using thirdpartynetwork.Dtos;
-using thirdpartynetwork.Dtos.Network;
-using thirdpartynetwork.Models;
 
-namespace thirdpartynetwork.Helper
+namespace thirdpartynetwork.Core.Helper
 {
     public class MappingProfiles : Profile
     {
