@@ -12,7 +12,7 @@ public class UserController(IUserService service, IMapper mapper) : ControllerBa
     public IActionResult GetAll()
     {
         var users = service.GetAll();
-        return StatusCode(200, users);
+        return StatusCode(200, mapper.Map<IEnumerable<UserDto>>(users));
     }
     
     [HttpGet("{userId:guid}")]
@@ -21,7 +21,7 @@ public class UserController(IUserService service, IMapper mapper) : ControllerBa
     public IActionResult Get(Guid userId)
     {
         var user = service.GetById(userId);
-        return user != null ? StatusCode(200, mapper.Map<NetworkDto>(user)) : NotFound();
+        return user != null ? StatusCode(200, mapper.Map<UserDto>(user)) : NotFound();
     }
     
     [HttpPost]
@@ -29,7 +29,7 @@ public class UserController(IUserService service, IMapper mapper) : ControllerBa
     public IActionResult Create([FromBody] CreateUserProxyDto createUserProxyDto)
     {
         var user = service.Create(createUserProxyDto);
-        return StatusCode(200, user);
+        return StatusCode(200, mapper.Map<UserDto>(user));
     }
     
     [HttpPatch("{userId:guid}")]
@@ -37,7 +37,7 @@ public class UserController(IUserService service, IMapper mapper) : ControllerBa
     public IActionResult Update(Guid userId, [FromBody] UpdateUserProxyDto updateUserProxyDto)
     {
         var user = service.Update(userId, updateUserProxyDto);
-        return StatusCode(200, user);
+        return StatusCode(200, mapper.Map<UserDto>(user));
     }
     
     [HttpDelete("{userId:guid}")]

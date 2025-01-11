@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Application.Services
@@ -7,7 +8,8 @@ namespace thirdpartynetwork.Application.Services
     {
         public ICollection<UserProxy> GetAll()
         {
-            throw new NotImplementedException();
+            var proxies = repository.GetAll();
+            return proxies;
         }
 
         public ICollection<UserProxy> GetByUserId()
@@ -17,23 +19,29 @@ namespace thirdpartynetwork.Application.Services
 
         public UserProxy? GetById(Guid id)
         {
-            throw new NotImplementedException();
+            var proxy = repository.GetById(id);
+            return proxy;
         }
 
         public UserProxy Create(CreateUserProxyDto userProxy)
         {
             var proxy = repository.Create(mapper.Map<UserProxy>(userProxy));
-            return mapper.Map<UserProxy>(proxy);
+            return proxy;
         }
 
         public UserProxy Update(Guid id, UpdateUserProxyDto userProxy)
         {
-            throw new NotImplementedException();
+            if (GetById(id) == null) throw new NotFoundHttpException();
+            var obj = mapper.Map<UserProxy>(userProxy);
+            obj.Id = id;
+            var proxy = repository.Update(obj);
+            return proxy;
         }
 
         public bool DeleteById(Guid id)
         {
-            throw new NotImplementedException();
+            var proxy = GetById(id);
+            return proxy != null && repository.Delete(proxy);
         }
     }
 }
