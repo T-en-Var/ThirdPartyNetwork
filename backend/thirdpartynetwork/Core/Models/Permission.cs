@@ -7,5 +7,6 @@
         public required string Description { get; set; }
         public ICollection<NetworkPermission> NetworkPermissions { get; set; } = new List<NetworkPermission>();
         public ICollection<NetworkUserPermission> NetworkUserPermissions { get; set; } = new List<NetworkUserPermission>();
+        public bool IsSystemProtected { get; set; } = false;
     }
 }

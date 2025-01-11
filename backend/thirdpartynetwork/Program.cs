@@ -47,7 +47,7 @@ builder.Services.AddControllers(options =>
     // options.Filters.Add<GlobalExceptionFilter>(); // Register the global exception filter here
 });
 
-builder.Services.AddTransient<Seed>();
+builder.Services.AddTransient<DatabaseSeeder>();
 builder.Services.AddControllers().AddJsonOptions(o => {
     o.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
     //o.JsonSerializerOptions.Converters.Add(new NullableWithStateConverterFactory());
@@ -99,8 +99,11 @@ builder.Services.AddProblemDetails();
 
 var app = builder.Build();
 
-if (args.Length == 1 && args[0].ToLower() == "seeddata")
-    SeedData(app);
+app.Services.CreateScope().ServiceProvider
+    .GetRequiredService<DatabaseSeeder>().SeedAsync().Wait();
+
+// if (args.Length == 1 && args[0].ToLower() == "seeddata")
+//     SeedData(app);
 
 // Middlewares
 app.UseMiddleware<CustomExceptionMiddleware>();
@@ -123,14 +126,14 @@ app.MapControllers();
 app.Run();
 return;
 
-static void SeedData(IHost app)
-{
-    var scopedFactory = app.Services.GetService<IServiceScopeFactory>();
-    if (scopedFactory == null) throw new Exception("Service Scope Factory is null");
-    
-    using var scope = scopedFactory.CreateScope();
-    var service = scope.ServiceProvider.GetService<Seed>();
-    if (service == null) throw new Exception("Service is null");
-    
-    service.SeedDataContext();
-}
+// static void SeedData(IHost app)
+// {
+//     var scopedFactory = app.Services.GetService<IServiceScopeFactory>();
+//     if (scopedFactory == null) throw new Exception("Service Scope Factory is null");
+//     
+//     using var scope = scopedFactory.CreateScope();
+//     var service = scope.ServiceProvider.GetService<DatabaseSeeder>();
+//     if (service == null) throw new Exception("Service is null");
+//     
+//     service.SeedDataContext();
+// }

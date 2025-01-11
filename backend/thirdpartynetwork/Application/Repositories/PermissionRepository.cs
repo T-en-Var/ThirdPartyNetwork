@@ -41,6 +41,8 @@ namespace thirdpartynetwork.Application.Repositories
         {
             var existing = this.GetById(permission.Id);
             if (existing == null) throw new Exception("Permission not found");
+            
+            if (existing.IsSystemProtected) throw new UnauthorizedHttpException("Permission is system protected");
 
             _context.Entry(existing).CurrentValues.SetValues(permission);
 

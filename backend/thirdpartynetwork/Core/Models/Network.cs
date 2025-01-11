@@ -8,5 +8,6 @@
         public ICollection<NetworkUser> NetworkUsers { get; set; } = new List<NetworkUser>();
         public ICollection<NetworkRole> NetworkRoles { get; set; } = new List<NetworkRole>();
         public ICollection<NetworkPermission> NetworkPermissions { get; set; } = new List<NetworkPermission>();
+        public bool IsSystemProtected { get; set; } = false;
     }
 }

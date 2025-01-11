@@ -22,7 +22,7 @@ namespace thirdpartynetwork.Core.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("thirdpartynetwork.Models.Content", b =>
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.Content", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -42,11 +42,14 @@ namespace thirdpartynetwork.Core.Migrations
                     b.ToTable("Contents");
                 });
 
-            modelBuilder.Entity("thirdpartynetwork.Models.Network", b =>
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.Network", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
+
+                    b.Property<bool>("IsSystemProtected")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -57,7 +60,7 @@ namespace thirdpartynetwork.Core.Migrations
                     b.ToTable("Networks");
                 });
 
-            modelBuilder.Entity("thirdpartynetwork.Models.NetworkPermission", b =>
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.NetworkPermission", b =>
                 {
                     b.Property<Guid>("NetworkId")
                         .HasColumnType("uuid");
@@ -68,6 +71,9 @@ namespace thirdpartynetwork.Core.Migrations
                     b.Property<bool>("IsRequired")
                         .HasColumnType("boolean");
 
+                    b.Property<bool>("IsSystemProtected")
+                        .HasColumnType("boolean");
+
                     b.HasKey("NetworkId", "PermissionId");
 
                     b.HasIndex("PermissionId");
@@ -75,13 +81,16 @@ namespace thirdpartynetwork.Core.Migrations
                     b.ToTable("NetworkPermissions");
                 });
 
-            modelBuilder.Entity("thirdpartynetwork.Models.NetworkRole", b =>
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.NetworkRole", b =>
                 {
                     b.Property<Guid>("NetworkId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("RoleId")
                         .HasColumnType("uuid");
+
+                    b.Property<bool>("IsSystemProtected")
+                        .HasColumnType("boolean");
 
                     b.HasKey("NetworkId", "RoleId");
 
@@ -90,7 +99,7 @@ namespace thirdpartynetwork.Core.Migrations
                     b.ToTable("NetworkRoles");
                 });
 
-            modelBuilder.Entity("thirdpartynetwork.Models.NetworkUser", b =>
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.NetworkUser", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -111,7 +120,7 @@ namespace thirdpartynetwork.Core.Migrations
                     b.ToTable("NetworkUsers");
                 });
 
-            modelBuilder.Entity("thirdpartynetwork.Models.NetworkUserPermission", b =>
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.NetworkUserPermission", b =>
                 {
                     b.Property<Guid>("NetworkUserId")
                         .HasColumnType("uuid");
@@ -129,7 +138,7 @@ namespace thirdpartynetwork.Core.Migrations
                     b.ToTable("NetworkUserPermissions");
                 });
 
-            modelBuilder.Entity("thirdpartynetwork.Models.NetworkUserRole", b =>
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.NetworkUserRole", b =>
                 {
                     b.Property<Guid>("NetworkUserId")
                         .HasColumnType("uuid");
@@ -144,7 +153,7 @@ namespace thirdpartynetwork.Core.Migrations
                     b.ToTable("NetworkUserRoles");
                 });
 
-            modelBuilder.Entity("thirdpartynetwork.Models.Permission", b =>
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.Permission", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -153,6 +162,9 @@ namespace thirdpartynetwork.Core.Migrations
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<bool>("IsSystemProtected")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -163,11 +175,18 @@ namespace thirdpartynetwork.Core.Migrations
                     b.ToTable("Permissions");
                 });
 
-            modelBuilder.Entity("thirdpartynetwork.Models.Role", b =>
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.Role", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsSystemProtected")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -178,7 +197,7 @@ namespace thirdpartynetwork.Core.Migrations
                     b.ToTable("Roles");
                 });
 
-            modelBuilder.Entity("thirdpartynetwork.Models.User", b =>
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.User", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -189,7 +208,7 @@ namespace thirdpartynetwork.Core.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("thirdpartynetwork.Models.UserProxy", b =>
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.UserProxy", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -232,9 +251,9 @@ namespace thirdpartynetwork.Core.Migrations
                     b.ToTable("UserProxies");
                 });
 
-            modelBuilder.Entity("thirdpartynetwork.Models.Content", b =>
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.Content", b =>
                 {
-                    b.HasOne("thirdpartynetwork.Models.Network", "Network")
+                    b.HasOne("thirdpartynetwork.Core.Models.Network", "Network")
                         .WithMany("Contents")
                         .HasForeignKey("NetworkId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -243,15 +262,15 @@ namespace thirdpartynetwork.Core.Migrations
                     b.Navigation("Network");
                 });
 
-            modelBuilder.Entity("thirdpartynetwork.Models.NetworkPermission", b =>
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.NetworkPermission", b =>
                 {
-                    b.HasOne("thirdpartynetwork.Models.Network", "Network")
+                    b.HasOne("thirdpartynetwork.Core.Models.Network", "Network")
                         .WithMany("NetworkPermissions")
                         .HasForeignKey("NetworkId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("thirdpartynetwork.Models.Permission", "Permission")
+                    b.HasOne("thirdpartynetwork.Core.Models.Permission", "Permission")
                         .WithMany("NetworkPermissions")
                         .HasForeignKey("PermissionId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -262,15 +281,15 @@ namespace thirdpartynetwork.Core.Migrations
                     b.Navigation("Permission");
                 });
 
-            modelBuilder.Entity("thirdpartynetwork.Models.NetworkRole", b =>
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.NetworkRole", b =>
                 {
-                    b.HasOne("thirdpartynetwork.Models.Network", "Network")
+                    b.HasOne("thirdpartynetwork.Core.Models.Network", "Network")
                         .WithMany("NetworkRoles")
                         .HasForeignKey("NetworkId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("thirdpartynetwork.Models.Role", "Role")
+                    b.HasOne("thirdpartynetwork.Core.Models.Role", "Role")
                         .WithMany("NetworkRoles")
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -281,15 +300,15 @@ namespace thirdpartynetwork.Core.Migrations
                     b.Navigation("Role");
                 });
 
-            modelBuilder.Entity("thirdpartynetwork.Models.NetworkUser", b =>
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.NetworkUser", b =>
                 {
-                    b.HasOne("thirdpartynetwork.Models.Network", "Network")
+                    b.HasOne("thirdpartynetwork.Core.Models.Network", "Network")
                         .WithMany("NetworkUsers")
                         .HasForeignKey("NetworkId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("thirdpartynetwork.Models.UserProxy", "UserProxy")
+                    b.HasOne("thirdpartynetwork.Core.Models.UserProxy", "UserProxy")
                         .WithMany("NetworkUsers")
                         .HasForeignKey("UserProxyId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -300,15 +319,15 @@ namespace thirdpartynetwork.Core.Migrations
                     b.Navigation("UserProxy");
                 });
 
-            modelBuilder.Entity("thirdpartynetwork.Models.NetworkUserPermission", b =>
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.NetworkUserPermission", b =>
                 {
-                    b.HasOne("thirdpartynetwork.Models.NetworkUser", "NetworkUser")
+                    b.HasOne("thirdpartynetwork.Core.Models.NetworkUser", "NetworkUser")
                         .WithMany("NetworkUserPermissions")
                         .HasForeignKey("NetworkUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("thirdpartynetwork.Models.Permission", "Permission")
+                    b.HasOne("thirdpartynetwork.Core.Models.Permission", "Permission")
                         .WithMany("NetworkUserPermissions")
                         .HasForeignKey("PermissionId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -319,15 +338,15 @@ namespace thirdpartynetwork.Core.Migrations
                     b.Navigation("Permission");
                 });
 
-            modelBuilder.Entity("thirdpartynetwork.Models.NetworkUserRole", b =>
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.NetworkUserRole", b =>
                 {
-                    b.HasOne("thirdpartynetwork.Models.NetworkUser", "NetworkUser")
+                    b.HasOne("thirdpartynetwork.Core.Models.NetworkUser", "NetworkUser")
                         .WithMany("NetworkUserRoles")
                         .HasForeignKey("NetworkUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("thirdpartynetwork.Models.Role", "Role")
+                    b.HasOne("thirdpartynetwork.Core.Models.Role", "Role")
                         .WithMany("NetworkUserRoles")
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -338,9 +357,9 @@ namespace thirdpartynetwork.Core.Migrations
                     b.Navigation("Role");
                 });
 
-            modelBuilder.Entity("thirdpartynetwork.Models.UserProxy", b =>
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.UserProxy", b =>
                 {
-                    b.HasOne("thirdpartynetwork.Models.User", "User")
+                    b.HasOne("thirdpartynetwork.Core.Models.User", "User")
                         .WithMany("Proxies")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -349,7 +368,7 @@ namespace thirdpartynetwork.Core.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("thirdpartynetwork.Models.Network", b =>
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.Network", b =>
                 {
                     b.Navigation("Contents");
 
@@ -360,33 +379,33 @@ namespace thirdpartynetwork.Core.Migrations
                     b.Navigation("NetworkUsers");
                 });
 
-            modelBuilder.Entity("thirdpartynetwork.Models.NetworkUser", b =>
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.NetworkUser", b =>
                 {
                     b.Navigation("NetworkUserPermissions");
 
                     b.Navigation("NetworkUserRoles");
                 });
 
-            modelBuilder.Entity("thirdpartynetwork.Models.Permission", b =>
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.Permission", b =>
                 {
                     b.Navigation("NetworkPermissions");
 
                     b.Navigation("NetworkUserPermissions");
                 });
 
-            modelBuilder.Entity("thirdpartynetwork.Models.Role", b =>
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.Role", b =>
                 {
                     b.Navigation("NetworkRoles");
 
                     b.Navigation("NetworkUserRoles");
                 });
 
-            modelBuilder.Entity("thirdpartynetwork.Models.User", b =>
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.User", b =>
                 {
                     b.Navigation("Proxies");
                 });
 
-            modelBuilder.Entity("thirdpartynetwork.Models.UserProxy", b =>
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.UserProxy", b =>
                 {
                     b.Navigation("NetworkUsers");
                 });
