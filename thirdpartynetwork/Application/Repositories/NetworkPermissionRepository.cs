@@ -11,19 +11,6 @@ namespace thirdpartynetwork.Application.Repositories
     {
         private readonly DataContext _context = context;
 
-        public NetworkPermission Create(NetworkPermission networkPermission)
-        {
-            _context.NetworkPermissions.Add(networkPermission);
-            Save();
-            return networkPermission;
-        }
-
-        public bool Delete(NetworkPermission networkPermission)
-        {
-            _context.Remove(networkPermission);
-            return Save();
-        }
-
         public bool Exists(Guid networkId, Guid permissionId)
         {
             return _context.NetworkPermissions.Any(np => np.NetworkId == networkId && np.PermissionId == permissionId);
@@ -49,6 +36,13 @@ namespace thirdpartynetwork.Application.Repositories
             return [.. _context.NetworkPermissions.Where(np => np.PermissionId == id)];
         }
 
+        public NetworkPermission Create(NetworkPermission networkPermission)
+        {
+            _context.NetworkPermissions.Add(networkPermission);
+            Save();
+            return networkPermission;
+        }
+
         public NetworkPermission Update(NetworkPermission networkPermission)
         {
             var existing = this.GetByIds(networkPermission.NetworkId, networkPermission.PermissionId);
@@ -60,6 +54,14 @@ namespace thirdpartynetwork.Application.Repositories
 
             Save();
             return existing;
+        }
+
+        public bool Delete(NetworkPermission networkPermission)
+        {
+            if (networkPermission.IsSystemProtected) throw new UnauthorizedHttpException("NetworkPermission is system protected");
+            
+            _context.Remove(networkPermission);
+            return Save();
         }
     }
 }

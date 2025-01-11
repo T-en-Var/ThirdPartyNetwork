@@ -18,12 +18,12 @@ namespace thirdpartynetwork.Application.Services
             return mapper.Map<User>(user);
         }
 
-        public User Create(CreateUserProxyDto userProxy)
+        public User Create(CreateUserProxyDto createUserProxy)
         {
             var newUser = new User();
             var user = repository.Create(newUser);
 
-            var proxy = mapper.Map<UserProxy>(userProxy);
+            var proxy = mapper.Map<UserProxy>(createUserProxy);
             proxy.IsDefault = true;
             
             user.Proxies.Add(proxy);
@@ -32,7 +32,7 @@ namespace thirdpartynetwork.Application.Services
             return mapper.Map<User>(user);
         }
         
-        public User Update(Guid id, UpdateUserProxyDto userProxy)
+        public User Update(Guid id, UpdateUserProxyDto updateUserProxy)
         {
             // User ID, not UserProxy ID
             var user = repository.GetById(id);
@@ -45,7 +45,7 @@ namespace thirdpartynetwork.Application.Services
                 throw new Exception("User has no Default Proxy, cannot update.");
             }
             
-            userProxyService.Update(defaultProxy.Id, userProxy);
+            userProxyService.Update(defaultProxy.Id, updateUserProxy);
             
             return mapper.Map<User>(user);
         }

@@ -7,8 +7,8 @@ namespace thirdpartynetwork.Core.Interfaces.Services
     {
         ICollection<Permission> GetAll();
         Permission? GetById(Guid id);
-        Permission Create(CreatePermissionDto permission);
-        Permission Update(Guid id, UpdatePermissionDto permission);
+        Permission Create(CreatePermissionDto createPermission);
+        Permission Update(Guid id, UpdatePermissionDto updatePermission);
         bool DeleteById(Guid id);
     }
 }

@@ -23,17 +23,19 @@ namespace thirdpartynetwork.Application.Services
             return proxy;
         }
 
-        public UserProxy Create(CreateUserProxyDto userProxy)
+        public UserProxy Create(CreateUserProxyDto createUserProxy)
         {
-            var proxy = repository.Create(mapper.Map<UserProxy>(userProxy));
+            var proxy = repository.Create(mapper.Map<UserProxy>(createUserProxy));
             return proxy;
         }
 
-        public UserProxy Update(Guid id, UpdateUserProxyDto userProxy)
+        public UserProxy Update(Guid id, UpdateUserProxyDto updateUserProxy)
         {
             if (GetById(id) == null) throw new NotFoundHttpException();
-            var obj = mapper.Map<UserProxy>(userProxy);
+            
+            var obj = mapper.Map<UserProxy>(updateUserProxy);
             obj.Id = id;
+            
             var proxy = repository.Update(obj);
             return proxy;
         }

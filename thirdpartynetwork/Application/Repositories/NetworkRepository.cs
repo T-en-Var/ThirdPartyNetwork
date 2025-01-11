@@ -9,19 +9,6 @@ namespace thirdpartynetwork.Application.Repositories
     {
         private readonly DataContext _context = context;
 
-        public Network Create(Network network)
-        {
-            _context.Networks.Add(network);
-            Save();
-            return network;
-        }
-
-        public bool Delete(Network network)
-        {
-            _context.Remove(network);
-            return Save();
-        }
-
         public bool Exists(Guid id)
         {
             return _context.Networks.Any(n => n.Id == id);
@@ -42,6 +29,13 @@ namespace thirdpartynetwork.Application.Repositories
             return  _context.Networks.FirstOrDefault(n => n.Name == name);
         }
 
+        public Network Create(Network network)
+        {
+            _context.Networks.Add(network);
+            Save();
+            return network;
+        }
+
         public Network Update(Network network)
         {
             var existing = this.GetById(network.Id);
@@ -53,6 +47,14 @@ namespace thirdpartynetwork.Application.Repositories
 
             Save();
             return existing;
+        }
+
+        public bool Delete(Network network)
+        {
+            if (network.IsSystemProtected) throw new UnauthorizedHttpException("Network is system protected");
+            
+            _context.Remove(network);
+            return Save();
         }
     }
 }

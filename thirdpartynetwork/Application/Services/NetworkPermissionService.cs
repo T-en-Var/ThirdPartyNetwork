@@ -24,12 +24,12 @@ namespace thirdpartynetwork.Application.Services
             throw new NotImplementedException();
         }
 
-        public NetworkPermission Create(Guid networkId, CreateNetworkPermissionDto networkPermission)
+        public NetworkPermission Create(Guid networkId, CreateNetworkPermissionDto createNetworkPermission)
         {
             throw new NotImplementedException();
         }
 
-        public NetworkPermission Update(Guid networkId, Guid permissiondId, UpdateNetworkDto networkPermission)
+        public NetworkPermission Update(Guid networkId, Guid permissiondId, UpdateNetworkDto updateNetworkPermission)
         {
             throw new NotImplementedException();
         }

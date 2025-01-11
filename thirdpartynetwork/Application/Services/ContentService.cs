@@ -19,12 +19,12 @@ namespace thirdpartynetwork.Application.Services
             throw new NotImplementedException();
         }
 
-        public Content Create(Guid networkId, CreateContentDto content)
+        public Content Create(Guid networkId, CreateContentDto createContent)
         {
             throw new NotImplementedException();
         }
 
-        public Content UpdateById(Guid id, UpdateContentDto content)
+        public Content UpdateById(Guid id, UpdateContentDto updateContent)
         {
             throw new NotImplementedException();
         }

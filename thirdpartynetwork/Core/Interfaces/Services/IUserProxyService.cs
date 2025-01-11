@@ -8,8 +8,8 @@ namespace thirdpartynetwork.Core.Interfaces.Services
         ICollection<UserProxy> GetAll();
         ICollection<UserProxy> GetByUserId();
         UserProxy? GetById(Guid id);
-        UserProxy Create(CreateUserProxyDto userProxy);
-        UserProxy Update(Guid id, UpdateUserProxyDto userProxy);
+        UserProxy Create(CreateUserProxyDto createUserProxy);
+        UserProxy Update(Guid id, UpdateUserProxyDto updateUserProxy);
         bool DeleteById(Guid id);
     }
 }

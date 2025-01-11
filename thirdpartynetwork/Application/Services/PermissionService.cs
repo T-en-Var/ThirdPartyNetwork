@@ -1,32 +1,45 @@
-﻿using thirdpartynetwork.Core.Models;
+﻿using AutoMapper;
+using thirdpartynetwork.Core.Exceptions.HttpExceptions;
+using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Application.Services
 {
-    public class PermissionService : IPermissionService
+    public class PermissionService(IPermissionRepository repository, IMapper mapper) : IPermissionService
     {
         public ICollection<Permission> GetAll()
         {
-            throw new NotImplementedException();
+            var permissions = repository.GetAll();
+            return permissions;
         }
 
         public Permission? GetById(Guid id)
         {
-            throw new NotImplementedException();
+            var permission = repository.GetById(id);
+            if (permission == null) throw new NotFoundHttpException();
+            return permission;
         }
 
-        public Permission Create(CreatePermissionDto permission)
+        public Permission Create(CreatePermissionDto createPermission)
         {
-            throw new NotImplementedException();
+            var permission = repository.Create(mapper.Map<Permission>(createPermission));
+            return permission;
         }
 
-        public Permission Update(Guid id, UpdatePermissionDto permission)
+        public Permission Update(Guid id, UpdatePermissionDto updatePermission)
         {
-            throw new NotImplementedException();
+            if (!repository.Exists(id)) throw new NotFoundHttpException();
+            
+            var obj = mapper.Map<Permission>(updatePermission);
+            obj.Id = id;
+            
+            var permission = repository.Update(obj);
+            return permission;
         }
 
         public bool DeleteById(Guid id)
         {
-            throw new NotImplementedException();
+            var permission = GetById(id);
+            return permission != null && repository.Delete(permission);
         }
     }
 }
