@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using thirdpartynetwork.Core.Data;
+using thirdpartynetwork.Core.Exceptions;
+using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using thirdpartynetwork.Core.Interfaces.Repositories;
 using thirdpartynetwork.Core.Models;
 
@@ -9,10 +11,11 @@ namespace thirdpartynetwork.Application.Repositories
     {
         private readonly DataContext _context = context;
 
-        public NetworkPermission? Create(NetworkPermission networkPermission)
+        public NetworkPermission Create(NetworkPermission networkPermission)
         {
             _context.NetworkPermissions.Add(networkPermission);
-            return !Save() ? null : networkPermission;
+            Save();
+            return networkPermission;
         }
 
         public bool Delete(NetworkPermission networkPermission)
@@ -46,14 +49,14 @@ namespace thirdpartynetwork.Application.Repositories
             return [.. _context.NetworkPermissions.Where(np => np.PermissionId == id)];
         }
 
-        public NetworkPermission? Update(NetworkPermission networkPermission)
+        public NetworkPermission Update(NetworkPermission networkPermission)
         {
-            NetworkPermission? existing = this.GetByIds(networkPermission.NetworkId, networkPermission.PermissionId);
-            if (existing == null) return null;
+            var existing = this.GetByIds(networkPermission.NetworkId, networkPermission.PermissionId);
+            if (existing == null) throw new Exception("NetworkPermission not found");
 
             _context.Entry(existing).CurrentValues.SetValues(networkPermission);
 
-            if (!Save()) return null;
+            Save();
             return existing;
         }
     }

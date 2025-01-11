@@ -1,23 +1,25 @@
-﻿namespace thirdpartynetwork.Application.Services
+﻿using thirdpartynetwork.Core.Models;
+
+namespace thirdpartynetwork.Application.Services
 {
     public class PermissionService : IPermissionService
     {
-        public ICollection<PermissionDto> GetAll()
+        public ICollection<Permission> GetAll()
         {
             throw new NotImplementedException();
         }
 
-        public PermissionDto? GetById(Guid id)
+        public Permission? GetById(Guid id)
         {
             throw new NotImplementedException();
         }
 
-        public PermissionDto? Create(CreatePermissionDto permission)
+        public Permission Create(CreatePermissionDto permission)
         {
             throw new NotImplementedException();
         }
 
-        public PermissionDto? Update(Guid id, UpdatePermissionDto permission)
+        public Permission Update(Guid id, UpdatePermissionDto permission)
         {
             throw new NotImplementedException();
         }

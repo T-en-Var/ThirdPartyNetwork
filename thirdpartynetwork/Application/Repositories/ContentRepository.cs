@@ -1,4 +1,6 @@
 ﻿using thirdpartynetwork.Core.Data;
+using thirdpartynetwork.Core.Exceptions;
+using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Application.Repositories
@@ -7,10 +9,11 @@ namespace thirdpartynetwork.Application.Repositories
     {
         private readonly DataContext _context = context;
 
-        public Content? Create(Content content)
+        public Content Create(Content content)
         {
             _context.Contents.Add(content);
-            return !Save() ? null : content;
+            Save();
+            return content;
         }
 
         public bool Delete(Content content)
@@ -39,14 +42,14 @@ namespace thirdpartynetwork.Application.Repositories
             return [.. _context.Contents.Where(c => c.Network.Id == networkId)];
         }
 
-        public Content? Update(Content content)
+        public Content Update(Content content)
         {
-            Content? existing = this.GetById(content.Id);
-            if (existing == null) return null;
+            var existing = this.GetById(content.Id);
+            if (existing == null) throw new Exception("Content not found");
 
             _context.Entry(existing).CurrentValues.SetValues(content);
 
-            if (!Save()) return null;
+            Save();
             return existing;
         }
     }

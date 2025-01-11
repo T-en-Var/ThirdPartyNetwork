@@ -7,8 +7,8 @@ namespace thirdpartynetwork.Core.Interfaces.Repositories
         bool Exists(Guid id);
         ICollection<User> GetAll();
         User? GetById(Guid id);
-        User? Create(User user);
-        User? Update(User user);
+        User Create(User user);
+        User Update(User user);
         bool Delete(User user);
     }
 }

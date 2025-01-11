@@ -1,28 +1,32 @@
-﻿namespace thirdpartynetwork.Application.Services
+﻿using AutoMapper;
+using thirdpartynetwork.Core.Models;
+
+namespace thirdpartynetwork.Application.Services
 {
-    public class UserProxyService : IUserProxyService
+    public class UserProxyService(IUserProxyRepository repository, IMapper mapper) : IUserProxyService
     {
-        public ICollection<UserProxyDto> GetAll()
+        public ICollection<UserProxy> GetAll()
         {
             throw new NotImplementedException();
         }
 
-        public ICollection<UserProxyDto> GetByUserId()
+        public ICollection<UserProxy> GetByUserId()
         {
             throw new NotImplementedException();
         }
 
-        public UserProxyDto? GetById(Guid id)
+        public UserProxy? GetById(Guid id)
         {
             throw new NotImplementedException();
         }
 
-        public UserProxyDto? Create(CreateUserProxyDto userProxy)
+        public UserProxy Create(CreateUserProxyDto userProxy)
         {
-            throw new NotImplementedException();
+            var proxy = repository.Create(mapper.Map<UserProxy>(userProxy));
+            return mapper.Map<UserProxy>(proxy);
         }
 
-        public UserProxyDto? Update(Guid id, UpdateUserProxyDto userProxy)
+        public UserProxy Update(Guid id, UpdateUserProxyDto userProxy)
         {
             throw new NotImplementedException();
         }

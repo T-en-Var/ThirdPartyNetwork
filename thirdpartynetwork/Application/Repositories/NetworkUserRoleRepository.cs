@@ -1,4 +1,6 @@
 ﻿using thirdpartynetwork.Core.Data;
+using thirdpartynetwork.Core.Exceptions;
+using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Application.Repositories
@@ -7,10 +9,11 @@ namespace thirdpartynetwork.Application.Repositories
     {
         private readonly DataContext _context = context;
 
-        public NetworkUserRole? Create(NetworkUserRole networkUserRole)
+        public NetworkUserRole Create(NetworkUserRole networkUserRole)
         {
             _context.NetworkUserRoles.Add(networkUserRole);
-            return !Save() ? null : networkUserRole;
+            Save();
+            return networkUserRole;
         }
 
         public bool Delete(NetworkUserRole networkUserRole)
@@ -44,14 +47,14 @@ namespace thirdpartynetwork.Application.Repositories
             return [.. _context.NetworkUserRoles.Where(nur => nur.RoleId == id)];
         }
 
-        public NetworkUserRole? Update(NetworkUserRole networkUserRole)
+        public NetworkUserRole Update(NetworkUserRole networkUserRole)
         {
-            NetworkUserRole? existing = this.GetByIds(networkUserRole.NetworkUserId, networkUserRole.RoleId);
-            if (existing == null) return null;
+            var existing = this.GetByIds(networkUserRole.NetworkUserId, networkUserRole.RoleId);
+            if (existing == null) throw new Exception("NetworkUserRole not found");
 
             _context.Entry(existing).CurrentValues.SetValues(networkUserRole);
 
-            if (!Save()) return null;
+            Save();
             return existing;
         }
     }

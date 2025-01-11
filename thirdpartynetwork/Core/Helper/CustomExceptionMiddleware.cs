@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using thirdpartynetwork.Core.Exceptions;
+using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 
 namespace thirdpartynetwork.Core.Helper
 {
@@ -42,7 +43,8 @@ namespace thirdpartynetwork.Core.Helper
             {
                 logger.LogError($"Unhandled exception: {ex}");
                 context.Response.StatusCode = StatusCodes.Status500InternalServerError;
-                await context.Response.WriteAsync("An unexpected error occurred.");
+                await context.Response.WriteAsync($"Unhandled exception: {ex}");
+                // await context.Response.WriteAsync($"An unexpected error occurred.");
             }
         }
     }

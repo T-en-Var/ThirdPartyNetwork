@@ -1,15 +1,16 @@
 ﻿using thirdpartynetwork.Application.Dtos.NetworkUser;
+using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Core.Interfaces.Services
 {
     public interface INetworkUserService : IBaseService
     {
-        ICollection<NetworkUserDto> GetAll();
-        ICollection<NetworkUserDto> GetByNetworkId(Guid id);
-        ICollection<NetworkUserDto> GetByuserProxyId(Guid id);
-        NetworkUserDto? GetById(Guid id);
-        NetworkUserDto? Create(Guid networkId, NetworkUserDto networkUser);
-        NetworkUserDto? Update(Guid id, NetworkUserDto networkUser);
+        ICollection<NetworkUser> GetAll();
+        ICollection<NetworkUser> GetByNetworkId(Guid id);
+        ICollection<NetworkUser> GetByuserProxyId(Guid id);
+        NetworkUser? GetById(Guid id);
+        NetworkUser Create(Guid networkId, CreateNetworkUserDto networkUser);
+        NetworkUser Update(Guid id, UpdateNetworkUserDto networkUser);
         bool DeleteById(Guid id);
     }
 }

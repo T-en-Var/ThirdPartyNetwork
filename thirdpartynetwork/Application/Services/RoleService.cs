@@ -1,23 +1,25 @@
-﻿namespace thirdpartynetwork.Application.Services
+﻿using thirdpartynetwork.Core.Models;
+
+namespace thirdpartynetwork.Application.Services
 {
     public class RoleService : IRoleService
     {
-        public ICollection<RoleDto> GetAll()
+        public ICollection<Role> GetAll()
         {
             throw new NotImplementedException();
         }
 
-        public RoleDto? GetById(Guid id)
+        public Role? GetById(Guid id)
         {
             throw new NotImplementedException();
         }
 
-        public RoleDto? Create(CreateRoleDto role)
+        public Role Create(CreateRoleDto role)
         {
             throw new NotImplementedException();
         }
 
-        public RoleDto? Update(Guid id, UpdateRoleDto role)
+        public Role Update(Guid id, UpdateRoleDto role)
         {
             throw new NotImplementedException();
         }

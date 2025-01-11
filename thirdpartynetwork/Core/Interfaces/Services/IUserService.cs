@@ -1,13 +1,14 @@
 ﻿using thirdpartynetwork.Application.Dtos.User;
+using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Core.Interfaces.Services
 {
     public interface IUserService : IBaseService
     {
-        ICollection<UserDto> GetAll();
-        UserDto? GetById();
-        UserDto? Create(CreateUserDto user);
-        UserDto? Update(Guid id, UpdateUserDto user);
+        ICollection<User> GetAll();
+        User? GetById(Guid id);
+        User Create(CreateUserProxyDto user);
+        User Update(Guid id, UpdateUserProxyDto user);
         bool DeleteById(Guid id);
     }
 }

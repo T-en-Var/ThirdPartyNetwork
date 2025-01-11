@@ -1,4 +1,6 @@
 ﻿using thirdpartynetwork.Core.Data;
+using thirdpartynetwork.Core.Exceptions;
+using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Application.Repositories
@@ -7,10 +9,11 @@ namespace thirdpartynetwork.Application.Repositories
     {
         private readonly DataContext _context = context;
 
-        public NetworkRole? Create(NetworkRole networkRole)
+        public NetworkRole Create(NetworkRole networkRole)
         {
             _context.NetworkRoles.Add(networkRole);
-            return !Save() ? null : networkRole;
+            Save();
+            return networkRole;
         }
 
         public bool Delete(NetworkRole networkRole)
@@ -44,14 +47,14 @@ namespace thirdpartynetwork.Application.Repositories
             return [.. _context.NetworkRoles.Where(nr => nr.RoleId == id)];
         }
 
-        public NetworkRole? Update(NetworkRole networkRole)
+        public NetworkRole Update(NetworkRole networkRole)
         {
-            NetworkRole? existing = this.GetByIds(networkRole.NetworkId, networkRole.RoleId);
-            if (existing == null) return null;
+            var existing = this.GetByIds(networkRole.NetworkId, networkRole.RoleId);
+            if (existing == null) throw new Exception("NetworkRole not found");
 
             _context.Entry(existing).CurrentValues.SetValues(networkRole);
 
-            if (!Save()) return null;
+            Save();
             return existing;
         }
     }

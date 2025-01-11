@@ -2,6 +2,7 @@
 using System.Text.Json;
 using Microsoft.IdentityModel.Tokens;
 using thirdpartynetwork.Core.Exceptions;
+using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 
 namespace thirdpartynetwork.Core.Helper
 {

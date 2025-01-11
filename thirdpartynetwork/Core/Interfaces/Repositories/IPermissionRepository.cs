@@ -7,8 +7,8 @@ namespace thirdpartynetwork.Core.Interfaces.Repositories
         bool Exists(Guid id);
         ICollection<Permission> GetAll();
         Permission? GetById(Guid id);
-        Permission? Create(Permission permission);
-        Permission? Update(Permission permission);
+        Permission Create(Permission permission);
+        Permission Update(Permission permission);
         bool Delete(Permission permission);
     }
 }

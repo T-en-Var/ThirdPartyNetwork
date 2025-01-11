@@ -1,15 +1,15 @@
-﻿using thirdpartynetwork.Application.Dtos.NetworkRole;
+﻿using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Core.Interfaces.Services
 {
     public interface INetworkRoleService : IBaseService
     {
-        ICollection<NetworkRoleDto> GetAll();
-        ICollection<NetworkRoleDto> GetByNetworkId(Guid id);
-        ICollection<NetworkRoleDto> GetByRoleId(Guid id);
-        NetworkRoleDto? GetByIds(Guid networkId, Guid roleId);
-        NetworkRoleDto? Create(Guid networkId, CreateNetworkRoleDto networkRole);
-        NetworkRoleDto? Update(Guid networkId, Guid roleId, UpdateNetworkRoleDto networkRole);
+        ICollection<NetworkRole> GetAll();
+        ICollection<NetworkRole> GetByNetworkId(Guid id);
+        ICollection<NetworkRole> GetByRoleId(Guid id);
+        NetworkRole? GetByIds(Guid networkId, Guid roleId);
+        NetworkRole Create(Guid networkId, CreateNetworkRoleDto networkRole);
+        NetworkRole Update(Guid networkId, Guid roleId, UpdateNetworkRoleDto networkRole);
         bool DeleteByIds(Guid networkId, Guid roleId);
     }
 }

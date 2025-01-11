@@ -1,4 +1,4 @@
-﻿namespace thirdpartynetwork.Core.Exceptions
+﻿namespace thirdpartynetwork.Core.Exceptions.HttpExceptions
 {
     public class NotFoundHttpException : BaseHttpException
     {

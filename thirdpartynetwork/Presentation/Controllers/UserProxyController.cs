@@ -1,6 +1,22 @@
-﻿namespace thirdpartynetwork.Presentation.Controllers
+﻿using Microsoft.AspNetCore.Mvc;
+using thirdpartynetwork.Application.Auth;
+using thirdpartynetwork.Application.Dtos.Token;
+
+namespace thirdpartynetwork.Presentation.Controllers;
+
+[Route("api/networks/{networkId:int}/users")]
+[ApiController]
+public class UserProxyController : ControllerBase
 {
-    public class UserProxyController
+    [HttpPost("{smth:int}")]
+    public IActionResult Create(int networkId, int smth)
     {
+        var tokenDto = new TokenDto()
+        {
+            AccessToken = networkId.ToString(),
+            RefreshToken = smth.ToString(),
+        };
+
+        return Ok(tokenDto);
     }
 }
