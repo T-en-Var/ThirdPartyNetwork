@@ -53,16 +53,7 @@ namespace thirdpartynetwork.Application.Services
         public bool DeleteById(Guid id)
         {
             var user = repository.GetById(id);
-            if (user == null) return false;
-
-            foreach (var proxy in user.Proxies)
-            {
-                userProxyService.DeleteById(proxy.Id);
-            }
-            
-            repository.Delete(user);
-
-            return true;
+            return user != null && repository.Delete(user);
         }
     }
 }

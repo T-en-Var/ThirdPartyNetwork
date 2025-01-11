@@ -17,6 +17,7 @@ namespace thirdpartynetwork.Core.Helper
             
             CreateMap<UserProxy, UserProxyDto>();
             CreateMap<CreateUserProxyDto, UserProxy>();
+            CreateMap<UpdateUserProxyDto, UserProxy>();
         }
     }
 }
