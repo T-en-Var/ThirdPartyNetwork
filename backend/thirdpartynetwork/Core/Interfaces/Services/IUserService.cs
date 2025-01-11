@@ -7,8 +7,8 @@ namespace thirdpartynetwork.Core.Interfaces.Services
     {
         ICollection<User> GetAll();
         User? GetById(Guid id);
-        User Create(CreateUserProxyDto user);
-        User Update(Guid id, UpdateUserProxyDto user);
+        User Create(CreateUserProxyDto createUser);
+        User Update(Guid id, UpdateUserProxyDto updateUser);
         bool DeleteById(Guid id);
     }
 }

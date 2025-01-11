@@ -14,7 +14,7 @@ namespace thirdpartynetwork.Application.Services
             throw new NotImplementedException();
         }
 
-        public ICollection<NetworkUser> GetByuserProxyId(Guid id)
+        public ICollection<NetworkUser> GetByUserProxyId(Guid id)
         {
             throw new NotImplementedException();
         }
@@ -24,12 +24,12 @@ namespace thirdpartynetwork.Application.Services
             throw new NotImplementedException();
         }
 
-        public NetworkUser Create(Guid networkId, CreateNetworkUserDto networkUser)
+        public NetworkUser Create(Guid networkId, CreateNetworkUserDto createNetworkUser)
         {
             throw new NotImplementedException();
         }
 
-        public NetworkUser Update(Guid id, UpdateNetworkUserDto networkUser)
+        public NetworkUser Update(Guid id, UpdateNetworkUserDto updateNetworkUser)
         {
             throw new NotImplementedException();
         }

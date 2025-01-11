@@ -9,19 +9,6 @@ namespace thirdpartynetwork.Application.Repositories
     {
         private readonly DataContext _context = context;
 
-        public NetworkRole Create(NetworkRole networkRole)
-        {
-            _context.NetworkRoles.Add(networkRole);
-            Save();
-            return networkRole;
-        }
-
-        public bool Delete(NetworkRole networkRole)
-        {
-            _context.Remove(networkRole);
-            return Save();
-        }
-
         public bool Exists(Guid networkId, Guid roleId)
         {
             return _context.NetworkRoles.Any(nr => nr.NetworkId == networkId && nr.RoleId == roleId);
@@ -47,6 +34,13 @@ namespace thirdpartynetwork.Application.Repositories
             return [.. _context.NetworkRoles.Where(nr => nr.RoleId == id)];
         }
 
+        public NetworkRole Create(NetworkRole networkRole)
+        {
+            _context.NetworkRoles.Add(networkRole);
+            Save();
+            return networkRole;
+        }
+
         public NetworkRole Update(NetworkRole networkRole)
         {
             var existing = this.GetByIds(networkRole.NetworkId, networkRole.RoleId);
@@ -58,6 +52,14 @@ namespace thirdpartynetwork.Application.Repositories
 
             Save();
             return existing;
+        }
+
+        public bool Delete(NetworkRole networkRole)
+        {
+            if (networkRole.IsSystemProtected) throw new UnauthorizedHttpException("NetworkRole is system protected");
+            
+            _context.Remove(networkRole);
+            return Save();
         }
     }
 }

@@ -7,7 +7,7 @@ namespace thirdpartynetwork.Core.Interfaces.Services
     {
         ICollection<Role> GetAll();
         Role? GetById(Guid id);
-        Role Create(CreateRoleDto role);
+        Role Create(CreateRoleDto createRole);
         Role Update(Guid id, UpdateRoleDto role);
         bool DeleteById(Guid id);
     }

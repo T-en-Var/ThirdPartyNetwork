@@ -14,12 +14,12 @@ namespace thirdpartynetwork.Application.Services
             throw new NotImplementedException();
         }
 
-        public Role Create(CreateRoleDto role)
+        public Role Create(CreateRoleDto createRole)
         {
             throw new NotImplementedException();
         }
 
-        public Role Update(Guid id, UpdateRoleDto role)
+        public Role Update(Guid id, UpdateRoleDto updateRole)
         {
             throw new NotImplementedException();
         }

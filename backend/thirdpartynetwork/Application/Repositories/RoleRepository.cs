@@ -10,19 +10,6 @@ namespace thirdpartynetwork.Application.Repositories
     {
         private readonly DataContext _context = context;
 
-        public Role Create(Role role)
-        {
-            _context.Roles.Add(role);
-            Save();
-            return role;
-        }
-
-        public bool Delete(Role role)
-        {
-            _context.Remove(role);
-            return Save();
-        }
-
         public bool Exists(Guid id)
         {
             return _context.Roles.Any(r => r.Id == id);
@@ -38,6 +25,13 @@ namespace thirdpartynetwork.Application.Repositories
             return _context.Roles.Find(id);
         }
 
+        public Role Create(Role role)
+        {
+            _context.Roles.Add(role);
+            Save();
+            return role;
+        }
+
         public Role Update(Role role)
         {
             var existing = this.GetById(role.Id);
@@ -49,6 +43,14 @@ namespace thirdpartynetwork.Application.Repositories
 
             Save();
             return existing;
+        }
+
+        public bool Delete(Role role)
+        {
+            if (role.IsSystemProtected) throw new UnauthorizedHttpException("Role is system protected");
+
+            _context.Remove(role);
+            return Save();
         }
     }
 }

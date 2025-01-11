@@ -24,12 +24,12 @@ namespace thirdpartynetwork.Application.Services
             throw new NotImplementedException();
         }
 
-        public NetworkRole Create(Guid networkId, CreateNetworkRoleDto networkRole)
+        public NetworkRole Create(Guid networkId, CreateNetworkRoleDto createNetworkRole)
         {
             throw new NotImplementedException();
         }
 
-        public NetworkRole Update(Guid networkId, Guid roleId, UpdateNetworkRoleDto networkRole)
+        public NetworkRole Update(Guid networkId, Guid roleId, UpdateNetworkRoleDto updateNetworkRole)
         {
             throw new NotImplementedException();
         }

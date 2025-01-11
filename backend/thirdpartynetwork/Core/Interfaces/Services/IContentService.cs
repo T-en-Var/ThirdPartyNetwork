@@ -7,8 +7,8 @@ namespace thirdpartynetwork.Core.Interfaces.Services
         ICollection<Content> GetAll();
         ICollection<Content> GetByNetworkId(Guid networkId);
         Content? GetById(Guid id);
-        Content Create(Guid networkId, CreateContentDto content);
-        Content UpdateById(Guid id, UpdateContentDto content);
+        Content Create(Guid networkId, CreateContentDto createContent);
+        Content UpdateById(Guid id, UpdateContentDto updateContent);
         bool DeleteById(Guid id);
     }
 }

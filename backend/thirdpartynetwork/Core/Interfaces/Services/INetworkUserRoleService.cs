@@ -9,8 +9,8 @@ namespace thirdpartynetwork.Core.Interfaces.Services
         ICollection<NetworkUserRole> GetByNetworkUserId(Guid id);
         ICollection<NetworkUserRole> GetByRoleId(Guid id);
         NetworkUserRole? GetByIds(Guid networkUserId, Guid roleId);
-        NetworkUserRole Create(Guid networkId, CreateNetworkUserRoleDto networkUserRole);
-        NetworkUserRole Update(Guid networkId, Guid roleId, UpdateNetworkUserRoleDto networkUserRole);
+        NetworkUserRole Create(Guid networkId, CreateNetworkUserRoleDto createNetworkUserRole);
+        NetworkUserRole Update(Guid networkId, Guid roleId, UpdateNetworkUserRoleDto updateNetworkUserRole);
         bool DeleteById(Guid id);
     }
 }

@@ -102,9 +102,6 @@ var app = builder.Build();
 app.Services.CreateScope().ServiceProvider
     .GetRequiredService<DatabaseSeeder>().SeedAsync().Wait();
 
-// if (args.Length == 1 && args[0].ToLower() == "seeddata")
-//     SeedData(app);
-
 // Middlewares
 app.UseMiddleware<CustomExceptionMiddleware>();
 app.UseExceptionHandler();
@@ -124,16 +121,3 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
-return;
-
-// static void SeedData(IHost app)
-// {
-//     var scopedFactory = app.Services.GetService<IServiceScopeFactory>();
-//     if (scopedFactory == null) throw new Exception("Service Scope Factory is null");
-//     
-//     using var scope = scopedFactory.CreateScope();
-//     var service = scope.ServiceProvider.GetService<DatabaseSeeder>();
-//     if (service == null) throw new Exception("Service is null");
-//     
-//     service.SeedDataContext();
-// }

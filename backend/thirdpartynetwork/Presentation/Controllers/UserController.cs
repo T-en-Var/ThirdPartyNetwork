@@ -7,6 +7,8 @@ namespace thirdpartynetwork.Presentation.Controllers;
 [ApiController]
 public class UserController(IUserService service, IMapper mapper) : ControllerBase
 {
+    // ClaimsPrincipal User = HttpContext.User;
+    
     [HttpGet]
     [ProducesResponseType(200, Type = typeof(IEnumerable<UserDto>))]
     public IActionResult GetAll()

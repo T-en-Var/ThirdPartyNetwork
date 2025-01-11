@@ -9,19 +9,6 @@ namespace thirdpartynetwork.Application.Repositories
     {
         private readonly DataContext _context = context;
 
-        public Permission Create(Permission permission)
-        {
-            _context.Permissions.Add(permission);
-            Save();
-            return permission;
-        }
-
-        public bool Delete(Permission permission)
-        {
-            _context.Remove(permission);
-            return Save();
-        }
-
         public bool Exists(Guid id)
         {
             return _context.Permissions.Any(p => p.Id == id);
@@ -37,6 +24,13 @@ namespace thirdpartynetwork.Application.Repositories
             return _context.Permissions.Find(id);
         }
 
+        public Permission Create(Permission permission)
+        {
+            _context.Permissions.Add(permission);
+            Save();
+            return permission;
+        }
+
         public Permission Update(Permission permission)
         {
             var existing = this.GetById(permission.Id);
@@ -48,6 +42,14 @@ namespace thirdpartynetwork.Application.Repositories
 
             Save();
             return existing;
+        }
+
+        public bool Delete(Permission permission)
+        {
+            if (permission.IsSystemProtected) throw new UnauthorizedHttpException("Permission is system protected");
+
+            _context.Remove(permission);
+            return Save();
         }
     }
 }

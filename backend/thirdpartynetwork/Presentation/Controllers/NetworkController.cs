@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace thirdpartynetwork.Presentation.Controllers;
@@ -9,21 +8,20 @@ namespace thirdpartynetwork.Presentation.Controllers;
 public class NetworkController(INetworkService service, IMapper mapper) : ControllerBase
 {
     [HttpGet]
-    [Authorize]
+    // [Authorize]
     [ProducesResponseType(200, Type = typeof(IEnumerable<NetworkDto>))]
     public IActionResult GetNetworks()
     {
-        // ClaimsPrincipal User = HttpContext.User;
         var networks = service.GetAll();
         return StatusCode(200, mapper.Map<IEnumerable<NetworkDto>>(networks));
     }
 
-    [HttpGet("{id:guid}")]
+    [HttpGet("{networkId:guid}")]
     [ProducesResponseType(200, Type = typeof(NetworkDto))]
     [ProducesResponseType(404)]
-    public IActionResult GetNetworkById(Guid id)
+    public IActionResult GetNetworkById(Guid networkId)
     {
-        var network = service.GetById(id);
+        var network = service.GetById(networkId);
         return StatusCode(200, mapper.Map<NetworkDto>(network));
     }
 
@@ -37,10 +35,17 @@ public class NetworkController(INetworkService service, IMapper mapper) : Contro
         return StatusCode(201, mapper.Map<NetworkDto>(network));
     }
 
-    [HttpPatch("/{id:guid}/")]
-    public IActionResult Update(Guid id, UpdateNetworkDto networkUpdate)
+    [HttpPatch("{networkId:guid}")]
+    public IActionResult Update(Guid networkId, UpdateNetworkDto networkUpdate)
     {
-        var network = service.Update(id, networkUpdate);
+        var network = service.Update(networkId, networkUpdate);
         return StatusCode(200, mapper.Map<NetworkDto>(network));
+    }
+
+    [HttpDelete("{networkId:guid}")]
+    public IActionResult Delete(Guid networkId)
+    {
+        service.DeleteById(networkId);
+        return NoContent();
     }
 }
