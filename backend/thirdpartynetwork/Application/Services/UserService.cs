@@ -1,21 +1,22 @@
 ﻿using AutoMapper;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
+using thirdpartynetwork.Core.Interfaces.Helpers;
 using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Application.Services
 {
-    public class UserService(IUserRepository repository, IUserProxyService userProxyService, IMapper mapper) : IUserService
+    public class UserService(IUserRepository repository, IUserProxyService userProxyService, IPasswordHasher passwordHasher, IMapper mapper) : IUserService
     {
         public ICollection<User> GetAll()
         {
             var users = repository.GetAll();
-            return mapper.Map<ICollection<User>>(users);
+            return users;
         }
 
         public User? GetById(Guid id)
         {
             var user = repository.GetById(id);
-            return mapper.Map<User>(user);
+            return user;
         }
 
         public User Create(CreateUserProxyDto createUserProxy)
@@ -25,11 +26,12 @@ namespace thirdpartynetwork.Application.Services
 
             var proxy = mapper.Map<UserProxy>(createUserProxy);
             proxy.IsDefault = true;
+            proxy.Password = passwordHasher.HashPassword(proxy.Password);
             
             user.Proxies.Add(proxy);
             repository.Save();
             
-            return mapper.Map<User>(user);
+            return user;
         }
         
         public User Update(Guid id, UpdateUserProxyDto updateUserProxy)
@@ -47,12 +49,12 @@ namespace thirdpartynetwork.Application.Services
             
             userProxyService.Update(defaultProxy.Id, updateUserProxy);
             
-            return mapper.Map<User>(user);
+            return user;
         }
 
         public bool DeleteById(Guid id)
         {
-            var user = repository.GetById(id);
+            var user = GetById(id);
             return user != null && repository.Delete(user);
         }
     }

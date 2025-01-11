@@ -8,12 +8,14 @@ using Microsoft.IdentityModel.Tokens;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using thirdpartynetwork;
 using thirdpartynetwork.Application.Auth;
+using thirdpartynetwork.Application.Helpers;
 using thirdpartynetwork.Core.Data;
 using thirdpartynetwork.Presentation.Swagger;
 using thirdpartynetwork.Application.Repositories;
 using thirdpartynetwork.Application.Services;
 using thirdpartynetwork.Core.Helper;
 using thirdpartynetwork.Core.Interfaces.Auth;
+using thirdpartynetwork.Core.Interfaces.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
@@ -70,10 +72,12 @@ builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IUserProxyRepository, UserProxyRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 
-// Add Services
+// Add Helpers
 builder.Services.AddScoped<ITokenGenerator, TokenGenerator>();
 builder.Services.AddScoped<IJtiCacheService, JtiCacheService>();
+builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 
+// Add Services
 builder.Services.AddScoped<IContentService, ContentService>();
 builder.Services.AddScoped<INetworkPermissionService, NetworkPermissionService>();
 builder.Services.AddScoped<INetworkRoleService, NetworkRoleService>();

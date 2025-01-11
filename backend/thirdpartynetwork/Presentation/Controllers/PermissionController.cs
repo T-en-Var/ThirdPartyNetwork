@@ -30,7 +30,7 @@ public class PermissionController(IPermissionService service, IMapper mapper) : 
     public IActionResult CreatePermission([FromBody] CreatePermissionDto createPermission)
     {
         var permission = service.Create(createPermission);
-        return StatusCode(201, mapper.Map<NetworkPermission>(permission));
+        return StatusCode(201, mapper.Map<PermissionDto>(permission));
     }
 
     [HttpPatch("{permissionId:guid}")]
@@ -44,6 +44,7 @@ public class PermissionController(IPermissionService service, IMapper mapper) : 
 
     [HttpDelete("{permissionId:guid}")]
     [ProducesResponseType(204)]
+    [ProducesResponseType(404)]
     public IActionResult DeletePermission(Guid permissionId)
     {
         service.DeleteById(permissionId);

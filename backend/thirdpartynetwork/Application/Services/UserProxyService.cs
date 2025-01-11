@@ -1,10 +1,11 @@
 ﻿using AutoMapper;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
+using thirdpartynetwork.Core.Interfaces.Helpers;
 using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Application.Services
 {
-    public class UserProxyService(IUserProxyRepository repository, IMapper mapper) : IUserProxyService
+    public class UserProxyService(IUserProxyRepository repository, IPasswordHasher passwordHasher, IMapper mapper) : IUserProxyService
     {
         public ICollection<UserProxy> GetAll()
         {
@@ -25,7 +26,9 @@ namespace thirdpartynetwork.Application.Services
 
         public UserProxy Create(CreateUserProxyDto createUserProxy)
         {
-            var proxy = repository.Create(mapper.Map<UserProxy>(createUserProxy));
+            var proxy = mapper.Map<UserProxy>(createUserProxy);
+            proxy.Password = passwordHasher.HashPassword(proxy.Password);
+            proxy = repository.Create(proxy);
             return proxy;
         }
 
@@ -35,6 +38,7 @@ namespace thirdpartynetwork.Application.Services
             
             var obj = mapper.Map<UserProxy>(updateUserProxy);
             obj.Id = id;
+            obj.Password = passwordHasher.HashPassword(obj.Password);
             
             var proxy = repository.Update(obj);
             return proxy;

@@ -1,7 +1,5 @@
 ﻿using AutoMapper;
 using thirdpartynetwork.Core.Models;
-using thirdpartynetwork.Application.Dtos;
-using thirdpartynetwork.Core.Exceptions;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 
 namespace thirdpartynetwork.Application.Services
@@ -34,18 +32,18 @@ namespace thirdpartynetwork.Application.Services
         
         public Network Update(Guid id, UpdateNetworkDto updateNetworkDto)
         {
-            var network = repository.GetById(id);
-            if (network == null) throw new NotFoundHttpException();
+            if (!repository.Exists(id)) throw new NotFoundHttpException();
             
-            var obj = mapper.Map(updateNetworkDto, network);
+            var obj = mapper.Map<Network>(updateNetworkDto);
             obj.Id = id;
             
-            return repository.Update(obj);
+            var network = repository.Update(obj);
+            return network;
         }
 
         public bool DeleteById(Guid id)
         {
-            var network = repository.GetById(id);
+            var network = GetById(id);
             return network != null && repository.Delete(network);
         }
     }

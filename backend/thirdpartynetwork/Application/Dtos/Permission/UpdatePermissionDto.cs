@@ -1,22 +1,8 @@
-﻿using thirdpartynetwork.Application.Dtos.Common.Ommitables;
-
-namespace thirdpartynetwork.Application.Dtos.Permission
+﻿namespace thirdpartynetwork.Application.Dtos.Permission
 {
-    public class UpdatePermissionDto : OmmitableName
+    public class UpdatePermissionDto
     {
-        private string? _description;
-        private bool _descriptionIsSet = false;
-
-        public bool DescriptionIsSet => _descriptionIsSet;
-
-        public string? Description
-        {
-            get => _description;
-            init
-            {
-                _description = value;
-                _descriptionIsSet = true;
-            }
-        }
+        public required string Name { get; set; }
+        public required string Description { get; set; }
     }
 }

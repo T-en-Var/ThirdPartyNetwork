@@ -22,7 +22,7 @@ public class NetworkController(INetworkService service, IMapper mapper) : Contro
     public IActionResult GetNetworkById(Guid networkId)
     {
         var network = service.GetById(networkId);
-        return StatusCode(200, mapper.Map<NetworkDto>(network));
+        return network != null ? Ok(mapper.Map<NetworkDto>(network)) : NotFound();
     }
 
     [HttpPost]
@@ -43,6 +43,8 @@ public class NetworkController(INetworkService service, IMapper mapper) : Contro
     }
 
     [HttpDelete("{networkId:guid}")]
+    [ProducesResponseType(204)]
+    [ProducesResponseType(404)]
     public IActionResult Delete(Guid networkId)
     {
         service.DeleteById(networkId);

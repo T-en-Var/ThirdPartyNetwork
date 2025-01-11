@@ -8,7 +8,7 @@ namespace thirdpartynetwork.Core.Interfaces.Repositories
         ICollection<NetworkPermission> GetAll();
         ICollection<NetworkPermission> GetByNetworkId(Guid id);
         ICollection<NetworkPermission> GetByPermissionId(Guid id);
-        NetworkPermission? GetByIds(Guid networkId, Guid permissiondId);
+        NetworkPermission? GetByIds(Guid networkId, Guid permissionId);
         NetworkPermission Create(NetworkPermission networkPermission);
         NetworkPermission Update(NetworkPermission networkPermission);
         bool Delete(NetworkPermission networkPermission);
