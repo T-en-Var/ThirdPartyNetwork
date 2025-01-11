@@ -34,10 +34,10 @@ namespace thirdpartynetwork.Application.Services
         {
             if (!repository.Exists(id)) throw new NotFoundHttpException();
             
-            var obj = mapper.Map<Network>(updateNetworkDto);
-            obj.Id = id;
+            var network = mapper.Map<Network>(updateNetworkDto);
+            network.Id = id;
             
-            var network = repository.Update(obj);
+            network = repository.Update(network);
             return network;
         }
 

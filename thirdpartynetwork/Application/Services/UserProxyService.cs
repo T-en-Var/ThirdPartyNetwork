@@ -36,11 +36,11 @@ namespace thirdpartynetwork.Application.Services
         {
             if (GetById(id) == null) throw new NotFoundHttpException();
             
-            var obj = mapper.Map<UserProxy>(updateUserProxy);
-            obj.Id = id;
-            obj.Password = passwordHasher.HashPassword(obj.Password);
+            var proxy = mapper.Map<UserProxy>(updateUserProxy);
+            proxy.Id = id;
+            proxy.Password = passwordHasher.HashPassword(proxy.Password);
             
-            var proxy = repository.Update(obj);
+            proxy = repository.Update(proxy);
             return proxy;
         }
 
