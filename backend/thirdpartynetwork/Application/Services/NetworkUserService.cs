@@ -1,33 +1,35 @@
-﻿namespace thirdpartynetwork.Application.Services
+﻿using thirdpartynetwork.Core.Models;
+
+namespace thirdpartynetwork.Application.Services
 {
     public class NetworkUserService : INetworkUserService
     {
-        public ICollection<NetworkUserDto> GetAll()
+        public ICollection<NetworkUser> GetAll()
         {
             throw new NotImplementedException();
         }
 
-        public ICollection<NetworkUserDto> GetByNetworkId(Guid id)
+        public ICollection<NetworkUser> GetByNetworkId(Guid id)
         {
             throw new NotImplementedException();
         }
 
-        public ICollection<NetworkUserDto> GetByuserProxyId(Guid id)
+        public ICollection<NetworkUser> GetByuserProxyId(Guid id)
         {
             throw new NotImplementedException();
         }
 
-        public NetworkUserDto? GetById(Guid id)
+        public NetworkUser? GetById(Guid id)
         {
             throw new NotImplementedException();
         }
 
-        public NetworkUserDto? Create(Guid networkId, NetworkUserDto networkUser)
+        public NetworkUser Create(Guid networkId, CreateNetworkUserDto networkUser)
         {
             throw new NotImplementedException();
         }
 
-        public NetworkUserDto? Update(Guid id, NetworkUserDto networkUser)
+        public NetworkUser Update(Guid id, UpdateNetworkUserDto networkUser)
         {
             throw new NotImplementedException();
         }

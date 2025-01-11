@@ -10,6 +10,13 @@ namespace thirdpartynetwork.Core.Helper
         {
             CreateMap<Network, NetworkDto>();
             CreateMap<CreateNetworkDto, Network>();
+            
+            CreateMap<User, UserDto>()
+                .ForMember(usr => usr.UserProxies, opt => opt.MapFrom(src => src.Proxies));
+            CreateMap<CreateUserDto, User>();
+            
+            CreateMap<UserProxy, UserProxyDto>();
+            CreateMap<CreateUserProxyDto, UserProxy>();
         }
     }
 }

@@ -2,18 +2,17 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
+using thirdpartynetwork.Core.Interfaces.Auth;
 
 namespace thirdpartynetwork.Application.Auth;
 
-public class TokenGenerator(JtiCacheService jtiCacheService)
+public class TokenGenerator(IJtiCacheService jtiCacheService) : ITokenGenerator
 {
     private static readonly string TokenSecret = Environment.GetEnvironmentVariable("TOKEN_SECRET")!;
     private static readonly TimeSpan AccessTokenLifetime = TimeSpan.FromMinutes(15);
     private static readonly TimeSpan RefreshTokenLifetime = TimeSpan.FromHours(7 * 24);
 
-    public string GenerateAccessToken(
-        Guid userId, 
-        string username)
+    public string GenerateAccessToken(Guid userId, string username)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.UTF8.GetBytes(TokenSecret);

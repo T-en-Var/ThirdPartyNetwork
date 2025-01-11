@@ -5,7 +5,7 @@ using System.Web.Http;
 
 namespace thirdpartynetwork.Core.Helper
 {
-    public class GlobalExceptionFilter : ExceptionFilterAttribute
+    public class GlobalExceptionFilter(ILogger<CustomExceptionMiddleware> logger) : ExceptionFilterAttribute
     {
         public override void OnException(ExceptionContext context)
         {
@@ -25,7 +25,9 @@ namespace thirdpartynetwork.Core.Helper
             else
             {
                 // Handle all other exceptions with a generic error message
-                context.Result = new ObjectResult(new { Error = "An unexpected error occurred." })
+                logger.LogError(context.Exception.Message);
+                logger.LogTrace(context.Exception.StackTrace);
+                context.Result = new ObjectResult(new { Error = $"An unexpected error occurred. {context}, {context.Exception.Message}" })
                 {
                     StatusCode = (int)HttpStatusCode.InternalServerError
                 };

@@ -1,4 +1,6 @@
-﻿using thirdpartynetwork.Core.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using thirdpartynetwork.Core.Data;
+using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Application.Repositories
@@ -7,10 +9,10 @@ namespace thirdpartynetwork.Application.Repositories
     {
         private readonly DataContext _context = context;
 
-        public User? Create(User user)
+        public User Create(User user)
         {
             _context.Users.Add(user);
-            if (!Save()) return null;
+            var x = Save();
             return user;
         }
 
@@ -27,22 +29,22 @@ namespace thirdpartynetwork.Application.Repositories
 
         public ICollection<User> GetAll()
         {
-            return [.. _context.Users];
+            return [.. _context.Users.Include(u => u.Proxies)];
         }
 
         public User? GetById(Guid id)
         {
-            return _context.Users.Find(id);
+            return _context.Users.Include(u => u.Proxies).FirstOrDefault(u => u.Id == id);
         }
 
-        public User? Update(User user)
+        public User Update(User user)
         {
-            User? existing = this.GetById(user.Id);
-            if (existing == null) return null;
+            var existing = this.GetById(user.Id);
+            if (existing == null) throw new Exception("User not found");
 
             _context.Entry(existing).CurrentValues.SetValues(user);
 
-            if (!Save()) return null;
+            Save();
             return existing;
         }
     }

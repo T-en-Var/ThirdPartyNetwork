@@ -1,28 +1,30 @@
-﻿namespace thirdpartynetwork.Application.Services
+﻿using thirdpartynetwork.Core.Models;
+
+namespace thirdpartynetwork.Application.Services
 {
     public class ContentService : IContentService
     {
-        public ICollection<ContentDto> GetAll()
+        public ICollection<Content> GetAll()
         {
             throw new NotImplementedException();
         }
 
-        public ICollection<ContentDto> GetByNetworkId(Guid networkId)
+        public ICollection<Content> GetByNetworkId(Guid networkId)
         {
             throw new NotImplementedException();
         }
 
-        public ContentDto? GetById(Guid id)
+        public Content? GetById(Guid id)
         {
             throw new NotImplementedException();
         }
 
-        public ContentDto? Create(Guid networkId, CreateContentDto content)
+        public Content Create(Guid networkId, CreateContentDto content)
         {
             throw new NotImplementedException();
         }
 
-        public ContentDto? UpdateById(Guid id, UpdateContentDto content)
+        public Content UpdateById(Guid id, UpdateContentDto content)
         {
             throw new NotImplementedException();
         }

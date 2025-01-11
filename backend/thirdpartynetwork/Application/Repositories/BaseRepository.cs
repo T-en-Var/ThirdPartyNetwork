@@ -3,17 +3,11 @@ using thirdpartynetwork.Core.Interfaces.Repositories;
 
 namespace thirdpartynetwork.Application.Repositories
 {
-    public abstract class BaseRepository : IBaseRepository
+    public abstract class BaseRepository(DataContext context) : IBaseRepository
     {
-        private readonly DataContext _context;
-        public BaseRepository(DataContext context)
-        {
-            _context = context;
-        }
-
         public bool Save()
         {
-            int saved = _context.SaveChanges();
+            var saved = context.SaveChanges();
             return saved > 0;
         }
     }

@@ -8,10 +8,11 @@ namespace thirdpartynetwork.Application.Repositories
     {
         private readonly DataContext _context = context;
 
-        public NetworkUser? Create(NetworkUser networkUser)
+        public NetworkUser Create(NetworkUser networkUser)
         {
             _context.NetworkUsers.Add(networkUser);
-            return !Save() ? null : networkUser;
+            Save();
+            return networkUser;
         }
 
         public bool Delete(NetworkUser networkUser)
@@ -45,14 +46,14 @@ namespace thirdpartynetwork.Application.Repositories
             return [.. _context.NetworkUsers.Where(nu => nu.UserProxyId == id)];
         }
 
-        public NetworkUser? Update(NetworkUser networkUser)
+        public NetworkUser Update(NetworkUser networkUser)
         {
-            NetworkUser? existing = this.GetById(networkUser.Id);
-            if (existing == null) return null;
+            var existing = this.GetById(networkUser.Id);
+            if (existing == null) throw new Exception("NetworkUser not found");
 
             _context.Entry(existing).CurrentValues.SetValues(networkUser);
 
-            if (!Save()) return null;
+            Save();
             return existing;
         }
     }

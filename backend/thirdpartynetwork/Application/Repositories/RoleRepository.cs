@@ -1,5 +1,7 @@
 ﻿using System.Security;
 using thirdpartynetwork.Core.Data;
+using thirdpartynetwork.Core.Exceptions;
+using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Application.Repositories
@@ -8,10 +10,11 @@ namespace thirdpartynetwork.Application.Repositories
     {
         private readonly DataContext _context = context;
 
-        public Role? Create(Role role)
+        public Role Create(Role role)
         {
             _context.Roles.Add(role);
-            return !Save() ? null : role;
+            Save();
+            return role;
         }
 
         public bool Delete(Role role)
@@ -35,14 +38,14 @@ namespace thirdpartynetwork.Application.Repositories
             return _context.Roles.Find(id);
         }
 
-        public Role? Update(Role role)
+        public Role Update(Role role)
         {
-            Role? existing = this.GetById(role.Id);
-            if (existing == null) return null;
+            var existing = this.GetById(role.Id);
+            if (existing == null) throw new Exception("Role not found");
 
             _context.Entry(existing).CurrentValues.SetValues(role);
 
-            if (!Save()) return null;
+            Save();
             return existing;
         }
     }

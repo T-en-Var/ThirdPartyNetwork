@@ -13,6 +13,7 @@ using thirdpartynetwork.Presentation.Swagger;
 using thirdpartynetwork.Application.Repositories;
 using thirdpartynetwork.Application.Services;
 using thirdpartynetwork.Core.Helper;
+using thirdpartynetwork.Core.Interfaces.Auth;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
@@ -43,7 +44,7 @@ builder.Services.AddAuthorization();
 // Add services to the container.
 builder.Services.AddControllers(options =>
 {
-    options.Filters.Add<GlobalExceptionFilter>(); // Register the global exception filter here
+    // options.Filters.Add<GlobalExceptionFilter>(); // Register the global exception filter here
 });
 
 builder.Services.AddTransient<Seed>();
@@ -70,8 +71,9 @@ builder.Services.AddScoped<IUserProxyRepository, UserProxyRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 // Add Services
-builder.Services.AddScoped<TokenGenerator>();
-builder.Services.AddScoped<JtiCacheService>();
+builder.Services.AddScoped<ITokenGenerator, TokenGenerator>();
+builder.Services.AddScoped<IJtiCacheService, JtiCacheService>();
+
 builder.Services.AddScoped<IContentService, ContentService>();
 builder.Services.AddScoped<INetworkPermissionService, NetworkPermissionService>();
 builder.Services.AddScoped<INetworkRoleService, NetworkRoleService>();
@@ -119,11 +121,16 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+return;
 
 static void SeedData(IHost app)
 {
     var scopedFactory = app.Services.GetService<IServiceScopeFactory>();
+    if (scopedFactory == null) throw new Exception("Service Scope Factory is null");
+    
     using var scope = scopedFactory.CreateScope();
     var service = scope.ServiceProvider.GetService<Seed>();
+    if (service == null) throw new Exception("Service is null");
+    
     service.SeedDataContext();
 }

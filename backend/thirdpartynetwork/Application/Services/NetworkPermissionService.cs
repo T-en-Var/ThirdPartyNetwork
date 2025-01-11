@@ -1,33 +1,35 @@
-﻿namespace thirdpartynetwork.Application.Services
+﻿using thirdpartynetwork.Core.Models;
+
+namespace thirdpartynetwork.Application.Services
 {
     public class NetworkPermissionService : INetworkPermissionService
     {
-        public ICollection<NetworkPermissionDto> GetAll()
+        public ICollection<NetworkPermission> GetAll()
         {
             throw new NotImplementedException();
         }
 
-        public ICollection<NetworkPermissionDto> GetByNetworkId(Guid id)
+        public ICollection<NetworkPermission> GetByNetworkId(Guid id)
         {
             throw new NotImplementedException();
         }
 
-        public ICollection<NetworkPermissionDto> GetByPermissionId(Guid id)
+        public ICollection<NetworkPermission> GetByPermissionId(Guid id)
         {
             throw new NotImplementedException();
         }
 
-        public NetworkPermissionDto? GetByIds(Guid networkId, Guid permissiondId)
+        public NetworkPermission? GetByIds(Guid networkId, Guid permissiondId)
         {
             throw new NotImplementedException();
         }
 
-        public NetworkPermissionDto? Create(Guid networkId, CreateNetworkPermissionDto networkPermission)
+        public NetworkPermission Create(Guid networkId, CreateNetworkPermissionDto networkPermission)
         {
             throw new NotImplementedException();
         }
 
-        public NetworkPermissionDto? Update(Guid networkId, Guid permissiondId, UpdateNetworkDto networkPermission)
+        public NetworkPermission Update(Guid networkId, Guid permissiondId, UpdateNetworkDto networkPermission)
         {
             throw new NotImplementedException();
         }

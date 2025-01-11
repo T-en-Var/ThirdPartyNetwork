@@ -1,4 +1,6 @@
 ﻿using thirdpartynetwork.Core.Data;
+using thirdpartynetwork.Core.Exceptions;
+using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Application.Repositories
@@ -7,10 +9,11 @@ namespace thirdpartynetwork.Application.Repositories
     {
         private readonly DataContext _context = context;
 
-        public Permission? Create(Permission permission)
+        public Permission Create(Permission permission)
         {
             _context.Permissions.Add(permission);
-            return !Save() ? null : permission;
+            Save();
+            return permission;
         }
 
         public bool Delete(Permission permission)
@@ -34,14 +37,14 @@ namespace thirdpartynetwork.Application.Repositories
             return _context.Permissions.Find(id);
         }
 
-        public Permission? Update(Permission permission)
+        public Permission Update(Permission permission)
         {
-            Permission? existing = this.GetById(permission.Id);
-            if (existing == null) return null;
+            var existing = this.GetById(permission.Id);
+            if (existing == null) throw new Exception("Permission not found");
 
             _context.Entry(existing).CurrentValues.SetValues(permission);
 
-            if (!Save()) return null;
+            Save();
             return existing;
         }
     }

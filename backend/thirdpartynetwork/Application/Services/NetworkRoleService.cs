@@ -1,33 +1,35 @@
-﻿namespace thirdpartynetwork.Application.Services
+﻿using thirdpartynetwork.Core.Models;
+
+namespace thirdpartynetwork.Application.Services
 {
     public class NetworkRoleService : INetworkRoleService
     {
-        public ICollection<NetworkRoleDto> GetAll()
+        public ICollection<NetworkRole> GetAll()
         {
             throw new NotImplementedException();
         }
 
-        public ICollection<NetworkRoleDto> GetByNetworkId(Guid id)
+        public ICollection<NetworkRole> GetByNetworkId(Guid id)
         {
             throw new NotImplementedException();
         }
 
-        public ICollection<NetworkRoleDto> GetByRoleId(Guid id)
+        public ICollection<NetworkRole> GetByRoleId(Guid id)
         {
             throw new NotImplementedException();
         }
 
-        public NetworkRoleDto? GetByIds(Guid networkId, Guid roleId)
+        public NetworkRole? GetByIds(Guid networkId, Guid roleId)
         {
             throw new NotImplementedException();
         }
 
-        public NetworkRoleDto? Create(Guid networkId, CreateNetworkRoleDto networkRole)
+        public NetworkRole Create(Guid networkId, CreateNetworkRoleDto networkRole)
         {
             throw new NotImplementedException();
         }
 
-        public NetworkRoleDto? Update(Guid networkId, Guid roleId, UpdateNetworkRoleDto networkRole)
+        public NetworkRole Update(Guid networkId, Guid roleId, UpdateNetworkRoleDto networkRole)
         {
             throw new NotImplementedException();
         }

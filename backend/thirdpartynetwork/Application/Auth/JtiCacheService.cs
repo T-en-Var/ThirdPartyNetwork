@@ -1,17 +1,10 @@
-using Microsoft.Extensions.Caching.Distributed;
+using thirdpartynetwork.Core.Interfaces.Auth;
 
 namespace thirdpartynetwork.Application.Auth;
 
-public class JtiCacheService
+public class JtiCacheService : IJtiCacheService
 {
-    private class JtiTracker
-    {
-        public required string Jti { get; init; }
-        public JtiTracker? Next { get; set; }
-        public DateTime? Expiration { get; set; }
-    }
-
-    private readonly List<JtiTracker> _jtiTrackers = [];
+    private readonly List<IJtiCacheService.JtiTracker> _jtiTrackers = [];
 
     public bool IsJtiValid(string jti)
     {
@@ -22,7 +15,7 @@ public class JtiCacheService
     {
         GarbageCollect();
 
-        var newTracker = new JtiTracker
+        var newTracker = new IJtiCacheService.JtiTracker
         {
             Jti = jti,
             Expiration = DateTime.UtcNow.Add(expiry)
@@ -33,7 +26,7 @@ public class JtiCacheService
         _jtiTrackers.Add(newTracker);
     }
 
-    private void AppendValidateJti(JtiTracker newTracker, string previousJti)
+    private void AppendValidateJti(IJtiCacheService.JtiTracker newTracker, string previousJti)
     {
         var previousTracker = _jtiTrackers.Find(t => t.Jti == previousJti);
         if (previousTracker == null)
@@ -60,7 +53,7 @@ public class JtiCacheService
         RemoveTrackerTree(tracker);
     }
 
-    private void RemoveTrackerTree(JtiTracker tracker)
+    private void RemoveTrackerTree(IJtiCacheService.JtiTracker tracker)
     {
         if (tracker.Next != null) RemoveTrackerTree(tracker.Next);
         

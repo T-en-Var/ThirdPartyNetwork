@@ -1,4 +1,5 @@
 ﻿using thirdpartynetwork.Core.Data;
+using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Application.Repositories
@@ -7,10 +8,11 @@ namespace thirdpartynetwork.Application.Repositories
     {
         private readonly DataContext _context = context;
 
-        public UserProxy? Create(UserProxy userProxy)
+        public UserProxy Create(UserProxy userProxy)
         {
             _context.UserProxies.Add(userProxy);
-            return !Save() ? null : userProxy;
+            Save();
+            return userProxy;
         }
 
         public bool Delete(UserProxy userProxy)
@@ -39,14 +41,14 @@ namespace thirdpartynetwork.Application.Repositories
             return [.. _context.UserProxies.Where(up => up.User.Id == id)];
         }
 
-        public UserProxy? Update(UserProxy userProxy)
+        public UserProxy Update(UserProxy userProxy)
         {
-            UserProxy? existing = this.GetById(userProxy.Id);
-            if (existing == null) return null;
+            var existing = this.GetById(userProxy.Id);
+            if (existing == null) throw new Exception("UserProxy not found");
 
             _context.Entry(existing).CurrentValues.SetValues(userProxy);
 
-            if (!Save()) return null;
+            Save();
             return existing;
         }
     }
