@@ -15,13 +15,13 @@ namespace thirdpartynetwork.Application.Services
         public Permission? GetById(Guid id)
         {
             var permission = repository.GetById(id);
-            if (permission == null) throw new NotFoundHttpException();
             return permission;
         }
 
         public Permission Create(CreatePermissionDto createPermission)
         {
-            var permission = repository.Create(mapper.Map<Permission>(createPermission));
+            var permission = mapper.Map<Permission>(createPermission);
+            permission = repository.Create(permission);
             return permission;
         }
 

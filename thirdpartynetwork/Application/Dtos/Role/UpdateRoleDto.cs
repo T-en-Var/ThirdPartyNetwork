@@ -1,8 +1,8 @@
-﻿using thirdpartynetwork.Application.Dtos.Common.Ommitables;
-
-namespace thirdpartynetwork.Application.Dtos.Role
+﻿namespace thirdpartynetwork.Application.Dtos.Role
 {
-    public class UpdateRoleDto : OmmitableName
+    public class UpdateRoleDto
     {
+        public required string Name { get; set; }
+        public required string Description { get; set; }
     }
 }

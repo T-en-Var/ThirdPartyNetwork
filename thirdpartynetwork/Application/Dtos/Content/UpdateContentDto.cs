@@ -1,20 +1,8 @@
 ﻿namespace thirdpartynetwork.Application.Dtos.Content
 {
-    public class UpdateContentDto : OmmitableTitle
+    public class UpdateContentDto
     {
-        private string? _content;
-        private bool _contentIsSet = false;
-
-        public bool ContentIsSet => _contentIsSet;
-
-        public string? Content
-        {
-            get => _content;
-            init
-            {
-                _content = value;
-                _contentIsSet = true;
-            }
-        }
+        public required string Title { get; set; }
+        public required string Content { get; set; }
     }
 }

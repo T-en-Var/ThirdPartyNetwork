@@ -8,8 +8,8 @@ namespace thirdpartynetwork.Core.Interfaces.Services
         ICollection<NetworkPermission> GetByNetworkId(Guid id);
         ICollection<NetworkPermission> GetByPermissionId(Guid id);
         NetworkPermission? GetByIds(Guid networkId, Guid permissionId);
-        NetworkPermission Create(Guid networkId, CreateNetworkPermissionDto createNetworkPermission);
-        NetworkPermission Update(Guid networkId, Guid permissionId, UpdateNetworkDto updateNetworkPermission);
+        NetworkPermission Create(Guid networkId, Guid permissionId, CreateNetworkPermissionDto createNetworkPermission);
+        NetworkPermission Update(Guid networkId, Guid permissionId, UpdateNetworkPermissionDto updateNetworkPermission);
         bool DeleteByIds(Guid networkId, Guid permissionId);
     }
 }

@@ -1,13 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
-using thirdpartynetwork.Core.Data;
-using thirdpartynetwork.Core.Exceptions;
+﻿using thirdpartynetwork.Core.Data;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
-using thirdpartynetwork.Core.Interfaces.Repositories;
 using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Application.Repositories
 {
-    public class NetworkPermissionRepository(DataContext context) : BaseRepository(context), INetworkPermissionRepository
+    public class NetworkPermissionRepository(DataContext context, ILogger<NetworkPermissionRepository> logger) : BaseRepository(context), INetworkPermissionRepository
     {
         private readonly DataContext _context = context;
 
