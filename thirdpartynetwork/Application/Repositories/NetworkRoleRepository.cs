@@ -51,6 +51,8 @@ namespace thirdpartynetwork.Application.Repositories
         {
             var existing = this.GetByIds(networkRole.NetworkId, networkRole.RoleId);
             if (existing == null) throw new Exception("NetworkRole not found");
+            
+            if (existing.IsSystemProtected) throw new UnauthorizedHttpException("NetworkRole is system protected");
 
             _context.Entry(existing).CurrentValues.SetValues(networkRole);
 

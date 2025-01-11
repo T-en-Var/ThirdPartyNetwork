@@ -53,6 +53,8 @@ namespace thirdpartynetwork.Application.Repositories
         {
             var existing = this.GetByIds(networkPermission.NetworkId, networkPermission.PermissionId);
             if (existing == null) throw new Exception("NetworkPermission not found");
+            
+            if (existing.IsSystemProtected) throw new UnauthorizedHttpException("NetworkPermission is system protected");
 
             _context.Entry(existing).CurrentValues.SetValues(networkPermission);
 

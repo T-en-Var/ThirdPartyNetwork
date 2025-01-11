@@ -7,5 +7,6 @@
         public required bool IsRequired { get; set; }
         public required Network Network { get; set; }
         public required Permission Permission { get; set; }
+        public bool IsSystemProtected { get; set; } = false;
     }
 }

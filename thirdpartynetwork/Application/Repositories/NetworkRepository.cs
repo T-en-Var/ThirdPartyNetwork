@@ -39,13 +39,15 @@ namespace thirdpartynetwork.Application.Repositories
 
         public Network? GetByName(string name)
         {
-            return  _context.Networks.Where(n => n.Name == name).FirstOrDefault();
+            return  _context.Networks.FirstOrDefault(n => n.Name == name);
         }
 
         public Network Update(Network network)
         {
             var existing = this.GetById(network.Id);
             if (existing == null) throw new Exception("Network not found");
+
+            if (existing.IsSystemProtected) throw new UnauthorizedHttpException("Network is system protected");
 
             _context.Entry(existing).CurrentValues.SetValues(network);
 

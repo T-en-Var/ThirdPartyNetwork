@@ -42,6 +42,8 @@ namespace thirdpartynetwork.Application.Repositories
         {
             var existing = this.GetById(role.Id);
             if (existing == null) throw new Exception("Role not found");
+            
+            if (existing.IsSystemProtected) throw new UnauthorizedHttpException("Role is system protected");
 
             _context.Entry(existing).CurrentValues.SetValues(role);
 
