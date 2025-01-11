@@ -55,11 +55,11 @@ namespace thirdpartynetwork.Application.Services
         {
             if (!repository.Exists(networkId, permissionId)) throw new NotFoundHttpException();
             
-            var obj = mapper.Map<NetworkPermission>(updateNetworkPermission);
-            obj.NetworkId = networkId;
-            obj.PermissionId = permissionId;
+            var networkPermission = mapper.Map<NetworkPermission>(updateNetworkPermission);
+            networkPermission.NetworkId = networkId;
+            networkPermission.PermissionId = permissionId;
             
-            var networkPermission = repository.Update(obj);
+            networkPermission = repository.Update(networkPermission);
             return networkPermission;
         }
 

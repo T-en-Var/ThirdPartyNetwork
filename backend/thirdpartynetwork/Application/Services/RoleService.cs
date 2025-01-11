@@ -29,10 +29,10 @@ namespace thirdpartynetwork.Application.Services
         {
             if (!repository.Exists(id)) throw new NotFoundHttpException();
             
-            var obj = mapper.Map<Role>(updateRole);
-            obj.Id = id;
+            var role = mapper.Map<Role>(updateRole);
+            role.Id = id;
             
-            var role = repository.Update(obj);
+            role = repository.Update(role);
             return role;
         }
 

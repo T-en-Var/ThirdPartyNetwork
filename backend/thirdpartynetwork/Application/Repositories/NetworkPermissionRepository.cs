@@ -4,7 +4,7 @@ using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Application.Repositories
 {
-    public class NetworkPermissionRepository(DataContext context, ILogger<NetworkPermissionRepository> logger) : BaseRepository(context), INetworkPermissionRepository
+    public class NetworkPermissionRepository(DataContext context) : BaseRepository(context), INetworkPermissionRepository
     {
         private readonly DataContext _context = context;
 
