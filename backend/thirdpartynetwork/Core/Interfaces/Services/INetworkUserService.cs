@@ -8,9 +8,9 @@ namespace thirdpartynetwork.Core.Interfaces.Services
         ICollection<NetworkUser> GetAll();
         ICollection<NetworkUser> GetByNetworkId(Guid id);
         ICollection<NetworkUser> GetByUserProxyId(Guid id);
-        NetworkUser? GetById(Guid id);
+        NetworkUser? GetById(Guid networkUserId);
         NetworkUser Create(Guid networkId, CreateNetworkUserDto createNetworkUser);
-        NetworkUser Update(Guid id, UpdateNetworkUserDto updateNetworkUser);
+        NetworkUser Update(Guid networkId, Guid networkUserId, UpdateNetworkUserDto updateNetworkUser);
         bool DeleteById(Guid id);
     }
 }

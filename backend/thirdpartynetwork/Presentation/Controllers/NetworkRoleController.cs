@@ -33,7 +33,7 @@ public class NetworkRoleController(INetworkRoleService service, IMapper mapper) 
         return StatusCode(201, mapper.Map<NetworkRoleDto>(networkRole));
     }
 
-    [HttpPatch("{roleId:guid}")]
+    [HttpPut("{roleId:guid}")]
     [ProducesResponseType(200, Type = typeof(NetworkRoleDto))]
     [ProducesResponseType(404)]
     public IActionResult UpdateNetworkRole(Guid networkId, Guid roleId, UpdateNetworkRoleDto updateNetworkRole)

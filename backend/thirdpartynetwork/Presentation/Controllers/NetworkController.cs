@@ -35,7 +35,7 @@ public class NetworkController(INetworkService service, IMapper mapper) : Contro
         return StatusCode(201, mapper.Map<NetworkDto>(network));
     }
 
-    [HttpPatch("{networkId:guid}")]
+    [HttpPut("{networkId:guid}")]
     public IActionResult Update(Guid networkId, UpdateNetworkDto networkUpdate)
     {
         var network = service.Update(networkId, networkUpdate);

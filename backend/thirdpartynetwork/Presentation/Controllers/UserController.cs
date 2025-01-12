@@ -34,7 +34,7 @@ public class UserController(IUserService service, IMapper mapper) : ControllerBa
         return StatusCode(200, mapper.Map<UserDto>(user));
     }
     
-    [HttpPatch("{userId:guid}")]
+    [HttpPut("{userId:guid}")]
     [ProducesResponseType(201, Type = typeof(UserDto))]
     public IActionResult Update(Guid userId, [FromBody] UpdateUserProxyDto updateUserProxyDto)
     {

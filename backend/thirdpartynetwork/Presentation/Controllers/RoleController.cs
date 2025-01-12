@@ -32,7 +32,7 @@ public class RoleController(IRoleService service, IMapper mapper) : Controller
         return Ok(mapper.Map<RoleDto>(role));
     }
 
-    [HttpPatch("{roleId:guid}")]
+    [HttpPut("{roleId:guid}")]
     [ProducesResponseType(200, Type = typeof(RoleDto))]
     [ProducesResponseType(404)]
     public IActionResult UpdateRole(Guid roleId, UpdateRoleDto updateRole)

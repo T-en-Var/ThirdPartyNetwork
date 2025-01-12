@@ -33,7 +33,7 @@ public class PermissionController(IPermissionService service, IMapper mapper) : 
         return StatusCode(201, mapper.Map<PermissionDto>(permission));
     }
 
-    [HttpPatch("{permissionId:guid}")]
+    [HttpPut("{permissionId:guid}")]
     [ProducesResponseType(200, Type = typeof(PermissionDto))]
     [ProducesResponseType(404)]
     public IActionResult UpdatePermission(Guid permissionId, [FromBody] UpdatePermissionDto updatePermission)
