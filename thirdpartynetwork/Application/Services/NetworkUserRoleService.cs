@@ -1,42 +1,71 @@
-﻿using thirdpartynetwork.Core.Models;
+﻿using AutoMapper;
+using thirdpartynetwork.Core.Exceptions.HttpExceptions;
+using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Application.Services
 {
-    public class NetworkUserRoleService : INetworkUserRoleService
+    public class NetworkUserRoleService(INetworkUserRoleRepository repository, INetworkService networkService, INetworkUserService networkUserService, IRoleService roleService, IMapper mapper) : INetworkUserRoleService
     {
         public ICollection<NetworkUserRole> GetAll()
         {
-            throw new NotImplementedException();
+            var networkUserRoles = repository.GetAll();
+            return networkUserRoles;
         }
 
-        public ICollection<NetworkUserRole> GetByNetworkUserId(Guid id)
+        public ICollection<NetworkUserRole> GetByNetworkUserId(Guid networkId, Guid networkUserId)
         {
-            throw new NotImplementedException();
+            if (networkService.GetById(networkId) == null) throw new NotFoundHttpException("Network not found");
+            
+            var networkUserRoles = repository.GetByNetworkUserId(networkUserId);
+            return networkUserRoles;
         }
 
-        public ICollection<NetworkUserRole> GetByRoleId(Guid id)
+        public ICollection<NetworkUserRole> GetByRoleId(Guid roleId)
         {
-            throw new NotImplementedException();
+            if (roleService.GetById(roleId) == null) throw new NotFoundHttpException("Role not found");
+            
+            var networkUserRoles = repository.GetByRoleId(roleId);
+            return networkUserRoles;
         }
 
-        public NetworkUserRole? GetByIds(Guid networkUserId, Guid roleId)
+        public NetworkUserRole? GetByIds(Guid networkId, Guid networkUserId, Guid roleId)
         {
-            throw new NotImplementedException();
+            if (networkService.GetById(networkId) == null) throw new NotFoundHttpException("Network not found");
+            
+            var networkUserRole = repository.GetByIds(networkUserId, roleId);
+            return networkUserRole;
         }
 
-        public NetworkUserRole Create(Guid networkId, CreateNetworkUserRoleDto createNetworkUserRole)
+        public NetworkUserRole Create(Guid networkId, Guid networkUserId, Guid roleId, CreateNetworkUserRoleDto createNetworkUserRole)
         {
-            throw new NotImplementedException();
+            if (networkService.GetById(networkId) == null) throw new NotFoundHttpException("Network not found");
+            if (roleService.GetById(roleId) == null) throw new NotFoundHttpException("Role not found");
+            
+            var networkUserRole = mapper.Map<NetworkUserRole>(createNetworkUserRole);
+            networkUserRole.NetworkUserId = networkUserId;
+            networkUserRole.RoleId = roleId;
+            
+            networkUserRole = repository.Create(networkUserRole);
+            return networkUserRole;
         }
 
-        public NetworkUserRole Update(Guid networkId, Guid roleId, UpdateNetworkUserRoleDto updateNetworkUserRole)
+        public NetworkUserRole Update(Guid networkId, Guid networkUserId, Guid roleId, UpdateNetworkUserRoleDto updateNetworkUserRole)
         {
-            throw new NotImplementedException();
+            if (networkService.GetById(networkId) == null) throw new NotFoundHttpException("Network not found");
+            if (!repository.Exists(networkUserId, roleId)) throw new NotFoundHttpException();
+            
+            var networkUserRole = mapper.Map<NetworkUserRole>(updateNetworkUserRole);
+            networkUserRole.NetworkUserId = networkUserId;
+            networkUserRole.RoleId = roleId;
+            
+            networkUserRole = repository.Update(networkUserRole);
+            return networkUserRole;
         }
 
-        public bool DeleteById(Guid id)
+        public bool DeleteByIds(Guid networkId, Guid networkUserId, Guid roleId)
         {
-            throw new NotImplementedException();
+            var networkUserRole = repository.GetByIds(networkId, roleId);
+            return networkUserRole != null && repository.Delete(networkUserRole);
         }
     }
 }

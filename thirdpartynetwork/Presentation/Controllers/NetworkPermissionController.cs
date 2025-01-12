@@ -33,7 +33,7 @@ public class NetworkPermissionController(INetworkPermissionService service, IMap
         return Ok(mapper.Map<NetworkPermissionDto>(networkPermission));
     }
 
-    [HttpPatch("{permissionId:guid}")]
+    [HttpPut("{permissionId:guid}")]
     [ProducesResponseType(200, Type = typeof(NetworkPermissionDto))]
     [ProducesResponseType(404)]
     public IActionResult UpdateNetworkPermission(Guid networkId, Guid permissionId,

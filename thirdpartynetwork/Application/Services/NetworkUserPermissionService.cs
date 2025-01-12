@@ -9,32 +9,32 @@ namespace thirdpartynetwork.Application.Services
             throw new NotImplementedException();
         }
 
-        public ICollection<NetworkUserPermission> GetByNetworkId(Guid id)
+        public ICollection<NetworkUserPermission> GetByNetworkId(Guid networkId, Guid networkUserId)
         {
             throw new NotImplementedException();
         }
 
-        public ICollection<NetworkUserPermission> GetByPermissionId(Guid id)
+        public ICollection<NetworkUserPermission> GetByPermissionId(Guid permissionId)
         {
             throw new NotImplementedException();
         }
 
-        public NetworkUserPermission? GetByIds(Guid networkUserId, Guid permissionId)
+        public NetworkUserPermission? GetByIds(Guid networkId, Guid networkUserId, Guid permissionId)
         {
             throw new NotImplementedException();
         }
 
-        public NetworkUserPermission Create(Guid networkId, CreateNetworkUserPermissionDto createNetworkUserPermission)
+        public NetworkUserPermission Create(Guid networkId, Guid networkUserId, Guid permissionId, CreateNetworkUserPermissionDto createNetworkUserPermission)
         {
             throw new NotImplementedException();
         }
 
-        public NetworkUserPermission Update(Guid networkUserId, Guid permissionId, UpdateNetworkUserPermissionDto updateNetworkUserPermission)
+        public NetworkUserPermission Update(Guid networkId, Guid networkUserId, Guid permissionId, UpdateNetworkUserPermissionDto updateNetworkUserPermission)
         {
             throw new NotImplementedException();
         }
 
-        public bool DeleteById(Guid id)
+        public bool DeleteByIds(Guid networkId, Guid networkUserId, Guid permissionId)
         {
             throw new NotImplementedException();
         }
