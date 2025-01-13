@@ -1,4 +1,5 @@
-﻿using thirdpartynetwork.Core.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using thirdpartynetwork.Core.Data;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using thirdpartynetwork.Core.Models;
 
@@ -15,22 +16,33 @@ namespace thirdpartynetwork.Application.Repositories
 
         public ICollection<NetworkPermission> GetAll()
         {
-            return [.. _context.NetworkPermissions];
+            return [.. _context.NetworkPermissions
+                .Include(n => n.Permission)
+                .Include(n => n.Network)];
         }
 
         public NetworkPermission? GetByIds(Guid networkId, Guid permissiondId)
         {
-            return _context.NetworkPermissions.Find(networkId, permissiondId);
+            return _context.NetworkPermissions
+                .Include(n => n.Permission)
+                .Include(n => n.Network)
+                .FirstOrDefault(n => n.NetworkId == networkId && n.PermissionId == permissiondId);
         }
 
         public ICollection<NetworkPermission> GetByNetworkId(Guid id)
         {
-            return [.. _context.NetworkPermissions.Where(np => np.NetworkId == id)];
+            return [.. _context.NetworkPermissions
+                .Where(np => np.NetworkId == id)
+                .Include(n => n.Permission)
+                .Include(n => n.Network)];
         }
 
         public ICollection<NetworkPermission> GetByPermissionId(Guid id)
         {
-            return [.. _context.NetworkPermissions.Where(np => np.PermissionId == id)];
+            return [.. _context.NetworkPermissions
+                .Where(np => np.PermissionId == id)
+                .Include(n => n.Permission)
+                .Include(n => n.Network)];
         }
 
         public NetworkPermission Create(NetworkPermission networkPermission)

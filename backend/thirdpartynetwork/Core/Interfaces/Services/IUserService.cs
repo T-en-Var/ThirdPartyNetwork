@@ -6,9 +6,9 @@ namespace thirdpartynetwork.Core.Interfaces.Services
     public interface IUserService : IBaseService
     {
         ICollection<User> GetAll();
-        User? GetById(Guid id);
-        User Create(CreateUserProxyDto createUser);
-        User Update(Guid id, UpdateUserProxyDto updateUser);
-        bool DeleteById(Guid id);
+        User? GetById(Guid userId);
+        User Create(CreateUserDto createUser);
+        User Update(Guid userId, UpdateUserDto updateUser);
+        bool DeleteById(Guid userId);
     }
 }

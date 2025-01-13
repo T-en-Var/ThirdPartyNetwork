@@ -5,7 +5,7 @@
         public Guid NetworkId { get; set; }
         public Guid PermissionId { get; set; }
         public required bool IsRequired { get; set; }
-        public ICollection<PermissionDto> Permissions { get; set; } = [];
-        public ICollection<NetworkDto> Networks { get; set; } = [];
+        public PermissionDto Permission { get; set; }
+        public NetworkDto Network { get; set; }
     }
 }

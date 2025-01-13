@@ -15,23 +15,32 @@ namespace thirdpartynetwork.Core.Helper
             CreateMap<CreateNetworkDto, Network>();
             CreateMap<UpdateNetworkDto, Network>();
             
-            CreateMap<NetworkPermission, NetworkPermissionDto>();
+            CreateMap<NetworkPermission, NetworkPermissionDto>()
+                .ForMember(n => n.Permission, opt => opt.MapFrom(n => n.Permission))
+                .ForMember(n => n.Network, opt => opt.MapFrom(n => n.Network));
             CreateMap<CreateNetworkPermissionDto, NetworkPermission>();
             CreateMap<UpdateNetworkPermissionDto, NetworkPermission>();
             
-            CreateMap<NetworkRole, NetworkRoleDto>();
+            CreateMap<NetworkRole, NetworkRoleDto>()
+                .ForMember(n => n.Role, opt => opt.MapFrom(n => n.Role))
+                .ForMember(n => n.Network, opt => opt.MapFrom(n => n.Network));
             CreateMap<CreateNetworkRoleDto, NetworkRole>();
             CreateMap<UpdateNetworkRoleDto, NetworkRole>();
             
-            CreateMap<NetworkUser, NetworkUserDto>();
+            CreateMap<NetworkUser, NetworkUserDto>()
+                .ForMember(n => n.UserProxy, opt => opt.MapFrom(u => u.UserProxy));
             CreateMap<CreateNetworkUserDto, NetworkUser>();
             CreateMap<UpdateNetworkUserDto, NetworkUser>();
             
-            CreateMap<NetworkUserPermission, NetworkUserPermissionDto>();
+            CreateMap<NetworkUserPermission, NetworkUserPermissionDto>()
+                .ForMember(dest => dest.Permission, opt => opt.MapFrom(src => src.Permission))
+                .ForMember(dest => dest.NetworkUser, opt => opt.MapFrom(src => src.NetworkUser));
             CreateMap<CreateNetworkUserPermissionDto, NetworkUserPermission>();
             CreateMap<UpdateNetworkUserPermissionDto, NetworkUserPermission>();
-            
-            CreateMap<NetworkUserRole, NetworkUserRoleDto>();
+
+            CreateMap<NetworkUserRole, NetworkUserRoleDto>()
+                .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role))
+                .ForMember(dest => dest.NetworkUser, opt => opt.MapFrom(src => src.NetworkUser));
             CreateMap<CreateNetworkUserRoleDto, NetworkUserRole>();
             CreateMap<UpdateNetworkUserRoleDto, NetworkUserRole>();
 
@@ -43,11 +52,13 @@ namespace thirdpartynetwork.Core.Helper
             CreateMap<CreateRoleDto, Role>();
             CreateMap<UpdateRoleDto, Role>();
 
-            CreateMap<User, UserDto>();
+            CreateMap<User, UserDto>()
+                .ForMember(u => u.UserProxies, opt => opt.MapFrom(u => u.Proxies));
             CreateMap<CreateUserDto, User>();
             CreateMap<UpdateUserDto, User>();
             
-            CreateMap<UserProxy, UserProxyDto>();
+            CreateMap<UserProxy, UserProxyDto>()
+                .ForMember(dest => dest.User, opt => opt.MapFrom(src => src.User));
             CreateMap<CreateUserProxyDto, UserProxy>();
             CreateMap<UpdateUserProxyDto, UserProxy>();
         }

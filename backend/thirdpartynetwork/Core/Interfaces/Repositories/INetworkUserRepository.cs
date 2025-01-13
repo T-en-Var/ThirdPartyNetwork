@@ -6,9 +6,10 @@ namespace thirdpartynetwork.Core.Interfaces.Repositories
     {
         bool Exists(Guid id);
         ICollection<NetworkUser> GetAll();
-        ICollection<NetworkUser> GetByNetworkId(Guid id);
-        ICollection<NetworkUser> GetByUserProxyId(Guid id);
-        NetworkUser? GetById(Guid id);
+        ICollection<NetworkUser> GetByNetworkId(Guid networkId);
+        ICollection<NetworkUser> GetByUserProxyId(Guid userProxyId);
+        NetworkUser? GetById(Guid networkUserId);
+        NetworkUser? GetByIds(Guid networkId, Guid userProxyId);
         NetworkUser Create(NetworkUser networkUser);
         NetworkUser Update(NetworkUser networkUser);
         bool Delete(NetworkUser networkUser);

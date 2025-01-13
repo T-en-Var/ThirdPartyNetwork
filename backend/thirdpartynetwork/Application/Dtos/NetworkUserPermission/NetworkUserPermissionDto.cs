@@ -6,7 +6,7 @@ namespace thirdpartynetwork.Application.Dtos.NetworkUserPermission
     public class NetworkUserPermissionDto
     {
         public required bool IsAccepted { get; set; }
-        public ICollection<NetworkUserDto> NetworkUsers { get; set; } = [];
-        public ICollection<PermissionDto> Permissions { get; set; } = [];
+        public NetworkUserDto NetworkUser { get; set; }
+        public PermissionDto Permission { get; set; }
     }
 }

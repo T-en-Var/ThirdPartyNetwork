@@ -12,6 +12,12 @@ namespace thirdpartynetwork.Application.Services
             return networkUsers;
         }
 
+        public NetworkUser? GetByIds(Guid networkId, Guid userProxyId)
+        {
+            var networkUser = repository.GetByIds(networkId, userProxyId);
+            return networkUser;
+        }
+
         public ICollection<NetworkUser> GetByNetworkId(Guid networkId)
         {
             if (networkService.GetById(networkId) == null) throw new NotFoundHttpException("Network not Found");
@@ -34,12 +40,16 @@ namespace thirdpartynetwork.Application.Services
             return networkUser;
         }
 
-        public NetworkUser Create(Guid networkId, CreateNetworkUserDto createNetworkUser)
+        public NetworkUser Create(Guid networkId, Guid userProxyId, CreateNetworkUserDto createNetworkUser)
         {
             if (networkService.GetById(networkId) == null) throw new NotFoundHttpException("Network not Found");
+            if (userProxyService.GetById(userProxyId) == null) throw new NotFoundHttpException("UserProxy not Found");
+            
+            if (GetByIds(networkId, userProxyId) != null) throw new ConflictHttpException("NetworkUser already exists");
             
             var networkUser = mapper.Map<NetworkUser>(createNetworkUser);
             networkUser.NetworkId = networkId;
+            networkUser.UserProxyId = userProxyId;
             
             networkUser = repository.Create(networkUser);
             return networkUser;

@@ -6,11 +6,11 @@ namespace thirdpartynetwork.Core.Interfaces.Services
     public interface INetworkUserService : IBaseService
     {
         ICollection<NetworkUser> GetAll();
-        ICollection<NetworkUser> GetByNetworkId(Guid id);
-        ICollection<NetworkUser> GetByUserProxyId(Guid id);
+        ICollection<NetworkUser> GetByNetworkId(Guid networkId);
+        ICollection<NetworkUser> GetByUserProxyId(Guid userProxyId);
         NetworkUser? GetById(Guid networkUserId);
-        NetworkUser Create(Guid networkId, CreateNetworkUserDto createNetworkUser);
+        NetworkUser Create(Guid networkId, Guid userProxyId, CreateNetworkUserDto createNetworkUser);
         NetworkUser Update(Guid networkId, Guid networkUserId, UpdateNetworkUserDto updateNetworkUser);
-        bool DeleteById(Guid id);
+        bool DeleteById(Guid networkUserId);
     }
 }
