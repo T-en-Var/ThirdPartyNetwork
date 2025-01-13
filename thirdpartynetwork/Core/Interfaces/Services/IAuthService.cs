@@ -1,6 +1,9 @@
 namespace thirdpartynetwork.Core.Interfaces.Services;
 
-public class IAuthService : IBaseService
+public interface IAuthService : IBaseService
 {
-    // TokenDto tokenDto;
+    TokensDto Login(LoginDto login);
+    AccessTokenDto TokenRefresh(RefreshTokenDto refreshToken);
+    TokensDto TokenRotate(RefreshTokenDto refreshToken);
+    void Logout(RefreshTokenDto refreshToken);
 }

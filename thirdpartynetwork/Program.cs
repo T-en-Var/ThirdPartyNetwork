@@ -22,14 +22,14 @@ var config = builder.Configuration;
 
 Env.Load();
 
-builder.Services.AddAuthentication(x =>
+builder.Services.AddAuthentication(o =>
 {
-    x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    x.DefaultSignInScheme = JwtBearerDefaults.AuthenticationScheme;
-}).AddJwtBearer(x =>
+    o.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    o.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    o.DefaultSignInScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(o =>
 {
-    x.TokenValidationParameters = new TokenValidationParameters
+    o.TokenValidationParameters = new TokenValidationParameters
     {
         ValidIssuer = config["JwtSettings:Issuer"],
         ValidAudience = config["JwtSettings:Audience"],
@@ -41,13 +41,13 @@ builder.Services.AddAuthentication(x =>
     };
 });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(o =>
+{
+    o.AddPolicy("admin", p => p.RequireClaim("admin", "true"));
+});
 
 // Add services to the container.
-builder.Services.AddControllers(options =>
-{
-    // options.Filters.Add<GlobalExceptionFilter>(); // Register the global exception filter here
-});
+builder.Services.AddControllers();
 
 builder.Services.AddTransient<DatabaseSeeder>();
 builder.Services.AddControllers().AddJsonOptions(o => {
@@ -59,6 +59,9 @@ builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 // Cache for JtiCacheService.
 // builder.Services.AddDistributedMemoryCache();
+
+// Other
+builder.Services.AddHttpContextAccessor();
 
 // Add Repositories
 builder.Services.AddScoped<IContentRepository, ContentRepository>();
@@ -79,6 +82,7 @@ builder.Services.AddScoped<IJtiCacheService, JtiCacheService>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 
 // Add Services
+builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IContentService, ContentService>();
 builder.Services.AddScoped<INetworkPermissionService, NetworkPermissionService>();
 builder.Services.AddScoped<INetworkRoleService, NetworkRoleService>();
