@@ -1,4 +1,5 @@
-﻿using thirdpartynetwork.Core.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using thirdpartynetwork.Core.Data;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using thirdpartynetwork.Core.Models;
 
@@ -8,22 +9,9 @@ namespace thirdpartynetwork.Application.Repositories
     {
         private readonly DataContext _context = context;
 
-        public UserProxy Create(UserProxy userProxy)
+        public bool Exists(Guid userProxyId)
         {
-            _context.UserProxies.Add(userProxy);
-            Save();
-            return userProxy;
-        }
-
-        public bool Delete(UserProxy userProxy)
-        {
-            _context.Remove(userProxy);
-            return Save();
-        }
-
-        public bool Exists(Guid id)
-        {
-            return _context.UserProxies.Any(up => up.Id == id);
+            return _context.UserProxies.Any(up => up.Id == userProxyId);
         }
 
         public ICollection<UserProxy> GetAll()
@@ -31,25 +19,42 @@ namespace thirdpartynetwork.Application.Repositories
             return [.. _context.UserProxies];
         }
 
-        public UserProxy? GetById(Guid id)
+        public UserProxy? GetById(Guid userProxyId)
         {
-            return _context.UserProxies.Find(id);
+            return _context.UserProxies
+                .Include(up => up.User)
+                .FirstOrDefault(up => up.Id == userProxyId);
         }
 
-        public ICollection<UserProxy> GetByUserId(Guid id)
+        public ICollection<UserProxy> GetByUserId(Guid userId)
         {
-            return [.. _context.UserProxies.Where(up => up.User.Id == id)];
+            return [.. _context.UserProxies
+                .Where(up => up.User.Id == userId)
+                .Include(up => up.User)];
+        }
+
+        public UserProxy Create(UserProxy userProxy)
+        {
+            _context.UserProxies.Add(userProxy);
+            Save();
+            return userProxy;
         }
 
         public UserProxy Update(UserProxy userProxy)
         {
-            var existing = this.GetById(userProxy.Id);
+            var existing = GetById(userProxy.Id);
             if (existing == null) throw new Exception("UserProxy not found");
 
             _context.Entry(existing).CurrentValues.SetValues(userProxy);
 
             Save();
             return existing;
+        }
+
+        public bool Delete(UserProxy userProxy)
+        {
+            _context.Remove(userProxy);
+            return Save();
         }
     }
 }

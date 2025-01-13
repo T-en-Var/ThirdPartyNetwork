@@ -5,7 +5,7 @@ using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Application.Services
 {
-    public class UserService(IUserRepository repository, IUserProxyService userProxyService, IPasswordHasher passwordHasher, IMapper mapper) : IUserService
+    public class UserService(IUserRepository repository, IMapper mapper) : IUserService
     {
         public ICollection<User> GetAll()
         {
@@ -19,42 +19,38 @@ namespace thirdpartynetwork.Application.Services
             return user;
         }
 
-        public User Create(CreateUserProxyDto createUserProxy)
+        public User Create(CreateUserDto createUser)
         {
-            var newUser = new User();
-            var user = repository.Create(newUser);
-
-            var proxy = mapper.Map<UserProxy>(createUserProxy);
-            proxy.IsDefault = true;
-            proxy.Password = passwordHasher.HashPassword(proxy.Password);
-            
-            user.Proxies.Add(proxy);
-            repository.Save();
+            var user = mapper.Map<User>(createUser);
+            user = repository.Create(user);
             
             return user;
         }
         
-        public User Update(Guid id, UpdateUserProxyDto updateUserProxy)
+        public User Update(Guid userId, UpdateUserDto updateUser)
         {
-            // User ID, not UserProxy ID
-            var user = repository.GetById(id);
-            if (user == null) throw new NotFoundHttpException();
-
-            var defaultProxy = user.Proxies.FirstOrDefault(proxy => proxy.IsDefault);
-
-            if (defaultProxy == null)
-            {
-                throw new Exception("User has no Default Proxy, cannot update.");
-            }
+            if (!repository.Exists(userId)) throw new NotFoundHttpException();
             
-            userProxyService.Update(defaultProxy.Id, updateUserProxy);
+            var user = mapper.Map<User>(updateUser);
+            user.Id = userId;
+            
+            user = repository.Update(user);
+
+            // var defaultProxy = user.Proxies.FirstOrDefault(proxy => proxy.IsDefault);
+            
+            // if (defaultProxy == null)
+            // {
+            //     throw new Exception("User has no Default Proxy, cannot update.");
+            // }
+            
+            // userProxyService.Update(userId, defaultProxy.Id, updateUserProxy);
             
             return user;
         }
 
-        public bool DeleteById(Guid id)
+        public bool DeleteById(Guid userId)
         {
-            var user = GetById(id);
+            var user = GetById(userId);
             return user != null && repository.Delete(user);
         }
     }

@@ -25,11 +25,11 @@ public class NetworkUserController(INetworkUserService service, IMapper mapper) 
         return networkUser != null ? Ok(mapper.Map<NetworkUserDto>(networkUser)) : NotFound();
     }
 
-    [HttpPost]
+    [HttpPost("{userProxyId:guid}")]
     [ProducesResponseType(201, Type = typeof(NetworkUser))]
-    public IActionResult CreateNetworkUser(Guid networkId, CreateNetworkUserDto networkUser)
+    public IActionResult CreateNetworkUser(Guid networkId, Guid userProxyId, CreateNetworkUserDto networkUser)
     {
-        var user = service.Create(networkId, networkUser);
+        var user = service.Create(networkId, userProxyId, networkUser);
         return Ok(mapper.Map<NetworkUserDto>(user));
     }
 
@@ -40,5 +40,13 @@ public class NetworkUserController(INetworkUserService service, IMapper mapper) 
     {
         var networkUser = service.Update(networkId, networkUserId, updateNetworkUser);
         return Ok(mapper.Map<NetworkUserDto>(networkUser));
+    }
+
+    [HttpDelete("{networkUserId:guid}")]
+    [ProducesResponseType(204)]
+    public IActionResult DeleteNetworkUser(Guid networkId, Guid networkUserId)
+    {
+        service.DeleteById(networkUserId);
+        return NoContent();
     }
 }

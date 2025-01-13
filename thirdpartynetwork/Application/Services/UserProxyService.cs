@@ -5,7 +5,7 @@ using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Application.Services
 {
-    public class UserProxyService(IUserProxyRepository repository, IPasswordHasher passwordHasher, IMapper mapper) : IUserProxyService
+    public class UserProxyService(IUserProxyRepository repository, IUserService userService, IPasswordHasher passwordHasher, IMapper mapper) : IUserProxyService
     {
         public ICollection<UserProxy> GetAll()
         {
@@ -13,40 +13,57 @@ namespace thirdpartynetwork.Application.Services
             return proxies;
         }
 
-        public ICollection<UserProxy> GetByUserId()
+        public ICollection<UserProxy> GetByUserId(Guid userId)
         {
-            throw new NotImplementedException();
+            var proxies = repository.GetByUserId(userId);
+            return proxies;
         }
 
-        public UserProxy? GetById(Guid id)
+        public UserProxy? GetById(Guid userProxyId)
         {
-            var proxy = repository.GetById(id);
+            var proxy = repository.GetById(userProxyId);
             return proxy;
         }
 
-        public UserProxy Create(CreateUserProxyDto createUserProxy)
+        public UserProxy? GetByIds(Guid userId, Guid userProxyId)
         {
+            if (userService.GetById(userId) == null) throw new NotFoundHttpException("User not found");
+            
+            var proxy = repository.GetById(userProxyId);
+            return proxy;
+        }
+
+        public UserProxy Create(Guid userId, CreateUserProxyDto createUserProxy)
+        {
+            var user = userService.GetById(userId);
+            if (user == null) throw new NotFoundHttpException("User not found");
+
             var proxy = mapper.Map<UserProxy>(createUserProxy);
+            proxy.User = user;
             proxy.Password = passwordHasher.HashPassword(proxy.Password);
+            
             proxy = repository.Create(proxy);
             return proxy;
         }
 
-        public UserProxy Update(Guid id, UpdateUserProxyDto updateUserProxy)
+        public UserProxy Update(Guid userId, Guid userProxyId, UpdateUserProxyDto updateUserProxy)
         {
-            if (GetById(id) == null) throw new NotFoundHttpException();
+            var user = userService.GetById(userId);
+            if (user == null) throw new NotFoundHttpException("User not found");
+            if (GetByIds(userId, userProxyId) == null) throw new NotFoundHttpException();
             
             var proxy = mapper.Map<UserProxy>(updateUserProxy);
-            proxy.Id = id;
+            proxy.Id = userProxyId;
+            proxy.User = user;
             proxy.Password = passwordHasher.HashPassword(proxy.Password);
             
             proxy = repository.Update(proxy);
             return proxy;
         }
 
-        public bool DeleteById(Guid id)
+        public bool DeleteByIds(Guid userId, Guid userProxyId)
         {
-            var proxy = GetById(id);
+            var proxy = GetByIds(userId, userProxyId);
             return proxy != null && repository.Delete(proxy);
         }
     }

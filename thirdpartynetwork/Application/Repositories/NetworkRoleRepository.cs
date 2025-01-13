@@ -1,5 +1,5 @@
-﻿using thirdpartynetwork.Core.Data;
-using thirdpartynetwork.Core.Exceptions;
+﻿using Microsoft.EntityFrameworkCore;
+using thirdpartynetwork.Core.Data;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using thirdpartynetwork.Core.Models;
 
@@ -16,22 +16,33 @@ namespace thirdpartynetwork.Application.Repositories
 
         public ICollection<NetworkRole> GetAll()
         {
-            return [.. _context.NetworkRoles];
+            return [.. _context.NetworkRoles
+                .Include(n => n.Role)
+                .Include(n => n.Network)];
         }
 
         public NetworkRole? GetByIds(Guid networkId, Guid roleId)
         {
-            return _context.NetworkRoles.Find(networkId, roleId);
+            return _context.NetworkRoles
+                .Include(n => n.Role)
+                .Include(n => n.Network)
+                .FirstOrDefault(n => n.NetworkId == networkId && n.RoleId == roleId);
         }
 
         public ICollection<NetworkRole> GetByNetworkId(Guid id)
         {
-            return [.. _context.NetworkRoles.Where(nr => nr.NetworkId == id)];
+            return [.. _context.NetworkRoles
+                .Where(nr => nr.NetworkId == id)
+                .Include(n => n.Role)
+                .Include(n => n.Network)];
         }
 
         public ICollection<NetworkRole> GetByRoleId(Guid id)
         {
-            return [.. _context.NetworkRoles.Where(nr => nr.RoleId == id)];
+            return [.. _context.NetworkRoles
+                .Where(nr => nr.RoleId == id)
+                .Include(n => n.Role)
+                .Include(n => n.Network)];
         }
 
         public NetworkRole Create(NetworkRole networkRole)
@@ -43,7 +54,7 @@ namespace thirdpartynetwork.Application.Repositories
 
         public NetworkRole Update(NetworkRole networkRole)
         {
-            var existing = this.GetByIds(networkRole.NetworkId, networkRole.RoleId);
+            var existing = GetByIds(networkRole.NetworkId, networkRole.RoleId);
             if (existing == null) throw new Exception("NetworkRole not found");
             
             if (existing.IsSystemProtected) throw new UnauthorizedHttpException("NetworkRole is system protected");

@@ -28,23 +28,23 @@ public class UserController(IUserService service, IMapper mapper) : ControllerBa
     
     [HttpPost]
     [ProducesResponseType(201, Type = typeof(UserDto))]
-    public IActionResult Create([FromBody] CreateUserProxyDto createUserProxyDto)
+    public IActionResult Create([FromBody] CreateUserDto createUserDto)
     {
-        var user = service.Create(createUserProxyDto);
+        var user = service.Create(createUserDto);
         return StatusCode(200, mapper.Map<UserDto>(user));
     }
     
     [HttpPut("{userId:guid}")]
     [ProducesResponseType(201, Type = typeof(UserDto))]
-    public IActionResult Update(Guid userId, [FromBody] UpdateUserProxyDto updateUserProxyDto)
+    [ProducesResponseType(404)]
+    public IActionResult Update(Guid userId, [FromBody] UpdateUserDto updateUserDto)
     {
-        var user = service.Update(userId, updateUserProxyDto);
+        var user = service.Update(userId, updateUserDto);
         return StatusCode(200, mapper.Map<UserDto>(user));
     }
     
     [HttpDelete("{userId:guid}")]
-    [ProducesResponseType(200, Type = typeof(UserDto))]
-    [ProducesResponseType(404)]
+    [ProducesResponseType(204)]
     public IActionResult Delete(Guid userId)
     {
         service.DeleteById(userId);

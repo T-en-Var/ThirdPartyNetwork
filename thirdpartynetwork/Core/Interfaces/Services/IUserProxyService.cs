@@ -6,10 +6,11 @@ namespace thirdpartynetwork.Core.Interfaces.Services
     public interface IUserProxyService : IBaseService
     {
         ICollection<UserProxy> GetAll();
-        ICollection<UserProxy> GetByUserId();
-        UserProxy? GetById(Guid id);
-        UserProxy Create(CreateUserProxyDto createUserProxy);
-        UserProxy Update(Guid id, UpdateUserProxyDto updateUserProxy);
-        bool DeleteById(Guid id);
+        ICollection<UserProxy> GetByUserId(Guid userId);
+        UserProxy? GetById(Guid userProxyId);
+        UserProxy? GetByIds(Guid userId, Guid userProxyId);
+        UserProxy Create(Guid userId, CreateUserProxyDto createUser);
+        UserProxy Update(Guid userId, Guid userProxyId, UpdateUserProxyDto updateUser);
+        bool DeleteByIds(Guid userId, Guid userProxyId);
     }
 }
