@@ -6,9 +6,9 @@ namespace thirdpartynetwork.Core.Interfaces.Services
     {
         ICollection<Content> GetAll();
         ICollection<Content> GetByNetworkId(Guid networkId);
-        Content? GetById(Guid id);
+        Content? GetById(Guid contentId);
         Content Create(Guid networkId, CreateContentDto createContent);
-        Content UpdateById(Guid id, UpdateContentDto updateContent);
-        bool DeleteById(Guid id);
+        Content Update(Guid networkId, Guid contentId, UpdateContentDto updateContent);
+        bool DeleteById(Guid contentId);
     }
 }
