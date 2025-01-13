@@ -1,7 +1,6 @@
 namespace thirdpartynetwork.Application.Dtos.Auth;
 
-public class TokenDto
+public class AccessTokenDto
 {
     public required string AccessToken { get; set; }
-    public required string RefreshToken { get; set; }
 }
