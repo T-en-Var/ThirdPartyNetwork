@@ -14,8 +14,8 @@ namespace thirdpartynetwork.Application.Auth;
 //
 //         if (userClaims?.HasClaim(c => c.Type == requirement.ClaimType && c.Value == requirement.ClaimValue) == true)
 //         {
-//             var hasPermission = await userService.HasAdminPermissionAsync(userClaims);
-//             if (hasPermission)
+//             var hasAccess = await userService.HasAdminAccessAsync(userClaims);
+//             if (hasAccess)
 //             {
 //                 context.Succeed(requirement);
 //             }

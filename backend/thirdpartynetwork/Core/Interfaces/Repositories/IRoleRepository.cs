@@ -6,7 +6,8 @@ namespace thirdpartynetwork.Core.Interfaces.Repositories
     {
         bool Exists(Guid id);
         ICollection<Role> GetAll();
-        Role? GetById(Guid id);
+        ICollection<Role> GetByNetworkId(Guid networkId);
+        Role? GetById(Guid roleId);
         Role Create(Role role);
         Role Update(Role role);
         bool Delete(Role role);

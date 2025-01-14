@@ -1,12 +1,14 @@
 ﻿global using thirdpartynetwork.Application.Dtos.Auth;
 global using thirdpartynetwork.Application.Dtos.Content;
 global using thirdpartynetwork.Application.Dtos.Network;
-global using thirdpartynetwork.Application.Dtos.NetworkPermission;
+global using thirdpartynetwork.Application.Dtos.NetworkAccess;
 global using thirdpartynetwork.Application.Dtos.NetworkRole;
-global using thirdpartynetwork.Application.Dtos.NetworkUserPermission;
+global using thirdpartynetwork.Application.Dtos.NetworkUserAccess;
 global using thirdpartynetwork.Application.Dtos.NetworkUserRole;
 global using thirdpartynetwork.Application.Dtos.NetworkUser;
-global using thirdpartynetwork.Application.Dtos.Permission;
+global using thirdpartynetwork.Application.Dtos.Access;
 global using thirdpartynetwork.Application.Dtos.Role;
+global using thirdpartynetwork.Application.Dtos.RoleRule;
+global using thirdpartynetwork.Application.Dtos.Rule;
 global using thirdpartynetwork.Application.Dtos.User;
 global using thirdpartynetwork.Application.Dtos.UserProxy;

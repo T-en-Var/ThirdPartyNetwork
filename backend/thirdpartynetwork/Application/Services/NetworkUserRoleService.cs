@@ -4,7 +4,12 @@ using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Application.Services
 {
-    public class NetworkUserRoleService(INetworkUserRoleRepository repository, INetworkService networkService, INetworkUserService networkUserService, IRoleService roleService, IMapper mapper) : INetworkUserRoleService
+    public class NetworkUserRoleService(
+        INetworkUserRoleRepository repository, 
+        INetworkService networkService, 
+        INetworkUserService networkUserService, 
+        IRoleService roleService, 
+        IMapper mapper) : INetworkUserRoleService
     {
         public ICollection<NetworkUserRole> GetAll()
         {
@@ -21,9 +26,9 @@ namespace thirdpartynetwork.Application.Services
             return networkUserRoles;
         }
 
-        public ICollection<NetworkUserRole> GetByRoleId(Guid roleId)
+        public ICollection<NetworkUserRole> GetByRoleId(Guid networkId, Guid roleId)
         {
-            if (roleService.GetById(roleId) == null) throw new NotFoundHttpException("Role not found");
+            if (roleService.GetById(networkId, roleId) == null) throw new NotFoundHttpException("Role not found");
             
             var networkUserRoles = repository.GetByRoleId(roleId);
             return networkUserRoles;
@@ -33,7 +38,7 @@ namespace thirdpartynetwork.Application.Services
         {
             if (networkService.GetById(networkId) == null) throw new NotFoundHttpException("Network not found");
             if (networkUserService.GetById(networkUserId) == null) throw new NotFoundHttpException("NetworkUser not found");
-            if (roleService.GetById(roleId) == null) throw new NotFoundHttpException("Role not found");
+            if (roleService.GetById(networkId, roleId) == null) throw new NotFoundHttpException("Role not found");
 
             var networkUserRole = repository.GetByIds(networkUserId, roleId);
             return networkUserRole;
@@ -43,7 +48,7 @@ namespace thirdpartynetwork.Application.Services
         {
             if (networkService.GetById(networkId) == null) throw new NotFoundHttpException("Network not found");
             if (networkUserService.GetById(networkUserId) == null) throw new NotFoundHttpException("NetworkUser not found");
-            if (roleService.GetById(roleId) == null) throw new NotFoundHttpException("Role not found");
+            if (roleService.GetById(networkId, roleId) == null) throw new NotFoundHttpException("Role not found");
                 
             if (repository.Exists(networkUserId, roleId)) throw new ConflictHttpException();
             

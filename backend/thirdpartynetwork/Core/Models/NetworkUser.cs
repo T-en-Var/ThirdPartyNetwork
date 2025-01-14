@@ -7,7 +7,7 @@
         public required Guid UserProxyId { get; set; }
         public required UserProxy UserProxy { get; set; }
         public required Network Network { get; set; }
-        public ICollection<NetworkUserPermission> NetworkUserPermissions { get; set; } = new List<NetworkUserPermission>();
+        public ICollection<NetworkUserAccess> NetworkUserAccesses { get; set; } = new List<NetworkUserAccess>();
         public ICollection<NetworkUserRole> NetworkUserRoles { get; set; } = new List<NetworkUserRole>();
     }
 }

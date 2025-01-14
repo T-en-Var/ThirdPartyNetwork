@@ -1,0 +1,53 @@
+using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
+
+namespace thirdpartynetwork.Presentation.Controllers;
+
+[Route("api/networks/{networkId:guid}/Accesses")]
+public class NetworkAccessController(INetworkAccessService service, IMapper mapper) : ControllerBase
+{
+    [HttpGet]
+    [ProducesResponseType(200, Type = typeof(IEnumerable<NetworkAccessDto>))]
+    [ProducesResponseType(404)]
+    public IActionResult GetNetworkAccesses(Guid networkId)
+    {
+        var networkAccesses = service.GetByNetworkId(networkId);
+        return Ok(mapper.Map<IEnumerable<NetworkAccessDto>>(networkAccesses));
+    }
+
+    [HttpGet("{accessId:guid}")]
+    [ProducesResponseType(200, Type = typeof(NetworkAccessDto))]
+    [ProducesResponseType(404)]
+    public IActionResult GetNetworkAccess(Guid networkId, Guid accessId)
+    {
+        var networkAccess = service.GetByIds(networkId, accessId);
+        if (networkAccess == null) return NotFound();
+        return Ok(mapper.Map<NetworkAccessDto>(networkAccess));
+    }
+
+    [HttpPost("{accessId:guid}")]
+    [ProducesResponseType(201, Type = typeof(NetworkAccessDto))]
+    public IActionResult CreateNetworkPermission(Guid networkId, Guid accessId, CreateNetworkAccessDto createNetworkAccess)
+    {
+        var networkAccess = service.Create(networkId, accessId, createNetworkAccess);
+        return Ok(mapper.Map<NetworkAccessDto>(networkAccess));
+    }
+
+    [HttpPut("{accessId:guid}")]
+    [ProducesResponseType(200, Type = typeof(NetworkAccessDto))]
+    [ProducesResponseType(404)]
+    public IActionResult UpdateNetworkPermission(Guid networkId, Guid accessId,
+        UpdateNetworkAccessDto updateNetworkAccess)
+    {
+        var networkAccess = service.Update(networkId, accessId, updateNetworkAccess);
+        return Ok(mapper.Map<NetworkAccessDto>(networkAccess));
+    }
+
+    [HttpDelete("{accessId:guid}")]
+    [ProducesResponseType(204)]
+    public IActionResult DeleteNetworkPermission(Guid networkId, Guid accessId)
+    {
+        service.DeleteByIds(networkId, accessId);
+        return NoContent();
+    }
+}

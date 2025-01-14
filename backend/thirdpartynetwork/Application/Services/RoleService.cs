@@ -11,34 +11,39 @@ namespace thirdpartynetwork.Application.Services
             var roles = repository.GetAll();
             return roles;
         }
-
-        public Role? GetById(Guid id)
+        public ICollection<Role> GetByNetworkId(Guid networkId)
         {
-            var role = repository.GetById(id);
+            var roles = repository.GetByNetworkId(networkId);
+            return roles;
+        }
+
+        public Role? GetById(Guid networkId, Guid roleId)
+        {
+            var role = repository.GetById(roleId);
             return role;
         }
 
-        public Role Create(CreateRoleDto createRole)
+        public Role Create(Guid networkId, CreateRoleDto createRole)
         {
             var role = mapper.Map<Role>(createRole);
             role = repository.Create(role);
             return role;
         }
 
-        public Role Update(Guid id, UpdateRoleDto updateRole)
+        public Role Update(Guid networkId, Guid roleId, UpdateRoleDto updateRole)
         {
-            if (!repository.Exists(id)) throw new NotFoundHttpException();
+            if (!repository.Exists(roleId)) throw new NotFoundHttpException();
             
             var role = mapper.Map<Role>(updateRole);
-            role.Id = id;
+            role.Id = roleId;
             
             role = repository.Update(role);
             return role;
         }
 
-        public bool DeleteById(Guid id)
+        public bool DeleteById(Guid networkId, Guid roleId)
         {
-            var role = GetById(id);
+            var role = GetById(networkId, roleId);
             return role != null && repository.Delete(role);
         }
     }
