@@ -5,7 +5,7 @@ namespace thirdpartynetwork.Application.Dtos.NetworkUserRole
 {
     public class NetworkUserRoleDto
     {
-        public NetworkUserDto NetworkUser { get; set; }
-        public RoleDto Role { get; set; }
+        public required NetworkUserDto NetworkUser { get; set; }
+        public required RoleDto Role { get; set; }
     }
 }

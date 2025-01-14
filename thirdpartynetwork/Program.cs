@@ -3,11 +3,13 @@ using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using thirdpartynetwork;
 using thirdpartynetwork.Application.Auth;
+using thirdpartynetwork.Application.Auth.Requirements;
 using thirdpartynetwork.Application.Helpers;
 using thirdpartynetwork.Core.Data;
 using thirdpartynetwork.Presentation.Swagger;
@@ -41,10 +43,9 @@ builder.Services.AddAuthentication(o =>
     };
 });
 
-builder.Services.AddAuthorization(o =>
-{
-    o.AddPolicy("admin", p => p.RequireClaim("admin", "true"));
-});
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("NetworkAdminPolicy", policy =>
+        policy.Requirements.Add(new NetworkAdminRequirement("networkId")));
 
 // Add services to the container.
 builder.Services.AddControllers();
@@ -62,6 +63,9 @@ builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 // Other
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IAuthorizationHandler, NetworkAdminHandler>();
+// builder.Services.AddScoped<IAuthorizationHandler, AdminRequirementHandler>();
+
 
 // Add Repositories
 builder.Services.AddScoped<IContentRepository, ContentRepository>();
@@ -80,6 +84,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ITokenGenerator, TokenGenerator>();
 builder.Services.AddScoped<IJtiCacheService, JtiCacheService>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
+builder.Services.AddScoped<IRoleVerifier, RoleVerifier>();
 
 // Add Services
 builder.Services.AddScoped<IAuthService, AuthService>();

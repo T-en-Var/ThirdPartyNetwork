@@ -46,5 +46,13 @@ namespace thirdpartynetwork.Application.Services
             var network = GetById(id);
             return network != null && repository.Delete(network);
         }
+
+        public Network GetMainNetwork()
+        {
+            var mainNetwork = repository.GetByName("thirdpartynetwork");
+            if (mainNetwork == null) throw new Exception("Main network not found, that is NOT good.");
+            
+            return mainNetwork;
+        }
     }
 }

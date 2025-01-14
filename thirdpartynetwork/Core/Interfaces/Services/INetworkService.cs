@@ -10,5 +10,6 @@ namespace thirdpartynetwork.Core.Interfaces.Services
         Network Create(CreateNetworkDto createNetworkDto);
         Network Update(Guid id, UpdateNetworkDto updateNetworkDto);
         bool DeleteById(Guid id);
+        Network GetMainNetwork();
     }
 }
