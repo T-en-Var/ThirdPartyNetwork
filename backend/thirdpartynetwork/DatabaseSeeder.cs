@@ -1,24 +1,26 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using thirdpartynetwork.Core;
 using thirdpartynetwork.Core.Models;
 using thirdpartynetwork.Core.Data;
+using thirdpartynetwork.Core.Interfaces.Helpers;
 
 namespace thirdpartynetwork
 {
-    public class DatabaseSeeder(DataContext context)
+    public class DatabaseSeeder(DataContext context, IPasswordHasher passwordHasher)
     {
         public async Task SeedAsync()
         {
-            if (context.Networks.Any()) return;
+            // if (context.Networks.Any()) return;
             ClearDatabase();
 
             Network network = new()
             {
-                Name = "thirdpartynetwork",
+                Name = Constants.Networks.Main,
                 IsSystemProtected = true,
             };
 
-            Role adminRole = new() { Name = "Admin", Description = "Application Administrator", IsSystemProtected = true };
-            Role userRole = new() { Name = "User", Description = "Application User", IsSystemProtected = true };
+            Role adminRole = new() { Name = Constants.Roles.Admin, Description = "Application Administrator", IsSystemProtected = true };
+            Role userRole = new() { Name = Constants.Roles.User, Description = "Application User", IsSystemProtected = true };
 
             network.NetworkRoles =
             [
@@ -36,11 +38,11 @@ namespace thirdpartynetwork
                 }
             ];
 
-            Permission accessUsername = new() { Name = "Access Username", Description = "Allows Network to Access User's Username", IsSystemProtected = true };
-            Permission accessFirstname = new() { Name = "Access Firstname", Description = "Allows Network to Access User's Firstname", IsSystemProtected = true };
-            Permission accessLastname = new() { Name = "Access Lastname", Description = "Allows Network to Access User's Lastname", IsSystemProtected = true };
-            Permission accessEmail = new() { Name = "Access Email", Description = "Allows Network to Access User's Email", IsSystemProtected = true };
-            Permission accessProfilePicture = new() { Name = "Access ProfilePicture", Description = "Allows Network to Access User's ProfilePicture", IsSystemProtected = true };
+            Permission accessUsername = new() { Name = Constants.Permissions.AccessUsername, Description = "Allows Network to Access User's Username", IsSystemProtected = true };
+            Permission accessFirstname = new() { Name = Constants.Permissions.AccessFirstname, Description = "Allows Network to Access User's Firstname", IsSystemProtected = true };
+            Permission accessLastname = new() { Name = Constants.Permissions.AccessLastname, Description = "Allows Network to Access User's Lastname", IsSystemProtected = true };
+            Permission accessEmail = new() { Name = Constants.Permissions.AccessEmail, Description = "Allows Network to Access User's Email", IsSystemProtected = true };
+            Permission accessProfilePicture = new() { Name = Constants.Permissions.AccessProfilePicture, Description = "Allows Network to Access User's ProfilePicture", IsSystemProtected = true };
 
             UserProxy adminUser = new()
             {
@@ -48,7 +50,7 @@ namespace thirdpartynetwork
                 FirstName = "Admin",
                 LastName = "Noodle",
                 Email = "admin.noodle@gmail.com",
-                Password = "Admin",
+                Password = passwordHasher.HashPassword("Admin"),
                 ProfilePicture = "https://cdn.discordapp.com/avatars/196606443703631874/a_336c3be4f4e5c1ba3563c74a7cc065da.gif?size=1024",
                 IsDefault = true,
                 User = new User()

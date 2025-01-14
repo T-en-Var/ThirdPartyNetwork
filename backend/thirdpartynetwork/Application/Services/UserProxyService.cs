@@ -33,6 +33,12 @@ namespace thirdpartynetwork.Application.Services
             return proxy;
         }
 
+        public UserProxy? GetByUsername(string username)
+        {
+            var proxy = repository.GetByUsername(username);
+            return proxy;
+        }
+
         public UserProxy Create(Guid userId, CreateUserProxyDto createUserProxy)
         {
             var user = userService.GetById(userId);

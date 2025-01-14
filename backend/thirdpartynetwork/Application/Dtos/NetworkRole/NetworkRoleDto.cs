@@ -6,7 +6,7 @@ namespace thirdpartynetwork.Application.Dtos.NetworkRole
     {
         public Guid NetworkId { get; set; }
         public Guid RoleId { get; set; }
-        public RoleDto Role { get; set; }
-        public NetworkDto Network { get; set; }
+        public required RoleDto Role { get; set; }
+        public required NetworkDto Network { get; set; }
     }
 }

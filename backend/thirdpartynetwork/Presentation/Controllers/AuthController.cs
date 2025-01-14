@@ -41,4 +41,11 @@ public class AuthController(IAuthService service) : ControllerBase
     {
         return Ok();
     }
+    
+    [Authorize(Policy = "NetworkAdminPolicy")]
+    [HttpPost("{networkId:guid}/roles/{roleId:guid}")]
+    public IActionResult AssignRoleToNetwork(Guid networkId, Guid roleId)
+    {
+        return Ok($"Role {roleId} assigned to Network {networkId}");
+    }
 }

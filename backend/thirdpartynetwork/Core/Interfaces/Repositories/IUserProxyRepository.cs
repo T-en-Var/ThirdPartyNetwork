@@ -8,6 +8,7 @@ namespace thirdpartynetwork.Core.Interfaces.Repositories
         ICollection<UserProxy> GetAll();
         ICollection<UserProxy> GetByUserId(Guid id);
         UserProxy? GetById(Guid id);
+        UserProxy? GetByUsername(string username);
         UserProxy Create(UserProxy userProxy);
         UserProxy Update(UserProxy userProxy);
         bool Delete(UserProxy userProxy);

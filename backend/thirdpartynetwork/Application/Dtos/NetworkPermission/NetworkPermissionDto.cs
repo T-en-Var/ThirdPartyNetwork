@@ -5,7 +5,7 @@
         public Guid NetworkId { get; set; }
         public Guid PermissionId { get; set; }
         public required bool IsRequired { get; set; }
-        public PermissionDto Permission { get; set; }
-        public NetworkDto Network { get; set; }
+        public required PermissionDto Permission { get; set; }
+        public required NetworkDto Network { get; set; }
     }
 }
