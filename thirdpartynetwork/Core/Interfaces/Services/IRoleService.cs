@@ -6,9 +6,10 @@ namespace thirdpartynetwork.Core.Interfaces.Services
     public interface IRoleService : IBaseService
     {
         ICollection<Role> GetAll();
-        Role? GetById(Guid id);
-        Role Create(CreateRoleDto createRole);
-        Role Update(Guid id, UpdateRoleDto role);
-        bool DeleteById(Guid id);
+        ICollection<Role> GetByNetworkId(Guid networkId);
+        Role? GetById(Guid networkId, Guid roleId);
+        Role Create(Guid networkId, CreateRoleDto createRole);
+        Role Update(Guid networkId, Guid roleId, UpdateRoleDto role);
+        bool DeleteById(Guid networkId, Guid roleId);
     }
 }

@@ -22,27 +22,13 @@ namespace thirdpartynetwork
             Role adminRole = new() { Name = Constants.Roles.Admin, Description = "Application Administrator", IsSystemProtected = true };
             Role userRole = new() { Name = Constants.Roles.User, Description = "Application User", IsSystemProtected = true };
 
-            network.NetworkRoles =
-            [
-                new NetworkRole()
-                {
-                    Role = adminRole,
-                    Network = network,
-                    IsSystemProtected = true,
-                },
-                new NetworkRole()
-                {
-                    Role = userRole,
-                    Network = network,
-                    IsSystemProtected = true,
-                }
-            ];
+            network.Roles = [adminRole, userRole];
 
-            Permission accessUsername = new() { Name = Constants.Permissions.AccessUsername, Description = "Allows Network to Access User's Username", IsSystemProtected = true };
-            Permission accessFirstname = new() { Name = Constants.Permissions.AccessFirstname, Description = "Allows Network to Access User's Firstname", IsSystemProtected = true };
-            Permission accessLastname = new() { Name = Constants.Permissions.AccessLastname, Description = "Allows Network to Access User's Lastname", IsSystemProtected = true };
-            Permission accessEmail = new() { Name = Constants.Permissions.AccessEmail, Description = "Allows Network to Access User's Email", IsSystemProtected = true };
-            Permission accessProfilePicture = new() { Name = Constants.Permissions.AccessProfilePicture, Description = "Allows Network to Access User's ProfilePicture", IsSystemProtected = true };
+            Access accessUsername = new() { Name = Constants.Access.AccessUsername, Description = "Allows Network to Access User's Username", IsSystemProtected = true };
+            Access accessFirstname = new() { Name = Constants.Access.AccessFirstname, Description = "Allows Network to Access User's Firstname", IsSystemProtected = true };
+            Access accessLastname = new() { Name = Constants.Access.AccessLastname, Description = "Allows Network to Access User's Lastname", IsSystemProtected = true };
+            Access accessEmail = new() { Name = Constants.Access.AccessEmail, Description = "Allows Network to Access User's Email", IsSystemProtected = true };
+            Access accessProfilePicture = new() { Name = Constants.Access.AccessProfilePicture, Description = "Allows Network to Access User's ProfilePicture", IsSystemProtected = true };
 
             UserProxy adminUser = new()
             {
@@ -78,73 +64,73 @@ namespace thirdpartynetwork
                 }
             ];
 
-            adminNetworkUser.NetworkUserPermissions =
+            adminNetworkUser.NetworkUserAccesses =
             [
-                new NetworkUserPermission
+                new NetworkUserAccess
                 {
                     NetworkUser = adminNetworkUser,
-                    Permission = accessUsername,
+                    Access = accessUsername,
                     IsAccepted = true,
                 } ,
-                new NetworkUserPermission
+                new NetworkUserAccess
                 {
                     NetworkUser = adminNetworkUser,
-                    Permission = accessFirstname,
+                    Access = accessFirstname,
                     IsAccepted = true,
                 },
-                new NetworkUserPermission
+                new NetworkUserAccess
                 {
                     NetworkUser = adminNetworkUser,
-                    Permission = accessLastname,
+                    Access = accessLastname,
                     IsAccepted = true,
                 },
-                new NetworkUserPermission
+                new NetworkUserAccess
                 {
                     NetworkUser = adminNetworkUser,
-                    Permission = accessEmail,
+                    Access = accessEmail,
                     IsAccepted = true,
                 },
-                new NetworkUserPermission
+                new NetworkUserAccess
                 {
                     NetworkUser = adminNetworkUser,
-                    Permission = accessProfilePicture,
+                    Access = accessProfilePicture,
                     IsAccepted = true,
                 },
             ];
 
-            network.NetworkPermissions =
+            network.NetworkAccesses =
             [
-                new NetworkPermission
+                new NetworkAccess
                 {
-                    Permission = accessUsername,
+                    Access = accessUsername,
                     Network = network,
                     IsRequired = true,
                     IsSystemProtected = true,
                 },
-                new NetworkPermission
+                new NetworkAccess
                 {
-                    Permission = accessFirstname,
+                    Access = accessFirstname,
                     Network = network,
                     IsRequired = true,
                     IsSystemProtected = true,
                 },
-                new NetworkPermission
+                new NetworkAccess
                 {
-                    Permission = accessLastname,
+                    Access = accessLastname,
                     Network = network,
                     IsRequired = true,
                     IsSystemProtected = true,
                 },
-                new NetworkPermission
+                new NetworkAccess
                 {
-                    Permission = accessEmail,
+                    Access = accessEmail,
                     Network = network,
                     IsRequired = true,
                     IsSystemProtected = true,
                 },
-                new NetworkPermission
+                new NetworkAccess
                 {
-                    Permission = accessProfilePicture,
+                    Access = accessProfilePicture,
                     Network = network,
                     IsRequired = true,
                     IsSystemProtected = true,

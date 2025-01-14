@@ -7,39 +7,29 @@ namespace thirdpartynetwork.Core.Data
     {
         public required DbSet<Content> Contents { get; set; }
         public required DbSet<Network> Networks { get; set; }
-        public required DbSet<NetworkPermission> NetworkPermissions { get; set; }
-        public required DbSet<NetworkRole> NetworkRoles { get; set; }
+        public required DbSet<NetworkAccess> NetworkAccesses { get; set; }
         public required DbSet<NetworkUser> NetworkUsers { get; set; }
-        public required DbSet<NetworkUserPermission> NetworkUserPermissions { get; set; }
+        public required DbSet<NetworkUserAccess> NetworkUserAccesses { get; set; }
         public required DbSet<NetworkUserRole> NetworkUserRoles { get; set; }
-        public required DbSet<Permission> Permissions { get; set; }
+        public required DbSet<Access> Accesses { get; set; }
         public required DbSet<Role> Roles { get; set; }
+        public required DbSet<RoleRule> RoleRules { get; set; }
+        public required DbSet<Rule> Rules { get; set; }
         public required DbSet<User> Users { get; set; }
         public required DbSet<UserProxy> UserProxies { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<NetworkPermission>()
-                .HasKey(np => new { np.NetworkId, np.PermissionId });
-            modelBuilder.Entity<NetworkPermission>()
+            modelBuilder.Entity<NetworkAccess>()
+                .HasKey(np => new { np.NetworkId, np.AccessId });
+            modelBuilder.Entity<NetworkAccess>()
                 .HasOne(n => n.Network)
-                .WithMany(np => np.NetworkPermissions)
+                .WithMany(np => np.NetworkAccesses)
                 .HasForeignKey(n => n.NetworkId);
-            modelBuilder.Entity<NetworkPermission>()
-                .HasOne(p => p.Permission)
-                .WithMany(np => np.NetworkPermissions)
-                .HasForeignKey(p => p.PermissionId);
-
-            modelBuilder.Entity<NetworkRole>()
-                .HasKey(nr => new { nr.NetworkId, nr.RoleId });
-            modelBuilder.Entity<NetworkRole>()
-                .HasOne(n => n.Network)
-                .WithMany(nr => nr.NetworkRoles)
-                .HasForeignKey(n => n.NetworkId);
-            modelBuilder.Entity<NetworkRole>()
-                .HasOne(r => r.Role)
-                .WithMany(nr => nr.NetworkRoles)
-                .HasForeignKey(r => r.RoleId);
+            modelBuilder.Entity<NetworkAccess>()
+                .HasOne(p => p.Access)
+                .WithMany(np => np.NetworkAccesses)
+                .HasForeignKey(p => p.AccessId);
 
             modelBuilder.Entity<NetworkUser>()
                 .HasKey(nu => nu.Id);
@@ -52,16 +42,16 @@ namespace thirdpartynetwork.Core.Data
                 .WithMany(nu => nu.NetworkUsers)
                 .HasForeignKey(u => u.UserProxyId);
 
-            modelBuilder.Entity<NetworkUserPermission>()
-                .HasKey(nup => new { nup.NetworkUserId, nup.PermissionId });
-            modelBuilder.Entity<NetworkUserPermission>()
+            modelBuilder.Entity<NetworkUserAccess>()
+                .HasKey(nup => new { nup.NetworkUserId, nup.AccessId });
+            modelBuilder.Entity<NetworkUserAccess>()
                 .HasOne(nu => nu.NetworkUser)
-                .WithMany(nup => nup.NetworkUserPermissions)
+                .WithMany(nup => nup.NetworkUserAccesses)
                 .HasForeignKey(nu => nu.NetworkUserId);
-            modelBuilder.Entity<NetworkUserPermission>()
-                .HasOne(p => p.Permission)
-                .WithMany(nup => nup.NetworkUserPermissions)
-                .HasForeignKey(p => p.PermissionId);
+            modelBuilder.Entity<NetworkUserAccess>()
+                .HasOne(p => p.Access)
+                .WithMany(nup => nup.NetworkUserAccesses)
+                .HasForeignKey(p => p.AccessId);
 
             modelBuilder.Entity<NetworkUserRole>()
                 .HasKey(nur => new { nur.NetworkUserId, nur.RoleId });
@@ -74,7 +64,18 @@ namespace thirdpartynetwork.Core.Data
                 .WithMany(nur => nur.NetworkUserRoles)
                 .HasForeignKey(r => r.RoleId);
 
-            //base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<RoleRule>()
+                .HasKey(rr => new { rr.RuleId, rr.RoleId });
+            modelBuilder.Entity<RoleRule>()
+                .HasOne(rr => rr.Role)
+                .WithMany(r => r.RoleRules)
+                .HasForeignKey(rr => rr.RoleId);
+            modelBuilder.Entity<RoleRule>()
+                .HasOne(rr => rr.Rule)
+                .WithMany(r => r.RoleRules)
+                .HasForeignKey(rr => rr.RuleId);
+
+            base.OnModelCreating(modelBuilder);
         }
     }
 }

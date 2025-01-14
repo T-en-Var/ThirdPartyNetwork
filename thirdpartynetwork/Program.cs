@@ -68,15 +68,16 @@ builder.Services.AddScoped<IAuthorizationHandler, NetworkAdminHandler>();
 
 
 // Add Repositories
+builder.Services.AddScoped<IAccessRepository, AccessRepository>();
 builder.Services.AddScoped<IContentRepository, ContentRepository>();
-builder.Services.AddScoped<INetworkPermissionRepository, NetworkPermissionRepository>();
-builder.Services.AddScoped<INetworkRoleRepository, NetworkRoleRepository>();
+builder.Services.AddScoped<INetworkAccessRepository, NetworkAccessRepository>();
 builder.Services.AddScoped<INetworkRepository, NetworkRepository>();
-builder.Services.AddScoped<INetworkUserPermissionRepository, NetworkUserPermissionRepository>();
+builder.Services.AddScoped<INetworkUserAccessRepository, NetworkUserAccessRepository>();
 builder.Services.AddScoped<INetworkUserRepository, NetworkUserRepository>();
-builder.Services.AddScoped<IPermissionRepository, PermissionRepository>();
 builder.Services.AddScoped<INetworkUserRoleRepository, NetworkUserRoleRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+builder.Services.AddScoped<IRoleRuleRepository, RoleRuleRepository>();
+builder.Services.AddScoped<IRuleRepository, RuleRepository>();
 builder.Services.AddScoped<IUserProxyRepository, UserProxyRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 
@@ -87,16 +88,17 @@ builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IRoleVerifier, RoleVerifier>();
 
 // Add Services
+builder.Services.AddScoped<IAccessService, AccessService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IContentService, ContentService>();
-builder.Services.AddScoped<INetworkPermissionService, NetworkPermissionService>();
-builder.Services.AddScoped<INetworkRoleService, NetworkRoleService>();
+builder.Services.AddScoped<INetworkAccessService, NetworkAccessService>();
 builder.Services.AddScoped<INetworkService, NetworkService>();
-builder.Services.AddScoped<INetworkUserPermissionService, NetworkUserPermissionService>();
+builder.Services.AddScoped<INetworkUserAccessService, NetworkUserAccessService>();
 builder.Services.AddScoped<INetworkUserService, NetworkUserService>();
 builder.Services.AddScoped<INetworkUserRoleService, NetworkUserRoleService>();
-builder.Services.AddScoped<IPermissionService, PermissionService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
+builder.Services.AddScoped<IRoleRuleService, RoleRuleService>();
+builder.Services.AddScoped<IRuleService, RuleService>();
 builder.Services.AddScoped<IUserProxyService, UserProxyService>();
 builder.Services.AddScoped<IUserService, UserService>();
 
