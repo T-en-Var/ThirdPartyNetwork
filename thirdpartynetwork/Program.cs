@@ -76,8 +76,8 @@ builder.Services.AddScoped<INetworkUserAccessRepository, NetworkUserAccessReposi
 builder.Services.AddScoped<INetworkUserRepository, NetworkUserRepository>();
 builder.Services.AddScoped<INetworkUserRoleRepository, NetworkUserRoleRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
-builder.Services.AddScoped<IRoleRuleRepository, RoleRuleRepository>();
-builder.Services.AddScoped<IRuleRepository, RuleRepository>();
+builder.Services.AddScoped<IRolePermissionRepository, RolePermissionRepository>();
+builder.Services.AddScoped<IPermissionRepository, PermissionRepository>();
 builder.Services.AddScoped<IUserProxyRepository, UserProxyRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 
@@ -97,8 +97,8 @@ builder.Services.AddScoped<INetworkUserAccessService, NetworkUserAccessService>(
 builder.Services.AddScoped<INetworkUserService, NetworkUserService>();
 builder.Services.AddScoped<INetworkUserRoleService, NetworkUserRoleService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
-builder.Services.AddScoped<IRoleRuleService, RoleRuleService>();
-builder.Services.AddScoped<IRuleService, RuleService>();
+builder.Services.AddScoped<IRolePermissionService, RolePermissionService>();
+builder.Services.AddScoped<IPermissionService, PermissionService>();
 builder.Services.AddScoped<IUserProxyService, UserProxyService>();
 builder.Services.AddScoped<IUserService, UserService>();
 
