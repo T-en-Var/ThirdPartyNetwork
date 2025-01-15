@@ -1,6 +1,6 @@
-﻿namespace thirdpartynetwork.Application.Dtos.Rule
+﻿namespace thirdpartynetwork.Application.Dtos.Permission
 {
-    public class CreateRuleDto
+    public class CreatePermissionDto
     {
         public required string Name { get; set; }
         public required string Description { get; set; }

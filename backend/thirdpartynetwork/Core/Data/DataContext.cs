@@ -13,8 +13,8 @@ namespace thirdpartynetwork.Core.Data
         public required DbSet<NetworkUserRole> NetworkUserRoles { get; set; }
         public required DbSet<Access> Accesses { get; set; }
         public required DbSet<Role> Roles { get; set; }
-        public required DbSet<RoleRule> RoleRules { get; set; }
-        public required DbSet<Rule> Rules { get; set; }
+        public required DbSet<RolePermission> RolePermissions { get; set; }
+        public required DbSet<Permission> Permissions { get; set; }
         public required DbSet<User> Users { get; set; }
         public required DbSet<UserProxy> UserProxies { get; set; }
 
@@ -64,16 +64,16 @@ namespace thirdpartynetwork.Core.Data
                 .WithMany(nur => nur.NetworkUserRoles)
                 .HasForeignKey(r => r.RoleId);
 
-            modelBuilder.Entity<RoleRule>()
-                .HasKey(rr => new { rr.RuleId, rr.RoleId });
-            modelBuilder.Entity<RoleRule>()
+            modelBuilder.Entity<RolePermission>()
+                .HasKey(rr => new { rr.PermissionId, rr.RoleId });
+            modelBuilder.Entity<RolePermission>()
                 .HasOne(rr => rr.Role)
-                .WithMany(r => r.RoleRules)
+                .WithMany(r => r.RolePermissions)
                 .HasForeignKey(rr => rr.RoleId);
-            modelBuilder.Entity<RoleRule>()
-                .HasOne(rr => rr.Rule)
-                .WithMany(r => r.RoleRules)
-                .HasForeignKey(rr => rr.RuleId);
+            modelBuilder.Entity<RolePermission>()
+                .HasOne(rr => rr.Permission)
+                .WithMany(r => r.RolePermissions)
+                .HasForeignKey(rr => rr.PermissionId);
 
             base.OnModelCreating(modelBuilder);
         }

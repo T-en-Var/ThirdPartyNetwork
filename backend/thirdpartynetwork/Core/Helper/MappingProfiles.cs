@@ -43,20 +43,20 @@ namespace thirdpartynetwork.Core.Helper
             CreateMap<UpdateAccessDto, Access>();
 
             CreateMap<Role, RoleDto>()
-                .ForMember(dest => dest.RoleRules, opt => opt.MapFrom(src => src.RoleRules));
+                .ForMember(dest => dest.RolePermissions, opt => opt.MapFrom(src => src.RolePermissions));
             CreateMap<CreateRoleDto, Role>();
             CreateMap<UpdateRoleDto, Role>();
 
-            CreateMap<RoleRule, RoleRuleDto>()
+            CreateMap<RolePermission, RolePermissionDto>()
                 .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role))
-                .ForMember(dest => dest.Rule, opt => opt.MapFrom(src => src.Rule));
-            CreateMap<CreateRoleRuleDto, RoleRule>();
-            CreateMap<UpdateRoleRuleDto, RoleRule>();
+                .ForMember(dest => dest.Permission, opt => opt.MapFrom(src => src.Permission));
+            CreateMap<CreateRolePermissionDto, RolePermission>();
+            CreateMap<UpdateRolePermissionDto, RolePermission>();
 
-            CreateMap<Rule, RuleDto>()
-                .ForMember(dest => dest.RoleRules, opt => opt.MapFrom(src => src.RoleRules));
-            CreateMap<CreateRuleDto, Rule>();
-            CreateMap<UpdateRuleDto, Rule>();
+            CreateMap<Permission, PermissionDto>()
+                .ForMember(dest => dest.RolePermissions, opt => opt.MapFrom(src => src.RolePermissions));
+            CreateMap<CreatePermissionDto, Permission>();
+            CreateMap<UpdatePermissionDto, Permission>();
 
             CreateMap<User, UserDto>()
                 .ForMember(u => u.UserProxies, opt => opt.MapFrom(u => u.Proxies));

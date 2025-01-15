@@ -39,7 +39,10 @@ public static class Constants
         public const string EditNetwork = "Manage Network";
         public const string EditNetworkRoles = "Manage Network Roles";
         public const string KickUser = "Kick User";
+        public const string KickUserAdmin = "Kick User Admin";
         public const string BanUser = "Ban User";
+        public const string BanUserAdmin = "Ban User Admin";
         public const string TimoutUser = "Timout User";
+        public const string TimoutUserAdmin = "Timout User Admin";
     }
 }
