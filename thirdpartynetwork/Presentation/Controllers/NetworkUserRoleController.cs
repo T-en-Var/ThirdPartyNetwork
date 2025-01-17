@@ -19,9 +19,9 @@ public class NetworkUserRoleController(INetworkUserRoleService service, IMapper 
     [HttpGet("{roleId:guid}")]
     [ProducesResponseType(200, Type = typeof(NetworkUserRoleDto))]
     [ProducesResponseType(404)]
-    public IActionResult GetNetworkUserRole(Guid networkId, Guid userId, Guid roleId)
+    public IActionResult GetNetworkUserRole(Guid networkId, Guid networkUserId, Guid roleId)
     {
-        var networkUserRole = service.GetByIds(networkId, userId, roleId);
+        var networkUserRole = service.GetByIds(networkId, networkUserId, roleId);
         return networkUserRole != null ? Ok(mapper.Map<NetworkUserRoleDto>(networkUserRole)) : NotFound();
     }
 

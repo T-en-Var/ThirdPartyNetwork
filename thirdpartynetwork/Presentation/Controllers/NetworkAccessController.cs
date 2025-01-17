@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace thirdpartynetwork.Presentation.Controllers;
 
-[Route("api/networks/{networkId:guid}/Accesses")]
+[Route("api/networks/{networkId:guid}/accesses")]
 public class NetworkAccessController(INetworkAccessService service, IMapper mapper) : ControllerBase
 {
     [HttpGet]

@@ -33,7 +33,7 @@ public class RolePermissionService(IRolePermissionRepository repository, IRoleSe
     public RolePermission Create(Guid networkId, Guid roleId, Guid permissionId, CreateRolePermissionDto createRolePermission)
     {
         if (roleService.GetById(networkId, roleId) == null) throw new NotFoundHttpException("Role not found.");
-        if (permissionService.GetById(permissionId) != null) throw new NotFoundHttpException("Permission not found.");
+        if (permissionService.GetById(permissionId) == null) throw new NotFoundHttpException("Permission not found.");
         
         if (repository.Exists(roleId, permissionId)) throw new ConflictHttpException("Already exists.");
         

@@ -15,6 +15,7 @@ using thirdpartynetwork.Core.Data;
 using thirdpartynetwork.Presentation.Swagger;
 using thirdpartynetwork.Application.Repositories;
 using thirdpartynetwork.Application.Services;
+using thirdpartynetwork.Core;
 using thirdpartynetwork.Core.Helper;
 using thirdpartynetwork.Core.Interfaces.Auth;
 using thirdpartynetwork.Core.Interfaces.Helpers;
@@ -43,9 +44,21 @@ builder.Services.AddAuthentication(o =>
     };
 });
 
-builder.Services.AddAuthorizationBuilder()
-    .AddPolicy("NetworkAdminPolicy", policy =>
-        policy.Requirements.Add(new NetworkAdminRequirement("networkId")));
+// Add all permissions to Authorization.
+var permissions = typeof(Constants.Permissions).GetFields()
+    .Where(f => f is { IsLiteral: true, IsInitOnly: false })
+    .Select(f => f.GetValue(null)?.ToString())
+    .Where(p => p != null)
+    .ToList();
+
+// builder.Services.AddAuthorizationBuilder()
+//     .AddPolicy("NetworkAdminPolicy", policy =>
+//         policy.Requirements.Add(new NetworkAdminRequirement("networkId")));
+
+foreach (var permission in permissions)
+    builder.Services.AddAuthorizationBuilder()
+        .AddPolicy($"Permission:{permission}", policy =>
+            policy.Requirements.Add(new PermissionRequirement(permission!)));
 
 // Add services to the container.
 builder.Services.AddControllers();
@@ -63,7 +76,8 @@ builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 // Other
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddScoped<IAuthorizationHandler, NetworkAdminHandler>();
+// builder.Services.AddScoped<IAuthorizationHandler, NetworkAdminHandler>();
+builder.Services.AddScoped<IAuthorizationHandler, PermissionHandler>();
 // builder.Services.AddScoped<IAuthorizationHandler, AdminRequirementHandler>();
 
 

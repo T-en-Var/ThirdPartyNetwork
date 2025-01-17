@@ -4,7 +4,7 @@ using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Application.Services;
 
-public class PermissionService(IPermissionRepository repository, INetworkService networkService, IMapper mapper) : IPermissionService
+public class PermissionService(IPermissionRepository repository, IMapper mapper) : IPermissionService
 {
     public ICollection<Permission> GetAll()
     {

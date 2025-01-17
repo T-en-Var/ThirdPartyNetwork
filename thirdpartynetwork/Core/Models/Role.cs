@@ -8,6 +8,6 @@ public class Role
     public Guid NetworkId { get; set; }
     public ICollection<RolePermission> RolePermissions { get; set; } = new List<RolePermission>();
     public ICollection<NetworkUserRole> NetworkUserRoles { get; set; } = new List<NetworkUserRole>();
-    public Network Network { get; set; }
+    public required Network Network { get; set; }
     public bool IsSystemProtected { get; set; } = false;
 }

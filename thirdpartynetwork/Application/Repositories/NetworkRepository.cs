@@ -1,4 +1,5 @@
-﻿using thirdpartynetwork.Core.Models;
+﻿using Microsoft.EntityFrameworkCore;
+using thirdpartynetwork.Core.Models;
 using thirdpartynetwork.Core.Data;
 using thirdpartynetwork.Core.Exceptions;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
@@ -27,6 +28,18 @@ namespace thirdpartynetwork.Application.Repositories
         public Network? GetByName(string name)
         {
             return  _context.Networks.FirstOrDefault(n => n.Name == name);
+        }
+
+        public IQueryable<Network> GetByNameQueryable(string name)
+        {
+            return  _context.Networks
+                .Where(n => n.Name == name);
+        }
+
+        public IQueryable<Network> GetByIdQueryable(Guid id)
+        {
+            return  _context.Networks
+                .Where(n => n.Id == id);
         }
 
         public Network Create(Network network)

@@ -9,8 +9,8 @@ namespace thirdpartynetwork.Application.Auth;
 public class TokenGenerator(IJtiCacheService jtiCacheService) : ITokenGenerator
 {
     private static readonly string TokenSecret = Environment.GetEnvironmentVariable("TOKEN_SECRET")!;
-    private static readonly TimeSpan AccessTokenLifetime = TimeSpan.FromMinutes(15);
-    private static readonly TimeSpan RefreshTokenLifetime = TimeSpan.FromHours(7 * 24);
+    private static readonly TimeSpan AccessTokenLifetime = TimeSpan.FromHours(7 * 24);
+    private static readonly TimeSpan RefreshTokenLifetime = TimeSpan.FromHours(7 * 24 * 7);
 
     public string GenerateAccessToken(Guid userId, string username)
     {
