@@ -1,5 +1,7 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using thirdpartynetwork.Application.Auth.Requirements;
+using thirdpartynetwork.Core;
 using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Presentation.Controllers;
@@ -9,6 +11,7 @@ namespace thirdpartynetwork.Presentation.Controllers;
 public class RolePermissionController(IRolePermissionService service, IMapper mapper) : ControllerBase
 {
     [HttpGet]
+    [RequirePermission(Constants.Permissions.EditNetworkRoles)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<RolePermissionDto>))]
     public IActionResult GetRolePermissions(Guid networkId, Guid roleId)
     {
@@ -17,6 +20,7 @@ public class RolePermissionController(IRolePermissionService service, IMapper ma
     }
 
     [HttpGet("{permissionId:guid}")]
+    [RequirePermission(Constants.Permissions.EditNetworkRoles)]
     [ProducesResponseType(200, Type = typeof(RolePermissionDto))]
     [ProducesResponseType(404)]
     public IActionResult GetRolePermission(Guid networkId, Guid roleId, Guid permissionId)
@@ -26,6 +30,7 @@ public class RolePermissionController(IRolePermissionService service, IMapper ma
     }
 
     [HttpPost("{permissionId:guid}")]
+    [RequirePermission(Constants.Permissions.EditNetworkRoles)]
     [ProducesResponseType(201, Type = typeof(RolePermissionDto))]
     [ProducesResponseType(404)]
     public IActionResult CreateRolePermission(Guid networkId, Guid roleId, Guid permissionId,
@@ -36,6 +41,7 @@ public class RolePermissionController(IRolePermissionService service, IMapper ma
     }
 
     [HttpPut("{permissionId:guid}")]
+    [RequirePermission(Constants.Permissions.EditNetworkRoles)]
     [ProducesResponseType(200, Type = typeof(RolePermissionDto))]
     [ProducesResponseType(404)]
     public IActionResult UpdateRolePermission(Guid networkId, Guid roleId, Guid permissionId, UpdateRolePermissionDto updateRolePermission)
@@ -45,6 +51,7 @@ public class RolePermissionController(IRolePermissionService service, IMapper ma
     }
 
     [HttpDelete("{permissionId:guid}")]
+    [RequirePermission(Constants.Permissions.EditNetworkRoles)]
     [ProducesResponseType(204)]
     public IActionResult DeleteRolePermission(Guid networkId, Guid roleId, Guid permissionId)
     {

@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using thirdpartynetwork.Application.Auth.Requirements;
+using thirdpartynetwork.Core;
 using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Presentation.Controllers;
@@ -9,6 +11,7 @@ namespace thirdpartynetwork.Presentation.Controllers;
 public class AccessController(IAccessService service, IMapper mapper) : ControllerBase
 {
     [HttpGet]
+    [RequirePermission(Constants.Permissions.EditNetworkAccesses)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<NetworkDto>))]
     public IActionResult GetAccesses()
     {
@@ -17,6 +20,7 @@ public class AccessController(IAccessService service, IMapper mapper) : Controll
     }
 
     [HttpGet("{accessId:guid}")]
+    [RequirePermission(Constants.Permissions.EditNetworkAccesses)]
     [ProducesResponseType(200, Type = typeof(AccessDto))]
     [ProducesResponseType(404)]
     public IActionResult GetAccess(Guid accessId)
@@ -26,6 +30,7 @@ public class AccessController(IAccessService service, IMapper mapper) : Controll
     }
 
     [HttpPost]
+    [RequirePermission(Constants.Permissions.EditNetworkAccesses)]
     [ProducesResponseType(201, Type = typeof(NetworkAccess))]
     public IActionResult CreateAccess([FromBody] CreateAccessDto createAccess)
     {
@@ -34,6 +39,7 @@ public class AccessController(IAccessService service, IMapper mapper) : Controll
     }
 
     [HttpPut("{accessId:guid}")]
+    [RequirePermission(Constants.Permissions.EditNetworkAccesses)]
     [ProducesResponseType(200, Type = typeof(AccessDto))]
     [ProducesResponseType(404)]
     public IActionResult UpdateAccess(Guid accessId, [FromBody] UpdateAccessDto updateAccess)
@@ -43,6 +49,7 @@ public class AccessController(IAccessService service, IMapper mapper) : Controll
     }
 
     [HttpDelete("{accessId:guid}")]
+    [RequirePermission(Constants.Permissions.EditNetworkAccesses)]
     [ProducesResponseType(204)]
     [ProducesResponseType(404)]
     public IActionResult DeletePermission(Guid accessId)
