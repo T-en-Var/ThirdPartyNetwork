@@ -10,7 +10,7 @@ namespace thirdpartynetwork
     {
         public async Task SeedAsync()
         {
-            // if (context.Networks.Any()) return;
+            if (context.Networks.Any()) return;
             ClearDatabase();
 
             Network network = new()
@@ -176,24 +176,27 @@ namespace thirdpartynetwork
                 Name = Constants.Roles.Admin,
                 Description = "Application Administrator",
                 IsSystemProtected = true,
-                RolePermissions =
-                [
-                    new RolePermission() { Permission = administrator }
-                ],
+                Network = network,
             };
+
+            adminRole.RolePermissions =
+            [
+                new RolePermission() { Permission = administrator, Role = adminRole }
+            ];
+            
             Role userRole = new()
             {
                 Name = Constants.Roles.User,
                 Description = "Application User",
                 IsSystemProtected = true,
-                RolePermissions =
-                [
-                    new RolePermission() { Permission = updateSelf },
-                    new RolePermission() { Permission = viewContent },
-                ],
+                Network = network,
             };
-
-            network.Roles = [adminRole, userRole];
+            
+            userRole.RolePermissions =
+            [
+                new RolePermission() { Permission = updateSelf, Role = userRole },
+                new RolePermission() { Permission = viewContent, Role = userRole },
+            ];
 
             UserProxy adminUser = new()
             {

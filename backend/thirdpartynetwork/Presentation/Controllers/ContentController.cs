@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using thirdpartynetwork.Application.Auth.Requirements;
+using thirdpartynetwork.Core;
 
 namespace thirdpartynetwork.Presentation.Controllers;
 
@@ -8,6 +10,8 @@ namespace thirdpartynetwork.Presentation.Controllers;
 public class ContentController(IContentService service, IMapper mapper) : ControllerBase
 {
     [HttpGet]
+    [RequirePermission(Constants.Permissions.ViewContent)]
+    [RequirePermission(Constants.Permissions.CreateContent)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<ContentDto>))]
     public IActionResult GetNetworkContent(Guid networkId)
     {

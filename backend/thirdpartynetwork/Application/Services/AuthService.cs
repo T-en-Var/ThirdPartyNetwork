@@ -7,19 +7,15 @@ namespace thirdpartynetwork.Application.Services;
 
 public class AuthService(ITokenGenerator tokenGenerator, IPasswordHasher passwordHasher, ILogger<AuthService> logger, IUserProxyService userProxyService, IHttpContextAccessor httpContextAccessor) : IAuthService
 {
-    private bool IsPasswordValid(string username, string password)
-    {
-        var user = userProxyService.GetByUsername(username);
-        if (user == null) throw new UnauthorizedHttpException("Invalid username or password");
-        return passwordHasher.VerifyPassword(password, user.Password);
-    }
-    
     public TokensDto Login(LoginDto login)
     {
-        if (!IsPasswordValid(login.Username, login.Password)) throw new UnauthorizedHttpException("Invalid username or password");
+        var user = userProxyService.GetByUsername(login.Username);
+        if (user == null) throw new UnauthorizedHttpException("Invalid username or password");
+        
+        if (!passwordHasher.VerifyPassword(login.Password, user.Password)) throw new UnauthorizedHttpException("Invalid username or password");
         
         var accessToken = tokenGenerator.GenerateAccessToken(
-            Guid.NewGuid(), 
+            user.Id, 
             login.Username);
         var refreshToken = tokenGenerator.GenerateRefreshToken();
         

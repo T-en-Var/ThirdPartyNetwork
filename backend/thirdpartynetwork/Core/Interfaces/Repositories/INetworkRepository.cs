@@ -8,6 +8,8 @@ namespace thirdpartynetwork.Core.Interfaces.Repositories
         ICollection<Network> GetAll();
         Network? GetById(Guid id);
         Network? GetByName(string name);
+        IQueryable<Network> GetByNameQueryable(string name);
+        IQueryable<Network> GetByIdQueryable(Guid id);
         Network Create(Network network);
         Network Update(Network network);
         bool Delete(Network network);
