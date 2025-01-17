@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using thirdpartynetwork.Application.Auth.Requirements;
+using thirdpartynetwork.Core;
 using thirdpartynetwork.Core.Helper;
 using thirdpartynetwork.Core.Interfaces.Auth;
 
@@ -14,7 +15,8 @@ public class PermissionHandler(
     protected override Task HandleRequirementAsync(
         AuthorizationHandlerContext context, PermissionRequirement requirement)
     {
-        logger.LogError("Receiving request requirement");
+        if (requirement.Permission == Constants.Permissions.SystemManaged) return Task.CompletedTask;
+        
         var httpContext = httpContextAccessor.HttpContext;
         if (httpContext == null) return Task.CompletedTask;
         
@@ -24,7 +26,6 @@ public class PermissionHandler(
             || userProxyId == Guid.Empty) 
             return Task.CompletedTask;
 
-        logger.LogError($"IsSuperAdminOrHasSuperPermission: {roleVerifier.IsSuperAdminOrHasSuperPermission(userProxyId, requirement.Permission)}");
         if (roleVerifier.IsSuperAdminOrHasSuperPermission(userProxyId, requirement.Permission))
         {
             context.Succeed(requirement);
@@ -34,7 +35,6 @@ public class PermissionHandler(
         var networkId = CustomParser.GetGuidFromHttpContextUrl(httpContext, "networkId");
         if (networkId == Guid.Empty) return Task.CompletedTask;
 
-        logger.LogError($"IsNetworkAdminOrHasPermission: {roleVerifier.IsNetworkAdminOrHasPermission(networkId, userProxyId, requirement.Permission)}");
         if (roleVerifier.IsNetworkAdminOrHasPermission(networkId, userProxyId, requirement.Permission))
         {
             context.Succeed(requirement);

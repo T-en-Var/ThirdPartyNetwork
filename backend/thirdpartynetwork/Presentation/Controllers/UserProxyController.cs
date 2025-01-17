@@ -1,5 +1,8 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using thirdpartynetwork.Application.Auth.Requirements;
+using thirdpartynetwork.Core;
 
 namespace thirdpartynetwork.Presentation.Controllers;
 
@@ -8,23 +11,26 @@ namespace thirdpartynetwork.Presentation.Controllers;
 public class UserProxyController(IUserProxyService service, IMapper mapper) : ControllerBase
 {
     [HttpGet]
+    [Authorize]
     [ProducesResponseType(200, Type = typeof(IEnumerable<UserProxyDto>))]
-    public IActionResult GetUsers(Guid userId)
+    public IActionResult GetProxies(Guid userId)
     {
         var userProxies = service.GetByUserId(userId);
         return Ok(mapper.Map<IEnumerable<UserProxyDto>>(userProxies));
     }
 
     [HttpGet("{userProxyId:guid}")]
+    [Authorize]
     [ProducesResponseType(200, Type = typeof(UserProxyDto))]
     [ProducesResponseType(404)]
-    public IActionResult GetUser(Guid userId, Guid userProxyId)
+    public IActionResult GetProxy(Guid userId, Guid userProxyId)
     {
         var userProxy = service.GetByIds(userId, userProxyId);
         return userProxy != null ? Ok(mapper.Map<UserProxyDto>(userProxy)) : NotFound();
     }
     
     [HttpPost]
+    [Authorize]
     [ProducesResponseType(201, Type = typeof(UserProxyDto))]
     [ProducesResponseType(404)]
     public IActionResult Create(Guid userId, CreateUserProxyDto createUserProxy)
@@ -34,6 +40,7 @@ public class UserProxyController(IUserProxyService service, IMapper mapper) : Co
     }
 
     [HttpPut("{userProxyId:guid}")]
+    [Authorize]
     [ProducesResponseType(200, Type = typeof(UserProxyDto))]
     [ProducesResponseType(404)]
     public IActionResult Update(Guid userId, Guid userProxyId, UpdateUserProxyDto updateUserProxy)
@@ -43,6 +50,7 @@ public class UserProxyController(IUserProxyService service, IMapper mapper) : Co
     }
 
     [HttpDelete("{userProxyId:guid}")]
+    [Authorize]
     [ProducesResponseType(204)]
     public IActionResult Delete(Guid userId, Guid userProxyId)
     {

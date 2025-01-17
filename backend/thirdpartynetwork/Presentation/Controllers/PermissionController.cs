@@ -1,5 +1,7 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using thirdpartynetwork.Application.Auth.Requirements;
+using thirdpartynetwork.Core;
 
 namespace thirdpartynetwork.Presentation.Controllers;
 
@@ -8,6 +10,7 @@ namespace thirdpartynetwork.Presentation.Controllers;
 public class PermissionController(IPermissionService service, IMapper mapper) : ControllerBase
 {
     [HttpGet]
+    [RequirePermission(Constants.Permissions.EditNetworkRoles)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<PermissionDto>))]
     public IActionResult GetPermissions()
     {
@@ -16,6 +19,7 @@ public class PermissionController(IPermissionService service, IMapper mapper) : 
     }
 
     [HttpGet("{permissionId:guid}")]
+    [RequirePermission(Constants.Permissions.EditNetworkRoles)]
     [ProducesResponseType(200, Type = typeof(PermissionDto))]
     public IActionResult GetPermission(Guid permissionId)
     {
@@ -24,6 +28,7 @@ public class PermissionController(IPermissionService service, IMapper mapper) : 
     }
 
     [HttpPost]
+    [RequirePermission(Constants.Permissions.SystemManaged)]
     [ProducesResponseType(201, Type = typeof(PermissionDto))]
     public IActionResult CreatePermission([FromBody] CreatePermissionDto createPermission)
     {
@@ -32,6 +37,7 @@ public class PermissionController(IPermissionService service, IMapper mapper) : 
     }
 
     [HttpPut("{permissionId:guid}")]
+    [RequirePermission(Constants.Permissions.EditNetworkRoles)]
     [ProducesResponseType(200, Type = typeof(PermissionDto))]
     [ProducesResponseType(404)]
     public IActionResult UpdatePermission(Guid permissionId, [FromBody] UpdatePermissionDto updatePermission)
@@ -41,6 +47,7 @@ public class PermissionController(IPermissionService service, IMapper mapper) : 
     }
 
     [HttpDelete("{permissionId:guid}")]
+    [RequirePermission(Constants.Permissions.SystemManaged)]
     [ProducesResponseType(204)]
     public IActionResult DeletePermission(Guid permissionId)
     {

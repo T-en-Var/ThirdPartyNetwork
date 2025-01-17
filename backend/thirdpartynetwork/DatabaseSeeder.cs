@@ -139,6 +139,18 @@ namespace thirdpartynetwork
                 Description = "Allows user to timeout any user.",
                 IsSystemProtected = true
             };
+            Permission editNetworkAccesses = new()
+            {
+                Name = Constants.Permissions.EditNetworkAccesses,
+                Description = "Allows user to edit network accesses list.",
+                IsSystemProtected = true
+            };
+            Permission createNetwork = new()
+            {
+                Name = Constants.Permissions.CreateNetwork,
+                Description = "Allows user to create a new network.",
+                IsSystemProtected = true
+            };
 
             Access accessUsername = new()
             {
@@ -196,6 +208,19 @@ namespace thirdpartynetwork
             [
                 new RolePermission() { Permission = updateSelf, Role = userRole },
                 new RolePermission() { Permission = viewContent, Role = userRole },
+            ];
+
+            Role clientRole = new()
+            {
+                Name = Constants.Roles.Client,
+                Description = "Client who may create and manage networks.",
+                IsSystemProtected = true,
+                Network = network,
+            };
+
+            clientRole.RolePermissions =
+            [
+                new RolePermission() { Permission = createNetwork, Role = clientRole },
             ];
 
             UserProxy adminUser = new()
@@ -325,7 +350,8 @@ namespace thirdpartynetwork
                 banUser,
                 banUserAdmin,
                 timeoutUser,
-                timeoutUserAdmin
+                timeoutUserAdmin,
+                editNetworkAccesses
             );
             await context.SaveChangesAsync();
         }
