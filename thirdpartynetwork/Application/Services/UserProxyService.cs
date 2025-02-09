@@ -67,6 +67,12 @@ namespace thirdpartynetwork.Application.Services
             return proxy;
         }
 
+        public IQueryable<UserProxy> GetByIdQueryable(Guid userProxyId)
+        {
+            var userProxyQueryable = repository.GetByIdQueryable(userProxyId);
+            return userProxyQueryable;
+        }
+
         public bool DeleteByIds(Guid userId, Guid userProxyId)
         {
             var proxy = GetByIds(userId, userProxyId);

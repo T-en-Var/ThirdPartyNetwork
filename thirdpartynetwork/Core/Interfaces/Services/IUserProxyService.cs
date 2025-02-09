@@ -12,6 +12,7 @@ namespace thirdpartynetwork.Core.Interfaces.Services
         UserProxy? GetByUsername(string username);
         UserProxy Create(Guid userId, CreateUserProxyDto createUser);
         UserProxy Update(Guid userId, Guid userProxyId, UpdateUserProxyDto updateUser);
+        IQueryable<UserProxy> GetByIdQueryable(Guid userProxyId);
         bool DeleteByIds(Guid userId, Guid userProxyId);
     }
 }

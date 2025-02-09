@@ -54,6 +54,12 @@ public static class Constants
         public const string ViewOwnContent = "View Own Content";
         public const string EditOwnContent = "Edit Own Content";
         public const string DeleteOwnContent = "Delete Own Content";
-        
     }
+
+    public static string[] OwnerPermissions = [
+        Permissions.DeleteOwnContent,
+        Permissions.EditOwnContent,
+        Permissions.ViewOwnContent,
+        Permissions.UpdateSelf,
+    ];
 }
