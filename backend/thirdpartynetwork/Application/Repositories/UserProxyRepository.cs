@@ -58,6 +58,12 @@ namespace thirdpartynetwork.Application.Repositories
             return existing;
         }
 
+        public IQueryable<UserProxy> GetByIdQueryable(Guid id)
+        {
+            return _context.UserProxies
+                .Where(u => u.Id == id);
+        }
+
         public bool Delete(UserProxy userProxy)
         {
             _context.Remove(userProxy);

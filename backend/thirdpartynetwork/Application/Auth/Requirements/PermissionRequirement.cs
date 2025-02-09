@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace thirdpartynetwork.Application.Auth.Requirements;
 
-public class PermissionRequirement(string permission) : IAuthorizationRequirement
+public class PermissionRequirement(params string[] permissions) : IAuthorizationRequirement
 {
-    public string Permission { get; } = permission;
+    public IReadOnlyList<string> Permissions { get; } = permissions ?? [];
 }
