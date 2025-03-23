@@ -44,6 +44,14 @@ namespace thirdpartynetwork.Application.Repositories
                 .FirstOrDefault(u => u.Id == id);
         }
 
+        public NetworkUser? GetByNetworkIdAndUsername(Guid networkId, string username)
+        {
+            return _context.NetworkUsers
+                .Include(n => n.Network)
+                .Include(n => n.UserProxy)
+                .FirstOrDefault(u => u.NetworkId == networkId && u.UserProxy.Username == username);
+        }
+
         public NetworkUser? GetByIds(Guid networkId, Guid userProxyId)
         {
             return _context.NetworkUsers

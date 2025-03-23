@@ -44,6 +44,17 @@ builder.Services.AddAuthentication(o =>
     };
 });
 
+// Add CORS with permissive policy
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", b =>
+    {
+        b.AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader();
+    });
+});
+
 // Add all permissions to Authorization.
 var permissions = typeof(Constants.Permissions).GetFields()
     .Where(f => f is { IsLiteral: true, IsInitOnly: false })
@@ -97,6 +108,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 // Add Helpers
 builder.Services.AddScoped<ITokenGenerator, TokenGenerator>();
+builder.Services.AddScoped<IJwtHandler, JwtHandler>();
 builder.Services.AddScoped<IJtiCacheService, JtiCacheService>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IRoleVerifier, RoleVerifier>();
@@ -151,5 +163,7 @@ app.UseAuthorization();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.UseCors("AllowAll");
 
 app.Run();

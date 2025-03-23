@@ -29,15 +29,12 @@ public class JtiCacheService : IJtiCacheService
     private void AppendValidateJti(IJtiCacheService.JtiTracker newTracker, string previousJti)
     {
         var previousTracker = _jtiTrackers.Find(t => t.Jti == previousJti);
-        if (previousTracker == null)
-        {
-            throw new UnauthorizedAccessException();
-        }
+        if (previousTracker == null) throw new UnauthorizedAccessException("Invalid token");
 
         if (previousTracker.Next != null)
         {
             RemoveTrackerTree(previousTracker);
-            throw new UnauthorizedAccessException();
+            throw new UnauthorizedAccessException("Invalid token");
         }
 
         previousTracker.Next = newTracker;
