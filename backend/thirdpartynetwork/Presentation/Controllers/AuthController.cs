@@ -10,42 +10,56 @@ public class AuthController(IAuthService service) : ControllerBase
     [HttpPost("login")]
     [ProducesResponseType(200, Type = typeof(TokensDto))]
     [ProducesResponseType(401)]
-    public IActionResult CreateNetwork([FromBody] LoginDto login)
+    public IActionResult MainNetworkLogin([FromBody] LoginDto login)
     {
-        var tokens = service.Login(login);
+        var tokens = service.MainNetworkLogin(login);
+        return Ok(tokens);
+    }
+    
+    [HttpPost("register")]
+    [ProducesResponseType(200, Type = typeof(TokensDto))]
+    [ProducesResponseType(401)]
+    public IActionResult MainNetworkRegister([FromBody] CreateUserProxyDto createUserProxy)
+    {
+        var tokens = service.MainNetworkRegister(createUserProxy);
         return Ok(tokens);
     }
 
-    [HttpPost("token/refresh")]
+    [HttpPost("refresh")]
     [ProducesResponseType(200, Type = typeof(AccessTokenDto))]
     [ProducesResponseType(401)]
     [Authorize]
-    public IActionResult TokenRefresh([FromBody] RefreshTokenDto refreshToken)
+    public IActionResult MainNetworkRefresh([FromBody] RefreshTokenDto refreshToken)
     {
-        // service.TokenRefresh(refreshToken);
-        return Ok(service.TokenRefresh(refreshToken));
+        var tokens = service.MainNetworkRefresh(refreshToken);
+        return Ok(tokens);
     }
     
-    [HttpPost("refresh/rotate")]
+    [HttpPost("{networkId:guid}/login")]
     [ProducesResponseType(200, Type = typeof(TokensDto))]
     [ProducesResponseType(401)]
-    public IActionResult RefreshRotate([FromBody] RefreshTokenDto refreshToken)
+    public IActionResult Login(Guid networkId, [FromBody] LoginDto login)
     {
-        return Ok();
+        var tokens = service.Login(networkId, login);
+        return Ok(tokens);
+    }
+
+    [HttpPost("{networkId:guid}/refresh")]
+    [ProducesResponseType(200, Type = typeof(AccessTokenDto))]
+    [ProducesResponseType(401)]
+    [Authorize]
+    public IActionResult Refresh(Guid networkId, [FromBody] RefreshTokenDto refreshToken)
+    {
+        var tokens = service.Refresh(networkId, refreshToken);
+        return Ok(tokens);
     }
     
-    [HttpPost("logout")]
+    [HttpPost("{networkId:guid}/register")]
     [ProducesResponseType(200, Type = typeof(TokensDto))]
     [ProducesResponseType(401)]
-    public IActionResult Logout([FromBody] RefreshTokenDto refreshToken)
+    public IActionResult Register(Guid networkId, [FromBody] CreateUserProxyDto createUserProxy)
     {
-        return Ok();
-    }
-    
-    [Authorize(Policy = "NetworkAdminPolicy")]
-    [HttpPost("{networkId:guid}/roles/{roleId:guid}")]
-    public IActionResult AssignRoleToNetwork(Guid networkId, Guid roleId)
-    {
-        return Ok($"Role {roleId} assigned to Network {networkId}");
+        var tokens = service.Register(networkId, createUserProxy);
+        return Ok(tokens);
     }
 }

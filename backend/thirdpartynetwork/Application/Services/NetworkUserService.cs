@@ -40,6 +40,12 @@ namespace thirdpartynetwork.Application.Services
             return networkUser;
         }
 
+        public NetworkUser? GetByNetworkIdAndUsername(Guid networkId, string username)
+        {
+            var networkUser = repository.GetByNetworkIdAndUsername(networkId, username);
+            return networkUser;
+        }
+
         public NetworkUser Create(Guid networkId, Guid userProxyId, CreateNetworkUserDto createNetworkUser)
         {
             if (networkService.GetById(networkId) == null) throw new NotFoundHttpException("Network not Found");
