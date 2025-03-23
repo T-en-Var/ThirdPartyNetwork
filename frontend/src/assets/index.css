@@ -4,6 +4,19 @@
 
 @layer base {
   :root {
+    --primary-color: rgba(190, 149, 230, 0.85); /* Bright cyan */
+    --primary-accent-color: #9A5BA4; /* Bright cyan */
+    --secondary-color: rgba(255, 240, 170, 0.9); /* Bright magenta */
+    --accent-color: #ffcc00; /* Bright yellow */
+    --bg-color: #ffffff; /* White background */
+    --card-bg: rgba(255, 255, 255, 0.9); /* White with opacity */
+    --text-color: #333333; /* Dark gray for text */
+    --text-light: #666666; /* Medium gray for lighter text */
+    --error-color: #ff3333; /* Bright red */
+    --success-color: #33cc33; /* Bright green */
+    --input-border: rgba(0, 0, 0, 0.1);
+    --button-text: #ffffff; /* White text for buttons */
+
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
 
