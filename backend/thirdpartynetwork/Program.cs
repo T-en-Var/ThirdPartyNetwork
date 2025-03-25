@@ -118,6 +118,7 @@ builder.Services.AddScoped<IIdentityVerifier, IdentityVerifier>();
 builder.Services.AddScoped<IAccessService, AccessService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IContentService, ContentService>();
+builder.Services.AddScoped<IMeService, MeService>();
 builder.Services.AddScoped<INetworkAccessService, NetworkAccessService>();
 builder.Services.AddScoped<INetworkService, NetworkService>();
 builder.Services.AddScoped<INetworkUserAccessService, NetworkUserAccessService>();

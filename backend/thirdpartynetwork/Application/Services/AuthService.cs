@@ -7,12 +7,12 @@ using thirdpartynetwork.Core.Models;
 namespace thirdpartynetwork.Application.Services;
 
 public class AuthService(
-    ITokenGenerator tokenGenerator, 
-    IPasswordHasher passwordHasher, 
-    IJwtHandler jwtHandler, 
+    ITokenGenerator tokenGenerator,
+    IPasswordHasher passwordHasher,
+    IJwtHandler jwtHandler,
     INetworkService networkService,
     INetworkUserService networkUserService,
-    IUserProxyService userProxyService, 
+    IUserProxyService userProxyService,
     IUserService userService,
     IHttpContextAccessor httpContextAccessor) : IAuthService
 {
@@ -20,75 +20,65 @@ public class AuthService(
     {
         var networkUser = networkUserService.GetByIds(networkId, userProxyId);
         if (networkUser == null) throw new UnauthorizedHttpException("Invalid username or password");
-        
+
         return networkUser.UserProxy;
     }
-    
+
     private UserProxy GetUserByUsername(Guid networkId, string username)
     {
         var networkUser = networkUserService.GetByNetworkIdAndUsername(networkId, username);
         if (networkUser == null) throw new UnauthorizedHttpException("Invalid username or password");
-        
+
         return networkUser.UserProxy;
     }
-    
+
     public TokensDto Login(Guid networkId, LoginDto loginData)
     {
         var user = GetUserByUsername(networkId, loginData.Username);
-        
-        if (!passwordHasher.VerifyPassword(loginData.Password, user.Password)) throw new UnauthorizedHttpException("Invalid username or password");
 
-        return GenerateTokens(user.Id, user.Username);;
+        if (!passwordHasher.VerifyPassword(loginData.Password, user.Password))
+            throw new UnauthorizedHttpException("Invalid username or password");
+
+        return tokenGenerator.GenerateTokenPair(user.Id, user.Username);
     }
 
     public TokensDto Refresh(Guid networkId, RefreshTokenDto refreshTokenDto)
     {
         if (httpContextAccessor.HttpContext == null) throw new UnauthorizedHttpException("No HttpContext User");
-        
+
         var appUser = httpContextAccessor.HttpContext.User;
         if (appUser == null) throw new UnauthorizedHttpException("No HttpContext User");
-        
+
         var uidClaim = appUser.Claims.FirstOrDefault(x => x.Type == "uid");
-        if (uidClaim == null) throw new UnauthorizedHttpException("Invalid token");
+        if (uidClaim == null) throw new UnauthorizedHttpException("Invalid token 1");
 
         var userId = Guid.Parse(uidClaim.Value);
         var user = GetUserById(networkId, userId);
         
-        if (!jwtHandler.ValidateToken(refreshTokenDto.RefreshToken)) throw new UnauthorizedHttpException("Invalid token");
-        
+        var isTokenInvalid = jwtHandler.ValidateToken(refreshTokenDto.RefreshToken);
+        var isTokenPairValid = jwtHandler.ValidateTokenPair(appUser, refreshTokenDto.RefreshToken);
+
+        if (!isTokenInvalid || !isTokenPairValid) throw new UnauthorizedHttpException("Invalid token 2");
+
         var oldToken = jwtHandler.DecodeToken(refreshTokenDto.RefreshToken);
         var oldJti = oldToken.Claims.FirstOrDefault(x => x.Type == "jti");
-        
-        if (oldJti == null) throw new UnauthorizedHttpException("Invalid token");
-        
-        return GenerateTokens(user.Id, user.Username, oldJti.Value);
+
+        if (oldJti == null) throw new UnauthorizedHttpException("Invalid token 3");
+
+        return tokenGenerator.GenerateTokenPair(user.Id, user.Username, oldJti.Value);
     }
 
     public TokensDto Register(Guid networkId, CreateUserProxyDto createUserProxy)
     {
         var userDto = new CreateUserDto() { };
         var user = userService.Create(userDto);
-        
+
         var userProxy = userProxyService.Create(user.Id, createUserProxy);
         var networkUserDto = new CreateNetworkUserDto() { };
-        
+
         networkUserService.Create(networkId, userProxy.Id, networkUserDto);
-        
-        return GenerateTokens(user.Id, userProxy.Username);
-    }
 
-    private TokensDto GenerateTokens(Guid userId, string username, string? previousJti = null)
-    {
-        var accessToken = tokenGenerator.GenerateAccessToken(userId, username);
-        var refreshToken = tokenGenerator.GenerateRefreshToken(previousJti);
-        
-        var tokenDto = new TokensDto()
-        {
-            AccessToken = accessToken,
-            RefreshToken = refreshToken,
-        };
-
-        return tokenDto;
+        return tokenGenerator.GenerateTokenPair(user.Id, userProxy.Username);
     }
 
     public TokensDto MainNetworkLogin(LoginDto loginDto)
