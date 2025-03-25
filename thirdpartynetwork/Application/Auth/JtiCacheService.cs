@@ -1,3 +1,4 @@
+using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using thirdpartynetwork.Core.Interfaces.Auth;
 
 namespace thirdpartynetwork.Application.Auth;
@@ -29,12 +30,12 @@ public class JtiCacheService : IJtiCacheService
     private void AppendValidateJti(IJtiCacheService.JtiTracker newTracker, string previousJti)
     {
         var previousTracker = _jtiTrackers.Find(t => t.Jti == previousJti);
-        if (previousTracker == null) throw new UnauthorizedAccessException("Invalid token");
+        if (previousTracker == null) throw new UnauthorizedHttpException("Invalid token 4");
 
         if (previousTracker.Next != null)
         {
             RemoveTrackerTree(previousTracker);
-            throw new UnauthorizedAccessException("Invalid token");
+            throw new UnauthorizedHttpException("Invalid token 5");
         }
 
         previousTracker.Next = newTracker;
