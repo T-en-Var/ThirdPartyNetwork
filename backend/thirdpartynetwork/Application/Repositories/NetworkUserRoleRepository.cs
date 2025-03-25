@@ -30,6 +30,14 @@ namespace thirdpartynetwork.Application.Repositories
                 .FirstOrDefault(n => n.NetworkUserId == networkUserId && n.RoleId == roleId);
         }
 
+        public NetworkUserRole? GetByIdAndName(Guid networkUserId, string roleName)
+        {
+            return _context.NetworkUserRoles
+                .Include(n => n.NetworkUser)
+                .Include(n => n.Role)
+                .FirstOrDefault(n => n.NetworkUserId == networkUserId && n.Role.Name == roleName);
+        }
+
         public ICollection<NetworkUserRole> GetByNetworkUserId(Guid id)
         {
             return [.. _context.NetworkUserRoles

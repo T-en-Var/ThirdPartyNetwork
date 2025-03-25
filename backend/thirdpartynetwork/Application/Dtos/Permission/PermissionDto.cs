@@ -1,5 +1,5 @@
-﻿using thirdpartynetwork.Application.Dtos.NetworkPermission;
-using thirdpartynetwork.Application.Dtos.NetworkUserPermission;
+﻿using thirdpartynetwork.Application.Dtos.NetworkAccess;
+using thirdpartynetwork.Application.Dtos.NetworkUserAccess;
 
 namespace thirdpartynetwork.Application.Dtos.Permission
 {
@@ -8,7 +8,6 @@ namespace thirdpartynetwork.Application.Dtos.Permission
         public Guid Id { get; set; }
         public required string Name { get; set; }
         public required string Description { get; set; }
-        public ICollection<NetworkPermissionDto> NetworkPermissions { get; set; } = [];
-        public ICollection<NetworkUserPermissionDto> NetworkUserPermissions { get; set; } = [];
+        public ICollection<RolePermissionDto> RolePermissions { get; set; } = [];
     }
 }

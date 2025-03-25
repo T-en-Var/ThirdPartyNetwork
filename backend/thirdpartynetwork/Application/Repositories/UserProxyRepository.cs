@@ -26,6 +26,13 @@ namespace thirdpartynetwork.Application.Repositories
                 .FirstOrDefault(up => up.Id == userProxyId);
         }
 
+        public UserProxy? GetByUsername(string username)
+        {
+            return _context.UserProxies
+                .Include(up => up.User)
+                .FirstOrDefault(up => up.Username == username);
+        }
+
         public ICollection<UserProxy> GetByUserId(Guid userId)
         {
             return [.. _context.UserProxies
@@ -49,6 +56,12 @@ namespace thirdpartynetwork.Application.Repositories
 
             Save();
             return existing;
+        }
+
+        public IQueryable<UserProxy> GetByIdQueryable(Guid id)
+        {
+            return _context.UserProxies
+                .Where(u => u.Id == id);
         }
 
         public bool Delete(UserProxy userProxy)
