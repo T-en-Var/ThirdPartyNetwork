@@ -3,7 +3,8 @@ import HomeView from '../views/HomeView.vue';
 import { useAuthStore } from '@/stores/auth';
 import NotFoundView from '@/views/NotFoundView.vue';
 import AboutView from '@/views/AboutView.vue';
-import TOSView from '@/views/TOSView.vue';
+import ToSView from '@/views/ToSView.vue';
+import NetworksView from '@/views/NetworksView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -21,9 +22,15 @@ const router = createRouter({
       meta: {},
     },
     {
+      path: '/networks',
+      name: 'networks',
+      component: NetworksView,
+      meta: {},
+    },
+    {
       path: '/tos',
       name: 'Terms of Service',
-      component: TOSView,
+      component: ToSView,
       meta: {},
     },
     {

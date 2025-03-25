@@ -1,8 +1,9 @@
 import { ref } from 'vue';
 import { defineStore } from 'pinia';
 import { type InternalAxiosRequestConfig } from 'axios';
-import type { TokenPair } from '@/types';
+import type { TokenPair, UserProxy } from '@/types';
 import rawApi from '@/api/rawApi';
+import api from '@/api/api';
 
 export const useAuthStore = defineStore('auth', () => {
     const accessToken = ref<string | null>(null);
@@ -13,38 +14,50 @@ export const useAuthStore = defineStore('auth', () => {
 
     const isModelOpen = ref<boolean>(false);
     const modelMode = ref<"signup" | "login">("signup");
-    let modalCallback = () => {};
+    let modalCallback = () => { };
+
+    const currentUser = ref<UserProxy | null>(null);
 
     async function login(username: string, password: string) {
         const response = await rawApi.post<TokenPair>('/auth/login', { username, password });
 
-        if (response.status != 200) {
-            alert(response.data);
-            return
-        }
+        if (response.status != 200) return response;
 
         saveTokens(response.data.accessToken, response.data.refreshToken);
+        return response;
     }
 
     async function signUp(username: string, email: string, firstname: string, lastname: string, password: string) {
-        const response = await rawApi.post('/auth/register', {
+        const response = await rawApi.post<TokenPair>('/auth/register', {
             username: username,
             firstName: firstname,
             lastName: lastname,
             email: email,
             password: password
-          });
+        });
 
-        if (response.status != 201) {
-            alert(response.data);
-            return
-        }
+        if (response.status != 201) return response;
 
-        await login(username, password);
+        saveTokens(response.data.accessToken, response.data.refreshToken);
+        return response;
     }
 
     function logout() {
         clearTokens();
+    }
+
+    async function getUser() {
+        if (currentUser.value) return currentUser.value;
+
+        const response = await api.get<UserProxy>("/me");
+
+        if (response.status != 200) {
+            logout()
+            return null
+        }
+
+        currentUser.value = response.data;
+        return currentUser.value;
     }
 
     function getUserId() {
@@ -156,5 +169,22 @@ export const useAuthStore = defineStore('auth', () => {
         modalCallback = callback;
     }
 
-    return { applyHeaders, saveTokens, clearTokens, refreshTokens, isAuthenticated, isAdmin, login, signUp, logout, getUserId, setModelOpen, isModelOpen, setModelMode, modelMode, setModelOpenCallback };
+    return {
+        applyHeaders,
+        saveTokens, 
+        clearTokens, 
+        refreshTokens, 
+        isAuthenticated, 
+        isAdmin, 
+        login, 
+        signUp, 
+        logout, 
+        getUserId, 
+        getUser,
+        setModelOpen, 
+        isModelOpen, 
+        setModelMode, 
+        modelMode, 
+        setModelOpenCallback,
+    };
 });

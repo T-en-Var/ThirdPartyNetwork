@@ -5,10 +5,8 @@
         <div class="form-wrapper">
           <button class="close-button" @click="closeModal">×</button>
 
-          <!-- Logo in corner -->
           <div class="logo-container">
             <div class="logo">
-              <!-- Replace with your actual logo or icon -->
               <img src="@/images/logo_transparent.png" alt="Company Logo">
             </div>
           </div>
@@ -128,7 +126,6 @@
 import { ref } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useRoute, useRouter } from 'vue-router';
-import { AxiosError } from 'axios';
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -160,7 +157,7 @@ authStore.setModelOpenCallback(modalOpenCallback);
 
 const redirectToTos = () => {
   authStore.setModelOpen(false);
-  
+
   let uri = route.query.redirect;
   if (route.name !== "Terms of Service") uri = btoa(route.fullPath);
 
@@ -184,6 +181,7 @@ const closeModal = () => {
   confirmPassword.value = '';
   error.value = '';
   signupError.value = '';
+  confirmToS.value = false;
 };
 
 const login = async () => {
@@ -192,23 +190,22 @@ const login = async () => {
     return;
   }
 
-  try {
-    isLoading.value = true;
-    error.value = '';
+  isLoading.value = true;
+  error.value = '';
 
-    await authStore.login(username.value, password.value);
+  const response = await authStore.login(username.value, password.value);
 
-    closeModal();
+  closeModal();
 
-    const redirectPath = atob(route.query.redirect as string) || '/';
-    router.push(redirectPath);
-  } catch (err) {
-    error.value = err instanceof AxiosError
-      ? err.response?.data?.message ?? err.message
-      : 'Invalid credentials. Please try again.';
-  } finally {
-    isLoading.value = false;
+  if (response.status != 200) {
+    error.value = 'Invalid credentials. Please try again.';
+    return;
   }
+
+  const redirectPath = route.query.redirect ? atob(route.query.redirect as string) : '/';
+  router.push(redirectPath);
+
+  isLoading.value = false;
 };
 
 const signUp = async () => {
@@ -222,23 +219,27 @@ const signUp = async () => {
     return;
   }
 
-  try {
-    isSigningUp.value = true;
-    signupError.value = '';
-
-    await authStore.signUp(signupUsername.value, signupEmail.value, signupFirstname.value, signupLastname.value, signupPassword.value);
-
-    closeModal();
-
-    const redirectPath = atob(route.query.redirect as string) as string || '/';
-    router.push(redirectPath);
-  } catch (err) {
-    error.value = err instanceof AxiosError
-      ? err.response?.data?.message ?? err.message
-      : 'Unable to create account. Please try again.';
-  } finally {
-    isSigningUp.value = false;
+  if (!confirmToS.value) {
+    signupError.value = 'Required to accept the Terms of Service';
+    return;
   }
+
+  isSigningUp.value = true;
+  signupError.value = '';
+
+  const response = await authStore.signUp(signupUsername.value, signupEmail.value, signupFirstname.value, signupLastname.value, signupPassword.value);
+
+  closeModal();
+
+  if (response.status != 201) {
+    error.value = 'Unable to create account. Please try again.';
+    return;
+  }
+
+  const redirectPath = route.query.redirect ? atob(route.query.redirect as string) : '/';
+  router.push(redirectPath);
+
+  isLoading.value = false;
 };
 </script>
 
@@ -546,35 +547,35 @@ input:focus {
   .form-content {
     padding: 1.5rem;
   }
-  
+
   .form-row {
     flex-direction: column;
     gap: 1rem;
   }
-  
+
   .form-row .form-group {
     width: 100%;
   }
-  
+
   .auth-modal {
     max-width: 100%;
     max-height: 100vh;
     border-radius: 0;
   }
-  
+
   .form-wrapper {
     border-radius: 0;
     height: 100%;
   }
-  
+
   .modal-overlay {
     padding: 0;
   }
-  
+
   h2 {
     font-size: 1.3rem;
   }
-  
+
   .form-footer {
     flex-direction: column;
     text-align: center;
@@ -586,11 +587,11 @@ input:focus {
   .form-content {
     padding: 1rem;
   }
-  
+
   .btn-primary {
     padding: 10px;
   }
-  
+
   input {
     padding: 8px 10px;
   }
@@ -601,11 +602,11 @@ input:focus {
   .form-content {
     padding-top: 2.5rem;
   }
-  
+
   .form-header {
     margin-bottom: 1rem;
   }
-  
+
   form {
     gap: 1rem;
   }

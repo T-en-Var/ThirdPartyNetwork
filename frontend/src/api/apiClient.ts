@@ -33,14 +33,14 @@ class ApiClient {
     this.auth = store;
   }
 
-  public async get<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
+  public async get<T>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
     const response: AxiosResponse<T> = await this.instance.get(url, config);
-    return response.data;
+    return response;
   }
 
-  public async post<T, B>(url: string, data?: B, config?: AxiosRequestConfig): Promise<T> {
+  public async post<T, B>(url: string, data?: B, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
     const response: AxiosResponse<T> = await this.instance.post(url, data, config);
-    return response.data;
+    return response;
   }
 
   // Add other methods (put, delete, patch) as needed

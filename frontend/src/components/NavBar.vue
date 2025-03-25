@@ -7,10 +7,13 @@
       <div class="nav-links">
         <RouterLink to="/" class="nav-link" active-class="active">Home</RouterLink>
         <RouterLink to="/about" class="nav-link" active-class="active">About</RouterLink>
+        <RouterLink v-if="authStore.isAuthenticated()" to="/networks" class="nav-link" active-class="active">Networks
+        </RouterLink>
       </div>
       <div class="nav-actions">
-        <button class="btn-login" @click="openLoginModal">Log In</button>
-        <button class="btn-signup" @click="openSignupModal">Sign Up</button>
+        <button v-if="!authStore.isAuthenticated()" class="btn-login" @click="openLoginModal">Log In</button>
+        <button v-if="!authStore.isAuthenticated()" class="btn-signup" @click="openSignupModal">Sign Up</button>
+        <UserProfileDropdown v-if="authStore.isAuthenticated()" />
       </div>
     </nav>
 
@@ -20,6 +23,7 @@
 
 <script setup lang="ts">
 import AuthModal from '@/components/AuthModal.vue';
+import UserProfileDropdown from './UserProfileDropdown.vue';
 import { useAuthStore } from '@/stores/auth';
 
 const authStore = useAuthStore();
@@ -94,7 +98,8 @@ const openSignupModal = () => {
   transition: color 0.3s ease;
 }
 
-.nav-link:hover, .nav-link.active {
+.nav-link:hover,
+.nav-link.active {
   color: #0066cc;
 }
 
@@ -109,7 +114,8 @@ const openSignupModal = () => {
   transition: width 0.3s ease;
 }
 
-.nav-link:hover:after, .nav-link.active:after {
+.nav-link:hover:after,
+.nav-link.active:after {
   width: 100%;
 }
 
@@ -155,11 +161,11 @@ const openSignupModal = () => {
     height: auto;
     padding: 1rem;
   }
-  
+
   .nav-links {
     margin: 1rem 0;
   }
-  
+
   .nav-actions {
     width: 100%;
     justify-content: space-between;
