@@ -6,8 +6,8 @@
         public required string Name { get; set; }
         public ICollection<Content> Contents { get; set; } = new List<Content>();
         public ICollection<NetworkUser> NetworkUsers { get; set; } = new List<NetworkUser>();
-        public ICollection<NetworkRole> NetworkRoles { get; set; } = new List<NetworkRole>();
-        public ICollection<NetworkPermission> NetworkPermissions { get; set; } = new List<NetworkPermission>();
+        public ICollection<Role> Roles { get; set; } = new List<Role>();
+        public ICollection<NetworkAccess> NetworkAccesses { get; set; } = new List<NetworkAccess>();
         public bool IsSystemProtected { get; set; } = false;
     }
 }

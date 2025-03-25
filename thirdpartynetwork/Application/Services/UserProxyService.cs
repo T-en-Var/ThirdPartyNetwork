@@ -33,6 +33,12 @@ namespace thirdpartynetwork.Application.Services
             return proxy;
         }
 
+        public UserProxy? GetByUsername(string username)
+        {
+            var proxy = repository.GetByUsername(username);
+            return proxy;
+        }
+
         public UserProxy Create(Guid userId, CreateUserProxyDto createUserProxy)
         {
             var user = userService.GetById(userId);
@@ -59,6 +65,12 @@ namespace thirdpartynetwork.Application.Services
             
             proxy = repository.Update(proxy);
             return proxy;
+        }
+
+        public IQueryable<UserProxy> GetByIdQueryable(Guid userProxyId)
+        {
+            var userProxyQueryable = repository.GetByIdQueryable(userProxyId);
+            return userProxyQueryable;
         }
 
         public bool DeleteByIds(Guid userId, Guid userProxyId)

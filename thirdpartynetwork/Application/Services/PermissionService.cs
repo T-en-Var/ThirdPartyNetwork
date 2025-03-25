@@ -1,45 +1,45 @@
-﻿using AutoMapper;
+using AutoMapper;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using thirdpartynetwork.Core.Models;
 
-namespace thirdpartynetwork.Application.Services
+namespace thirdpartynetwork.Application.Services;
+
+public class PermissionService(IPermissionRepository repository, IMapper mapper) : IPermissionService
 {
-    public class PermissionService(IPermissionRepository repository, IMapper mapper) : IPermissionService
+    public ICollection<Permission> GetAll()
     {
-        public ICollection<Permission> GetAll()
-        {
-            var permissions = repository.GetAll();
-            return permissions;
-        }
+        var permissions = repository.GetAll();
+        return permissions;
+    }
 
-        public Permission? GetById(Guid id)
-        {
-            var permission = repository.GetById(id);
-            return permission;
-        }
+    public Permission? GetById(Guid permissionId)
+    {
+        var permission = repository.GetById(permissionId);
+        return permission;
+    }
 
-        public Permission Create(CreatePermissionDto createPermission)
-        {
-            var permission = mapper.Map<Permission>(createPermission);
-            permission = repository.Create(permission);
-            return permission;
-        }
+    public Permission Create(CreatePermissionDto createPermission)
+    {
+        var permission = mapper.Map<Permission>(createPermission);
 
-        public Permission Update(Guid id, UpdatePermissionDto updatePermission)
-        {
-            if (!repository.Exists(id)) throw new NotFoundHttpException();
-            
-            var permission = mapper.Map<Permission>(updatePermission);
-            permission.Id = id;
-            
-            permission = repository.Update(permission);
-            return permission;
-        }
+        permission = repository.Create(permission);
+        return permission;
+    }
 
-        public bool DeleteById(Guid id)
-        {
-            var permission = GetById(id);
-            return permission != null && repository.Delete(permission);
-        }
+    public Permission Update(Guid permissionId, UpdatePermissionDto updatePermission)
+    {
+        if (!repository.Exists(permissionId)) throw new NotFoundHttpException("Permission not found.");
+        
+        var permission = mapper.Map<Permission>(updatePermission);
+        permission.Id = permissionId;
+        
+        permission = repository.Update(permission);
+        return permission;
+    }
+
+    public bool DeleteById(Guid permissionId)
+    {
+        var permission = repository.GetById(permissionId);
+        return permission != null && repository.Delete(permission);
     }
 }

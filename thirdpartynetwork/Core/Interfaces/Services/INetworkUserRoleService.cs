@@ -6,7 +6,7 @@ namespace thirdpartynetwork.Core.Interfaces.Services
     {
         ICollection<NetworkUserRole> GetAll();
         ICollection<NetworkUserRole> GetByNetworkUserId(Guid networkId, Guid networkUserId);
-        ICollection<NetworkUserRole> GetByRoleId(Guid roleId);
+        ICollection<NetworkUserRole> GetByRoleId(Guid networkId, Guid roleId);
         NetworkUserRole? GetByIds(Guid networkId, Guid networkUserId, Guid roleId);
         NetworkUserRole Create(Guid networkId, Guid networkUserId, Guid roleId, CreateNetworkUserRoleDto createNetworkUserRole);
         NetworkUserRole Update(Guid networkId, Guid networkUserId, Guid roleId, UpdateNetworkUserRoleDto updateNetworkUserRole);

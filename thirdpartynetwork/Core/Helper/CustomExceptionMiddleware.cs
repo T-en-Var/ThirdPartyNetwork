@@ -14,6 +14,7 @@ namespace thirdpartynetwork.Core.Helper
             }
             catch (BaseHttpException ex)
             {
+                Console.WriteLine("Caught exception: " + ex.Message);
                 logger.LogError($"CustomHttpException: {ex}");
                 context.Response.StatusCode = ex.StatusCode;
                 context.Response.ContentType = "application/json";
@@ -41,6 +42,7 @@ namespace thirdpartynetwork.Core.Helper
             }
             catch (Exception ex)
             {
+                Console.WriteLine("UnCaught exception: " + ex.Message);
                 logger.LogError($"Unhandled exception: {ex}");
                 context.Response.StatusCode = StatusCodes.Status500InternalServerError;
                 await context.Response.WriteAsync($"Unhandled exception: {ex}");

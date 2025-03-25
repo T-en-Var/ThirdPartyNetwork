@@ -9,6 +9,7 @@ namespace thirdpartynetwork.Core.Interfaces.Repositories
         ICollection<NetworkUser> GetByNetworkId(Guid networkId);
         ICollection<NetworkUser> GetByUserProxyId(Guid userProxyId);
         NetworkUser? GetById(Guid networkUserId);
+        NetworkUser? GetByNetworkIdAndUsername(Guid networkId, string username);
         NetworkUser? GetByIds(Guid networkId, Guid userProxyId);
         NetworkUser Create(NetworkUser networkUser);
         NetworkUser Update(NetworkUser networkUser);

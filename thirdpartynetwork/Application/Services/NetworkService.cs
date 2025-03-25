@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using thirdpartynetwork.Core;
 using thirdpartynetwork.Core.Models;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 
@@ -45,6 +46,28 @@ namespace thirdpartynetwork.Application.Services
         {
             var network = GetById(id);
             return network != null && repository.Delete(network);
+        }
+
+        public Network GetMainNetwork()
+        {
+            var mainNetwork = repository.GetByName(Constants.Networks.Main);
+            if (mainNetwork == null) throw new Exception("Main network not found, that is NOT good.");
+            
+            return mainNetwork;
+        }
+
+        public IQueryable<Network> GetMainNetworkQueryable()
+        {
+            var mainNetwork = repository.GetByNameQueryable(Constants.Networks.Main);
+            if (mainNetwork == null) throw new Exception("Main network not found, that is NOT good.");
+            
+            return mainNetwork;
+        }
+
+        public IQueryable<Network> GetByIdQueryable(Guid id)
+        {
+            var network = repository.GetByIdQueryable(id);
+            return network;
         }
     }
 }

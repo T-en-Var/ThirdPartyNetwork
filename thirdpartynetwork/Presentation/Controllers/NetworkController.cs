@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using thirdpartynetwork.Application.Auth.Requirements;
+using thirdpartynetwork.Core;
 
 namespace thirdpartynetwork.Presentation.Controllers;
 
@@ -8,7 +10,7 @@ namespace thirdpartynetwork.Presentation.Controllers;
 public class NetworkController(INetworkService service, IMapper mapper) : ControllerBase
 {
     [HttpGet]
-    // [Authorize]
+    [RequirePermission(Constants.Permissions.EditNetwork)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<NetworkDto>))]
     public IActionResult GetNetworks()
     {
@@ -17,6 +19,7 @@ public class NetworkController(INetworkService service, IMapper mapper) : Contro
     }
 
     [HttpGet("{networkId:guid}")]
+    [RequirePermission(Constants.Permissions.EditNetwork)]
     [ProducesResponseType(200, Type = typeof(NetworkDto))]
     [ProducesResponseType(404)]
     public IActionResult GetNetworkById(Guid networkId)
@@ -26,9 +29,8 @@ public class NetworkController(INetworkService service, IMapper mapper) : Contro
     }
 
     [HttpPost]
+    [RequirePermission(Constants.Permissions.CreateNetwork)]
     [ProducesResponseType(201, Type = typeof(NetworkDto))]
-    [ProducesResponseType(400)]
-    [ProducesResponseType(500)]
     public IActionResult CreateNetwork([FromBody] CreateNetworkDto networkCreate)
     {
         var network = service.Create(networkCreate);
@@ -36,6 +38,9 @@ public class NetworkController(INetworkService service, IMapper mapper) : Contro
     }
 
     [HttpPut("{networkId:guid}")]
+    [RequirePermission(Constants.Permissions.EditNetwork)]
+    [ProducesResponseType(200, Type = typeof(NetworkDto))]
+    [ProducesResponseType(404)]
     public IActionResult Update(Guid networkId, UpdateNetworkDto networkUpdate)
     {
         var network = service.Update(networkId, networkUpdate);
@@ -43,8 +48,8 @@ public class NetworkController(INetworkService service, IMapper mapper) : Contro
     }
 
     [HttpDelete("{networkId:guid}")]
+    [RequirePermission(Constants.Permissions.EditNetwork)]
     [ProducesResponseType(204)]
-    [ProducesResponseType(404)]
     public IActionResult Delete(Guid networkId)
     {
         service.DeleteById(networkId);

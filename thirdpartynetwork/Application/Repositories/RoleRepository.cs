@@ -20,6 +20,12 @@ namespace thirdpartynetwork.Application.Repositories
             return [.. _context.Roles];
         }
 
+        public ICollection<Role> GetByNetworkId(Guid networkId)
+        {
+            return [.. _context.Roles
+                .Where(r => r.NetworkId == networkId)];
+        }
+
         public Role? GetById(Guid id)
         {
             return _context.Roles.Find(id);
