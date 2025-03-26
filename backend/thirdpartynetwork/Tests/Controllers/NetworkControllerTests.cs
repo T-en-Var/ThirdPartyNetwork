@@ -30,8 +30,8 @@ namespace thirdpartynetwork.Tests.Controllers
 
             _networkDtos = new List<NetworkDto>
             {
-                new() { Id = _networks[0].Id, Name = "TestNetwork1" },
-                new() { Id = _networks[1].Id, Name = "TestNetwork2" }
+                new() { Id = _networks[0].Id, Name = "TestNetwork1", IsSystemProtected = true },
+                new() { Id = _networks[1].Id, Name = "TestNetwork2", IsSystemProtected = false }
             };
 
             _networkServiceMock.Setup(s => s.GetAll()).Returns(_networks);
@@ -86,7 +86,7 @@ namespace thirdpartynetwork.Tests.Controllers
             // Arrange
             var createDto = new CreateNetworkDto { Name = "NewNetwork" };
             var network = new Network { Id = Guid.NewGuid(), Name = "NewNetwork" };
-            var networkDto = new NetworkDto { Id = network.Id, Name = "NewNetwork" };
+            var networkDto = new NetworkDto { Id = network.Id, Name = "NewNetwork", IsSystemProtected = false };
 
             _networkServiceMock.Setup(s => s.Create(createDto)).Returns(network);
             _mapperMock.Setup(m => m.Map<NetworkDto>(network)).Returns(networkDto);
@@ -107,7 +107,7 @@ namespace thirdpartynetwork.Tests.Controllers
             var networkId = _networks[0].Id;
             var updateDto = new UpdateNetworkDto { Name = "UpdatedNetwork" };
             var network = new Network { Id = networkId, Name = "UpdatedNetwork" };
-            var networkDto = new NetworkDto { Id = networkId, Name = "UpdatedNetwork" };
+            var networkDto = new NetworkDto { Id = networkId, Name = "UpdatedNetwork", IsSystemProtected = false };
 
             _networkServiceMock.Setup(s => s.Update(networkId, updateDto)).Returns(network);
             _mapperMock.Setup(m => m.Map<NetworkDto>(network)).Returns(networkDto);

@@ -14,5 +14,6 @@ namespace thirdpartynetwork.Core.Interfaces.Services
         NetworkUser Create(Guid networkId, Guid userProxyId, CreateNetworkUserDto createNetworkUser);
         NetworkUser Update(Guid networkId, Guid networkUserId, UpdateNetworkUserDto updateNetworkUser);
         bool DeleteById(Guid networkUserId);
+        ICollection<Network> GetNetworksByUserProxyId(Guid userProxyId);
     }
 }

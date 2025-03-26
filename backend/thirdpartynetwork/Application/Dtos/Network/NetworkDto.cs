@@ -7,5 +7,6 @@
         public ICollection<NetworkAccessDto> NetworkAccesses { get; set; } = [];
         public ICollection<NetworkRoleDto> NetworkRoles { get; set; } = [];
         public ICollection<NetworkUserDto> NetworkUsers { get; set; } = [];
+        public required bool IsSystemProtected { get; set; }
     }
 }

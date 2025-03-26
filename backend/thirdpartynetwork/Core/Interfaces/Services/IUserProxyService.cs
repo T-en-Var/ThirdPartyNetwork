@@ -14,5 +14,6 @@ namespace thirdpartynetwork.Core.Interfaces.Services
         UserProxy Update(Guid userId, Guid userProxyId, UpdateUserProxyDto updateUser);
         IQueryable<UserProxy> GetByIdQueryable(Guid userProxyId);
         bool DeleteByIds(Guid userId, Guid userProxyId);
+        // ICollection<Network> GetNetworksByIds(Guid userId, Guid userProxyId);
     }
 }
