@@ -5,7 +5,11 @@ using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Application.Services
 {
-    public class UserProxyService(IUserProxyRepository repository, IUserService userService, IPasswordHasher passwordHasher, IMapper mapper) : IUserProxyService
+    public class UserProxyService(
+        IUserProxyRepository repository,
+        IUserService userService,
+        IPasswordHasher passwordHasher,
+        IMapper mapper) : IUserProxyService
     {
         public ICollection<UserProxy> GetAll()
         {

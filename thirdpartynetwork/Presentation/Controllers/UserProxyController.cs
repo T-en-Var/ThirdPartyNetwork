@@ -1,14 +1,12 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using thirdpartynetwork.Application.Auth.Requirements;
-using thirdpartynetwork.Core;
 
 namespace thirdpartynetwork.Presentation.Controllers;
 
 [Route("api/users/{userId:guid}/proxies")]
 [ApiController]
-public class UserProxyController(IUserProxyService service, IMapper mapper) : ControllerBase
+public class UserProxyController(IUserProxyService service, IMapper mapper, INetworkUserService networkUserService) : ControllerBase
 {
     [HttpGet]
     [Authorize]
@@ -56,5 +54,14 @@ public class UserProxyController(IUserProxyService service, IMapper mapper) : Co
     {
         service.DeleteByIds(userId, userProxyId);
         return NoContent();
+    }
+
+    [HttpGet("{userProxyId:guid}/networks")]
+    [Authorize]
+    [ProducesResponseType(200, Type = typeof(IEnumerable<NetworkDto>))]
+    public IActionResult GetNetworks(Guid userId, Guid userProxyId)
+    {
+        var networks = networkUserService.GetNetworksByUserProxyId(userProxyId);
+        return Ok(networks);
     }
 }
