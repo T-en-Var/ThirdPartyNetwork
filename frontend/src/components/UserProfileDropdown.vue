@@ -7,10 +7,13 @@
       :aria-expanded="isOpen"
     >
       <div class="avatar">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="user-icon">
+        <img :src="isValidHttpUrl(user?.profilePicture)
+          ? user?.profilePicture
+          : `https://ui-avatars.com/api/?name=${user?.firstName}+${user?.lastName}&background=random`" />
+        <!-- <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="user-icon">
           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
           <circle cx="12" cy="7" r="4"></circle>
-        </svg>
+        </svg> -->
       </div>
       <span class="dropdown-arrow" :class="{ 'open': isOpen }">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="arrow-icon">
@@ -54,6 +57,7 @@ import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router';
 import type { UserProxy } from '@/types';
+import { isValidHttpUrl } from '@/lib/utils';
 
 
 const authStore = useAuthStore();
@@ -63,7 +67,6 @@ const isOpen = ref(false);
 const user = ref<UserProxy | null>(null);
 
 const toggleDropdown = async () => {
-  user.value = await authStore.getUser()
   isOpen.value = !isOpen.value;
 };
 
@@ -88,6 +91,8 @@ const handleClickOutside = (event: MouseEvent) => {
 // Listen for clicks outside the dropdown
 onMounted(async () => {
   document.addEventListener('click', handleClickOutside);
+  user.value = await authStore.getUser();
+  console.log(user.value)
 });
 
 // Clean up the event listener

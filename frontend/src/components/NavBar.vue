@@ -2,7 +2,7 @@
   <div class="wrapper">
     <nav class="corporate-navbar">
       <div class="logo-container">
-        <span class="logo-text">Thirdpartynetwork</span>
+        <RouterLink to="/" class="logo-text">Thirdpartynetwork</RouterLink>
       </div>
       <div class="nav-links">
         <RouterLink to="/" class="nav-link" active-class="active">Home</RouterLink>
