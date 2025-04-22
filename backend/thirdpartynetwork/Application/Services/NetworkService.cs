@@ -50,8 +50,7 @@ namespace thirdpartynetwork.Application.Services
 
         public Network GetMainNetwork()
         {
-            var mainNetwork = repository.GetByName(Constants.Networks.Main);
-            if (mainNetwork == null) throw new Exception("Main network not found, that is NOT good.");
+            var mainNetwork = repository.GetMainNetwork();
             
             return mainNetwork;
         }

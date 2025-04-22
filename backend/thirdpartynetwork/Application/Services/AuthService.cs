@@ -28,6 +28,9 @@ public class AuthService(
     {
         var networkUser = networkUserService.GetByNetworkIdAndUsername(networkId, username);
         if (networkUser == null) throw new UnauthorizedHttpException("Invalid username or password");
+        
+        Console.WriteLine(networkUser == null);
+        Console.WriteLine(networkUser.UserProxy == null);
 
         return networkUser.UserProxy;
     }
@@ -35,6 +38,13 @@ public class AuthService(
     public TokensDto Login(Guid networkId, LoginDto loginData)
     {
         var user = GetUserByUsername(networkId, loginData.Username);
+        
+        
+        Console.WriteLine(loginData);
+        Console.WriteLine(user);
+        Console.WriteLine(loginData.Username);
+        
+        if (user == null) throw new UnauthorizedHttpException("Invalid username or password");
 
         if (!passwordHasher.VerifyPassword(loginData.Password, user.Password))
             throw new UnauthorizedHttpException("Invalid username or password");

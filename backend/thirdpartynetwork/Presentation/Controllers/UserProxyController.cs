@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using thirdpartynetwork.Application.Auth.Requirements;
+using thirdpartynetwork.Core;
 
 namespace thirdpartynetwork.Presentation.Controllers;
 
@@ -9,7 +11,7 @@ namespace thirdpartynetwork.Presentation.Controllers;
 public class UserProxyController(IUserProxyService service, IMapper mapper, INetworkUserService networkUserService) : ControllerBase
 {
     [HttpGet]
-    [Authorize]
+    [RequirePermission(Constants.Permissions.ReadUser)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<UserProxyDto>))]
     public IActionResult GetProxies(Guid userId)
     {
@@ -18,7 +20,7 @@ public class UserProxyController(IUserProxyService service, IMapper mapper, INet
     }
 
     [HttpGet("{userProxyId:guid}")]
-    [Authorize]
+    [RequirePermission(Constants.Permissions.ReadUser)]
     [ProducesResponseType(200, Type = typeof(UserProxyDto))]
     [ProducesResponseType(404)]
     public IActionResult GetProxy(Guid userId, Guid userProxyId)
@@ -28,7 +30,7 @@ public class UserProxyController(IUserProxyService service, IMapper mapper, INet
     }
     
     [HttpPost]
-    [Authorize]
+    [RequirePermission(Constants.Permissions.ManageUser)]
     [ProducesResponseType(201, Type = typeof(UserProxyDto))]
     [ProducesResponseType(404)]
     public IActionResult Create(Guid userId, CreateUserProxyDto createUserProxy)
@@ -38,7 +40,7 @@ public class UserProxyController(IUserProxyService service, IMapper mapper, INet
     }
 
     [HttpPut("{userProxyId:guid}")]
-    [Authorize]
+    [RequirePermission(Constants.Permissions.ManageUser)]
     [ProducesResponseType(200, Type = typeof(UserProxyDto))]
     [ProducesResponseType(404)]
     public IActionResult Update(Guid userId, Guid userProxyId, UpdateUserProxyDto updateUserProxy)
@@ -48,7 +50,7 @@ public class UserProxyController(IUserProxyService service, IMapper mapper, INet
     }
 
     [HttpDelete("{userProxyId:guid}")]
-    [Authorize]
+    [RequirePermission(Constants.Permissions.ManageUser)]
     [ProducesResponseType(204)]
     public IActionResult Delete(Guid userId, Guid userProxyId)
     {
@@ -57,7 +59,7 @@ public class UserProxyController(IUserProxyService service, IMapper mapper, INet
     }
 
     [HttpGet("{userProxyId:guid}/networks")]
-    [Authorize]
+    [RequirePermission(Constants.Permissions.ManageUser)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<NetworkDto>))]
     public IActionResult GetNetworks(Guid userId, Guid userProxyId)
     {

@@ -9,6 +9,16 @@ namespace thirdpartynetwork.Application.Repositories
     {
         private readonly DataContext _context = context;
 
+        private IQueryable<NetworkAccess> GetQueryable()
+        {
+            var query = _context.NetworkAccesses
+                .Include(n => n.Access)
+                .Include(n => n.Network)
+                .AsQueryable();
+            
+            return query;
+        }
+
         public bool Exists(Guid networkId, Guid accessId)
         {
             return _context.NetworkAccesses.Any(np => np.NetworkId == networkId && np.AccessId == accessId);
@@ -16,33 +26,25 @@ namespace thirdpartynetwork.Application.Repositories
 
         public ICollection<NetworkAccess> GetAll()
         {
-            return [.. _context.NetworkAccesses
-                .Include(n => n.Access)
-                .Include(n => n.Network)];
+            return [.. GetQueryable()];
         }
 
         public NetworkAccess? GetByIds(Guid networkId, Guid accessdId)
         {
-            return _context.NetworkAccesses
-                .Include(n => n.Access)
-                .Include(n => n.Network)
+            return GetQueryable()
                 .FirstOrDefault(n => n.NetworkId == networkId && n.AccessId == accessdId);
         }
 
         public ICollection<NetworkAccess> GetByNetworkId(Guid id)
         {
-            return [.. _context.NetworkAccesses
-                .Where(np => np.NetworkId == id)
-                .Include(n => n.Access)
-                .Include(n => n.Network)];
+            return [.. GetQueryable()
+                .Where(np => np.NetworkId == id)];
         }
 
         public ICollection<NetworkAccess> GetByAccessId(Guid id)
         {
-            return [.. _context.NetworkAccesses
-                .Where(np => np.AccessId == id)
-                .Include(n => n.Access)
-                .Include(n => n.Network)];
+            return [.. GetQueryable()
+                .Where(np => np.AccessId == id)];
         }
 
         public NetworkAccess Create(NetworkAccess networkAccess)

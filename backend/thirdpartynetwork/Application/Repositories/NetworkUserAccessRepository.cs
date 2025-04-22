@@ -10,40 +10,43 @@ namespace thirdpartynetwork.Application.Repositories
     {
         private readonly DataContext _context = context;
 
+        private IQueryable<NetworkUserAccess> GetQueryable()
+        {
+            var query = _context.NetworkUserAccesses
+                .Include(n => n.NetworkUser)
+                .Include(n => n.Access)
+                .AsQueryable();
+            
+            return query;
+        }
+        
         public bool Exists(Guid networkUserId, Guid accessId)
         {
-            return _context.NetworkUserAccesses.Any(nup =>  nup.NetworkUserId == networkUserId && nup.AccessId == accessId);
+            return _context.NetworkUserAccesses
+                .Any(nup =>  nup.NetworkUserId == networkUserId && nup.AccessId == accessId);
         }
 
         public ICollection<NetworkUserAccess> GetAll()
         {
-            return [.. _context.NetworkUserAccesses
-                .Include(n => n.NetworkUser)
-                .Include(n => n.Access)];
+            return [.. GetQueryable()];
         }
 
         public NetworkUserAccess? GetByIds(Guid networkUserId, Guid accessId)
         {
-            return _context.NetworkUserAccesses
-                .Include(n => n.NetworkUser)
-                .Include(n => n.Access)
+            return GetQueryable()
                 .FirstOrDefault(n => n.NetworkUserId == networkUserId && n.AccessId == accessId);
         }
 
         public ICollection<NetworkUserAccess> GetByNetworkUserId(Guid id)
         {
-            return [.. _context.NetworkUserAccesses
-                .Where(nup => nup.NetworkUserId == id)
-                .Include(n => n.NetworkUser)
-                .Include(n => n.Access)];
+            return [.. GetQueryable()
+                .Where(nup => nup.NetworkUserId == id)];
         }
 
         public ICollection<NetworkUserAccess> GetByAccessId(Guid accessId)
         {
-            return [.. _context.NetworkUserAccesses
-                .Where(nup => nup.AccessId == accessId)
-                .Include(n => n.NetworkUser)
-                .Include(n => n.Access)];
+            return [.. GetQueryable()
+                .Where(nup => nup.AccessId == accessId)];
         }
 
         public NetworkUserAccess Create(NetworkUserAccess networkUserPermission)

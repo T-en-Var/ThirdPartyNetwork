@@ -111,8 +111,8 @@ builder.Services.AddScoped<ITokenGenerator, TokenGenerator>();
 builder.Services.AddScoped<IJwtHandler, JwtHandler>();
 builder.Services.AddScoped<IJtiCacheService, JtiCacheService>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
-builder.Services.AddScoped<IRoleVerifier, RoleVerifier>();
 builder.Services.AddScoped<IIdentityVerifier, IdentityVerifier>();
+builder.Services.AddScoped<IIdentityService, IdentityService>();
 
 // Add Services
 builder.Services.AddScoped<IAccessService, AccessService>();

@@ -9,7 +9,7 @@ namespace thirdpartynetwork.Presentation.Controllers;
 public class NetworkAccessController(INetworkAccessService service, IMapper mapper) : ControllerBase
 {
     [HttpGet]
-    [RequirePermission(Constants.Permissions.EditNetworkAccesses)]
+    [RequirePermission(Constants.Permissions.ReadAccess)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<NetworkAccessDto>))]
     [ProducesResponseType(404)]
     public IActionResult GetNetworkAccesses(Guid networkId)
@@ -19,7 +19,7 @@ public class NetworkAccessController(INetworkAccessService service, IMapper mapp
     }
 
     [HttpGet("{accessId:guid}")]
-    [RequirePermission(Constants.Permissions.EditNetworkAccesses)]
+    [RequirePermission(Constants.Permissions.ManageAccess)]
     [ProducesResponseType(200, Type = typeof(NetworkAccessDto))]
     [ProducesResponseType(404)]
     public IActionResult GetNetworkAccess(Guid networkId, Guid accessId)
@@ -30,7 +30,7 @@ public class NetworkAccessController(INetworkAccessService service, IMapper mapp
     }
 
     [HttpPost("{accessId:guid}")]
-    [RequirePermission(Constants.Permissions.EditNetworkAccesses)]
+    [RequirePermission(Constants.Permissions.ManageAccess)]
     [ProducesResponseType(201, Type = typeof(NetworkAccessDto))]
     public IActionResult CreateNetworkPermission(Guid networkId, Guid accessId, CreateNetworkAccessDto createNetworkAccess)
     {
@@ -39,7 +39,7 @@ public class NetworkAccessController(INetworkAccessService service, IMapper mapp
     }
 
     [HttpPut("{accessId:guid}")]
-    [RequirePermission(Constants.Permissions.EditNetworkAccesses)]
+    [RequirePermission(Constants.Permissions.ManageAccess)]
     [ProducesResponseType(200, Type = typeof(NetworkAccessDto))]
     [ProducesResponseType(404)]
     public IActionResult UpdateNetworkPermission(Guid networkId, Guid accessId,
@@ -50,7 +50,7 @@ public class NetworkAccessController(INetworkAccessService service, IMapper mapp
     }
 
     [HttpDelete("{accessId:guid}")]
-    [RequirePermission(Constants.Permissions.EditNetworkAccesses)]
+    [RequirePermission(Constants.Permissions.ManageAccess)]
     [ProducesResponseType(204)]
     public IActionResult DeleteNetworkPermission(Guid networkId, Guid accessId)
     {

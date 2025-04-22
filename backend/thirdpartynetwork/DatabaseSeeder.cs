@@ -19,167 +19,150 @@ namespace thirdpartynetwork
                 IsSystemProtected = true,
             };
 
-            Permission assignUserRoles = new()
-            {
-                Name = Constants.Permissions.AssignUserRoles,
-                Description = "Allows user to assign (lower) roles to self and lower ranked.", 
-                IsSystemProtected = true
-            };
-            Permission assignAdminRoles = new()
-            {
-                Name = Constants.Permissions.AssignAdminRoles,
-                Description = "Allows user to assign (higher) roles to self, same rank or higher.",
-                IsSystemProtected = true
-            };
             Permission administrator = new()
             {
                 Name = Constants.Permissions.Administrator,
-                Description = "User has ALL permissions and can do ANYTHING.", 
+                Description = "User has ALL permissions and can do ANYTHING.",
                 IsSystemProtected = true
             };
-            Permission updateSelf = new()
+            Permission readNetwork = new()
             {
-                Name = Constants.Permissions.UpdateSelf, 
-                Description = "Allows user to edit self.",
-                IsSystemProtected = true
+                Name = Constants.Permissions.ReadNetwork,
+                Description = "",
+                IsSystemProtected = true,
             };
-            Permission updateUser = new()
+            Permission manageNetwork = new()
             {
-                Name = Constants.Permissions.UpdateUser,
-                Description = "Allows user to update other users within the network.", 
-                IsSystemProtected = true
+                Name = Constants.Permissions.ManageNetwork,
+                Description = "",
+                IsSystemProtected = true,
             };
-            Permission createContent = new()
+            Permission readAccess = new()
             {
-                Name = Constants.Permissions.CreateContent, 
-                Description = "Allows user to create content.",
-                IsSystemProtected = true
+                Name = Constants.Permissions.ReadAccess,
+                Description = "",
+                IsSystemProtected = true,
             };
-            Permission editContent = new()
+            Permission manageAccess = new()
             {
-                Name = Constants.Permissions.EditContent, 
-                Description = "Allows user to edit any content.",
-                IsSystemProtected = true
+                Name = Constants.Permissions.ManageAccess,
+                Description = "",
+                IsSystemProtected = true,
             };
-            Permission editOwnContent = new()
+            Permission readPermission = new()
             {
-                Name = Constants.Permissions.EditOwnContent, 
-                Description = "Allows user to edit own content.",
-                IsSystemProtected = true
+                Name = Constants.Permissions.ReadPermission,
+                Description = "",
+                IsSystemProtected = true,
             };
-            Permission deleteContent = new()
+            Permission managePermission = new()
             {
-                Name = Constants.Permissions.DeleteContent, 
-                Description = "Allows user to delete any content.",
-                IsSystemProtected = true
+                Name = Constants.Permissions.ManagePermission,
+                Description = "",
+                IsSystemProtected = true,
             };
-            Permission deleteOwnContent = new()
+            Permission readRole = new()
             {
-                Name = Constants.Permissions.DeleteOwnContent, 
-                Description = "Allows user to delete own content.",
-                IsSystemProtected = true
+                Name = Constants.Permissions.ReadRole,
+                Description = "",
+                IsSystemProtected = true,
             };
-            Permission viewContent = new()
+            Permission manageRole = new()
             {
-                Name = Constants.Permissions.ViewContent, 
-                Description = "Allows user to view any content.",
-                IsSystemProtected = true
+                Name = Constants.Permissions.ManageRole,
+                Description = "",
+                IsSystemProtected = true,
             };
-            Permission viewOwnContent = new()
+            Permission readUser = new()
             {
-                Name = Constants.Permissions.ViewOwnContent, 
-                Description = "Allows user to view own content.",
-                IsSystemProtected = true
+                Name = Constants.Permissions.ReadUser,
+                Description = "",
+                IsSystemProtected = true,
             };
-            Permission editNetwork = new()
+            Permission manageUser = new()
             {
-                Name = Constants.Permissions.EditNetwork, 
-                Description = "Allows user to edit network values.",
-                IsSystemProtected = true
+                Name = Constants.Permissions.ManageUser,
+                Description = "",
+                IsSystemProtected = true,
             };
-            Permission editNetworkRoles = new()
+            Permission readContent = new()
             {
-                Name = Constants.Permissions.EditNetworkRoles,
-                Description = "Allows user to edit network roles and permissions.", 
-                IsSystemProtected = true
+                Name = Constants.Permissions.ReadContent,
+                Description = "",
+                IsSystemProtected = true,
             };
-            Permission kickUser = new()
+            Permission manageContent = new()
             {
-                Name = Constants.Permissions.KickUser, 
-                Description = "Allows user to kick lower ranked users.",
-                IsSystemProtected = true
+                Name = Constants.Permissions.ManageContent,
+                Description = "",
+                IsSystemProtected = true,
             };
-            Permission kickUserAdmin = new()
-            {
-                Name = Constants.Permissions.KickUserAdmin, 
-                Description = "Allows user to kick any user.",
-                IsSystemProtected = true
-            };
-            Permission banUser = new()
-            {
-                Name = Constants.Permissions.BanUser, 
-                Description = "Allows user to ban lower ranked users.",
-                IsSystemProtected = true
-            };
-            Permission banUserAdmin = new()
-            {
-                Name = Constants.Permissions.BanUserAdmin, 
-                Description = "Allows user to ban any user.",
-                IsSystemProtected = true
-            };
-            Permission timeoutUser = new()
-            {
-                Name = Constants.Permissions.TimoutUser, 
-                Description = "Allows user to timeout lower ranked users.",
-                IsSystemProtected = true
-            };
-            Permission timeoutUserAdmin = new()
-            {
-                Name = Constants.Permissions.TimoutUserAdmin, 
-                Description = "Allows user to timeout any user.",
-                IsSystemProtected = true
-            };
-            Permission editNetworkAccesses = new()
-            {
-                Name = Constants.Permissions.EditNetworkAccesses,
-                Description = "Allows user to edit network accesses list.",
-                IsSystemProtected = true
-            };
-            Permission createNetwork = new()
-            {
-                Name = Constants.Permissions.CreateNetwork,
-                Description = "Allows user to create a new network.",
-                IsSystemProtected = true
-            };
+
+            // Permission kickUser = new()
+            // {
+            //     Name = Constants.Permissions.KickUser, 
+            //     Description = "Allows user to kick lower ranked users.",
+            //     IsSystemProtected = true
+            // };
+            // Permission kickUserAdmin = new()
+            // {
+            //     Name = Constants.Permissions.KickUserAdmin, 
+            //     Description = "Allows user to kick any user.",
+            //     IsSystemProtected = true
+            // };
+            // Permission banUser = new()
+            // {
+            //     Name = Constants.Permissions.BanUser, 
+            //     Description = "Allows user to ban lower ranked users.",
+            //     IsSystemProtected = true
+            // };
+            // Permission banUserAdmin = new()
+            // {
+            //     Name = Constants.Permissions.BanUserAdmin, 
+            //     Description = "Allows user to ban any user.",
+            //     IsSystemProtected = true
+            // };
+            // Permission timeoutUser = new()
+            // {
+            //     Name = Constants.Permissions.TimoutUser, 
+            //     Description = "Allows user to timeout lower ranked users.",
+            //     IsSystemProtected = true
+            // };
+            // Permission timeoutUserAdmin = new()
+            // {
+            //     Name = Constants.Permissions.TimoutUserAdmin, 
+            //     Description = "Allows user to timeout any user.",
+            //     IsSystemProtected = true
+            // };
 
             Access accessUsername = new()
             {
-                Name = Constants.Access.AccessUsername, 
+                Name = Constants.Access.AccessUsername,
                 Description = "Allows Network to Access User's Username",
                 IsSystemProtected = true
             };
             Access accessFirstname = new()
             {
-                Name = Constants.Access.AccessFirstname, 
+                Name = Constants.Access.AccessFirstname,
                 Description = "Allows Network to Access User's Firstname",
                 IsSystemProtected = true
             };
             Access accessLastname = new()
             {
-                Name = Constants.Access.AccessLastname, 
+                Name = Constants.Access.AccessLastname,
                 Description = "Allows Network to Access User's Lastname",
                 IsSystemProtected = true
             };
             Access accessEmail = new()
             {
-                Name = Constants.Access.AccessEmail, 
+                Name = Constants.Access.AccessEmail,
                 Description = "Allows Network to Access User's Email",
                 IsSystemProtected = true
             };
             Access accessProfilePicture = new()
             {
                 Name = Constants.Access.AccessProfilePicture,
-                Description = "Allows Network to Access User's ProfilePicture", 
+                Description = "Allows Network to Access User's ProfilePicture",
                 IsSystemProtected = true
             };
 
@@ -195,7 +178,7 @@ namespace thirdpartynetwork
             [
                 new RolePermission() { Permission = administrator, Role = adminRole }
             ];
-            
+
             Role userRole = new()
             {
                 Name = Constants.Roles.User,
@@ -203,24 +186,10 @@ namespace thirdpartynetwork
                 IsSystemProtected = true,
                 Network = network,
             };
-            
+
             userRole.RolePermissions =
             [
-                new RolePermission() { Permission = updateSelf, Role = userRole },
-                new RolePermission() { Permission = viewContent, Role = userRole },
-            ];
-
-            Role clientRole = new()
-            {
-                Name = Constants.Roles.Client,
-                Description = "Client who may create and manage networks.",
-                IsSystemProtected = true,
-                Network = network,
-            };
-
-            clientRole.RolePermissions =
-            [
-                new RolePermission() { Permission = createNetwork, Role = clientRole },
+                new RolePermission() { Permission = readContent, Role = userRole },
             ];
 
             UserProxy adminUser = new()
@@ -230,7 +199,8 @@ namespace thirdpartynetwork
                 LastName = "Noodle",
                 Email = "admin.noodle@gmail.com",
                 Password = passwordHasher.HashPassword("Admin"),
-                ProfilePicture = "https://cdn.discordapp.com/avatars/196606443703631874/a_336c3be4f4e5c1ba3563c74a7cc065da.gif?size=1024",
+                ProfilePicture =
+                    "https://cdn.discordapp.com/avatars/196606443703631874/a_336c3be4f4e5c1ba3563c74a7cc065da.gif?size=1024",
                 IsDefault = true,
                 User = new User()
             };
@@ -334,24 +304,18 @@ namespace thirdpartynetwork
 
             context.Networks.Add(network);
             context.Permissions.AddRange(
-                assignUserRoles,
-                assignAdminRoles,
-                updateUser,
-                createContent,
-                editContent,
-                editOwnContent,
-                deleteContent,
-                deleteOwnContent,
-                viewOwnContent,
-                editNetwork,
-                editNetworkRoles,
-                kickUser,
-                kickUserAdmin,
-                banUser,
-                banUserAdmin,
-                timeoutUser,
-                timeoutUserAdmin,
-                editNetworkAccesses
+                readNetwork,
+                manageNetwork,
+                readAccess,
+                manageAccess,
+                readPermission,
+                managePermission,
+                readRole,
+                manageRole,
+                readUser,
+                manageUser,
+                readContent,
+                manageContent
             );
             await context.SaveChangesAsync();
         }

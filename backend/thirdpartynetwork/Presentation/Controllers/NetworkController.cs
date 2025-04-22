@@ -10,7 +10,7 @@ namespace thirdpartynetwork.Presentation.Controllers;
 public class NetworkController(INetworkService service, IMapper mapper) : ControllerBase
 {
     [HttpGet]
-    [RequirePermission(Constants.Permissions.EditNetwork)]
+    [RequirePermission(Constants.Permissions.ReadNetwork)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<NetworkDto>))]
     public IActionResult GetNetworks()
     {
@@ -19,7 +19,7 @@ public class NetworkController(INetworkService service, IMapper mapper) : Contro
     }
 
     [HttpGet("{networkId:guid}")]
-    [RequirePermission(Constants.Permissions.EditNetwork)]
+    [RequirePermission(Constants.Permissions.ManageNetwork)]
     [ProducesResponseType(200, Type = typeof(NetworkDto))]
     [ProducesResponseType(404)]
     public IActionResult GetNetworkById(Guid networkId)
@@ -29,7 +29,7 @@ public class NetworkController(INetworkService service, IMapper mapper) : Contro
     }
 
     [HttpPost]
-    [RequirePermission(Constants.Permissions.CreateNetwork)]
+    [RequirePermission(Constants.Permissions.ManageNetwork)]
     [ProducesResponseType(201, Type = typeof(NetworkDto))]
     public IActionResult CreateNetwork([FromBody] CreateNetworkDto networkCreate)
     {
@@ -38,7 +38,7 @@ public class NetworkController(INetworkService service, IMapper mapper) : Contro
     }
 
     [HttpPut("{networkId:guid}")]
-    [RequirePermission(Constants.Permissions.EditNetwork)]
+    [RequirePermission(Constants.Permissions.ManageNetwork)]
     [ProducesResponseType(200, Type = typeof(NetworkDto))]
     [ProducesResponseType(404)]
     public IActionResult Update(Guid networkId, UpdateNetworkDto networkUpdate)
@@ -48,7 +48,7 @@ public class NetworkController(INetworkService service, IMapper mapper) : Contro
     }
 
     [HttpDelete("{networkId:guid}")]
-    [RequirePermission(Constants.Permissions.EditNetwork)]
+    [RequirePermission(Constants.Permissions.ManageNetwork)]
     [ProducesResponseType(204)]
     public IActionResult Delete(Guid networkId)
     {

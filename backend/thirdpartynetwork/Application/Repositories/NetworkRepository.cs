@@ -1,14 +1,49 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using thirdpartynetwork.Core;
 using thirdpartynetwork.Core.Models;
 using thirdpartynetwork.Core.Data;
 using thirdpartynetwork.Core.Exceptions;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
+using thirdpartynetwork.Core.Interfaces.Auth;
 
 namespace thirdpartynetwork.Application.Repositories
 {
-    public class NetworkRepository(DataContext context) : BaseRepository(context), INetworkRepository
+    public class NetworkRepository(DataContext context, IIdentityService identityService, IIdentityVerifier identityVerifier) : BaseRepository(context), INetworkRepository
     {
         private readonly DataContext _context = context;
+
+        private IQueryable<Network> GetQueryable(Guid id)
+        {
+            var query = _context.Networks.AsQueryable();
+            var currentUser = identityService.GetUserProxy(true);
+
+            var allowRoles = identityVerifier.IsAllowed(id, currentUser.Id, Constants.Permissions.ReadRole);
+            var allowAccess = identityVerifier.IsAllowed(id, currentUser.Id, Constants.Permissions.ReadAccess);
+            
+            if (identityVerifier.IsAllowed(id, currentUser.Id, Constants.Permissions.ReadUser))
+            {
+                query = query
+                    .Include(x => x.NetworkUsers)
+                    .ThenInclude(x => x.UserProxy);
+
+                if (allowRoles)
+                    query = query
+                        .Include(x => x.NetworkUsers)
+                        .ThenInclude(x => x.NetworkUserRoles)
+                        .ThenInclude(x => x.Role);
+            }
+            
+            if (allowRoles)
+                query = query
+                    .Include(x => x.Roles);
+            
+            if (allowAccess)
+                query = query
+                    .Include(x => x.NetworkAccesses)
+                    .ThenInclude(x => x.Access);
+            
+            return query;
+        }
 
         public bool Exists(Guid id)
         {
@@ -17,28 +52,38 @@ namespace thirdpartynetwork.Application.Repositories
 
         public ICollection<Network> GetAll()
         {
-            return [.. _context.Networks];
+            var mainNetwork = GetMainNetwork();
+            return [.. GetQueryable(mainNetwork.Id)];
         }
 
         public Network? GetById(Guid id)
         {
-            return _context.Networks.Find(id);
+            return GetQueryable(id).FirstOrDefault(x => x.Id == id);
+        }
+
+        public Network GetMainNetwork()
+        {
+            var mainNetwork = _context.Networks.FirstOrDefault(n => n.Name == Constants.Networks.Main);
+            if (mainNetwork == null) throw new Exception("Main network not found, that is NOT good.");
+            
+            return mainNetwork;
         }
 
         public Network? GetByName(string name)
         {
-            return  _context.Networks.FirstOrDefault(n => n.Name == name);
+            var mainNetwork = GetMainNetwork();
+            return GetQueryable(mainNetwork.Id).FirstOrDefault(n => n.Name == name);
         }
 
         public IQueryable<Network> GetByNameQueryable(string name)
         {
-            return  _context.Networks
+            return _context.Networks
                 .Where(n => n.Name == name);
         }
 
         public IQueryable<Network> GetByIdQueryable(Guid id)
         {
-            return  _context.Networks
+            return _context.Networks
                 .Where(n => n.Id == id);
         }
 

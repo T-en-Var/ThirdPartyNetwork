@@ -1,6 +1,8 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using thirdpartynetwork.Application.Auth.Requirements;
 using thirdpartynetwork.Core;
+using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using thirdpartynetwork.Core.Helper;
 using thirdpartynetwork.Core.Interfaces.Auth;
 
@@ -8,23 +10,13 @@ namespace thirdpartynetwork.Application.Auth;
 
 public class PermissionHandler(
     IHttpContextAccessor httpContextAccessor,
-    IRoleVerifier roleVerifier,
-    IIdentityVerifier identityVerifier)
+    IIdentityVerifier identityVerifier,
+    IIdentityService identityService)
     : AuthorizationHandler<PermissionRequirement>
 {
     protected override Task HandleRequirementAsync(
         AuthorizationHandlerContext context, PermissionRequirement requirement)
     {
-        var httpContext = httpContextAccessor.HttpContext;
-        if (httpContext == null) return Task.CompletedTask;
-        
-        var userIdClaim = context.User.FindFirst("uid");
-        if (userIdClaim == null 
-            || !Guid.TryParse(userIdClaim.Value, out var userProxyId) 
-            || userProxyId == Guid.Empty) 
-            return Task.CompletedTask;
-        
-        var isAllowed = false;
         foreach (var permission in requirement.Permissions)
         {
             if (permission == Constants.Permissions.SystemManaged)
@@ -32,14 +24,9 @@ public class PermissionHandler(
                 break;
             }
             
-            if (Constants.OwnerPermissions.Contains(permission))
-            {
-                isAllowed = HandleOwnerRequirement(httpContext, userProxyId, permission);
-            }
-            else
-            {
-                isAllowed = HandleRequirement(httpContext, userProxyId, permission);
-            }
+            var isAllowed = Constants.OwnerPermissions.Contains(permission) 
+                ? HandleOwnerRequirement(permission) 
+                : HandleRequirement(permission);
 
             if (!isAllowed) continue;
             
@@ -50,42 +37,29 @@ public class PermissionHandler(
         return Task.CompletedTask;
     }
 
-    private bool HandleRequirement(HttpContext httpContext, Guid userProxyId, string permission)
+    private bool HandleRequirement(string permission)
     {
-        if (roleVerifier.IsSuperAdminOrHasSuperPermission(userProxyId, permission))
+        var httpContext = httpContextAccessor.HttpContext;
+        if (httpContext == null) throw new UnauthorizedHttpException();
+        var userProxy = identityService.GetUserProxy();
+        
+        if (identityVerifier.IsSuperAdminOrHasSuperPermission(userProxy.Id, permission))
         {
             return true;
         }
         
         var networkId = CustomParser.GetGuidFromHttpContextUrl(httpContext, "networkId");
-        return networkId != Guid.Empty && roleVerifier.IsNetworkAdminOrHasPermission(networkId, userProxyId, permission);
+        return networkId != Guid.Empty && identityVerifier.IsNetworkAdminOrHasPermission(networkId, userProxy.Id, permission);
     }
 
-    private bool HandleOwnerRequirement(HttpContext httpContext, Guid userProxyId, string permission)
+    private bool HandleOwnerRequirement(string permission)
     {
-        if (permission 
-            is Constants.Permissions.DeleteOwnContent 
-            or Constants.Permissions.ViewOwnContent
-            or Constants.Permissions.EditOwnContent)
-        {
-            var contentId = CustomParser.GetGuidFromHttpContextUrl(httpContext, "contentId");
-            return contentId != Guid.Empty && identityVerifier.IsContentOwner(userProxyId, contentId);
-        }
-
-        if (permission is Constants.Permissions.UpdateSelf)
-        {
-            var userId = CustomParser.GetGuidFromHttpContextUrl(httpContext, "userId");
-            if (userId != Guid.Empty && identityVerifier.IsUserOwner(userProxyId, userId)) return true;
-            
-            var userProxyUrlId = CustomParser.GetGuidFromHttpContextUrl(httpContext, "userProxyId");
-            if (userProxyUrlId != Guid.Empty && identityVerifier.IsUserProxyOwner(userProxyId, userProxyUrlId)) return true;
-            
-            var networkUserId = CustomParser.GetGuidFromHttpContextUrl(httpContext, "userProxyId");
-            if (networkUserId != Guid.Empty && identityVerifier.IsNetworkUserOwner(userProxyId, networkUserId)) return true;
-
-            return false;
-        }
-
-        return false;
+        return true;
+        // return permission switch
+        // {
+        //     Constants.Permissions.ManageOwnContent => identityVerifier.IsContentOwner(),
+        //     Constants.Permissions.ManageOwnUser => identityVerifier.IsUserOwner(),
+        //     _ => false
+        // };
     }
 }

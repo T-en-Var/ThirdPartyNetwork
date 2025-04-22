@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using thirdpartynetwork.Core.Data;
 using thirdpartynetwork.Core.Models;
 
@@ -6,6 +7,17 @@ namespace thirdpartynetwork.Application.Repositories;
 public class RolePermissionRepository(DataContext context) : BaseRepository(context), IRolePermissionRepository
 {
     private readonly DataContext _context = context;
+
+    private IQueryable<RolePermission> GetQueryable()
+    {
+        var query = _context.RolePermissions.AsQueryable();
+
+        query = query
+            .Include(r => r.Permission)
+            .Include(rp => rp.Role);
+        
+        return query;
+    }
     
     public bool Exists(Guid roleId, Guid permissionId)
     {

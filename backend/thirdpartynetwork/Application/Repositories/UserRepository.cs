@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using thirdpartynetwork.Core.Data;
-using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Application.Repositories
@@ -9,6 +8,13 @@ namespace thirdpartynetwork.Application.Repositories
     {
         private readonly DataContext _context = context;
 
+        private IQueryable<User> GetQueryable()
+        {
+            return _context.Users
+                .Include(u => u.UserProxies)
+                .AsQueryable();
+        }
+
         public bool Exists(Guid id)
         {
             return _context.Users.Any(u => u.Id == id);
@@ -16,14 +22,12 @@ namespace thirdpartynetwork.Application.Repositories
 
         public ICollection<User> GetAll()
         {
-            return [.. _context.Users
-                .Include(u => u.Proxies)];
+            return [.. GetQueryable()];
         }
 
         public User? GetById(Guid id)
         {
-            return _context.Users
-                .Include(u => u.Proxies)
+            return GetQueryable()
                 .FirstOrDefault(u => u.Id == id);
         }
         

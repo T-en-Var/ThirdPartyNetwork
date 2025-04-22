@@ -11,7 +11,7 @@ namespace thirdpartynetwork.Presentation.Controllers;
 public class AccessController(IAccessService service, IMapper mapper) : ControllerBase
 {
     [HttpGet]
-    [RequirePermission(Constants.Permissions.EditNetworkAccesses)]
+    [RequirePermission(Constants.Permissions.ReadAccess)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<NetworkDto>))]
     public IActionResult GetAccesses()
     {
@@ -20,7 +20,7 @@ public class AccessController(IAccessService service, IMapper mapper) : Controll
     }
 
     [HttpGet("{accessId:guid}")]
-    [RequirePermission(Constants.Permissions.EditNetworkAccesses)]
+    [RequirePermission(Constants.Permissions.ManageAccess)]
     [ProducesResponseType(200, Type = typeof(AccessDto))]
     [ProducesResponseType(404)]
     public IActionResult GetAccess(Guid accessId)
@@ -30,7 +30,7 @@ public class AccessController(IAccessService service, IMapper mapper) : Controll
     }
 
     [HttpPost]
-    [RequirePermission(Constants.Permissions.EditNetworkAccesses)]
+    [RequirePermission(Constants.Permissions.ManageAccess)]
     [ProducesResponseType(201, Type = typeof(NetworkAccess))]
     public IActionResult CreateAccess([FromBody] CreateAccessDto createAccess)
     {
@@ -39,7 +39,7 @@ public class AccessController(IAccessService service, IMapper mapper) : Controll
     }
 
     [HttpPut("{accessId:guid}")]
-    [RequirePermission(Constants.Permissions.EditNetworkAccesses)]
+    [RequirePermission(Constants.Permissions.ManageAccess)]
     [ProducesResponseType(200, Type = typeof(AccessDto))]
     [ProducesResponseType(404)]
     public IActionResult UpdateAccess(Guid accessId, [FromBody] UpdateAccessDto updateAccess)
@@ -49,7 +49,7 @@ public class AccessController(IAccessService service, IMapper mapper) : Controll
     }
 
     [HttpDelete("{accessId:guid}")]
-    [RequirePermission(Constants.Permissions.EditNetworkAccesses)]
+    [RequirePermission(Constants.Permissions.ManageAccess)]
     [ProducesResponseType(204)]
     [ProducesResponseType(404)]
     public IActionResult DeletePermission(Guid accessId)

@@ -7,10 +7,23 @@ public static class CustomParser
         object? guidValue = null;
         var guid = Guid.Empty;
         
-        var hasNetworkId = httpContext?.Request.RouteValues.TryGetValue(guidName, out guidValue) == true;
-        var isValidGuid = guidValue is string networkIdString && Guid.TryParse(networkIdString, out guid);
+        var hasId = httpContext?.Request.RouteValues.TryGetValue(guidName, out guidValue) == true;
+        var isValidGuid = guidValue is string idString && Guid.TryParse(idString, out guid);
         
-        if (!hasNetworkId || !isValidGuid) return Guid.Empty;
+        if (!hasId || !isValidGuid) return Guid.Empty;
         return guid == Guid.Empty ? Guid.Empty : guid;
+    }
+    
+    public static Guid GetGuidFromHttpContextUserClaim(HttpContext httpContext, string guidName)
+    {
+        var appUser = httpContext.User;
+        
+        var userIdClaim = appUser.FindFirst(guidName);
+        if (userIdClaim == null 
+            || !Guid.TryParse(userIdClaim.Value, out var guid) 
+            || guid == Guid.Empty) 
+            return Guid.Empty;
+
+        return guid;
     }
 }

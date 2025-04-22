@@ -12,7 +12,7 @@ namespace thirdpartynetwork.Presentation.Controllers;
 public class NetworkUserController(INetworkUserService service, IMapper mapper) : ControllerBase
 {
     [HttpGet]
-    [RequirePermission(Constants.Permissions.EditNetwork)]
+    [RequirePermission(Constants.Permissions.ReadUser)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<NetworkUserDto>))]
     public IActionResult GetNetworkUsers(Guid networkId)
     {
@@ -21,17 +21,17 @@ public class NetworkUserController(INetworkUserService service, IMapper mapper) 
     }
 
     [HttpGet("{networkUserId:guid}")]
-    [RequirePermission(Constants.Permissions.EditNetwork)]
+    [RequirePermission(Constants.Permissions.ManageUser)]
     [ProducesResponseType(200, Type = typeof(NetworkUserDto))]
     [ProducesResponseType(404)]
     public IActionResult GetNetworkUser(Guid networkId, Guid networkUserId)
     {
-        var networkUser = service.GetById(networkUserId);
+        var networkUser = service.GetById(networkId, networkUserId);
         return networkUser != null ? Ok(mapper.Map<NetworkUserDto>(networkUser)) : NotFound();
     }
 
     [HttpPost("{userProxyId:guid}")]
-    [Authorize]
+    [RequirePermission(Constants.Permissions.ManageUser)]
     [ProducesResponseType(201, Type = typeof(NetworkUser))]
     public IActionResult CreateNetworkUser(Guid networkId, Guid userProxyId, CreateNetworkUserDto networkUser)
     {
@@ -40,7 +40,7 @@ public class NetworkUserController(INetworkUserService service, IMapper mapper) 
     }
 
     [HttpPut("{networkUserId:guid}")]
-    [Authorize]
+    [RequirePermission(Constants.Permissions.ManageUser)]
     [ProducesResponseType(200, Type = typeof(NetworkUserDto))]
     [ProducesResponseType(404)]
     public IActionResult UpdateNetworkUser(Guid networkId, Guid networkUserId, UpdateNetworkUserDto updateNetworkUser)
@@ -50,11 +50,11 @@ public class NetworkUserController(INetworkUserService service, IMapper mapper) 
     }
 
     [HttpDelete("{networkUserId:guid}")]
-    [Authorize]
+    [RequirePermission(Constants.Permissions.ManageUser)]
     [ProducesResponseType(204)]
     public IActionResult DeleteNetworkUser(Guid networkId, Guid networkUserId)
     {
-        service.DeleteById(networkUserId);
+        service.DeleteById(networkId, networkUserId);
         return NoContent();
     }
 }

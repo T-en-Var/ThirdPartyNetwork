@@ -7,6 +7,15 @@ namespace thirdpartynetwork.Application.Repositories;
 public class PermissionRepository(DataContext context) : BaseRepository(context), IPermissionRepository
 {
     private readonly DataContext _context = context;
+
+    private IQueryable<Permission> GetQueryable()
+    {
+        var query = _context.Permissions.AsQueryable();
+        
+        // I'll skip this for now.
+        
+        return query;
+    }
     
     public bool Exists(Guid id)
     {

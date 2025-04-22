@@ -8,11 +8,11 @@ namespace thirdpartynetwork.Core.Interfaces.Repositories
         ICollection<NetworkUser> GetAll();
         ICollection<NetworkUser> GetByNetworkId(Guid networkId);
         ICollection<NetworkUser> GetByUserProxyId(Guid userProxyId);
-        NetworkUser? GetById(Guid networkUserId);
+        NetworkUser? GetById(Guid networkId, Guid networkUserId);
         NetworkUser? GetByNetworkIdAndUsername(Guid networkId, string username);
         NetworkUser? GetByIds(Guid networkId, Guid userProxyId);
         NetworkUser Create(NetworkUser networkUser);
-        NetworkUser Update(NetworkUser networkUser);
+        NetworkUser Update(Guid networkId, NetworkUser networkUser);
         bool Delete(NetworkUser networkUser);
     }
 }

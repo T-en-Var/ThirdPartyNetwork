@@ -4,12 +4,13 @@ public interface IIdentityVerifier
 {
     bool IsContentOwner(Guid userProxyId, Guid targetContentId);
     bool IsUserOwner(Guid userProxyId, Guid targetUserId);
-    /// <summary>
-    /// Checks if the User(Proxy) owns the target User(Proxy); checks for sibling proxies.
-    /// </summary>
     bool IsUserProxyOwner(Guid userProxyId, Guid targetUserProxyId);
-    /// <summary>
-    /// Does not check sibling proxies.
-    /// </summary>
     bool IsNetworkUserOwner(Guid userProxyId, Guid targetNetworkUserId);
+    bool IsAllowed(Guid networkId, Guid userProxyId, string permissionName);
+    bool HasPermission(Guid networkId, Guid userProxyId, string permissionName);
+    bool IsNetworkAdmin(Guid networkId, Guid userProxyId);
+    bool IsNetworkAdminOrHasPermission(Guid networkId, Guid userProxyId, string permissionName);
+    bool HasSuperPermission(Guid userProxyId, string permissionName);
+    bool IsSuperAdmin(Guid userProxyId);
+    bool IsSuperAdminOrHasSuperPermission(Guid userProxyId, string permissionName);
 }

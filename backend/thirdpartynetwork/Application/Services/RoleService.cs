@@ -23,7 +23,7 @@ namespace thirdpartynetwork.Application.Services
         {
             if (networkService.GetById(networkId) == null) throw new NotFoundHttpException("Network not found");
             
-            var role = repository.GetById(roleId);
+            var role = repository.GetById(networkId, roleId);
             return role;
         }
 
@@ -47,7 +47,7 @@ namespace thirdpartynetwork.Application.Services
             var role = mapper.Map<Role>(updateRole);
             role.Id = roleId;
             
-            role = repository.Update(role);
+            role = repository.Update(networkId, role);
             return role;
         }
 
