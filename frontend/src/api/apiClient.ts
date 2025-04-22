@@ -35,6 +35,7 @@ class ApiClient {
 
   public async get<T>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
     const response: AxiosResponse<T> = await this.instance.get(url, config);
+    console.log(url, response.data)
     return response;
   }
 

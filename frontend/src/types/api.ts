@@ -4,3 +4,8 @@ export interface PaginatedResult<T> {
   previous: string | null,
   results: T[]
 }
+
+
+export interface ErrorMessage {
+  message: string
+}

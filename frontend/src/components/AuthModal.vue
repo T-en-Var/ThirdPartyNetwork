@@ -126,6 +126,8 @@
 import { ref } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useRoute, useRouter } from 'vue-router';
+import type { AxiosError } from 'axios';
+import type { ErrorMessage } from '@/types';
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -193,7 +195,15 @@ const login = async () => {
   isLoading.value = true;
   error.value = '';
 
-  const response = await authStore.login(username.value, password.value);
+  let response;
+
+  try {
+    response = await authStore.login(username.value, password.value);
+  } catch (err) {
+    isLoading.value = false;
+    error.value = (err as AxiosError<ErrorMessage>).response?.data.message || "Something went wrong, please try again";
+    return;
+  }
 
   closeModal();
 
@@ -227,7 +237,15 @@ const signUp = async () => {
   isSigningUp.value = true;
   signupError.value = '';
 
-  const response = await authStore.signUp(signupUsername.value, signupEmail.value, signupFirstname.value, signupLastname.value, signupPassword.value);
+  let response;
+
+  try {
+    response = await authStore.signUp(signupUsername.value, signupEmail.value, signupFirstname.value, signupLastname.value, signupPassword.value);
+  } catch (err) {
+    isLoading.value = false;
+    error.value = (err as AxiosError<ErrorMessage>).response?.data.message || "Something went wrong, please try again";
+    return;
+  }
 
   closeModal();
 
