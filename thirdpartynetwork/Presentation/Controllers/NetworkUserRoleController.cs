@@ -12,7 +12,8 @@ namespace thirdpartynetwork.Presentation.Controllers;
 public class NetworkUserRoleController(INetworkUserRoleService service, IMapper mapper) : ControllerBase
 {
     [HttpGet]
-    [Authorize]
+    [RequirePermission(Constants.Permissions.ReadRole)]
+    [RequirePermission(Constants.Permissions.ReadUser)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<NetworkUserRoleDto>))]
     public IActionResult GetNetworkUserRoles(Guid networkId, Guid networkUserId)
     {
@@ -21,7 +22,8 @@ public class NetworkUserRoleController(INetworkUserRoleService service, IMapper 
     }
 
     [HttpGet("{roleId:guid}")]
-    [Authorize]
+    [RequirePermission(Constants.Permissions.ReadRole)]
+    [RequirePermission(Constants.Permissions.ReadUser)]
     [ProducesResponseType(200, Type = typeof(NetworkUserRoleDto))]
     [ProducesResponseType(404)]
     public IActionResult GetNetworkUserRole(Guid networkId, Guid networkUserId, Guid roleId)
@@ -31,7 +33,8 @@ public class NetworkUserRoleController(INetworkUserRoleService service, IMapper 
     }
 
     [HttpPost("{roleId:guid}")]
-    [RequirePermission(Constants.Permissions.AssignUserRoles)]
+    [RequirePermission(Constants.Permissions.ManageRole)]
+    [RequirePermission(Constants.Permissions.ManageUser)]
     [ProducesResponseType(200, Type = typeof(NetworkUserRoleDto))]
     public IActionResult CreateNetworkUserRole(Guid networkId, Guid networkUserId, Guid roleId, 
         CreateNetworkUserRoleDto createNetworkUserRole)
@@ -41,7 +44,8 @@ public class NetworkUserRoleController(INetworkUserRoleService service, IMapper 
     }
 
     [HttpPut("{roleId:guid}")]
-    [RequirePermission(Constants.Permissions.AssignUserRoles)]
+    [RequirePermission(Constants.Permissions.ManageRole)]
+    [RequirePermission(Constants.Permissions.ManageUser)]
     [ProducesResponseType(200, Type = typeof(NetworkUserRoleDto))]
     [ProducesResponseType(404)]
     public IActionResult UpdateNetworkUserRole(Guid networkId, Guid networkUserId, Guid roleId,
@@ -52,7 +56,8 @@ public class NetworkUserRoleController(INetworkUserRoleService service, IMapper 
     }
 
     [HttpDelete("{roleId:guid}")]
-    [RequirePermission(Constants.Permissions.AssignUserRoles)]
+    [RequirePermission(Constants.Permissions.ManageRole)]
+    [RequirePermission(Constants.Permissions.ManageUser)]
     [ProducesResponseType(204)]
     public IActionResult DeleteNetworkUserRole(Guid networkId, Guid networkUserId, Guid roleId)
     {

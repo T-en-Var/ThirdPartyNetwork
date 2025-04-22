@@ -11,7 +11,8 @@ namespace thirdpartynetwork.Presentation.Controllers;
 public class NetworkUserAccessController(INetworkUserAccessService service, IMapper mapper) : ControllerBase
 {
     [HttpGet]
-    [RequirePermission(Constants.Permissions.UpdateSelf)]
+    [RequirePermission(Constants.Permissions.ReadAccess)]
+    [RequirePermission(Constants.Permissions.ReadUser)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<NetworkUserAccessDto>))]
     public IActionResult GetNetworkUserAccesses(Guid networkId, Guid networkUserId)
     {
@@ -20,7 +21,8 @@ public class NetworkUserAccessController(INetworkUserAccessService service, IMap
     }
 
     [HttpGet("{accessId:guid}")]
-    [RequirePermission(Constants.Permissions.UpdateSelf)]
+    [RequirePermission(Constants.Permissions.ReadAccess)]
+    [RequirePermission(Constants.Permissions.ReadUser)]
     [ProducesResponseType(200, Type = typeof(NetworkUserAccessDto))]
     [ProducesResponseType(404)]
     public IActionResult GetNetworkUserPermission(Guid networkId, Guid networkUserId, Guid accessId)
@@ -29,19 +31,19 @@ public class NetworkUserAccessController(INetworkUserAccessService service, IMap
         return networkUserPermission != null ? Ok(mapper.Map<NetworkUserAccessDto>(networkUserPermission)) : NotFound();
     }
 
-    [HttpPost("{accessId:guid}")]
-    [RequirePermission(Constants.Permissions.SystemManaged)]
-    [ProducesResponseType(201, Type = typeof(NetworkUserAccessDto))]
-    [ProducesResponseType(404)]
-    public IActionResult CreateNetworkUserPermission(Guid networkId, Guid networkUserId, Guid accessId, 
-        CreateNetworkUserAccessDto createNetworkUserPermission)
-    {
-        var networkUserPermission = service.Create(networkId, networkUserId, accessId, createNetworkUserPermission);
-        return Ok(mapper.Map<NetworkUserAccessDto>(networkUserPermission));
-    }
+    // [HttpPost("{accessId:guid}")]
+    // [RequirePermission(Constants.Permissions.SystemManaged)]
+    // [ProducesResponseType(201, Type = typeof(NetworkUserAccessDto))]
+    // [ProducesResponseType(404)]
+    // public IActionResult CreateNetworkUserPermission(Guid networkId, Guid networkUserId, Guid accessId, 
+    //     CreateNetworkUserAccessDto createNetworkUserPermission)
+    // {
+    //     var networkUserPermission = service.Create(networkId, networkUserId, accessId, createNetworkUserPermission);
+    //     return Ok(mapper.Map<NetworkUserAccessDto>(networkUserPermission));
+    // }
 
     [HttpPut("{accessId:guid}")]
-    [RequirePermission(Constants.Permissions.UpdateSelf)]
+    [RequirePermission(Constants.Permissions.SystemManaged)]
     [ProducesResponseType(200, Type = typeof(NetworkUserAccessDto))]
     [ProducesResponseType(404)]
     public IActionResult UpdateNetworkUserPermission(Guid networkId, Guid networkUserId, Guid accessId,
@@ -51,12 +53,12 @@ public class NetworkUserAccessController(INetworkUserAccessService service, IMap
         return Ok(mapper.Map<NetworkUserAccessDto>(networkUserPermission));
     }
 
-    [HttpDelete("{accessId:guid}")]
-    [RequirePermission(Constants.Permissions.SystemManaged)]
-    [ProducesResponseType(204)]
-    public IActionResult DeleteNetworkUserPermission(Guid networkId, Guid networkUserId, Guid accessId)
-    {
-        service.DeleteByIds(networkId, networkUserId, accessId);
-        return NoContent();
-    }
+    // [HttpDelete("{accessId:guid}")]
+    // [RequirePermission(Constants.Permissions.SystemManaged)]
+    // [ProducesResponseType(204)]
+    // public IActionResult DeleteNetworkUserPermission(Guid networkId, Guid networkUserId, Guid accessId)
+    // {
+    //     service.DeleteByIds(networkId, networkUserId, accessId);
+    //     return NoContent();
+    // }
 }

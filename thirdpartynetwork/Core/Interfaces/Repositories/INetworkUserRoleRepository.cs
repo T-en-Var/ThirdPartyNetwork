@@ -4,14 +4,14 @@ namespace thirdpartynetwork.Core.Interfaces.Repositories
 {
     public interface INetworkUserRoleRepository : IBaseRepository
     {
-        bool Exists(Guid networkUserId, Guid roleId);
+        bool Exists(Guid networkId, Guid networkUserId, Guid roleId);
         ICollection<NetworkUserRole> GetAll();
-        ICollection<NetworkUserRole> GetByNetworkUserId(Guid id);
-        ICollection<NetworkUserRole> GetByRoleId(Guid id);
-        NetworkUserRole? GetByIds(Guid networkUserId, Guid roleId);
-        NetworkUserRole? GetByIdAndName(Guid networkUserId, string roleName);
+        ICollection<NetworkUserRole> GetByNetworkUserId(Guid networkId, Guid id);
+        ICollection<NetworkUserRole> GetByRoleId(Guid networkId, Guid id);
+        NetworkUserRole? GetByIds(Guid networkId, Guid networkUserId, Guid roleId);
+        NetworkUserRole? GetByIdAndName(Guid networkId, Guid networkUserId, string roleName);
         NetworkUserRole Create(NetworkUserRole networkUserRole);
-        NetworkUserRole Update(NetworkUserRole networkUserRole);
+        NetworkUserRole Update(Guid networkId, NetworkUserRole networkUserRole);
         bool Delete(NetworkUserRole networkUserRole);
     }
 }

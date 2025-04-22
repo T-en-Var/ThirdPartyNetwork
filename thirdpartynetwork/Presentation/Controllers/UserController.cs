@@ -13,7 +13,7 @@ public class UserController(IUserService service, IMapper mapper) : ControllerBa
     // ClaimsPrincipal User = HttpContext.User;
     
     [HttpGet]
-    [RequirePermission(Constants.Permissions.Administrator)]
+    [RequirePermission(Constants.Permissions.ReadUser)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<UserDto>))]
     public IActionResult GetAll()
     {
@@ -22,7 +22,7 @@ public class UserController(IUserService service, IMapper mapper) : ControllerBa
     }
     
     [HttpGet("{userId:guid}")]
-    [RequirePermission(Constants.Permissions.Administrator)]
+    [RequirePermission(Constants.Permissions.ReadUser)]
     [ProducesResponseType(200, Type = typeof(UserDto))]
     [ProducesResponseType(404)]
     public IActionResult Get(Guid userId)
@@ -32,7 +32,7 @@ public class UserController(IUserService service, IMapper mapper) : ControllerBa
     }
     
     [HttpPost]
-    [AllowAnonymous]
+    [RequirePermission(Constants.Permissions.ManageUser)]
     [ProducesResponseType(201, Type = typeof(UserDto))]
     public IActionResult Create([FromBody] CreateUserDto createUserDto)
     {
@@ -41,7 +41,7 @@ public class UserController(IUserService service, IMapper mapper) : ControllerBa
     }
     
     [HttpPut("{userId:guid}")]
-    [Authorize]
+    [RequirePermission(Constants.Permissions.ManageUser)]
     [ProducesResponseType(201, Type = typeof(UserDto))]
     [ProducesResponseType(404)]
     public IActionResult Update(Guid userId, [FromBody] UpdateUserDto updateUserDto)
@@ -51,7 +51,7 @@ public class UserController(IUserService service, IMapper mapper) : ControllerBa
     }
     
     [HttpDelete("{userId:guid}")]
-    [Authorize]
+    [RequirePermission(Constants.Permissions.ManageUser)]
     [ProducesResponseType(204)]
     public IActionResult Delete(Guid userId)
     {

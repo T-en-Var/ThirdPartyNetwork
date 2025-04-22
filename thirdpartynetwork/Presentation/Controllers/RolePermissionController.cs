@@ -11,7 +11,8 @@ namespace thirdpartynetwork.Presentation.Controllers;
 public class RolePermissionController(IRolePermissionService service, IMapper mapper) : ControllerBase
 {
     [HttpGet]
-    [RequirePermission(Constants.Permissions.EditNetworkRoles)]
+    [RequirePermission(Constants.Permissions.ReadRole)]
+    [RequirePermission(Constants.Permissions.ReadPermission)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<RolePermissionDto>))]
     public IActionResult GetRolePermissions(Guid networkId, Guid roleId)
     {
@@ -20,7 +21,8 @@ public class RolePermissionController(IRolePermissionService service, IMapper ma
     }
 
     [HttpGet("{permissionId:guid}")]
-    [RequirePermission(Constants.Permissions.EditNetworkRoles)]
+    [RequirePermission(Constants.Permissions.ReadRole)]
+    [RequirePermission(Constants.Permissions.ReadPermission)]
     [ProducesResponseType(200, Type = typeof(RolePermissionDto))]
     [ProducesResponseType(404)]
     public IActionResult GetRolePermission(Guid networkId, Guid roleId, Guid permissionId)
@@ -30,7 +32,8 @@ public class RolePermissionController(IRolePermissionService service, IMapper ma
     }
 
     [HttpPost("{permissionId:guid}")]
-    [RequirePermission(Constants.Permissions.EditNetworkRoles)]
+    [RequirePermission(Constants.Permissions.ManageRole)]
+    [RequirePermission(Constants.Permissions.ManagePermission)]
     [ProducesResponseType(201, Type = typeof(RolePermissionDto))]
     [ProducesResponseType(404)]
     public IActionResult CreateRolePermission(Guid networkId, Guid roleId, Guid permissionId,
@@ -41,7 +44,8 @@ public class RolePermissionController(IRolePermissionService service, IMapper ma
     }
 
     [HttpPut("{permissionId:guid}")]
-    [RequirePermission(Constants.Permissions.EditNetworkRoles)]
+    [RequirePermission(Constants.Permissions.ManageRole)]
+    [RequirePermission(Constants.Permissions.ManagePermission)]
     [ProducesResponseType(200, Type = typeof(RolePermissionDto))]
     [ProducesResponseType(404)]
     public IActionResult UpdateRolePermission(Guid networkId, Guid roleId, Guid permissionId, UpdateRolePermissionDto updateRolePermission)
@@ -51,7 +55,8 @@ public class RolePermissionController(IRolePermissionService service, IMapper ma
     }
 
     [HttpDelete("{permissionId:guid}")]
-    [RequirePermission(Constants.Permissions.EditNetworkRoles)]
+    [RequirePermission(Constants.Permissions.ManageRole)]
+    [RequirePermission(Constants.Permissions.ManagePermission)]
     [ProducesResponseType(204)]
     public IActionResult DeleteRolePermission(Guid networkId, Guid roleId, Guid permissionId)
     {

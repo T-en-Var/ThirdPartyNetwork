@@ -20,7 +20,7 @@ namespace thirdpartynetwork.Application.Services
         public ICollection<NetworkUserAccess> GetByNetworkId(Guid networkId, Guid networkUserId)
         {
             if (networkService.GetById(networkId) == null) throw new NotFoundHttpException("Network not found");
-            if (networkUserService.GetById(networkUserId) == null) throw new NotFoundHttpException("NetworkUser not found");
+            if (networkUserService.GetById(networkId, networkUserId) == null) throw new NotFoundHttpException("NetworkUser not found");
             
             var networkUserAccesses = repository.GetByNetworkUserId(networkUserId);
             return networkUserAccesses;
@@ -37,7 +37,7 @@ namespace thirdpartynetwork.Application.Services
         public NetworkUserAccess? GetByIds(Guid networkId, Guid networkUserId, Guid accessId)
         {
             if (networkService.GetById(networkId) == null) throw new NotFoundHttpException("Network not found");
-            if (networkUserService.GetById(networkUserId) == null) throw new NotFoundHttpException("NetworkUser not found");
+            if (networkUserService.GetById(networkId, networkUserId) == null) throw new NotFoundHttpException("NetworkUser not found");
             if (accessService.GetById(accessId) == null) throw new NotFoundHttpException("Access not found");
             
             var networkUserPermission = repository.GetByIds(networkUserId, accessId);
@@ -47,7 +47,7 @@ namespace thirdpartynetwork.Application.Services
         public NetworkUserAccess Create(Guid networkId, Guid networkUserId, Guid permissionId, CreateNetworkUserAccessDto createNetworkUserPermission)
         {
             if (networkService.GetById(networkId) == null) throw new NotFoundHttpException("Network not found");
-            if (networkUserService.GetById(networkUserId) == null) throw new NotFoundHttpException("NetworkUser not found");
+            if (networkUserService.GetById(networkId, networkUserId) == null) throw new NotFoundHttpException("NetworkUser not found");
             if (accessService.GetById(permissionId) == null) throw new NotFoundHttpException("Access not found");
             
             if (repository.Exists(networkUserId, permissionId)) throw new ConflictHttpException();

@@ -13,8 +13,8 @@ namespace thirdpartynetwork.Tests.Auth
     public class PermissionHandlerTests
     {
         private Mock<IHttpContextAccessor> _httpContextAccessorMock;
-        private Mock<IRoleVerifier> _roleVerifierMock;
         private Mock<IIdentityVerifier> _identityVerifierMock;
+        private Mock<IIdentityService> _identityServiceMock;
         private PermissionHandler _permissionHandler;
         private AuthorizationHandlerContext _authContext;
         private ClaimsPrincipal _user;
@@ -23,13 +23,13 @@ namespace thirdpartynetwork.Tests.Auth
         public void Setup()
         {
             _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-            _roleVerifierMock = new Mock<IRoleVerifier>();
             _identityVerifierMock = new Mock<IIdentityVerifier>();
+            _identityServiceMock = new Mock<IIdentityService>();
 
             _permissionHandler = new PermissionHandler(
                 _httpContextAccessorMock.Object,
-                _roleVerifierMock.Object,
-                _identityVerifierMock.Object
+                _identityVerifierMock.Object,
+                _identityServiceMock.Object
             );
 
             var claims = new List<Claim>
@@ -41,7 +41,7 @@ namespace thirdpartynetwork.Tests.Auth
             _user = new ClaimsPrincipal(identity);
 
             _authContext = new AuthorizationHandlerContext(
-                new[] { new PermissionRequirement(Constants.Permissions.EditNetwork) },
+                new[] { new PermissionRequirement(Constants.Permissions.ManageNetwork) },
                 _user,
                 null
             );
@@ -51,8 +51,8 @@ namespace thirdpartynetwork.Tests.Auth
         public async Task HandleRequirementAsync_UserHasPermission_Succeeds()
         {
             // Arrange
-            _roleVerifierMock.Setup(rv =>
-                    rv.IsSuperAdminOrHasSuperPermission(It.IsAny<Guid>(), Constants.Permissions.EditNetwork))
+            _identityVerifierMock.Setup(rv =>
+                    rv.IsSuperAdminOrHasSuperPermission(It.IsAny<Guid>(), Constants.Permissions.ManageNetwork))
                 .Returns(true);
 
             // Act
@@ -66,8 +66,8 @@ namespace thirdpartynetwork.Tests.Auth
         public async Task HandleRequirementAsync_UserLacksPermission_Fails()
         {
             // Arrange
-            _roleVerifierMock.Setup(rv =>
-                    rv.IsSuperAdminOrHasSuperPermission(It.IsAny<Guid>(), Constants.Permissions.EditNetwork))
+            _identityVerifierMock.Setup(rv =>
+                    rv.IsSuperAdminOrHasSuperPermission(It.IsAny<Guid>(), Constants.Permissions.ManageNetwork))
                 .Returns(false);
 
             // Act

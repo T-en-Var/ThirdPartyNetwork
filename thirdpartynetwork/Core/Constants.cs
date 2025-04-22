@@ -26,40 +26,40 @@ public static class Constants
     public static class Permissions
     {
         public const string SystemManaged = "System Managed";
-        
+
         public const string Administrator = "Administrator";
-        
-        public const string EditNetwork = "Manage Network";
-        public const string EditNetworkRoles = "Manage Network Roles";
-        public const string EditNetworkAccesses = "Manage Network Accesses";
-        public const string AssignUserRoles = "Assign User Roles";
-        public const string AssignAdminRoles = "Assign Admin Roles";
-        
-        public const string CreateNetwork = "Create a new Network";
-        
-        public const string UpdateSelf = "Update Self";
-        public const string UpdateUser = "Update User";
-        
-        public const string KickUser = "Kick User";
-        public const string KickUserAdmin = "Kick User Admin";
-        public const string BanUser = "Ban User";
-        public const string BanUserAdmin = "Ban User Admin";
-        public const string TimoutUser = "Timout User";
-        public const string TimoutUserAdmin = "Timout User Admin";
-        
-        public const string ViewContent = "View Content";
-        public const string CreateContent = "Create Content";
-        public const string EditContent = "Edit Content";
-        public const string DeleteContent = "Delete Content";
-        public const string ViewOwnContent = "View Own Content";
-        public const string EditOwnContent = "Edit Own Content";
-        public const string DeleteOwnContent = "Delete Own Content";
+        // public const string OnlyOwner = "Only Recourse Owner";
+
+        public const string ReadNetwork = "Read Network";
+        public const string ManageNetwork = "Manage Network";
+
+        public const string ReadAccess = "Read Access";
+        public const string ManageAccess = "Manage Access";
+
+        public const string ReadPermission = "Read Permission";
+        public const string ManagePermission = "Manage Permission";
+
+        public const string ReadRole = "Read Role";
+        public const string ManageRole = "Manage Role";
+
+        public const string ReadUser = "Read User";
+        public const string ManageUser = "Manage User";
+        public const string ManageOwnUser = "Manage Own User";
+
+        public const string ReadContent = "Read Content";
+        public const string ManageContent = "Manage Content";
+        public const string ManageOwnContent = "Manage Own Content";
+
+        // public const string KickUser = "Kick User";
+        // public const string KickUserAdmin = "Kick User Admin";
+        // public const string BanUser = "Ban User";
+        // public const string BanUserAdmin = "Ban User Admin";
+        // public const string TimoutUser = "Timout User";
+        // public const string TimoutUserAdmin = "Timout User Admin";
     }
 
-    public static string[] OwnerPermissions = [
-        Permissions.DeleteOwnContent,
-        Permissions.EditOwnContent,
-        Permissions.ViewOwnContent,
-        Permissions.UpdateSelf,
+    public static string[] OwnerPermissions =
+    [
+        Permissions.ManageOwnContent
     ];
 }

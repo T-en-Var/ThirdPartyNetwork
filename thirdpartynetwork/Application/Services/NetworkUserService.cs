@@ -49,9 +49,9 @@ namespace thirdpartynetwork.Application.Services
             return networks;
         }
 
-        public NetworkUser? GetById(Guid id)
+        public NetworkUser? GetById(Guid networkId, Guid id)
         {
-            var networkUser = repository.GetById(id);
+            var networkUser = repository.GetById(networkId, id);
             return networkUser;
         }
 
@@ -79,19 +79,19 @@ namespace thirdpartynetwork.Application.Services
         public NetworkUser Update(Guid networkId, Guid networkUserId, UpdateNetworkUserDto updateNetworkUser)
         {
             if (networkService.GetById(networkId) == null) throw new NotFoundHttpException("Network not Found");
-            if (!repository.Exists(networkId)) throw new NotFoundHttpException();
+            if (!repository.Exists(networkUserId)) throw new NotFoundHttpException();
 
             var networkUser = mapper.Map<NetworkUser>(updateNetworkUser);
             networkUser.Id = networkUserId;
             networkUser.NetworkId = networkId;
 
-            networkUser = repository.Update(networkUser);
+            networkUser = repository.Update(networkId, networkUser);
             return networkUser;
         }
 
-        public bool DeleteById(Guid id)
+        public bool DeleteById(Guid networkId, Guid id)
         {
-            var networkUser = repository.GetById(id);
+            var networkUser = repository.GetById(networkId, id);
             return networkUser != null && repository.Delete(networkUser);
         }
     }

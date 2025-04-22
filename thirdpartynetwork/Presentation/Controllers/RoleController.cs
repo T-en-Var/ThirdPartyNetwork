@@ -10,7 +10,7 @@ namespace thirdpartynetwork.Presentation.Controllers;
 public class RoleController(IRoleService service, IMapper mapper) : Controller
 {
     [HttpGet]
-    [RequirePermission(Constants.Permissions.EditNetworkRoles)]
+    [RequirePermission(Constants.Permissions.ReadRole)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<RoleDto>))]
     public IActionResult GetRoles(Guid networkId)
     {
@@ -19,7 +19,7 @@ public class RoleController(IRoleService service, IMapper mapper) : Controller
     }
 
     [HttpGet("{roleId:guid}")]
-    [RequirePermission(Constants.Permissions.EditNetworkRoles)]
+    [RequirePermission(Constants.Permissions.ReadRole)]
     [ProducesResponseType(200, Type = typeof(RoleDto))]
     [ProducesResponseType(404)]
     public IActionResult GetRole(Guid networkId, Guid roleId)
@@ -29,7 +29,7 @@ public class RoleController(IRoleService service, IMapper mapper) : Controller
     }
 
     [HttpPost]
-    [RequirePermission(Constants.Permissions.EditNetworkRoles)]
+    [RequirePermission(Constants.Permissions.ManageRole)]
     [ProducesResponseType(201, Type = typeof(RoleDto))]
     public IActionResult CreateRole(Guid networkId, CreateRoleDto createRole)
     {
@@ -38,7 +38,7 @@ public class RoleController(IRoleService service, IMapper mapper) : Controller
     }
 
     [HttpPut("{roleId:guid}")]
-    [RequirePermission(Constants.Permissions.EditNetworkRoles)]
+    [RequirePermission(Constants.Permissions.ManageRole)]
     [ProducesResponseType(200, Type = typeof(RoleDto))]
     [ProducesResponseType(404)]
     public IActionResult UpdateRole(Guid networkId, Guid roleId, UpdateRoleDto updateRole)
@@ -48,7 +48,7 @@ public class RoleController(IRoleService service, IMapper mapper) : Controller
     }
 
     [HttpDelete("{roleId:guid}")]
-    [RequirePermission(Constants.Permissions.EditNetworkRoles)]
+    [RequirePermission(Constants.Permissions.ManageRole)]
     [ProducesResponseType(204)]
     public IActionResult DeleteRole(Guid networkId, Guid roleId)
     {

@@ -9,6 +9,15 @@ namespace thirdpartynetwork.Application.Repositories
     {
         private readonly DataContext _context = context;
 
+        private IQueryable<Access> GetQueryable()
+        {
+            var query = _context.Accesses.AsQueryable();
+            
+            // I'll skip this for now.
+            
+            return query;
+        }
+
         public bool Exists(Guid id)
         {
             return _context.Accesses.Any(p => p.Id == id);
@@ -16,12 +25,12 @@ namespace thirdpartynetwork.Application.Repositories
 
         public ICollection<Access> GetAll()
         {
-            return [.. _context.Accesses];
+            return [.. GetQueryable()];
         }
 
         public Access? GetById(Guid id)
         {
-            return _context.Accesses.Find(id);
+            return GetQueryable().FirstOrDefault(x => x.Id == id);
         }
 
         public Access Create(Access access)
@@ -33,7 +42,7 @@ namespace thirdpartynetwork.Application.Repositories
 
         public Access Update(Access access)
         {
-            var existing = this.GetById(access.Id);
+            var existing = GetById(access.Id);
             if (existing == null) throw new Exception("Access not found");
             
             if (existing.IsSystemProtected) throw new UnauthorizedHttpException("Access is system protected");

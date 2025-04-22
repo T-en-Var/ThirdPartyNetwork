@@ -59,7 +59,7 @@ namespace thirdpartynetwork.Core.Helper
             CreateMap<UpdatePermissionDto, Permission>();
 
             CreateMap<User, UserDto>()
-                .ForMember(u => u.UserProxies, opt => opt.MapFrom(u => u.Proxies));
+                .ForMember(u => u.UserProxies, opt => opt.MapFrom(u => u.UserProxies));
             CreateMap<CreateUserDto, User>();
             CreateMap<UpdateUserDto, User>();
             

@@ -19,6 +19,8 @@ namespace thirdpartynetwork.Core.Helper
             httpContext.Response.ContentType = "application/json";
 
             var message = exception.Message;
+            
+            Console.WriteLine(exception.StackTrace);
 
             if (exception is BaseHttpException baseHttpException)
             {
