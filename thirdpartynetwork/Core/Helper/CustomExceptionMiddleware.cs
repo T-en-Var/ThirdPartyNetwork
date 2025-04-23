@@ -14,39 +14,17 @@ namespace thirdpartynetwork.Core.Helper
             }
             catch (BaseHttpException ex)
             {
-                Console.WriteLine("Caught exception: " + ex.Message);
-                logger.LogError($"CustomHttpException: {ex}");
-                context.Response.StatusCode = ex.StatusCode;
-                context.Response.ContentType = "application/json";
+                logger.LogError($"BaseHttpException: {ex}");
 
-                string message = ex.ErrorDetails == null
-                    ? JsonSerializer.Serialize(new
-                    {
-                        StatusCode = ex.StatusCode,
-                        Message = ex.ErrorMessage
-                    })
-                    : JsonSerializer.Serialize(new
-                    {
-                        StatusCode = ex.StatusCode,
-                        Message = ex.ErrorMessage,
-                        Details = ex.ErrorDetails
-                    });
-
-                if (message == null)
-                {
-                    await context.Response.WriteAsync("Message could be loaded.");
-                    throw new Exception("Message could be loaded.");
-                }
-
-                await context.Response.WriteAsync(message);
+                if (!context.Response.HasStarted)
+                    await ErrorResponseWriter.WriteJsonError(context, ex.StatusCode, ex.ErrorMessage, ex.ErrorDetails);
             }
             catch (Exception ex)
             {
-                Console.WriteLine("UnCaught exception: " + ex.Message);
                 logger.LogError($"Unhandled exception: {ex}");
-                context.Response.StatusCode = StatusCodes.Status500InternalServerError;
-                await context.Response.WriteAsync($"Unhandled exception: {ex}");
-                // await context.Response.WriteAsync($"An unexpected error occurred.");
+
+                if (!context.Response.HasStarted)
+                    await ErrorResponseWriter.WriteJsonError(context, 500, "An unexpected error occurred.", ex.Message);
             }
         }
     }

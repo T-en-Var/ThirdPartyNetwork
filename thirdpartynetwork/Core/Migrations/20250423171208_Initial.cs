@@ -39,6 +39,20 @@ namespace thirdpartynetwork.Core.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Permissions",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: false),
+                    IsSystemProtected = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Permissions", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Users",
                 columns: table => new
                 {
@@ -54,7 +68,9 @@ namespace thirdpartynetwork.Core.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Title = table.Column<string>(type: "text", nullable: false),
                     Value = table.Column<string>(type: "text", nullable: false),
+                    CreatedBy = table.Column<Guid>(type: "uuid", nullable: false),
                     NetworkId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
@@ -116,27 +132,6 @@ namespace thirdpartynetwork.Core.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Rules",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Name = table.Column<string>(type: "text", nullable: false),
-                    Description = table.Column<string>(type: "text", nullable: false),
-                    NetworkId = table.Column<Guid>(type: "uuid", nullable: false),
-                    IsSystemProtected = table.Column<bool>(type: "boolean", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Rules", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Rules_Networks_NetworkId",
-                        column: x => x.NetworkId,
-                        principalTable: "Networks",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "UserProxies",
                 columns: table => new
                 {
@@ -162,25 +157,25 @@ namespace thirdpartynetwork.Core.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "RoleRules",
+                name: "RolePermissions",
                 columns: table => new
                 {
                     RoleId = table.Column<Guid>(type: "uuid", nullable: false),
-                    RuleId = table.Column<Guid>(type: "uuid", nullable: false)
+                    PermissionId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_RoleRules", x => new { x.RuleId, x.RoleId });
+                    table.PrimaryKey("PK_RolePermissions", x => new { x.PermissionId, x.RoleId });
                     table.ForeignKey(
-                        name: "FK_RoleRules_Roles_RoleId",
-                        column: x => x.RoleId,
-                        principalTable: "Roles",
+                        name: "FK_RolePermissions_Permissions_PermissionId",
+                        column: x => x.PermissionId,
+                        principalTable: "Permissions",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_RoleRules_Rules_RuleId",
-                        column: x => x.RuleId,
-                        principalTable: "Rules",
+                        name: "FK_RolePermissions_Roles_RoleId",
+                        column: x => x.RoleId,
+                        principalTable: "Roles",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -290,18 +285,13 @@ namespace thirdpartynetwork.Core.Migrations
                 column: "UserProxyId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_RoleRules_RoleId",
-                table: "RoleRules",
+                name: "IX_RolePermissions_RoleId",
+                table: "RolePermissions",
                 column: "RoleId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Roles_NetworkId",
                 table: "Roles",
-                column: "NetworkId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Rules_NetworkId",
-                table: "Rules",
                 column: "NetworkId");
 
             migrationBuilder.CreateIndex(
@@ -326,7 +316,7 @@ namespace thirdpartynetwork.Core.Migrations
                 name: "NetworkUserRoles");
 
             migrationBuilder.DropTable(
-                name: "RoleRules");
+                name: "RolePermissions");
 
             migrationBuilder.DropTable(
                 name: "Accesses");
@@ -335,10 +325,10 @@ namespace thirdpartynetwork.Core.Migrations
                 name: "NetworkUsers");
 
             migrationBuilder.DropTable(
-                name: "Roles");
+                name: "Permissions");
 
             migrationBuilder.DropTable(
-                name: "Rules");
+                name: "Roles");
 
             migrationBuilder.DropTable(
                 name: "UserProxies");

@@ -51,7 +51,7 @@ public class JwtHandler : IJwtHandler
             TokenHandler.ValidateToken(token, validationParameters, out var validatedToken);
             return true;
         }
-        catch (Exception ex)
+        catch
         {
             return false;
         }

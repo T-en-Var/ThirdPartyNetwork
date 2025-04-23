@@ -16,7 +16,7 @@ namespace thirdpartynetwork.Core.Helper
         public ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
         {
             httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
-            httpContext.Response.ContentType = "application/json";
+            httpContext.Response.ContentType = "application/json; charset=utf-8";
 
             var message = exception.Message;
             
@@ -28,20 +28,14 @@ namespace thirdpartynetwork.Core.Helper
                 message = baseHttpException.ErrorMessage;
             }
 
-            var response = new
-            {
-                message,
-            };
-
-            var responseBody = JsonSerializer.Serialize(response);
-            return WriteResponseAsync(httpContext, responseBody, cancellationToken);
+            return WriteResponseAsync(httpContext, httpContext.Response.StatusCode, message, exception.StackTrace);
         }
 
-        private async ValueTask<bool> WriteResponseAsync(HttpContext httpContext, string responseBody, CancellationToken cancellationToken)
+        private async ValueTask<bool> WriteResponseAsync(HttpContext context, int statusCode, string message, string? details = null)
         {
             try
             {
-                await httpContext.Response.WriteAsync(responseBody, cancellationToken);
+                await ErrorResponseWriter.WriteJsonError(context, statusCode, message, details);
                 return true;
             }
             catch (OperationCanceledException)
