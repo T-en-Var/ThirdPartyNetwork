@@ -45,9 +45,9 @@
           <button class="text-blue-600 hover:text-blue-800 text-sm">
             Details
           </button>
-          <button class="text-gray-600 hover:text-gray-800 text-sm">
+          <RouterLink :to="`networks/${network.id}/manage`" class="text-gray-600 hover:text-gray-800 text-sm">
             Manage
-          </button>
+          </RouterLink>
         </div>
       </div>
     </div>
@@ -58,6 +58,7 @@
 import { isValidHttpUrl } from '@/lib/utils';
 import type { Network } from '@/types';
 import { defineProps } from 'vue';
+import { RouterLink } from 'vue-router';
 
 defineProps<{
   network: Network;

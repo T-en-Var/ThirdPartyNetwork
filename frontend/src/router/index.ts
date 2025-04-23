@@ -4,7 +4,7 @@ import { useAuthStore } from '@/stores/auth';
 import NotFoundView from '@/views/NotFoundView.vue';
 import AboutView from '@/views/AboutView.vue';
 import ToSView from '@/views/ToSView.vue';
-import NetworksView from '@/views/NetworksView.vue';
+// import NetworksView from '@/views/NetworksView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -24,7 +24,19 @@ const router = createRouter({
     {
       path: '/networks',
       name: 'networks',
-      component: NetworksView,
+      component: import('@/views/NetworksView.vue'),
+      meta: {},
+    },
+    {
+      path: '/networks/create',
+      name: 'create-network',
+      component: import('@/views/networks/CreateNetworkView.vue'),
+      meta: {},
+    },
+    {
+      path: '/networks/:networkId/manage',
+      name: 'manage-network',
+      component: import('@/views/networks/ManageNetwork.vue'),
       meta: {},
     },
     {

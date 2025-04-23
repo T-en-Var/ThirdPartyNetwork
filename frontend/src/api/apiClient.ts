@@ -2,6 +2,7 @@
 import { useAuthStore } from '@/stores/auth';
 import axios from 'axios';
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+
 class ApiClient {
   private instance: AxiosInstance;
   private auth!: ReturnType<typeof useAuthStore>;
@@ -9,23 +10,17 @@ class ApiClient {
   constructor(baseURL: string, config?: AxiosRequestConfig) {
     this.instance = axios.create({
       baseURL,
-      ...config, // Allow overriding default config
+      ...config,
     });
 
-    // Add interceptors for request/response handling if needed
     this.instance.interceptors.request.use(async (config) => {
-      config = await this.auth.applyHeaders(config)
+      config = await this.auth.applyHeaders(config);
       return config;
     });
 
     this.instance.interceptors.response.use(
-      (response) => {
-        return response
-      },
-      (error) => {
-        // Handle errors globally
-        return Promise.reject(error);
-      }
+      (response) => response,
+      (error) => Promise.reject(error)
     );
   }
 
@@ -35,7 +30,7 @@ class ApiClient {
 
   public async get<T>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
     const response: AxiosResponse<T> = await this.instance.get(url, config);
-    console.log(url, response.data)
+    console.log(url, response.data);
     return response;
   }
 
@@ -44,7 +39,20 @@ class ApiClient {
     return response;
   }
 
-  // Add other methods (put, delete, patch) as needed
+  public async put<T, B>(url: string, data?: B, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+    const response: AxiosResponse<T> = await this.instance.put(url, data, config);
+    return response;
+  }
+
+  public async patch<T, B>(url: string, data?: B, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+    const response: AxiosResponse<T> = await this.instance.patch(url, data, config);
+    return response;
+  }
+
+  public async delete<T>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+    const response: AxiosResponse<T> = await this.instance.delete(url, config);
+    return response;
+  }
 }
 
 export default ApiClient;

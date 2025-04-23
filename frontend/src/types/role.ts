@@ -1,3 +1,4 @@
+import type { Network } from "./network";
 import type { NetworkUserRole } from "./networkUserRole";
 import type { RolePermission } from "./rolePermission";
 
@@ -7,4 +8,5 @@ export interface Role {
   description: string,
   rolePermissions: RolePermission[],
   networkUserRoles: NetworkUserRole[],
+  network: Network,
 }

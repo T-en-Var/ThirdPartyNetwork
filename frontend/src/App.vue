@@ -13,7 +13,7 @@ import { RouterView } from 'vue-router'
 import NavBar from '@/components/NavBar.vue';
 </script>
 
-<style scoped>
+<style>
 header {
   position: fixed;
   width: 100vw;
@@ -21,6 +21,13 @@ header {
 
 main {
   padding-top: 2rem;
+  height: 100%;
+  overflow: scroll;
+}
+
+#app {
+  height: 100vh;
   background-color: #f8f8fb;
+  overflow: hidden;
 }
 </style>

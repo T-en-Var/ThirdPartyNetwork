@@ -212,7 +212,7 @@ const login = async () => {
     return;
   }
 
-  const redirectPath = route.query.redirect ? atob(route.query.redirect as string) : '/';
+  const redirectPath = route.query.redirect ? atob(route.query.redirect as string) : '/networks';
   router.push(redirectPath);
 
   isLoading.value = false;
@@ -254,7 +254,7 @@ const signUp = async () => {
     return;
   }
 
-  const redirectPath = route.query.redirect ? atob(route.query.redirect as string) : '/';
+  const redirectPath = route.query.redirect ? atob(route.query.redirect as string) : '/networks';
   router.push(redirectPath);
 
   isLoading.value = false;

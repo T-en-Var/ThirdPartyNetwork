@@ -22,7 +22,7 @@
 </template>
 
 <script setup lang="ts">
-import AuthModal from '@/components/AuthModal.vue';
+import AuthModal from '@/components/modals/AuthModal.vue';
 import UserProfileDropdown from './UserProfileDropdown.vue';
 import { useAuthStore } from '@/stores/auth';
 
