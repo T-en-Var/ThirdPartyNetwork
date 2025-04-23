@@ -2,7 +2,6 @@
 global using thirdpartynetwork.Application.Dtos.Content;
 global using thirdpartynetwork.Application.Dtos.Network;
 global using thirdpartynetwork.Application.Dtos.NetworkAccess;
-global using thirdpartynetwork.Application.Dtos.NetworkRole;
 global using thirdpartynetwork.Application.Dtos.NetworkUserAccess;
 global using thirdpartynetwork.Application.Dtos.NetworkUserRole;
 global using thirdpartynetwork.Application.Dtos.NetworkUser;

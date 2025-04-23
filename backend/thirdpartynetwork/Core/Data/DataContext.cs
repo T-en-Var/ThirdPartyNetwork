@@ -74,6 +74,11 @@ namespace thirdpartynetwork.Core.Data
                 .HasOne(rr => rr.Permission)
                 .WithMany(r => r.RolePermissions)
                 .HasForeignKey(rr => rr.PermissionId);
+            
+            modelBuilder.Entity<Network>()
+                .HasMany(n => n.Roles)
+                .WithOne(r => r.Network)
+                .HasForeignKey(r => r.NetworkId);
 
             base.OnModelCreating(modelBuilder);
         }

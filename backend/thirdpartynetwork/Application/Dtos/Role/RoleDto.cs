@@ -1,5 +1,4 @@
-﻿using thirdpartynetwork.Application.Dtos.NetworkRole;
-using thirdpartynetwork.Application.Dtos.NetworkUserRole;
+﻿using thirdpartynetwork.Application.Dtos.NetworkUserRole;
 
 namespace thirdpartynetwork.Application.Dtos.Role
 {
@@ -10,5 +9,6 @@ namespace thirdpartynetwork.Application.Dtos.Role
         public required string Description { get; set; }
         public ICollection<RolePermissionDto> RolePermissions { get; set; } = [];
         public ICollection<NetworkUserRoleDto> NetworkUserRoles { get; set; } = [];
+        public NetworkDto Network { get; set; }
     }
 }

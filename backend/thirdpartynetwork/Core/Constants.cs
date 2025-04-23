@@ -44,11 +44,9 @@ public static class Constants
 
         public const string ReadUser = "Read User";
         public const string ManageUser = "Manage User";
-        public const string ManageOwnUser = "Manage Own User";
 
         public const string ReadContent = "Read Content";
         public const string ManageContent = "Manage Content";
-        public const string ManageOwnContent = "Manage Own Content";
 
         // public const string KickUser = "Kick User";
         // public const string KickUserAdmin = "Kick User Admin";
@@ -60,6 +58,9 @@ public static class Constants
 
     public static string[] OwnerPermissions =
     [
-        Permissions.ManageOwnContent
+        Permissions.ManageUser,
+        Permissions.ReadUser,
+        Permissions.ReadContent,
+        Permissions.ManageContent,
     ];
 }

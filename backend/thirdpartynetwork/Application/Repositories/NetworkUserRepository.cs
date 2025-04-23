@@ -55,6 +55,8 @@ namespace thirdpartynetwork.Application.Repositories
         {
             return [.. _context.NetworkUsers
                 .Include(n => n.Network)
+                .ThenInclude(x => x.NetworkUsers)
+                .ThenInclude(x => x.UserProxy)
                 .Where(nu => nu.UserProxyId == id)];
         }
 

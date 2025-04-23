@@ -402,7 +402,7 @@ namespace thirdpartynetwork.Core.Migrations
             modelBuilder.Entity("thirdpartynetwork.Core.Models.UserProxy", b =>
                 {
                     b.HasOne("thirdpartynetwork.Core.Models.User", "User")
-                        .WithMany("Proxies")
+                        .WithMany("UserProxies")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -449,7 +449,7 @@ namespace thirdpartynetwork.Core.Migrations
 
             modelBuilder.Entity("thirdpartynetwork.Core.Models.User", b =>
                 {
-                    b.Navigation("Proxies");
+                    b.Navigation("UserProxies");
                 });
 
             modelBuilder.Entity("thirdpartynetwork.Core.Models.UserProxy", b =>

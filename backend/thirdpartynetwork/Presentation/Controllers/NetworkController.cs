@@ -19,7 +19,7 @@ public class NetworkController(INetworkService service, IMapper mapper) : Contro
     }
 
     [HttpGet("{networkId:guid}")]
-    [RequirePermission(Constants.Permissions.ManageNetwork)]
+    [RequirePermission(Constants.Permissions.ReadNetwork)]
     [ProducesResponseType(200, Type = typeof(NetworkDto))]
     [ProducesResponseType(404)]
     public IActionResult GetNetworkById(Guid networkId)
