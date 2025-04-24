@@ -14,9 +14,10 @@
         >
           Cancel
         </button>
+
         <button
           type="button"
-          class="rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+          :class="confirmButtonClass"
           :disabled="isSubmitting"
           @click="$emit('confirm')"
         >
@@ -29,9 +30,10 @@
 </template>
 
 <script setup lang="ts">
-import ModalContainer from '@/components/modals/ModalContainer.vue';
+import { computed } from 'vue'
+import ModalContainer from '@/components/modals/ModalContainer.vue'
 
-defineProps({
+const props = defineProps({
   title: {
     type: String,
     required: true
@@ -47,8 +49,27 @@ defineProps({
   isSubmitting: {
     type: Boolean,
     default: false
+  },
+  color: {
+    type: String,
+    default: 'red' // fallback to red if not provided
   }
-});
+})
 
-defineEmits(['close', 'confirm']);
+defineEmits(['close', 'confirm'])
+
+const confirmButtonClass = computed(() => {
+  const base =
+    'rounded-md border border-transparent px-4 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2'
+
+  const colorMap: Record<string, string> = {
+    red: 'bg-red-600 hover:bg-red-700 focus:ring-red-500',
+    blue: 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500',
+    green: 'bg-green-600 hover:bg-green-700 focus:ring-green-500',
+    yellow: 'bg-yellow-500 hover:bg-yellow-600 focus:ring-yellow-400',
+    gray: 'bg-gray-600 hover:bg-gray-700 focus:ring-gray-500'
+  }
+
+  return `${base} ${colorMap[props.color] || colorMap.red}`
+})
 </script>

@@ -36,7 +36,7 @@ const router = createRouter({
     {
       path: '/networks/:networkId/manage',
       name: 'manage-network',
-      component: import('@/views/networks/ManageNetwork.vue'),
+      component: import('@/views/networks/ManageNetworkView.vue'),
       meta: {},
     },
     {
@@ -49,6 +49,12 @@ const router = createRouter({
       path: '/404',
       name: 'not-found',
       component: NotFoundView,
+      meta: {},
+    },
+    {
+      path: '/401',
+      name: 'unauthenticated',
+      component: import('@/views/UnauthenticatedView.vue'),
       meta: {},
     },
     // {

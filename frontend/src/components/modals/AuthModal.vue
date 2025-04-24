@@ -198,7 +198,7 @@ const login = async () => {
   let response;
 
   try {
-    response = await authStore.login(username.value, password.value);
+    response = await authStore.login(username.value.trim(), password.value);
   } catch (err) {
     isLoading.value = false;
     error.value = (err as AxiosError<ErrorMessage>).response?.data.message || "Something went wrong, please try again";
@@ -240,7 +240,13 @@ const signUp = async () => {
   let response;
 
   try {
-    response = await authStore.signUp(signupUsername.value, signupEmail.value, signupFirstname.value, signupLastname.value, signupPassword.value);
+    response = await authStore.signUp(
+      signupUsername.value.trim(),
+      signupEmail.value.trim(),
+      signupFirstname.value.trim(),
+      signupLastname.value.trim(),
+      signupPassword.value
+    );
   } catch (err) {
     isLoading.value = false;
     error.value = (err as AxiosError<ErrorMessage>).response?.data.message || "Something went wrong, please try again";

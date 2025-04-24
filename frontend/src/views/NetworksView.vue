@@ -3,9 +3,9 @@
     <div class="bg-white shadow-md rounded-lg overflow-hidden">
       <div class="bg-gray-100 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
         <h1 class="text-2xl font-semibold text-gray-800">Your Networks</h1>
-        <button class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">
+        <RouterLink to="/networks/create" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">
           + Add Network
-        </button>
+        </RouterLink>
       </div>
       
       <div v-if="loading" class="p-6 text-center">

@@ -26,9 +26,10 @@ export default function useAccesses() {
     globalStore.startFetching();
     try {
       const response = await api.get<Access[]>(`/accesses/`)
+      const data = response.data.sort((a, b) => a.name > b.name ? 1 : -1);
 
-      accesses.value = response.data;
-      accessesStore.setAccesses(response.data)
+      accesses.value = data;
+      accessesStore.setAccesses(data);
     } catch (err) {
       error.value = (err as AxiosError<ErrorMessage>).response?.data.message || null;
     } finally {

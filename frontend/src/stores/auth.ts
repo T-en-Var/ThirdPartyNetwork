@@ -14,6 +14,8 @@ export const useAuthStore = defineStore('auth', () => {
     const refreshTokenKey = "refresh_token";
 
     const isModelOpen = ref<boolean>(false);
+    const isUnauthModalOpen = ref<boolean>(false);
+
     const modelMode = ref<"signup" | "login">("signup");
     let modalCallback = () => { };
 
@@ -182,6 +184,10 @@ export const useAuthStore = defineStore('auth', () => {
         modalCallback = callback;
     }
 
+    function setUnauthModalOpen(newModelState: boolean) {
+        isUnauthModalOpen.value = newModelState;
+    }
+
     return {
         applyHeaders,
         saveTokens,
@@ -199,5 +205,7 @@ export const useAuthStore = defineStore('auth', () => {
         setModelMode,
         modelMode,
         setModelOpenCallback,
+        setUnauthModalOpen,
+        isUnauthModalOpen,
     };
 });

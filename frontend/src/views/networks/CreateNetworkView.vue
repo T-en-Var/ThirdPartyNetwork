@@ -4,6 +4,15 @@
       <div class="bg-gray-100 px-6 py-4 border-b border-gray-200">
         <h1 class="text-2xl font-semibold text-gray-800">Create New Network</h1>
       </div>
+     
+      <!-- Error Message Component -->
+      <div class="mx-6 mt-6">
+        <ErrorAlert 
+          :message="error" 
+          @dismiss="error = ''" 
+        />
+      </div>
+      <!-- End Error Message Component -->
       
       <div class="p-6">
         <form @submit.prevent="handleSubmit">
@@ -20,7 +29,6 @@
               required
             />
           </div>
-
           <div class="flex justify-end space-x-3">
             <button
               type="button"
@@ -46,19 +54,19 @@
     </div>
   </div>
 </template>
-
 <script setup lang="ts">
 import { ref, reactive } from 'vue';
 import { useRouter } from 'vue-router';
 import type { ErrorMessage, Network, CreateNetwork } from '@/types';
 import api from '@/api/api';
-import { useGlobalStore } from '@/stores/global'
+import { useGlobalStore } from '@/stores/global';
 import type { AxiosError } from 'axios';
+import ErrorAlert from '@/components/ErrorAlert.vue';
 
 const router = useRouter();
 const global = useGlobalStore();
-
 const isSubmitting = ref(false);
+const error = ref('');
 
 const formData = reactive({
   name: '',
@@ -69,26 +77,35 @@ const formData = reactive({
 });
 
 async function handleSubmit() {
+  // Clear any previous errors
+  error.value = '';
   global.startFetching();
   isSubmitting.value = true;
-  
+ 
   try {
     // First create the network
     const networkResponse = await api.post<Network, CreateNetwork>('/networks/', {
-      name: formData.name,
+      name: formData.name.trim(),
     });
-    
+   
     const networkId = networkResponse.data.id;
-    
+   
     // Navigate to the network management page
     router.push(`/networks/${networkId}/manage`);
-  } catch (error) {
-    console.error('Error creating network:', error);
-    alert((error as AxiosError<ErrorMessage>).response?.data?.message || 'Failed to create network');
+  } catch (err) {
+    console.error('Error creating network:', err);
+    const axiosError = err as AxiosError<ErrorMessage>;
+    
+    // Handle specific error cases
+    if (axiosError.response?.status === 409) {
+      error.value = `A network with the name "${formData.name.trim()}" already exists. Please choose a different name.`;
+    } else {
+      error.value = axiosError.response?.data?.message || 'Failed to create network. Please try again later.';
+    }
   } finally {
     isSubmitting.value = false;
-  global.stopFetching();
-}
+    global.stopFetching();
+  }
 }
 
 function navigateBack() {
@@ -105,7 +122,6 @@ function navigateBack() {
   border-radius: 50%;
   animation: spinner-border 0.75s linear infinite;
 }
-
 @keyframes spinner-border {
   100% {
     transform: rotate(360deg);

@@ -50,7 +50,7 @@
         v-if="activeTab === 'accesses'"
         :network="network"
         @add-access="$emit('addAccess')"
-        @toggle-required="$emit('toggleAccessRequired', $event)"
+        @toggle-access-required="$emit('toggleAccessRequired', $event)"
         @remove-access="$emit('removeAccess', $event)"
       />
     </div>

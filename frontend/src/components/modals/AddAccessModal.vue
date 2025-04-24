@@ -1,11 +1,13 @@
 <template>
   <modal-container title="Add Access Requirement" @close="$emit('close')">
     <form @submit.prevent="handleSubmit" class="space-y-4">
-      <div>
-        <label for="access" class="block text-sm font-medium text-gray-700">Select Access Requirement</label>
-        <div class="relative mt-1">
+      <div class="mb-6">
+        <label for="access" class="block text-sm font-semibold text-gray-800 mb-2">
+          Select Access Requirement
+        </label>
+        <div class="relative">
           <select id="access" v-model="form.accessId"
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            class="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-600 focus:ring focus:ring-blue-100 disabled:bg-gray-100 disabled:text-gray-500 transition-all"
             required>
             <option value="" disabled selected>Select an access requirement</option>
             <option v-for="access in availableAccesses" :key="access.id" :value="access.id">
@@ -13,8 +15,11 @@
             </option>
           </select>
         </div>
-        <p v-if="accessesState.loading" class="mt-1 text-sm text-gray-500">Loading access requirements...</p>
+        <p v-if="accessesState.loading.value" class="mt-2 text-sm text-gray-500 italic">
+          Loading access requirements...
+        </p>
       </div>
+
 
       <!-- Access description if one is selected -->
       <div v-if="selectedAccessDescription" class="rounded-md bg-gray-50 p-3">
@@ -30,7 +35,7 @@
         </label>
       </div>
 
-      <div class="flex justify-end space-x-3 pt-4">
+      <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
         <button type="button"
           class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
           @click="$emit('close')" :disabled="isSubmitting">

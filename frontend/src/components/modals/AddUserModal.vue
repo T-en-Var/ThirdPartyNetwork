@@ -44,7 +44,7 @@
         </div>
       </div>
 
-      <div class="flex justify-end space-x-3 pt-4">
+      <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
         <button
           type="button"
           class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"

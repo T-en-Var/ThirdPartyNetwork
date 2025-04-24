@@ -25,9 +25,10 @@ export default function usePermissions() {
     globalStore.startFetching();
     try {
       const response = await api.get<Permission[]>(`/permissions/`)
+      const data = response.data.sort((a, b) => a.name > b.name ? 1 : -1);
 
-      permissions.value = response.data;
-      permissionsStore.setPermissions(response.data)
+      permissions.value = data;
+      permissionsStore.setPermissions(data)
     } catch (err) {
       error.value = (err as AxiosError<ErrorMessage>).response?.data.message || null;
     } finally {

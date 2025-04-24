@@ -1,28 +1,69 @@
 <template>
   <modal-container title="Add Role to Network" @close="$emit('close')">
     <form @submit.prevent="handleSubmit" class="space-y-4">
-      <div>
-        <label for="role" class="block text-sm font-medium text-gray-700">Select Role</label>
-        <div class="relative mt-1">
-          <select id="role" v-model="form.roleId"
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-            required>
-            <option value="" disabled selected>Select a role</option>
-            <option v-for="role in availableRoles" :key="role.id" :value="role.id">
-              {{ role.name }}
-            </option>
-          </select>
-        </div>
-        <p v-if="loadingRoles" class="mt-1 text-sm text-gray-500">Loading roles...</p>
+      <div class="mb-6">
+        <label for="name" class="block text-sm font-semibold text-gray-800 mb-2">
+          Role Name
+        </label>
+        <input 
+          id="name" 
+          v-model="localForm.name" 
+          type="text"
+          class="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-600 focus:ring focus:ring-blue-100 transition-all"
+          required />
       </div>
 
-      <!-- Role description if one is selected -->
-      <div v-if="selectedRoleDescription" class="rounded-md bg-gray-50 p-3">
+      <div class="rounded-md bg-gray-50 p-3">
         <h4 class="text-sm font-medium text-gray-700">Role Description:</h4>
-        <p class="text-sm text-gray-600">{{ selectedRoleDescription }}</p>
+        <input 
+          id="name" 
+          v-model="localForm.description" 
+          type="text"
+          class="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-600 focus:ring focus:ring-blue-100 transition-all"
+          required />
       </div>
 
-      <div class="flex justify-end space-x-3 pt-4">
+      <div v-if="loading" class="py-4 text-center">
+        <p class="text-sm text-gray-500">Loading permissions...</p>
+      </div>
+
+      <div v-else class="mt-4 max-h-64 overflow-y-auto border rounded-md p-2">
+        <div v-if="permissions.length === 0" class="text-sm text-gray-500">
+          No permissions available
+        </div>
+
+        <div v-else-if="error != null">
+          {{ error }}
+        </div>
+        
+        <div 
+          v-for="permission in permissions" 
+          :key="permission.id"
+          class="flex items-center py-1 ml-2"
+        >
+          <input
+            :id="`perm-${permission.id}`"
+            type="checkbox"
+            :value="permission.id"
+            v-model="localForm.permissionIds"
+            class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+          />
+          <label :for="`perm-${permission.id}`" class="ml-2 block text-sm text-gray-700">
+            {{ permission.name }}
+            <span class="text-xs text-gray-500 ml-1">({{ permission.id }})</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="flex items-center">
+        <input id="isRequired" v-model="localForm.isDefault" type="checkbox"
+          class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
+        <label for="isRequired" class="ml-2 block text-sm text-gray-700">
+          Automatically add this role to new users.
+        </label>
+      </div>
+
+      <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
         <button type="button"
           class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
           @click="$emit('close')" :disabled="isSubmitting">
@@ -30,7 +71,7 @@
         </button>
         <button type="submit"
           class="rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-          :disabled="isSubmitting || !form.roleId">
+          :disabled="isSubmitting || !localForm.name">
           <span v-if="isSubmitting">Adding...</span>
           <span v-else>Add Role</span>
         </button>
@@ -40,61 +81,29 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import ModalContainer from '@/components/modals/ModalContainer.vue';
-import api from '@/api/api';
-import type { Role, Network } from '@/types';
-import { useGlobalStore } from '@/stores/global';
-
-const global = useGlobalStore();
-
-const props = withDefaults(defineProps<{
-  network: Network;
-  isSubmitting?: boolean;
-}>(), {
-  isSubmitting: false
-});
+import type { RoleForm } from '@/types';
+import usePermissions from '@/composables/usePermissions';
 
 const emit = defineEmits(['close', 'add-role']);
+const { permissions, loading, error, fetchPermissions } = usePermissions();
 
-const form = ref({
-  roleId: ''
-});
+const isSubmitting = ref(false);
 
-const allRoles = ref<Role[]>([]);
-const loadingRoles = ref(true);
-
-const availableRoles = computed(() => {
-  // Filter out roles that are already in the network
-  const networkRoleIds = props.network.roles.map(r => r.id);
-  return allRoles.value.filter(role => !networkRoleIds.includes(role.id));
-});
-
-const selectedRoleDescription = computed(() => {
-  if (!form.value.roleId) return '';
-  const role = allRoles.value.find(r => r.id === form.value.roleId);
-  return role?.description || '';
+const localForm = ref<RoleForm>({
+  name: '',
+  description: '',
+  permissionIds: [],
+  isDefault: false,
 });
 
 onMounted(async () => {
-  global.startFetching();
-  loadingRoles.value = true;
-
-  try {
-    // Get all roles
-    const response = await api.get<Role[]>('/roles/');
-    allRoles.value = response.data || [];
-  } catch (error) {
-    console.error('Error fetching roles:', error);
-  } finally {
-    global.stopFetching();
-    loadingRoles.value = false;
-  }
+  await fetchPermissions();
 });
 
 function handleSubmit() {
-  emit('add-role', {
-    roleId: form.value.roleId
-  });
+  isSubmitting.value = true;
+  emit('add-role', localForm);
 }
 </script>

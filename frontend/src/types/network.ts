@@ -5,6 +5,7 @@ import type { NetworkUser } from "./networkUser";
 export interface Network {
   id: string,
   name: string,
+  isPublic: boolean,
   networkAccesses: NetworkAccess[],
   roles: Role[],
   networkUsers: NetworkUser[],
@@ -13,4 +14,10 @@ export interface Network {
 
 export interface CreateNetwork {
   name: string,
+  isPublic: boolean,
+}
+
+export interface UpdateNetwork {
+  name: string,
+  isPublic: boolean,
 }

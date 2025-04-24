@@ -15,7 +15,7 @@
       <tab-container :network="networkState.network.value" :active-tab="activeTab" @tab-changed="activeTab = $event"
         @add-user="showAddUserModal = true" @add-role="showAddRoleModal = true" @add-access="showAddAccessModal = true"
         @manage-user="openManageUserModal" @remove-user="confirmRemoveUser" @manage-role="openManageRoleModal"
-        @remove-role="confirmRemoveRole" @toggle-access-required="toggleAccessRequired"
+        @remove-role="confirmRemoveRole" @toggle-access-required="confirmToggleAccessRequired"
         @remove-access="confirmRemoveAccess" />
 
       <!-- Modals -->
@@ -25,33 +25,32 @@
       <add-user-modal v-if="showAddUserModal" :network="networkState.network.value" :is-submitting="isSubmitting"
         @close="showAddUserModal = false" @add-user="addUserToNetwork" />
 
-      <manage-user-modal v-if="showManageUserModal" :network="networkState.network.value" :selected-user="selectedUser"
-        :is-submitting="isSubmitting" :manage-user-form="manageUserForm" @close="showManageUserModal = false"
-        @update="updateUserSettings" />
+      <manage-user-modal v-if="showManageUserModal && selectedUser" :network="networkState.network.value"
+        :selected-user="selectedUser" :is-submitting="isSubmitting" :manage-user-form="manageUserForm"
+        @close="showManageUserModal = false" @update="updateUserSettings" />
 
       <add-role-modal v-if="showAddRoleModal" :network="networkState.network.value" :is-submitting="isSubmitting"
         @close="showAddRoleModal = false" @add-role="addRoleToNetwork" />
 
-      <manage-role-modal v-if="showManageRoleModal" :network="networkState.network.value" :selected-role="selectedRole"
-        :is-submitting="isSubmitting" :available-permissions="permissionsState.permissions.value"
-        :loading-permissions="permissionsState.loading.value" :manage-role-form="manageRoleForm"
-        @close="showManageRoleModal = false" @update="updateRolePermissions" />
+      <manage-role-modal v-if="showManageRoleModal && selectedRole" :network="networkState.network.value"
+        :selected-role="selectedRole" :manage-role-form="manageRoleForm" @close="showManageRoleModal = false"
+        @update="updateRolePermissions" />
 
       <add-access-modal v-if="showAddAccessModal" :network="networkState.network.value" :is-submitting="isSubmitting"
         @close="showAddAccessModal = false" @add-access="addAccessToNetwork" />
 
       <confirmation-modal v-if="showConfirmationModal" :title="confirmationTitle" :message="confirmationMessage"
-        :button-text="confirmButtonText" :is-submitting="isSubmitting" @close="showConfirmationModal = false"
-        @confirm="confirmAction" />
+        :button-text="confirmButtonText" :color="confirmButtonColor" :is-submitting="isSubmitting"
+        @close="showConfirmationModal = false" @confirm="confirmAction" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, type Ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import useNetwork from '@/composables/useNetwork.ts';
-import type { NetworkUser, NetworkAccess, Role } from '@/types';
+import type { NetworkUser, NetworkAccess, Role, Network, UpdateNetwork, CreateRole, UpdateRole } from '@/types';
 
 // Components
 import LoadingErrorComponent from '@/components/LoadingError.vue';
@@ -67,6 +66,7 @@ import ConfirmationModal from '@/components/modals/ConfirmationModal.vue';
 import api from '@/api/api';
 import { useGlobalStore } from '@/stores/global';
 import usePermissions from '@/composables/usePermissions';
+import type { RoleForm, ManageUserForm, NetworkForm } from '@/types/forms';
 
 const globalStore = useGlobalStore();
 
@@ -100,26 +100,22 @@ const permissionsState = usePermissions();
 const confirmationTitle = ref('');
 const confirmationMessage = ref('');
 const confirmButtonText = ref('');
+const confirmButtonColor = ref('');
 const confirmationAction = ref(() => { });
 
 // Submission state
 const isSubmitting = ref(false);
 
 // Form states
-type ManageUserForm = {
-  roleIds: string[];
-  accessStatuses: Record<string, 'pending' | 'accepted'>;
-};
 const manageUserForm = reactive<ManageUserForm>({
   roleIds: [],
-  accessStatuses: {}
 });
 
-type ManageRoleForm = {
-  permissionIds: string[];
-}
-const manageRoleForm = reactive<ManageRoleForm>({
-  permissionIds: []
+const manageRoleForm = reactive<RoleForm>({
+  name: '',
+  description: '',
+  permissionIds: [],
+  isDefault: false,
 });
 
 onMounted(async () => {
@@ -131,11 +127,6 @@ onMounted(async () => {
 function openManageUserModal(user: NetworkUser) {
   selectedUser.value = user;
   manageUserForm.roleIds = user.networkUserRoles?.map(nur => nur.role.id) || [];
-  manageUserForm.accessStatuses = {};
-
-  user.networkUserAccesses?.forEach(nua => {
-    manageUserForm.accessStatuses[nua.access.id] = nua.isAccepted ? 'accepted' : 'pending';
-  });
 
   showManageUserModal.value = true;
 }
@@ -144,13 +135,14 @@ function confirmRemoveUser(user: NetworkUser) {
   confirmationTitle.value = 'Remove User';
   confirmationMessage.value = `Are you sure you want to remove ${user.userProxy.firstName} ${user.userProxy.lastName} from this network?`;
   confirmButtonText.value = 'Remove';
+  confirmButtonColor.value = 'red';
+
   confirmationAction.value = async () => {
     globalStore.startFetching();
     isSubmitting.value = true;
     try {
       await api.delete(`/networks/${networkState.network.value!.id}/users/${user.id}/`);
       await networkState.fetchNetwork(networkState.network.value!.id);
-      showConfirmationModal.value = false;
     } catch (err) {
       console.error('Error removing user:', err);
     } finally {
@@ -164,8 +156,10 @@ function confirmRemoveUser(user: NetworkUser) {
 async function openManageRoleModal(role: Role) {
   selectedRole.value = role;
 
-  // Fetch all permissions and then set selected ones
   await permissionsState.fetchPermissions();
+  manageRoleForm.name = role.name;
+  manageRoleForm.description = role.description;
+  manageRoleForm.isDefault = role.isDefault;
   manageRoleForm.permissionIds = role.rolePermissions?.map(rp => rp.permission.id) || [];
 
   showManageRoleModal.value = true;
@@ -175,13 +169,14 @@ function confirmRemoveRole(role: Role) {
   confirmationTitle.value = 'Remove Role';
   confirmationMessage.value = `Are you sure you want to remove the role "${role.name}" from this network?`;
   confirmButtonText.value = 'Remove';
+  confirmButtonColor.value = 'red';
+
   confirmationAction.value = async () => {
     globalStore.startFetching();
     isSubmitting.value = true;
     try {
       await api.delete(`/networks/${networkState.network.value!.id}/roles/${role.id}/`);
       await networkState.fetchNetwork(networkState.network.value!.id);
-      showConfirmationModal.value = false;
     } catch (err) {
       console.error('Error removing role:', err);
     } finally {
@@ -192,36 +187,46 @@ function confirmRemoveRole(role: Role) {
   showConfirmationModal.value = true;
 }
 
-function toggleAccessRequired(networkAccess: NetworkAccess) {
-  isSubmitting.value = true;
-  globalStore.startFetching();
+function confirmToggleAccessRequired(networkAccess: NetworkAccess) {
+  confirmationTitle.value = 'Toggle Access Requirement';
+  confirmationMessage.value = networkAccess.isRequired
+    ? `Are you sure you want to make the Access ${networkAccess.access.name} optional?`
+    : `Are you sure you want to make the Access ${networkAccess.access.name} required?`;
+  confirmButtonText.value = 'Confirm';
+  confirmButtonColor.value = 'green';
 
-  api.patch(`/networks/${networkState.network.value!.id}/accesses/${networkAccess.accessId}/`, {
-    isRequired: !networkAccess.isRequired
-  })
-    .then(() => {
-      networkState.fetchNetwork(networkState.network.value!.id);
-    })
-    .catch(err => {
-      console.error('Error toggling access requirement:', err);
-    })
-    .finally(() => {
-      isSubmitting.value = false;
-      globalStore.stopFetching();
-    });
+  confirmationAction.value = async () => {
+    isSubmitting.value = true;
+    globalStore.startFetching();
+
+    api.put(`/networks/${networkState.network.value!.id}/accesses/${networkAccess.accessId}?IsRequired=${!networkAccess.isRequired}`, {})
+      .then(() => {
+        networkState.fetchNetwork(networkState.network.value!.id);
+      })
+      .catch(err => {
+        console.error('Error toggling access requirement:', err);
+      })
+      .finally(() => {
+        isSubmitting.value = false;
+        globalStore.stopFetching();
+      });
+  }
+
+  showConfirmationModal.value = true;
 }
 
 function confirmRemoveAccess(networkAccess: NetworkAccess) {
   confirmationTitle.value = 'Remove Access Requirement';
   confirmationMessage.value = `Are you sure you want to remove the access requirement "${networkAccess.access.name}" from this network?`;
   confirmButtonText.value = 'Remove';
+  confirmButtonColor.value = 'red';
+
   confirmationAction.value = async () => {
     globalStore.startFetching();
     isSubmitting.value = true;
     try {
       await api.delete(`/networks/${networkState.network.value!.id}/accesses/${networkAccess.accessId}/`);
       await networkState.fetchNetwork(networkState.network.value!.id);
-      showConfirmationModal.value = false;
     } catch (err) {
       console.error('Error removing access requirement:', err);
     } finally {
@@ -229,15 +234,17 @@ function confirmRemoveAccess(networkAccess: NetworkAccess) {
       globalStore.stopFetching();
     }
   };
+
   showConfirmationModal.value = true;
 }
 
-async function updateNetwork(updatedData: { name: string, isSystemProtected: boolean }) {
+async function updateNetwork(updatedData: NetworkForm) {
   globalStore.startFetching();
   isSubmitting.value = true;
   try {
-    await api.patch(`/networks/${networkState.network.value!.id}/`, updatedData);
-    await networkState.fetchNetwork(networkState.network.value!.id);
+    const response = await api.put<Network, UpdateNetwork>(`/networks/${networkState.network.value!.id}/`, updatedData);
+    console.log(response.data)
+    networkState.network.value = response.data;
     showEditNetworkModal.value = false;
   } catch (err) {
     console.error('Error updating network:', err);
@@ -271,24 +278,25 @@ async function updateUserSettings(localForm: ManageUserForm) {
   globalStore.startFetching();
   isSubmitting.value = true;
   try {
-    // Update roles
-    await api.patch(`/networks/${networkState.network.value!.id}/users/${selectedUser.value.id}/`, {
-      roleIds: localForm.roleIds
-    });
+    const networkId = networkState.network.value!.id;
+    const userId = selectedUser.value!.id;
 
-    // Update access statuses
-    const accessPromises = Object.entries(localForm.accessStatuses).map(([accessId, status]) => {
-      return api.patch(`/networks/${networkState.network.value!.id}/users/${selectedUser.value!.id}/accesses/${accessId}/`, {
-        isAccepted: status === 'accepted'
-      });
-    });
+    const addedRoles = localForm.roleIds.filter(roleId => !manageUserForm.roleIds.includes(roleId));
+    const removedRoles = manageUserForm.roleIds.filter(roleId => !localForm.roleIds.includes(roleId));
 
-    await Promise.all(accessPromises);
-    await networkState.fetchNetwork(networkState.network.value!.id);
+    const hasChanges = addedRoles.length || removedRoles.length;
+
+    if (hasChanges) {
+      await Promise.all([
+        ...addedRoles.map(roleId => api.post(`/networks/${networkId}/users/${userId}/roles/${roleId}/`, {})),
+        ...removedRoles.map(roleId => api.delete(`/networks/${networkId}/users/${userId}/roles/${roleId}/`)),
+      ]);
+
+      await networkState.fetchNetwork(networkState.network.value!.id);
+      manageUserForm.roleIds = localForm.roleIds;
+    }
+
     showManageUserModal.value = false;
-
-    manageUserForm.roleIds = localForm.roleIds;
-    manageUserForm.accessStatuses = localForm.accessStatuses;
   } catch (err) {
     console.error('Error updating user settings:', err);
   } finally {
@@ -297,14 +305,26 @@ async function updateUserSettings(localForm: ManageUserForm) {
   }
 }
 
-async function addRoleToNetwork(roleData: { roleId: string }) {
+async function addRoleToNetwork(localForm: Ref<RoleForm>) {
   globalStore.startFetching();
   isSubmitting.value = true;
   try {
-    await api.post(`/networks/${networkState.network.value!.id}/roles/`, {
-      roleId: roleData.roleId
+    const networkId = networkState.network.value!.id;
+
+    const response = await api.post<Role, CreateRole>(`/networks/${networkId}/roles/`, {
+      name: localForm.value.name.trim(),
+      description: localForm.value.description.trim(),
+      isDefault: localForm.value.isDefault,
     });
+
+    const roleId = response.data.id;
+
+    await Promise.all([
+      ...localForm.value.permissionIds.map(permId => api.post(`/networks/${networkId}/roles/${roleId}/permissions/${permId}/`, {})),
+    ]);
+
     await networkState.fetchNetwork(networkState.network.value!.id);
+
     showAddRoleModal.value = false;
   } catch (err) {
     console.error('Error adding role:', err);
@@ -314,18 +334,35 @@ async function addRoleToNetwork(roleData: { roleId: string }) {
   }
 }
 
-async function updateRolePermissions(localForm: ManageRoleForm) {
+async function updateRolePermissions(localForm: Ref<RoleForm>) {
   if (!selectedRole.value) return;
 
   globalStore.startFetching();
   isSubmitting.value = true;
   try {
-    await api.patch(`/roles/${selectedRole.value.id}/`, {
-      permissionIds: localForm.permissionIds
-    });
+    const networkId = networkState.network.value!.id;
+    const roleId = selectedRole.value!.id;
+
+    const addedPerms = localForm.value.permissionIds.filter(permId => !manageRoleForm.permissionIds.includes(permId));
+    const removedPerms = manageRoleForm.permissionIds.filter(permId => !localForm.value.permissionIds.includes(permId));
+
+    await api.put<Role, UpdateRole>(`/networks/${networkId}/roles/${roleId}`, {
+      name: localForm.value.name.trim(),
+      description: localForm.value.description.trim(),
+      isDefault: localForm.value.isDefault,
+    })
+
+    const hasChanges = addedPerms.length || removedPerms.length;
+
+    if (hasChanges) {
+      await Promise.all([
+        ...addedPerms.map(permId => api.post(`/networks/${networkId}/roles/${roleId}/permissions/${permId}/`, {})),
+        ...removedPerms.map(permId => api.delete(`/networks/${networkId}/roles/${roleId}/permissions/${permId}/`)),
+      ]);
+    }
+    
     await networkState.fetchNetwork(networkState.network.value!.id);
     showManageRoleModal.value = false;
-    manageRoleForm.permissionIds = localForm.permissionIds
   } catch (err) {
     console.error('Error updating role permissions:', err);
   } finally {
@@ -338,10 +375,7 @@ async function addAccessToNetwork(accessData: { accessId: string, isRequired: bo
   globalStore.startFetching();
   isSubmitting.value = true;
   try {
-    await api.post(`/networks/${networkState.network.value!.id}/accesses/`, {
-      accessId: accessData.accessId,
-      isRequired: accessData.isRequired
-    });
+    await api.post(`/networks/${networkState.network.value!.id}/accesses/${accessData.accessId}?IsRequired=${accessData.isRequired}`, {});
     await networkState.fetchNetwork(networkState.network.value!.id);
     showAddAccessModal.value = false;
   } catch (err) {
@@ -354,5 +388,6 @@ async function addAccessToNetwork(accessData: { accessId: string, isRequired: bo
 
 function confirmAction() {
   confirmationAction.value();
+  showConfirmationModal.value = false;
 }
 </script>
