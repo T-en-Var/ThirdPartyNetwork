@@ -48,22 +48,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive } from 'vue';
 import { useRouter } from 'vue-router';
-import type { Role, Access } from '@/types';
-// import { useAxios } from '@/composables/useAxios';
+import type { ErrorMessage, Network, CreateNetwork } from '@/types';
 import api from '@/api/api';
+import { useGlobalStore } from '@/stores/global'
+import type { AxiosError } from 'axios';
 
 const router = useRouter();
-// const { axiosInstance } = useAxios();
-
-const availableRoles = ref<Role[]>([]);
-const loadingRoles = ref(true);
-const rolesError = ref('');
-
-const availableAccesses = ref<Access[]>([]);
-const loadingAccesses = ref(true);
-const accessesError = ref('');
+const global = useGlobalStore();
 
 const isSubmitting = ref(false);
 
@@ -75,84 +68,27 @@ const formData = reactive({
   requiredAccesses: {} as Record<string, boolean>
 });
 
-onMounted(async () => {
-  await Promise.all([
-    fetchRoles(),
-    fetchAccesses()
-  ]);
-});
-
-async function fetchRoles() {
-  loadingRoles.value = true;
-  rolesError.value = '';
-  
-  try {
-    const response = await api.get<Role[]>('/api/roles/');
-    availableRoles.value = response.data.results || [];
-  } catch (error: any) {
-    rolesError.value = error.response?.data?.message || 'Failed to fetch roles';
-    console.error('Error fetching roles:', error);
-  } finally {
-    loadingRoles.value = false;
-  }
-}
-
-async function fetchAccesses() {
-  loadingAccesses.value = true;
-  accessesError.value = '';
-  
-  try {
-    const response = await api.get<Access[]>('/api/accesses/');
-    availableAccesses.value = response.data.results || [];
-  } catch (error: any) {
-    accessesError.value = error.response?.data?.message || 'Failed to fetch accesses';
-    console.error('Error fetching accesses:', error);
-  } finally {
-    loadingAccesses.value = false;
-  }
-}
-
 async function handleSubmit() {
+  global.startFetching();
   isSubmitting.value = true;
   
   try {
     // First create the network
-    const networkResponse = await api.post('/api/networks/', {
+    const networkResponse = await api.post<Network, CreateNetwork>('/networks/', {
       name: formData.name,
-      isSystemProtected: formData.isSystemProtected
     });
     
     const networkId = networkResponse.data.id;
     
-    // Add selected roles
-    if (formData.selectedRoles.length > 0) {
-      await Promise.all(formData.selectedRoles.map(roleId => 
-        api.post('/api/network-roles/', {
-          networkId,
-          roleId
-        })
-      ));
-    }
-    
-    // Add selected accesses
-    if (formData.selectedAccesses.length > 0) {
-      await Promise.all(formData.selectedAccesses.map(accessId => 
-        api.post('/api/network-accesses/', {
-          networkId,
-          accessId,
-          isRequired: !!formData.requiredAccesses[accessId]
-        })
-      ));
-    }
-    
     // Navigate to the network management page
-    router.push(`/networks/${networkId}`);
-  } catch (error: any) {
+    router.push(`/networks/${networkId}/manage`);
+  } catch (error) {
     console.error('Error creating network:', error);
-    alert(error.response?.data?.message || 'Failed to create network');
+    alert((error as AxiosError<ErrorMessage>).response?.data?.message || 'Failed to create network');
   } finally {
     isSubmitting.value = false;
-  }
+  global.stopFetching();
+}
 }
 
 function navigateBack() {

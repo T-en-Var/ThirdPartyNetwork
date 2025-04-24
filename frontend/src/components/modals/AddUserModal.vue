@@ -71,6 +71,9 @@ import { ref, onMounted } from 'vue';
 import ModalContainer from '@/components/modals/ModalContainer.vue';
 import api from '@/api/api';
 import type { UserProxy, Network, Role } from '@/types';
+import { useGlobalStore } from '@/stores/global';
+
+const global = useGlobalStore();
 
 const props = defineProps<{
   network: Network;
@@ -89,11 +92,12 @@ const availableRoles = ref<Role[]>([]);
 const loadingUsers = ref(true);
 
 onMounted(async () => {
+  global.startFetching();
   loadingUsers.value = true;
   
   try {
     // Get all users that aren't already in the network
-    const response = await api.get<UserProxy[]>('/api/users/');
+    const response = await api.get<UserProxy[]>('/users/');
     const allUsers = response.data || [];
     
     // Filter out users that are already in the network
@@ -106,7 +110,8 @@ onMounted(async () => {
     console.error('Error fetching users:', error);
   } finally {
     loadingUsers.value = false;
-  }
+  global.stopFetching();
+}
 });
 
 function handleSubmit() {

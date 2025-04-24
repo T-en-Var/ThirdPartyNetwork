@@ -10,3 +10,7 @@ export interface Network {
   networkUsers: NetworkUser[],
   isSystemProtected: boolean,
 }
+
+export interface CreateNetwork {
+  name: string,
+}

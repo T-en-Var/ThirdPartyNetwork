@@ -4,6 +4,7 @@ import { type InternalAxiosRequestConfig } from 'axios';
 import type { TokenPair, UserProxy } from '@/types';
 import rawApi from '@/api/rawApi';
 import api from '@/api/api';
+import { useGlobalStore } from './global';
 
 export const useAuthStore = defineStore('auth', () => {
     const accessToken = ref<string | null>(null);
@@ -18,8 +19,12 @@ export const useAuthStore = defineStore('auth', () => {
 
     const currentUser = ref<UserProxy | null>(null);
 
+    const global = useGlobalStore();
+
     async function login(username: string, password: string) {
+        global.startFetching();
         const response = await rawApi.post<TokenPair>('/auth/login', { username, password });
+        global.startFetching();
 
         if (response.status != 200) return response;
 
@@ -28,6 +33,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     async function signUp(username: string, email: string, firstname: string, lastname: string, password: string) {
+        global.startFetching();
         const response = await rawApi.post<TokenPair>('/auth/register', {
             username: username,
             firstName: firstname,
@@ -35,6 +41,7 @@ export const useAuthStore = defineStore('auth', () => {
             email: email,
             password: password
         });
+        global.stopFetching();
 
         if (response.status != 201) return response;
 
@@ -50,7 +57,9 @@ export const useAuthStore = defineStore('auth', () => {
     async function getUser() {
         if (currentUser.value) return currentUser.value;
 
+        global.startFetching();
         const response = await api.get<UserProxy>("/me");
+        global.stopFetching();
 
         if (response.status != 200) {
             logout()
@@ -104,6 +113,7 @@ export const useAuthStore = defineStore('auth', () => {
                 throw new Error("No refresh token available");
             }
 
+            global.startFetching();
             const response = await rawApi.post('/auth/refresh', {
                 refresh_token: refreshToken.value
             });
@@ -114,6 +124,8 @@ export const useAuthStore = defineStore('auth', () => {
             console.error("Failed to refresh token", error);
             clearTokens();
             return null;
+        } finally {
+            global.stopFetching();
         }
     }
 
@@ -172,20 +184,20 @@ export const useAuthStore = defineStore('auth', () => {
 
     return {
         applyHeaders,
-        saveTokens, 
-        clearTokens, 
-        refreshTokens, 
-        isAuthenticated, 
-        isAdmin, 
-        login, 
-        signUp, 
-        logout, 
-        getUserId, 
+        saveTokens,
+        clearTokens,
+        refreshTokens,
+        isAuthenticated,
+        isAdmin,
+        login,
+        signUp,
+        logout,
+        getUserId,
         getUser,
-        setModelOpen, 
-        isModelOpen, 
-        setModelMode, 
-        modelMode, 
+        setModelOpen,
+        isModelOpen,
+        setModelMode,
+        modelMode,
         setModelOpenCallback,
     };
 });

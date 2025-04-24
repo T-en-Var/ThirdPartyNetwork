@@ -5,10 +5,12 @@
 
   <main>
     <RouterView />
+    <FetchingToast />
   </main>
 </template>
 
 <script setup lang="ts">
+import FetchingToast from '@/components/toasts/FetchingToast.vue';
 import { RouterView } from 'vue-router'
 import NavBar from '@/components/NavBar.vue';
 </script>
