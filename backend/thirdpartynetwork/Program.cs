@@ -105,10 +105,11 @@ var permissions = typeof(Constants.Permissions).GetFields()
 //     .AddPolicy("NetworkAdminPolicy", policy =>
 //         policy.Requirements.Add(new NetworkAdminRequirement("networkId")));
 
-foreach (var permission in permissions)
-    builder.Services.AddAuthorizationBuilder()
-        .AddPolicy($"Permission:{permission}", policy =>
-            policy.Requirements.Add(new PermissionRequirement(permission!)));
+// foreach (var permission in permissions)
+//     builder.Services.AddAuthorizationBuilder()
+//         .AddPolicy($"Permission:{permission}", policy =>
+//             policy.Requirements.Add(new PermissionRequirement(permission!)));
+builder.Services.AddSingleton<IAuthorizationPolicyProvider, DynamicPermissionPolicyProvider>();
 
 // Add services to the container.
 builder.Services.AddControllers();

@@ -43,7 +43,7 @@ public class NetworkUserAccessController(INetworkUserAccessService service, IMap
     // }
 
     [HttpPut("{accessId:guid}")]
-    [RequirePermission(Constants.Permissions.SystemManaged)]
+    [RequirePermission(Constants.Permissions.IsNetworkUserOwner, Constants.Permissions.SystemManaged)]
     [ProducesResponseType(200, Type = typeof(NetworkUserAccessDto))]
     [ProducesResponseType(404)]
     public IActionResult UpdateNetworkUserPermission(Guid networkId, Guid networkUserId, Guid accessId,

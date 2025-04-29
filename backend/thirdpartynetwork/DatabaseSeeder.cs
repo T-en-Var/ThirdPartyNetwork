@@ -16,7 +16,10 @@ namespace thirdpartynetwork
             Network network = new()
             {
                 Name = Constants.Networks.Main,
+                Description = "Thirdpartynetwork's main network",
+                ImageUrl = "/src/images/logo_transparent.png",
                 IsSystemProtected = true,
+                IsPublic = true,
             };
 
             Permission administrator = new()
@@ -172,6 +175,7 @@ namespace thirdpartynetwork
                 Description = "Application Administrator",
                 IsSystemProtected = true,
                 Network = network,
+                IsDefault = false,
             };
 
             adminRole.RolePermissions =
@@ -185,6 +189,7 @@ namespace thirdpartynetwork
                 Description = "Application User",
                 IsSystemProtected = true,
                 Network = network,
+                IsDefault = true,
             };
 
             userRole.RolePermissions =
@@ -199,7 +204,7 @@ namespace thirdpartynetwork
                 LastName = "Noodle",
                 Email = "admin.noodle@gmail.com",
                 Password = passwordHasher.HashPassword("Admin"),
-                ProfilePicture =
+                ImageUrl =
                     "https://cdn.discordapp.com/avatars/196606443703631874/a_336c3be4f4e5c1ba3563c74a7cc065da.gif?size=1024",
                 IsDefault = true,
                 User = new User()
@@ -267,7 +272,7 @@ namespace thirdpartynetwork
                 {
                     Access = accessUsername,
                     Network = network,
-                    IsRequired = true,
+                    IsRequired = false,
                     IsSystemProtected = true,
                 },
                 new NetworkAccess
@@ -295,7 +300,7 @@ namespace thirdpartynetwork
                 {
                     Access = accessProfilePicture,
                     Network = network,
-                    IsRequired = true,
+                    IsRequired = false,
                     IsSystemProtected = true,
                 },
             ];

@@ -5,8 +5,9 @@ namespace thirdpartynetwork.Application.Auth.Requirements;
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, AllowMultiple = true)]
 public class RequirePermissionAttribute : AuthorizeAttribute
 {
-    public RequirePermissionAttribute(string permission)
+    public RequirePermissionAttribute(params string[] permissions)
     {
-        Policy = $"Permission:{permission}";
+        var policyKey = string.Join(",", permissions);
+        Policy = $"Permission:{policyKey}";
     }
 }

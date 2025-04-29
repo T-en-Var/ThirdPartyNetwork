@@ -8,6 +8,9 @@ namespace thirdpartynetwork.Core.Helper
     {
         public async Task InvokeAsync(HttpContext context)
         {
+            Console.WriteLine("REQUEST: " + context.Request.Path);
+            Console.WriteLine("REQUEST: " + context.Request.Path);
+            Console.WriteLine("REQUEST: " + context.Request.Path);
             try
             {
                 await next(context);

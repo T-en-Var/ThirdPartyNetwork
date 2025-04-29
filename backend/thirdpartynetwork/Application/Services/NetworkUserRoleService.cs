@@ -74,7 +74,7 @@ namespace thirdpartynetwork.Application.Services
 
         public bool DeleteByIds(Guid networkId, Guid networkUserId, Guid roleId)
         {
-            var networkUserRole = repository.GetByIds(networkId, networkId, roleId);
+            var networkUserRole = repository.GetByIds(networkId, networkUserId, roleId);
             return networkUserRole != null && repository.Delete(networkUserRole);
         }
     }

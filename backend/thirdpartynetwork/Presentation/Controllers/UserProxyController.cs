@@ -20,7 +20,7 @@ public class UserProxyController(IUserProxyService service, IMapper mapper, INet
     }
 
     [HttpGet("{userProxyId:guid}")]
-    [RequirePermission(Constants.Permissions.ReadUser)]
+    [RequirePermission(Constants.Permissions.ReadUser, Constants.Permissions.IsUserProxyOwner)]
     [ProducesResponseType(200, Type = typeof(UserProxyDto))]
     [ProducesResponseType(404)]
     public IActionResult GetProxy(Guid userId, Guid userProxyId)
@@ -30,7 +30,7 @@ public class UserProxyController(IUserProxyService service, IMapper mapper, INet
     }
     
     [HttpPost]
-    [RequirePermission(Constants.Permissions.ManageUser)]
+    [RequirePermission(Constants.Permissions.IsUserProxyOwner)]
     [ProducesResponseType(201, Type = typeof(UserProxyDto))]
     [ProducesResponseType(404)]
     public IActionResult Create(Guid userId, CreateUserProxyDto createUserProxy)
@@ -40,7 +40,7 @@ public class UserProxyController(IUserProxyService service, IMapper mapper, INet
     }
 
     [HttpPut("{userProxyId:guid}")]
-    [RequirePermission(Constants.Permissions.ManageUser)]
+    [RequirePermission(Constants.Permissions.IsUserProxyOwner)]
     [ProducesResponseType(200, Type = typeof(UserProxyDto))]
     [ProducesResponseType(404)]
     public IActionResult Update(Guid userId, Guid userProxyId, UpdateUserProxyDto updateUserProxy)
@@ -50,7 +50,7 @@ public class UserProxyController(IUserProxyService service, IMapper mapper, INet
     }
 
     [HttpDelete("{userProxyId:guid}")]
-    [RequirePermission(Constants.Permissions.ManageUser)]
+    [RequirePermission(Constants.Permissions.IsUserProxyOwner)]
     [ProducesResponseType(204)]
     public IActionResult Delete(Guid userId, Guid userProxyId)
     {
@@ -59,7 +59,7 @@ public class UserProxyController(IUserProxyService service, IMapper mapper, INet
     }
 
     [HttpGet("{userProxyId:guid}/networks")]
-    [RequirePermission(Constants.Permissions.ManageUser)]
+    [RequirePermission(Constants.Permissions.ReadUser, Constants.Permissions.IsUserProxyOwner)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<NetworkDto>))]
     public IActionResult GetNetworks(Guid userId, Guid userProxyId)
     {

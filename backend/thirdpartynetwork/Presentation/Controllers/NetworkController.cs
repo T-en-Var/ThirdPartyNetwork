@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using thirdpartynetwork.Application.Auth.Requirements;
 using thirdpartynetwork.Core;
@@ -10,7 +11,7 @@ namespace thirdpartynetwork.Presentation.Controllers;
 public class NetworkController(INetworkService service, IMapper mapper) : ControllerBase
 {
     [HttpGet]
-    [RequirePermission(Constants.Permissions.ReadNetwork)]
+    [Authorize]
     [ProducesResponseType(200, Type = typeof(IEnumerable<NetworkDto>))]
     public IActionResult GetNetworks()
     {
@@ -25,6 +26,16 @@ public class NetworkController(INetworkService service, IMapper mapper) : Contro
     public IActionResult GetNetworkById(Guid networkId)
     {
         var network = service.GetById(networkId);
+        return network != null ? Ok(mapper.Map<NetworkDto>(network)) : NotFound();
+    }
+
+    [HttpGet("{networkId:guid}/details")]
+    [Authorize]
+    [ProducesResponseType(200, Type = typeof(NetworkDto))]
+    [ProducesResponseType(404)]
+    public IActionResult GetNetworkDetailsById(Guid networkId)
+    {
+        var network = service.GetDetailsById(networkId);
         return network != null ? Ok(mapper.Map<NetworkDto>(network)) : NotFound();
     }
 

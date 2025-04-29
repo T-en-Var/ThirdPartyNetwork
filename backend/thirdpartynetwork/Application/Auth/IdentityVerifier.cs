@@ -16,30 +16,32 @@ public class IdentityVerifier(DataContext context) : IIdentityVerifier
 
     public bool IsUserOwner(Guid userProxyId, Guid targetUserId)
     {
-        return true;
-        // var userProxyQueryable = userProxyService.GetByIdQueryable(userProxyId);
-        //
-        // return userProxyQueryable.Any(u => u.User.Id == targetUserId);
+        var userProxyQueryable = context.UserProxies;
+        
+        return userProxyQueryable.Any(u => u.User.Id == targetUserId);
     }
 
     public bool IsUserProxyOwner(Guid userProxyId, Guid targetUserProxyId)
     {
-        return true;
-        // if (userProxyId == targetUserProxyId) return true;
-        //
-        // var userProxyQueryable = userProxyService.GetByIdQueryable(userProxyId);
-        //
-        // return userProxyQueryable.Any(u => 
-        //     u.User.UserProxies.Any(n => n.Id == targetUserProxyId));
+        Console.WriteLine("Checking UserProxy: " + userProxyId + " -> target: " + targetUserProxyId);
+        if (userProxyId == targetUserProxyId) return true;
+        
+        var userProxyQueryable = context.UserProxies;
+        
+        return userProxyQueryable.Any(u => 
+            u.User.UserProxies.Any(n => n.Id == targetUserProxyId));
     }
 
     public bool IsNetworkUserOwner(Guid userProxyId, Guid targetNetworkUserId)
     {
-        return true;
-        // var userProxyQueryable = userProxyService.GetByIdQueryable(userProxyId);
-        //
-        // return userProxyQueryable.Any(n => 
-        //     n.NetworkUsers.Any(u => u.Id == targetNetworkUserId));
+        Console.WriteLine("Checking NetworkUser: " + userProxyId + " -> target: " + targetNetworkUserId);
+        var userProxyQueryable = context.UserProxies.AsQueryable();
+        userProxyQueryable = userProxyQueryable.Where(u => u.Id == userProxyId);
+        
+        return userProxyQueryable
+            .Any(u => u.User.UserProxies
+                .Any(u2 => u2.NetworkUsers
+                    .Any(n => n.Id == targetNetworkUserId)));
     }
 
     public bool IsAllowed(Guid networkId, Guid userProxyId, string permissionName)

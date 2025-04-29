@@ -46,6 +46,7 @@ namespace thirdpartynetwork.Tests.Auth
                 null
             );
         }
+        #pragma warning restore CS8618
 
         [Test]
         public async Task HandleRequirementAsync_UserHasPermission_Succeeds()
