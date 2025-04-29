@@ -1,66 +1,80 @@
 <template>
-  <div class="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-    <div class="p-6">
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-lg font-semibold text-gray-800">{{ network.name }}</h2>
-        <span 
-          class="px-3 py-1 rounded-full text-xs font-medium"
-          :class="network.isSystemProtected ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'"
-        >
-          {{ network.isSystemProtected ? 'Protected' : 'Standard' }}
-        </span>
-      </div>
-      
-      <div class="mb-4">
-        <p class="text-sm text-gray-600 mb-2">Network Users</p>
-        <div class="flex -space-x-2">
-          <template v-if="network.networkUsers && network.networkUsers.length">
-            <div 
-              v-for="user in network.networkUsers.slice(0, 3)" 
-              :key="user.id" 
-              class="inline-block h-8 w-8 rounded-full border-2 border-white"
-            >
-              <img 
-                :src="isValidHttpUrl(user.userProxy.profilePicture) ? user.userProxy.profilePicture : `https://ui-avatars.com/api/?name=${user.userProxy.firstName}+${user.userProxy.lastName}&background=random`" 
-                :alt="user.userProxy.username" 
-                class="h-full w-full rounded-full object-cover"
-              />
-            </div>
-            <div 
-              v-if="network.networkUsers.length > 3" 
-              class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-xs text-gray-600 border-2 border-white"
-            >
-              +{{ network.networkUsers.length - 3 }}
-            </div>
-          </template>
-          <p v-else class="text-sm text-gray-500">No users</p>
+  <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+    <div class="p-4">
+      <div class="flex items-center mb-3">
+        <div class="logo-container">
+          <div class="logo">
+            <img
+              :src="network?.imageUrl ? network?.imageUrl : `https://ui-avatars.com/api/?name=${network?.name}&size=24&background=random`"
+              :alt="network?.name" />
+          </div>
+        </div>
+        <div class="flex justify-between items-center w-full">
+          <div class="ml-3">
+            <h2 class="text-lg font-semibold text-gray-800">{{ network.name }}</h2>
+            <p class="text-sm text-gray-600">{{ network.networkUsers?.length || 0 }} members</p>
+          </div>
+          <span v-if="network.isSystemProtected"
+            class="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+            Protected
+          </span>
         </div>
       </div>
-      
+
+      <p class="text-gray-600 text-sm mb-4 line-clamp-2">{{ network.description || 'No description available' }}</p>
+
       <div class="flex justify-between items-center border-t border-gray-200 pt-4 mt-4">
-        <div class="text-sm text-gray-500">
-          <span>Total Users: {{ network.networkUsers?.length || 0 }}</span>
-        </div>
-        <div class="flex space-x-2">
-          <button class="text-blue-600 hover:text-blue-800 text-sm">
-            Details
-          </button>
-          <RouterLink :to="`networks/${network.id}/manage`" class="text-gray-600 hover:text-gray-800 text-sm">
-            Manage
-          </RouterLink>
-        </div>
+        <RouterLink :to="`/networks/${network.id}`" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+          View Details
+        </RouterLink>
+
+        <button v-if="showJoin" @click="$emit('joinNetwork', network)"
+          class="bg-blue-100 text-blue-700 hover:bg-blue-200 px-3 py-1 rounded-md text-sm font-medium">
+          Join Network
+        </button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { isValidHttpUrl } from '@/lib/utils';
 import type { Network } from '@/types';
-import { defineProps } from 'vue';
-import { RouterLink } from 'vue-router';
+// import { isValidHttpUrl } from '@/lib/utils';
 
 defineProps<{
   network: Network;
+  showJoin?: boolean;
+}>();
+
+defineEmits<{
+  (e: 'joinNetwork', network: Network): void;
 }>();
 </script>
+
+<style scoped>
+.logo-container {
+  top: 16px;
+  left: 16px;
+  z-index: 10;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.logo img {
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 6px;
+  object-fit: contain;
+}
+</style>

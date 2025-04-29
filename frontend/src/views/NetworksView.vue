@@ -1,28 +1,52 @@
+<!-- NetworksPage.vue -->
 <template>
   <div class="container mx-auto px-4 py-8">
     <div class="bg-white shadow-md rounded-lg overflow-hidden">
       <div class="bg-gray-100 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-        <h1 class="text-2xl font-semibold text-gray-800">Your Networks</h1>
+        <h1 class="text-2xl font-semibold text-gray-800">Networks</h1>
         <RouterLink to="/networks/create" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">
-          + Add Network
+          + Create Network
         </RouterLink>
       </div>
-      
-      <div v-if="loading" class="p-6 text-center">
-        <div class="spinner-border text-blue-500" role="status">
-          <span class="sr-only">Loading...</span>
-        </div>
+
+      <div class="border-b border-gray-200">
+        <nav class="flex">
+          <button
+            @click="activeTab = 'my-networks'"
+            class="px-6 py-4 font-medium text-sm"
+            :class="activeTab === 'my-networks' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-600 hover:text-gray-800'"
+          >
+            My Networks
+          </button>
+          <button
+            @click="activeTab = 'browse-networks'"
+            class="px-6 py-4 font-medium text-sm"
+            :class="activeTab === 'browse-networks' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-600 hover:text-gray-800'"
+          >
+            Browse Networks
+          </button>
+        </nav>
       </div>
-      
-      <div v-else-if="error" class="p-6 bg-red-50 text-red-600">
-        <p class="font-medium">Error: {{ error }}</p>
+
+      <div v-if="networksState.loading.value || userNetworksState.loading.value" class="p-6 text-center">
+        <span>Loading...</span>
       </div>
-      
-      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
-        <NetworkCard 
-          v-for="network in networks" 
-          :key="network.id" 
-          :network="network"
+
+      <div v-else-if="networksState.error.value || userNetworksState.error.value" class="p-6 bg-red-50 text-red-600">
+        <p class="font-medium">Error: {{ networksState.error || userNetworksState.error }}</p>
+      </div>
+
+      <div v-else class="p-6">
+        <!-- My Networks Tab -->
+        <my-networks-tab
+          v-if="activeTab === 'my-networks'"
+          :networks="userNetworksState.networks.value"
+        />
+        
+        <!-- Browse Networks Tab -->
+        <browse-networks-tab
+          v-if="activeTab === 'browse-networks'"
+          :networks="filteredNetworks"
         />
       </div>
     </div>
@@ -30,14 +54,24 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue';
-import useUsersNetworks from '@/composables/useUsersNetworks';
-import NetworkCard from '@/components/NetworkCard.vue';
+import { ref, onMounted, computed } from 'vue';
+import useNetworks from '@/composables/useNetworks';
+import MyNetworksTab from '@/components/tabs/MyNetworksTab.vue';
+import BrowseNetworksTab from '@/components/tabs/BrowseNetworksTab.vue';
+import useUsersNetworks from '@/composables/useUserNetworks';
 
-const { networks, loading, error, fetchUsersNetworks } = useUsersNetworks();
+const activeTab = ref('my-networks');
+const networksState = useNetworks();
+const userNetworksState = useUsersNetworks()
 
-onMounted(() => {
-  fetchUsersNetworks();
+onMounted(async () => {
+  await networksState.fetchNetworks();
+  await userNetworksState.fetchUserNetworks();
+});
+
+const filteredNetworks = computed(() => {
+  const userNetworkIds = new Set(userNetworksState.networks.value.map(n => n.id));
+  return networksState.networks.value.filter(n => !userNetworkIds.has(n.id));
 });
 </script>
 
@@ -50,7 +84,6 @@ onMounted(() => {
   border-radius: 50%;
   animation: spinner-border 0.75s linear infinite;
 }
-
 @keyframes spinner-border {
   100% {
     transform: rotate(360deg);

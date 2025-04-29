@@ -14,6 +14,17 @@
         </p>
       </div>
 
+      <div class="rounded-md bg-gray-50 p-3">
+        <h4 class="text-sm font-medium text-gray-700">Description:</h4>
+        <input 
+          id="name" 
+          v-model="localForm.description" 
+          type="text"
+          class="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-600 focus:ring focus:ring-blue-100 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed transition-all"
+          :disabled="props.network.isSystemProtected"
+          required />
+      </div>
+
       <div class="flex items-center">
         <input id="isRequired" v-model="localForm.isPublic" type="checkbox"
           class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
@@ -65,11 +76,12 @@ const emit = defineEmits(['close', 'update']);
 const localForm = ref<NetworkForm>({
   name: '',
   isPublic: false,
+  description: '',
+  imageUrl: undefined,
 });
 
 onMounted(() => {
-  localForm.value.name = props.network.name;
-  localForm.value.isPublic = props.network.isPublic;
+  localForm.value = { ...props.network }
 });
 
 function handleSubmit() {

@@ -1,7 +1,8 @@
 <template>
   <div class="container mx-auto px-4 py-8">
-    <div class="bg-white shadow-md rounded-lg overflow-hidden">
-      <div class="bg-gray-100 px-6 py-4 border-b border-gray-200">
+    <div class="bg-white shadow-md rounded-lg overflow-hidden border border-gray-200">
+      <div class="bg-gray-100 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+        <!-- <h1 class="text-2xl font-semibold text-gray-800">Networks</h1> -->
         <h1 class="text-2xl font-semibold text-gray-800">Create New Network</h1>
       </div>
      
@@ -12,24 +13,78 @@
           @dismiss="error = ''" 
         />
       </div>
-      <!-- End Error Message Component -->
       
       <div class="p-6">
         <form @submit.prevent="handleSubmit">
-          <div class="mb-6">
-            <label for="networkName" class="block text-sm font-medium text-gray-700 mb-2">
-              Network Name
-            </label>
-            <input
-              id="networkName"
-              v-model="formData.name"
-              type="text"
-              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter network name"
-              required
-            />
+          <!-- Basic Network Information Section -->
+          <div class="mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <!-- Network Name -->
+              <div>
+                <label for="networkName" class="block text-sm font-medium text-gray-700 mb-2">
+                  Network Name <span class="text-red-500">*</span>
+                </label>
+                <input
+                  id="networkName"
+                  v-model="formData.name"
+                  type="text"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter network name"
+                  required
+                />
+                <p class="mt-1 text-xs text-gray-500">Network name must be unique across the system</p>
+              </div>
+              
+              <!-- Network Image URL -->
+              <div>
+                <label for="imageUrl" class="block text-sm font-medium text-gray-700 mb-2">
+                  Network Logo URL
+                </label>
+                <input
+                  id="imageUrl"
+                  v-model="formData.imageUrl"
+                  type="url"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="https://example.com/logo.png"
+                />
+                <p class="mt-1 text-xs text-gray-500">URL to the network's logo image (optional)</p>
+              </div>
+            </div>
+            
+            <!-- Network Description -->
+            <div class="mb-6">
+              <label for="description" class="block text-sm font-medium text-gray-700 mb-2">
+                Description
+              </label>
+              <textarea
+                id="description"
+                v-model="formData.description"
+                rows="3"
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Enter network description"
+              ></textarea>
+              <p class="mt-1 text-xs text-gray-500">Brief description of the network's purpose</p>
+            </div>
+            
+            <!-- Network Visibility -->
+            <div class="mb-6">
+              <div class="flex items-center">
+                <input
+                  id="isPublic"
+                  v-model="formData.isPublic"
+                  type="checkbox"
+                  class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <label for="isPublic" class="ml-2 block text-sm text-gray-700">
+                  Make this network public
+                </label>
+              </div>
+              <p class="mt-1 text-xs text-gray-500 ml-6">Public networks are discoverable by all users</p>
+            </div>
           </div>
-          <div class="flex justify-end space-x-3">
+          
+          <!-- Form Actions -->
+          <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
             <button
               type="button"
               class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
@@ -54,6 +109,7 @@
     </div>
   </div>
 </template>
+
 <script setup lang="ts">
 import { ref, reactive } from 'vue';
 import { useRouter } from 'vue-router';
@@ -70,10 +126,9 @@ const error = ref('');
 
 const formData = reactive({
   name: '',
-  isSystemProtected: false,
-  selectedRoles: [] as string[],
-  selectedAccesses: [] as string[],
-  requiredAccesses: {} as Record<string, boolean>
+  description: '',
+  isPublic: false,
+  imageUrl: undefined as string | undefined,
 });
 
 async function handleSubmit() {
@@ -83,14 +138,15 @@ async function handleSubmit() {
   isSubmitting.value = true;
  
   try {
-    // First create the network
     const networkResponse = await api.post<Network, CreateNetwork>('/networks/', {
       name: formData.name.trim(),
+      description: formData.description.trim(),
+      imageUrl: formData.imageUrl,
+      isPublic: formData.isPublic,
     });
    
     const networkId = networkResponse.data.id;
    
-    // Navigate to the network management page
     router.push(`/networks/${networkId}/manage`);
   } catch (err) {
     console.error('Error creating network:', err);

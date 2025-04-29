@@ -47,11 +47,7 @@
               class="flex items-center px-2 py-1 bg-white rounded-md border border-gray-200"
             >
               <div class="h-6 w-6 flex-shrink-0 mr-2">
-                <img
-                  :src="isValidHttpUrl(networkUser.userProxy.profilePicture) ? networkUser.userProxy.profilePicture : `https://ui-avatars.com/api/?name=${networkUser.userProxy.firstName}+${networkUser.userProxy.lastName}&size=24&background=random`"
-                  :alt="networkUser.userProxy.username"
-                  class="h-6 w-6 rounded-full"
-                />
+                <ProfileAvatar :userProxy="networkUser.userProxy" :size="6" />
               </div>
               <span class="text-xs">{{ networkUser.userProxy.firstName }} {{ networkUser.userProxy.lastName }}</span>
               <span 
@@ -78,7 +74,7 @@
 </template>
 
 <script setup lang="ts">
-import { isValidHttpUrl } from '@/lib/utils';
+import ProfileAvatar from '@/components/ProfileAvatar.vue'
 import type { Network, NetworkAccess, NetworkUser, NetworkUserAccess } from '@/types';
 
 const props = defineProps<{

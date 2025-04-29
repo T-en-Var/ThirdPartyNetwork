@@ -22,6 +22,12 @@ const router = createRouter({
       meta: {},
     },
     {
+      path: '/account',
+      name: 'account',
+      component: import('@/views/AccountView.vue'),
+      meta: {},
+    },
+    {
       path: '/networks',
       name: 'networks',
       component: import('@/views/NetworksView.vue'),
@@ -34,9 +40,21 @@ const router = createRouter({
       meta: {},
     },
     {
+      path: '/networks/:networkId',
+      name: 'info-network',
+      component: import('@/views/networks/InfoNetworkView.vue'),
+      meta: {},
+    },
+    {
       path: '/networks/:networkId/manage',
       name: 'manage-network',
       component: import('@/views/networks/ManageNetworkView.vue'),
+      meta: {},
+    },
+    {
+      path: '/networks/:networkId/join',
+      name: 'join-network',
+      component: import('@/views/networks/JoinNetworkView.vue'),
       meta: {},
     },
     {

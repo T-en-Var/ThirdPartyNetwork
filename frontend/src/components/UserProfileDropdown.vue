@@ -1,27 +1,21 @@
 <template>
-  <div class="user-profile-dropdown">
-    <button 
-      class="profile-button" 
-      @click="toggleDropdown" 
-      aria-haspopup="true"
-      :aria-expanded="isOpen"
-    >
+  <div class="user-profile-dropdown" v-if="user != null">
+    <button class="profile-button" @click="toggleDropdown" aria-haspopup="true" :aria-expanded="isOpen">
       <div class="avatar">
-        <img :src="isValidHttpUrl(user?.profilePicture)
-          ? user?.profilePicture
-          : `https://ui-avatars.com/api/?name=${user?.firstName}+${user?.lastName}&background=random`" />
+        <ProfileAvatar :userProxy="user!" />
         <!-- <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="user-icon">
           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
           <circle cx="12" cy="7" r="4"></circle>
         </svg> -->
       </div>
       <span class="dropdown-arrow" :class="{ 'open': isOpen }">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="arrow-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round" class="arrow-icon">
           <polyline points="6 9 12 15 18 9"></polyline>
         </svg>
       </span>
     </button>
-    
+
     <div v-if="isOpen" class="dropdown-menu">
       <div class="dropdown-header">
         <div class="user-info">
@@ -50,14 +44,20 @@
       </ul>
     </div>
   </div>
+  <div v-else class="flex items-center justify-center h-10 w-10 rounded-full bg-gray-100 animate-pulse">
+    <svg class="h-8 w-8 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+      stroke="currentColor">
+      <circle cx="12" cy="12" r="10" stroke-width="1"></circle>
+    </svg>
+  </div>
 </template>
 
 <script setup lang="ts">
+import ProfileAvatar from '@/components/ProfileAvatar.vue'
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router';
 import type { UserProxy } from '@/types';
-import { isValidHttpUrl } from '@/lib/utils';
 
 
 const authStore = useAuthStore();
@@ -91,8 +91,7 @@ const handleClickOutside = (event: MouseEvent) => {
 // Listen for clicks outside the dropdown
 onMounted(async () => {
   document.addEventListener('click', handleClickOutside);
-  user.value = await authStore.getUser();
-  console.log(user.value)
+  user.value = await authStore.getUserProxy();
 });
 
 // Clean up the event listener

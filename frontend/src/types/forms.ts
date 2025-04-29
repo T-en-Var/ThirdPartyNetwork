@@ -12,4 +12,6 @@ export type RoleForm = {
 export type NetworkForm = { 
   name: string;
   isPublic: boolean;
+  description: string,
+  imageUrl?: string,
 }

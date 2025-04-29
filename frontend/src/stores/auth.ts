@@ -1,7 +1,7 @@
 import { ref } from 'vue';
 import { defineStore } from 'pinia';
 import { type InternalAxiosRequestConfig } from 'axios';
-import type { TokenPair, UserProxy } from '@/types';
+import type { accessTokenClaims, TokenPair, UserProxy } from '@/types';
 import rawApi from '@/api/rawApi';
 import api from '@/api/api';
 import { useGlobalStore } from './global';
@@ -25,8 +25,12 @@ export const useAuthStore = defineStore('auth', () => {
 
     async function login(username: string, password: string) {
         global.startFetching();
-        const response = await rawApi.post<TokenPair>('/auth/login', { username, password });
-        global.startFetching();
+        let response;
+        try {
+            response = await rawApi.post<TokenPair>('/auth/login', { username, password });
+        } finally {
+            global.stopFetching();
+        }
 
         if (response.status != 200) return response;
 
@@ -36,14 +40,18 @@ export const useAuthStore = defineStore('auth', () => {
 
     async function signUp(username: string, email: string, firstname: string, lastname: string, password: string) {
         global.startFetching();
-        const response = await rawApi.post<TokenPair>('/auth/register', {
-            username: username,
-            firstName: firstname,
-            lastName: lastname,
-            email: email,
-            password: password
-        });
-        global.stopFetching();
+        let response;
+        try {
+            response = await rawApi.post<TokenPair>('/auth/register', {
+                username: username,
+                firstName: firstname,
+                lastName: lastname,
+                email: email,
+                password: password
+            });
+        } finally {
+            global.stopFetching();
+        }
 
         if (response.status != 201) return response;
 
@@ -56,27 +64,33 @@ export const useAuthStore = defineStore('auth', () => {
         currentUser.value = null;
     }
 
-    async function getUser() {
+    async function getUserProxy() {
         if (currentUser.value) return currentUser.value;
 
         global.startFetching();
-        const response = await api.get<UserProxy>("/me");
-        global.stopFetching();
+        let response;
+        try {
+            response = await api.get<UserProxy>("/me");
+        } finally {
+            global.stopFetching();
+        }
 
         if (response.status != 200) {
             logout()
             return null
         }
 
+        response.data.user.userProxies = response.data.user.userProxies.map(p => p == null ? response.data : p)
+
         currentUser.value = response.data;
         return currentUser.value;
     }
 
-    function getUserId() {
+    function getUserProxyId() {
         if (!isAuthenticated()) return "NotFound";
         const decodedPayload = decodeToken(accessToken.value!);
 
-        return decodedPayload.user_id;
+        return decodedPayload.uid;
     }
 
     function isAuthenticated() {
@@ -90,9 +104,9 @@ export const useAuthStore = defineStore('auth', () => {
 
     function isAdmin() {
         if (!isAuthenticated()) return false;
-        const decodedPayload = decodeToken(accessToken.value!);
+        // const decodedPayload = decodeToken(accessToken.value!);
 
-        return decodedPayload.is_admin == true;
+        return false;
     }
 
     function saveTokens(aToken: string, rToken: string) {
@@ -155,14 +169,9 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     function decodeToken(token: string) {
-        try {
-            const payload = token.split('.')[1];
-            const decodedPayload = JSON.parse(atob(payload));
-            return decodedPayload;
-        } catch (error) {
-            console.error('Error parsing JWT token:', error);
-            return true;
-        }
+        const payload = token.split('.')[1];
+        const decodedPayload = JSON.parse(atob(payload)) as accessTokenClaims;
+        return decodedPayload;
     }
 
     function isTokenExpired(token: string): boolean {
@@ -198,8 +207,8 @@ export const useAuthStore = defineStore('auth', () => {
         login,
         signUp,
         logout,
-        getUserId,
-        getUser,
+        getUserProxyId,
+        getUserProxy,
         setModelOpen,
         isModelOpen,
         setModelMode,

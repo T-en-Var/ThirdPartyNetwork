@@ -238,16 +238,15 @@ function confirmRemoveAccess(networkAccess: NetworkAccess) {
   showConfirmationModal.value = true;
 }
 
-async function updateNetwork(updatedData: NetworkForm) {
+async function updateNetwork(updatedData: Ref<NetworkForm>) {
   globalStore.startFetching();
   isSubmitting.value = true;
   try {
-    const response = await api.put<Network, UpdateNetwork>(`/networks/${networkState.network.value!.id}/`, updatedData);
-    console.log(response.data)
+    const response = await api.put<Network, UpdateNetwork>(`/networks/${networkState.network.value!.id}/`, updatedData.value);
     networkState.network.value = response.data;
     showEditNetworkModal.value = false;
   } catch (err) {
-    console.error('Error updating network:', err);
+    console.error(`Error updating network: ${err}`)
   } finally {
     isSubmitting.value = false;
     globalStore.stopFetching();

@@ -33,11 +33,7 @@
             <td class="px-6 py-4 whitespace-nowrap">
               <div class="flex items-center">
                 <div class="h-10 w-10 flex-shrink-0">
-                  <img
-                    :src="isValidHttpUrl(user.userProxy.profilePicture) ? user.userProxy.profilePicture : `https://ui-avatars.com/api/?name=${user.userProxy.firstName}+${user.userProxy.lastName}&background=random`"
-                    :alt="user.userProxy.username"
-                    class="h-10 w-10 rounded-full"
-                  />
+                  <ProfileAvatar :userProxy="user.userProxy" :size="10" />
                 </div>
                 <div class="ml-4">
                   <div class="text-sm font-medium text-gray-900">
@@ -99,7 +95,7 @@
 </template>
 
 <script setup lang="ts">
-import { isValidHttpUrl } from '@/lib/utils';
+import ProfileAvatar from '@/components/ProfileAvatar.vue'
 import type { Network, NetworkUser } from '@/types';
 
 defineProps<{

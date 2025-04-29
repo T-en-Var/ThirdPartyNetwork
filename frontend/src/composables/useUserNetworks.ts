@@ -14,11 +14,11 @@ export default function useUsersNetworks() {
   const global = useGlobalStore();
   const authStore = useAuthStore();
 
-  const fetchUsersNetworks = async () => {
+  const fetchUserNetworks = async () => {
     global.startFetching();
     loading.value = true;
     try {
-      const user = await authStore.getUser();
+      const user = await authStore.getUserProxy();
       if (!user) {
         loading.value = false;
         error.value = "No logged in user."
@@ -42,5 +42,5 @@ export default function useUsersNetworks() {
     }
   };
 
-  return { networks, loading, error, fetchUsersNetworks };
+  return { networks, loading, error, fetchUserNetworks };
 }
