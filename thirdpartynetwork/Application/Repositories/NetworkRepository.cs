@@ -60,6 +60,27 @@ namespace thirdpartynetwork.Application.Repositories
             return query;
         }
 
+        private IQueryable<Network> GetQueryableReduced(Guid id)
+        {
+            var query = _context.Networks.AsQueryable();
+            var currentUser = identityService.GetUserProxy(true);
+
+            var allowUsers = identityVerifier.IsAllowed(id, currentUser.Id, Constants.Permissions.ReadUser);
+            var allowAccess = identityVerifier.IsAllowed(id, currentUser.Id, Constants.Permissions.ReadAccess);
+            
+            if (allowUsers)
+                query = query
+                    .Include(x => x.NetworkUsers)
+                    .ThenInclude(x => x.UserProxy);
+            
+            if (allowAccess)
+                query = query
+                    .Include(x => x.NetworkAccesses)
+                    .ThenInclude(x => x.Access);
+            
+            return query;
+        }
+
         public bool Exists(Guid id)
         {
             return _context.Networks.Any(n => n.Id == id);
@@ -68,12 +89,23 @@ namespace thirdpartynetwork.Application.Repositories
         public ICollection<Network> GetAll()
         {
             var mainNetwork = GetMainNetwork();
-            return [.. GetQueryable(mainNetwork.Id)];
+            return [.. GetQueryableReduced(mainNetwork.Id)];
         }
 
         public Network? GetById(Guid id)
         {
             return GetQueryable(id).FirstOrDefault(x => x.Id == id);
+        }
+
+        public Network? GetDetailsById(Guid id)
+        {
+            var network = _context.Networks
+                .Include(x => x.NetworkAccesses)
+                .ThenInclude(x => x.Access)
+                .Include(x => x.NetworkUsers)
+                .ThenInclude(n => n.NetworkUserAccesses)
+                .FirstOrDefault(n => n.Id == id);
+            return network;
         }
 
         public Network GetMainNetwork()

@@ -15,11 +15,12 @@ namespace thirdpartynetwork.Application.Repositories
             var query = _context.UserProxies.AsQueryable();
 
             query = query
-                .Include(x => x.User);
+                .Include(x => x.User)
+                .ThenInclude(x => x.UserProxies);
             
             return query;
         }
-        // https://localhost:44363/api/users/01947669-2f72-7182-8d95-2b0f6d70b214/proxies/01947669-2f66-70fc-918d-ba8e10446232/networks
+
         public bool Exists(Guid userProxyId)
         {
             return _context.UserProxies.Any(up => up.Id == userProxyId);

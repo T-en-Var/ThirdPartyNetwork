@@ -2,21 +2,49 @@
 using thirdpartynetwork.Core;
 using thirdpartynetwork.Core.Models;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
+using thirdpartynetwork.Core.Interfaces.Auth;
 
 namespace thirdpartynetwork.Application.Services
 {
-    public class NetworkService(INetworkRepository repository, IMapper mapper) : INetworkService
+    public class NetworkService(INetworkRepository repository, IMapper mapper, IIdentityService identityService, IIdentityVerifier identityVerifier) : INetworkService
     {
+        private ICollection<Network> FilterNetworks(ICollection<Network> networks)
+        {
+            var currentUser = identityService.GetUserProxy();
+            return identityVerifier.IsSuperAdminOrHasSuperPermission(currentUser.Id, Constants.Permissions.ReadNetwork) 
+                ? networks 
+                : networks.Where(n => n.IsPublic).ToList();
+        }
+        
         public ICollection<Network> GetAll()
         {
             var networks = repository.GetAll();
-            return networks;
+            return FilterNetworks(networks);
         }
 
         public Network? GetById(Guid id)
         {
             var network = repository.GetById(id);
-            return network;
+            if (network == null) return null;
+            
+            var networks = FilterNetworks([ network ]);
+            networks = FilterNetworks(networks);
+            return networks.Count > 0 ? network : null;
+        }
+
+        public Network? GetDetailsById(Guid id)
+        {
+            var network = repository.GetDetailsById(id);
+            if (network == null) return null;
+            
+            var currentUser = identityService.GetUserProxy();
+
+            network.NetworkUsers = network.NetworkUsers
+                .Where(x => x.UserProxyId == currentUser.Id).ToList();
+            
+            var networks = FilterNetworks([ network ]);
+            networks = FilterNetworks(networks);
+            return networks.Count > 0 ? network : null;
         }
 
         public Network Create(CreateNetworkDto createNetworkDto)

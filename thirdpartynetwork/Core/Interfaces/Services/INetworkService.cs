@@ -7,6 +7,7 @@ namespace thirdpartynetwork.Core.Interfaces.Services
     {
         ICollection<Network> GetAll();
         Network? GetById(Guid networkId);
+        Network? GetDetailsById(Guid networkId);
         Network Create(CreateNetworkDto createNetworkDto);
         Network Update(Guid id, UpdateNetworkDto updateNetworkDto);
         bool DeleteById(Guid id);

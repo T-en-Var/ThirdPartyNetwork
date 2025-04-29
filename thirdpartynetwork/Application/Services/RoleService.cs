@@ -46,6 +46,7 @@ namespace thirdpartynetwork.Application.Services
             
             var role = mapper.Map<Role>(updateRole);
             role.Id = roleId;
+            role.NetworkId = networkId;
             
             role = repository.Update(networkId, role);
             return role;

@@ -12,7 +12,7 @@ namespace thirdpartynetwork.Presentation.Controllers;
 public class NetworkUserController(INetworkUserService service, IMapper mapper) : ControllerBase
 {
     [HttpGet]
-    [RequirePermission(Constants.Permissions.ReadUser)]
+    [RequirePermission(Constants.Permissions.ReadUser, Constants.Permissions.IsNetworkUserOwner)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<NetworkUserDto>))]
     public IActionResult GetNetworkUsers(Guid networkId)
     {
@@ -21,7 +21,7 @@ public class NetworkUserController(INetworkUserService service, IMapper mapper) 
     }
 
     [HttpGet("{networkUserId:guid}")]
-    [RequirePermission(Constants.Permissions.ManageUser)]
+    [RequirePermission(Constants.Permissions.ManageUser, Constants.Permissions.IsNetworkUserOwner)]
     [ProducesResponseType(200, Type = typeof(NetworkUserDto))]
     [ProducesResponseType(404)]
     public IActionResult GetNetworkUser(Guid networkId, Guid networkUserId)
@@ -31,7 +31,7 @@ public class NetworkUserController(INetworkUserService service, IMapper mapper) 
     }
 
     [HttpPost("{userProxyId:guid}")]
-    [RequirePermission(Constants.Permissions.ManageUser)]
+    [RequirePermission(Constants.Permissions.ManageUser, Constants.Permissions.IsUserProxyOwner)]
     [ProducesResponseType(201, Type = typeof(NetworkUser))]
     public IActionResult CreateNetworkUser(Guid networkId, Guid userProxyId, CreateNetworkUserDto networkUser)
     {
@@ -40,7 +40,7 @@ public class NetworkUserController(INetworkUserService service, IMapper mapper) 
     }
 
     [HttpPut("{networkUserId:guid}")]
-    [RequirePermission(Constants.Permissions.ManageUser)]
+    [RequirePermission(Constants.Permissions.ManageUser, Constants.Permissions.IsNetworkUserOwner)]
     [ProducesResponseType(200, Type = typeof(NetworkUserDto))]
     [ProducesResponseType(404)]
     public IActionResult UpdateNetworkUser(Guid networkId, Guid networkUserId, UpdateNetworkUserDto updateNetworkUser)
@@ -50,7 +50,7 @@ public class NetworkUserController(INetworkUserService service, IMapper mapper) 
     }
 
     [HttpDelete("{networkUserId:guid}")]
-    [RequirePermission(Constants.Permissions.ManageUser)]
+    [RequirePermission(Constants.Permissions.ManageUser, Constants.Permissions.IsNetworkUserOwner)]
     [ProducesResponseType(204)]
     public IActionResult DeleteNetworkUser(Guid networkId, Guid networkUserId)
     {

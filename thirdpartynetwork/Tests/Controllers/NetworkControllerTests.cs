@@ -24,14 +24,14 @@ namespace thirdpartynetwork.Tests.Controllers
 
             _networks = new List<Network>
             {
-                new() { Id = Guid.NewGuid(), Name = "TestNetwork1" },
-                new() { Id = Guid.NewGuid(), Name = "TestNetwork2" }
+                new() { Id = Guid.NewGuid(), Name = "TestNetwork1", Description = "", ImageUrl = "", IsPublic = true },
+                new() { Id = Guid.NewGuid(), Name = "TestNetwork2", Description = "", ImageUrl = "", IsPublic = false }
             };
 
             _networkDtos = new List<NetworkDto>
             {
-                new() { Id = _networks[0].Id, Name = "TestNetwork1", IsSystemProtected = true },
-                new() { Id = _networks[1].Id, Name = "TestNetwork2", IsSystemProtected = false }
+                new() { Id = _networks[0].Id, Name = "TestNetwork1", Description = "", IsSystemProtected = true, IsPublic = true },
+                new() { Id = _networks[1].Id, Name = "TestNetwork2", Description = "", IsSystemProtected = false, IsPublic = false }
             };
 
             _networkServiceMock.Setup(s => s.GetAll()).Returns(_networks);
@@ -84,9 +84,9 @@ namespace thirdpartynetwork.Tests.Controllers
         public void CreateNetwork_ShouldReturnCreatedResponse_WhenSuccessful()
         {
             // Arrange
-            var createDto = new CreateNetworkDto { Name = "NewNetwork" };
-            var network = new Network { Id = Guid.NewGuid(), Name = "NewNetwork" };
-            var networkDto = new NetworkDto { Id = network.Id, Name = "NewNetwork", IsSystemProtected = false };
+            var createDto = new CreateNetworkDto { Name = "NewNetwork", Description = "", ImageUrl = "", IsPublic = true};
+            var network = new Network { Id = Guid.NewGuid(), Name = "NewNetwork", Description = "", ImageUrl = "", IsPublic = true };
+            var networkDto = new NetworkDto { Id = network.Id, Name = "NewNetwork", Description = network.Description, ImageUrl = network.ImageUrl, IsPublic = true, IsSystemProtected = false };
 
             _networkServiceMock.Setup(s => s.Create(createDto)).Returns(network);
             _mapperMock.Setup(m => m.Map<NetworkDto>(network)).Returns(networkDto);
@@ -105,9 +105,9 @@ namespace thirdpartynetwork.Tests.Controllers
         {
             // Arrange
             var networkId = _networks[0].Id;
-            var updateDto = new UpdateNetworkDto { Name = "UpdatedNetwork" };
-            var network = new Network { Id = networkId, Name = "UpdatedNetwork" };
-            var networkDto = new NetworkDto { Id = networkId, Name = "UpdatedNetwork", IsSystemProtected = false };
+            var updateDto = new UpdateNetworkDto { Name = "UpdatedNetwork", IsPublic = true, Description = "a" };
+            var network = new Network { Id = networkId, Name = "UpdatedNetwork", IsPublic = true, Description = "a", ImageUrl = "a"};
+            var networkDto = new NetworkDto { Id = networkId, Name = "UpdatedNetwork", Description = "", IsPublic = true, IsSystemProtected = false };
 
             _networkServiceMock.Setup(s => s.Update(networkId, updateDto)).Returns(network);
             _mapperMock.Setup(m => m.Map<NetworkDto>(network)).Returns(networkDto);

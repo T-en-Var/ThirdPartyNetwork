@@ -20,6 +20,7 @@ namespace thirdpartynetwork.Core.Helper
 
             var message = exception.Message;
             
+            Console.WriteLine("Printing stack trace from GlobalExceptionHandler.");
             Console.WriteLine(exception.StackTrace);
 
             if (exception is BaseHttpException baseHttpException)
@@ -28,7 +29,7 @@ namespace thirdpartynetwork.Core.Helper
                 message = baseHttpException.ErrorMessage;
             }
 
-            return WriteResponseAsync(httpContext, httpContext.Response.StatusCode, message, exception.StackTrace);
+            return WriteResponseAsync(httpContext, httpContext.Response.StatusCode, message);
         }
 
         private async ValueTask<bool> WriteResponseAsync(HttpContext context, int statusCode, string message, string? details = null)

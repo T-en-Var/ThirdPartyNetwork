@@ -28,7 +28,7 @@ public class IdentityService(
                 Password = "anonymous",
                 FirstName = "Anonymous",
                 LastName = "Anonymous",
-                ProfilePicture = "https://www.shutterstock.com/image-vector/default-avatar-profile-icon-social-600nw-1677509740.jpg",
+                ImageUrl = "https://www.shutterstock.com/image-vector/default-avatar-profile-icon-social-600nw-1677509740.jpg",
                 IsDefault = true,
                 User = new User()
             };

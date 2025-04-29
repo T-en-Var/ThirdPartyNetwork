@@ -7,8 +7,9 @@ namespace thirdpartynetwork.Application.Dtos.Role
         public Guid Id { get; set; }
         public required string Name { get; set; }
         public required string Description { get; set; }
+        public required bool IsDefault { get; set; }
         public ICollection<RolePermissionDto> RolePermissions { get; set; } = [];
         public ICollection<NetworkUserRoleDto> NetworkUserRoles { get; set; } = [];
-        public NetworkDto Network { get; set; }
+        public required NetworkDto Network { get; set; }
     }
 }

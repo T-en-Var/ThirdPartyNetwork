@@ -42,6 +42,9 @@ public static class Constants
         public const string ReadRole = "Read Role";
         public const string ManageRole = "Manage Role";
 
+        public const string IsUserOwner = "IsUserOwner";
+        public const string IsNetworkUserOwner = "IsNetworkUserOwner";
+        public const string IsUserProxyOwner = "IsUserProxyOwner";
         public const string ReadUser = "Read User";
         public const string ManageUser = "Manage User";
 
@@ -56,11 +59,14 @@ public static class Constants
         // public const string TimoutUserAdmin = "Timout User Admin";
     }
 
-    public static string[] OwnerPermissions =
+    public static readonly string[] OwnerPermissions =
     [
-        Permissions.ManageUser,
-        Permissions.ReadUser,
-        Permissions.ReadContent,
-        Permissions.ManageContent,
+        Permissions.IsUserOwner,
+        Permissions.IsNetworkUserOwner,
+        Permissions.IsUserProxyOwner,
+        // Permissions.ManageUser,
+        // Permissions.ReadUser,
+        // Permissions.ReadContent,
+        // Permissions.ManageContent,
     ];
 }

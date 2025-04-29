@@ -5,6 +5,7 @@ public class Role
     public Guid Id { get; set; }
     public required string Name { get; set; }
     public required string Description { get; set; }
+    public required bool IsDefault { get; set; }
     public Guid NetworkId { get; set; }
     public ICollection<RolePermission> RolePermissions { get; set; } = new List<RolePermission>();
     public ICollection<NetworkUserRole> NetworkUserRoles { get; set; } = new List<NetworkUserRole>();

@@ -63,7 +63,8 @@ namespace thirdpartynetwork.Application.Services
 
         public NetworkUser Create(Guid networkId, Guid userProxyId, CreateNetworkUserDto createNetworkUser)
         {
-            if (networkService.GetById(networkId) == null) throw new NotFoundHttpException("Network not Found");
+            var network = networkService.GetDetailsById(networkId);
+            if (network == null) throw new NotFoundHttpException("Network not Found");
             if (userProxyService.GetById(userProxyId) == null) throw new NotFoundHttpException("UserProxy not Found");
 
             if (GetByIds(networkId, userProxyId) != null) throw new ConflictHttpException("NetworkUser already exists");
@@ -71,6 +72,16 @@ namespace thirdpartynetwork.Application.Services
             var networkUser = mapper.Map<NetworkUser>(createNetworkUser);
             networkUser.NetworkId = networkId;
             networkUser.UserProxyId = userProxyId;
+
+            foreach (var networkAccess in network.NetworkAccesses)
+            {
+                networkUser.NetworkUserAccesses.Add(new NetworkUserAccess()
+                {
+                    Access = networkAccess.Access,
+                    IsAccepted = networkAccess.IsRequired,
+                    NetworkUser = networkUser
+                });
+            }
 
             networkUser = repository.Create(networkUser);
             return networkUser;

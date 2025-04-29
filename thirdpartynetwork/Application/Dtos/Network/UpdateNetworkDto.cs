@@ -3,5 +3,8 @@
     public class UpdateNetworkDto
     {
         public required string Name { get; set; }
+        public required bool IsPublic { get; init; }
+        public required string Description { get; set; }
+        public string? ImageUrl { get; set; }
     }
 }
