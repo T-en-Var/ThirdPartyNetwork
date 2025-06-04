@@ -24,12 +24,26 @@ public class JtiCacheService : IJtiCacheService
 
         if (previousJti != null) AppendValidateJti(newTracker, previousJti);
 
+        Console.WriteLine("New Jti: " + newTracker.Jti);
         _jtiTrackers.Add(newTracker);
+        foreach (var t in _jtiTrackers)
+        {
+            Console.WriteLine($"Tracker Jti: {t.Jti}, Next: {t.Next?.Jti ?? "null"}, Expiration: {t.Expiration}");
+        }
     }
 
     private void AppendValidateJti(IJtiCacheService.JtiTracker newTracker, string previousJti)
     {
+        Console.WriteLine("Checking: " + previousJti);
         var previousTracker = _jtiTrackers.Find(t => t.Jti == previousJti);
+        Console.WriteLine("Previous Jti: " + previousTracker?.Jti);
+        Console.WriteLine("Tracker Count: " + _jtiTrackers.Count);
+        
+        foreach (var t in _jtiTrackers)
+        {
+            Console.WriteLine("Tracker Jti: " + t.Jti);
+        }
+        
         if (previousTracker == null) throw new UnauthorizedHttpException("Invalid token 4");
 
         if (previousTracker.Next != null)
@@ -72,6 +86,7 @@ public class JtiCacheService : IJtiCacheService
         
         foreach (var expiredTracker in expiredTrackers)
         {
+            Console.WriteLine("Removing Jti: " + expiredTracker.Jti);
             RemoveTrackerTree(expiredTracker);
         }
     }

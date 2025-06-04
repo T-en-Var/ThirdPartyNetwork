@@ -17,7 +17,7 @@ public class IdentityVerifier(DataContext context) : IIdentityVerifier
     public bool IsUserOwner(Guid userProxyId, Guid targetUserId)
     {
         var userProxyQueryable = context.UserProxies;
-        
+
         return userProxyQueryable.Any(u => u.User.Id == targetUserId);
     }
 
@@ -25,19 +25,21 @@ public class IdentityVerifier(DataContext context) : IIdentityVerifier
     {
         Console.WriteLine("Checking UserProxy: " + userProxyId + " -> target: " + targetUserProxyId);
         if (userProxyId == targetUserProxyId) return true;
-        
+
         var userProxyQueryable = context.UserProxies;
-        
-        return userProxyQueryable.Any(u => 
+
+        return userProxyQueryable.Any(u =>
             u.User.UserProxies.Any(n => n.Id == targetUserProxyId));
     }
 
     public bool IsNetworkUserOwner(Guid userProxyId, Guid targetNetworkUserId)
     {
-        Console.WriteLine("Checking NetworkUser: " + userProxyId + " -> target: " + targetNetworkUserId);
+        Console.WriteLine("[IdentityVerifier] Checking NetworkUser: " + userProxyId + " -> target: " + targetNetworkUserId);
+        if (userProxyId == targetNetworkUserId) return true;
+
         var userProxyQueryable = context.UserProxies.AsQueryable();
         userProxyQueryable = userProxyQueryable.Where(u => u.Id == userProxyId);
-        
+
         return userProxyQueryable
             .Any(u => u.User.UserProxies
                 .Any(u2 => u2.NetworkUsers
@@ -128,35 +130,39 @@ public class IdentityVerifier(DataContext context) : IIdentityVerifier
         bool includeMainNetwork,
         bool checkForAdmin)
     {
-        return GetMainNetwork().Any(network =>
-               network.NetworkUsers.Any(user =>
-                   user.UserProxyId == userProxyId &&
-                   user.NetworkUserRoles.Any(role =>
-                       (checkForAdmin
-                        && role.Role.Name == Constants.Roles.Admin)
-                       || (checkForAdmin
-                           && role.Role.RolePermissions.Any(p =>
-                               p.Permission.Name == Constants.Permissions.Administrator))
-                       || (!string.IsNullOrEmpty(permissionName)
-                           && role.Role.RolePermissions.Any(p =>
-                               p.Permission.Name == permissionName))
-                   )
-               )
-           ) 
-               || (includeNetworkId.HasValue && GetNetworkById(includeNetworkId.Value).Any(network =>
-               network.NetworkUsers.Any(user =>
-                   user.UserProxyId == userProxyId &&
-                   user.NetworkUserRoles.Any(role =>
-                       (checkForAdmin
-                        && role.Role.Name == Constants.Roles.Admin)
-                       || (checkForAdmin
-                           && role.Role.RolePermissions.Any(p =>
-                               p.Permission.Name == Constants.Permissions.Administrator))
-                       || (!string.IsNullOrEmpty(permissionName)
-                           && role.Role.RolePermissions.Any(p =>
-                               p.Permission.Name == permissionName))
-                   )
-               )
-           ));
+        Console.WriteLine("Checking Permission: " + permissionName + 
+                          ", with includeMainNetwork: " + includeMainNetwork +
+                          " and includeNetworkId.HasValue: " + includeNetworkId.HasValue);
+        return includeMainNetwork && CheckQueryable(GetMainNetwork(), permissionName, userProxyId, checkForAdmin)
+               || includeNetworkId.HasValue && CheckQueryable(GetNetworkById(includeNetworkId.Value), permissionName,
+                   userProxyId, checkForAdmin);
+    }
+
+    private static bool CheckQueryable(
+        IQueryable<Network> networkQueryable,
+        string? permissionName,
+        Guid userProxyId,
+        bool checkForAdmin)
+    {
+        var checkForPerm = !string.IsNullOrEmpty(permissionName);
+        Console.WriteLine("Checking Permission: " + permissionName + 
+                          ", with userProxyId: " + userProxyId +
+                          " and checkForAdmin: " + checkForAdmin + 
+                          " and checkForPerm: " + checkForPerm +
+                          ", network: " + networkQueryable.First().Name);
+        var result = networkQueryable.AsQueryable().Any(network =>
+            network.NetworkUsers.Any(nu =>
+                nu.UserProxyId == userProxyId &&
+                nu.NetworkUserRoles.Any(nur =>
+                    (checkForAdmin && nur.Role.RolePermissions.Any(p =>
+                            p.Permission.Name == Constants.Permissions.Administrator))
+                    || (!string.IsNullOrEmpty(permissionName)
+                        && nur.Role.RolePermissions.Any(rp =>
+                            rp.Permission.Name == permissionName))
+                )
+            )
+        );
+        Console.WriteLine($"Resulted in: {result}");
+        return result;
     }
 }

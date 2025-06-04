@@ -62,11 +62,48 @@ namespace thirdpartynetwork.Core.Helper
                 .ForMember(u => u.UserProxies, opt => opt.MapFrom(u => u.UserProxies));
             CreateMap<CreateUserDto, User>();
             CreateMap<UpdateUserDto, User>();
-            
+
             CreateMap<UserProxy, UserProxyDto>()
-                .ForMember(dest => dest.User, opt => opt.MapFrom(src => src.User));
+                .ForMember(dest => dest.User, opt => opt.MapFrom(src => src.User))
+                .ForMember(dest => dest.NetworkUsers, opt => opt.MapFrom(src => src.NetworkUsers))
+                .ForMember(dest => dest.Email, opt =>
+                    opt.MapFrom((src, dest, destMember, context) =>
+                        MapFieldIfAccessGranted(src, context, Constants.Access.AccessEmail, s => s.Email)))
+                .ForMember(dest => dest.FirstName, opt =>
+                    opt.MapFrom((src, dest, destMember, context) =>
+                        MapFieldIfAccessGranted(src, context, Constants.Access.AccessFirstname, s => s.FirstName)))
+                .ForMember(dest => dest.LastName, opt =>
+                    opt.MapFrom((src, dest, destMember, context) =>
+                        MapFieldIfAccessGranted(src, context, Constants.Access.AccessLastname, s => s.LastName)))
+                .ForMember(dest => dest.Username, opt =>
+                    opt.MapFrom((src, dest, destMember, context) =>
+                        MapFieldIfAccessGranted(src, context, Constants.Access.AccessUsername, s => s.Username)))
+                .ForMember(dest => dest.ImageUrl, opt =>
+                    opt.MapFrom((src, dest, destMember, context) =>
+                        MapFieldIfAccessGranted(src, context, Constants.Access.AccessProfilePicture, s => s.ImageUrl)));
             CreateMap<CreateUserProxyDto, UserProxy>();
             CreateMap<UpdateUserProxyDto, UserProxy>();
+        }
+        
+        private static string? MapFieldIfAccessGranted(
+            UserProxy src,
+            ResolutionContext context,
+            string accessName,
+            Func<UserProxy, string?> fieldSelector)
+        {
+            if (!context.TryGetItems(out var items) ||
+                !items.TryGetValue("networkId", out var networkIdObj) ||
+                networkIdObj is not Guid networkId)
+            {
+                return fieldSelector(src);
+            }
+
+            var access = src.NetworkUsers
+                .FirstOrDefault(nu => nu.NetworkId == networkId)?
+                .NetworkUserAccesses
+                .FirstOrDefault(a => a.Access.Name == accessName);
+
+            return access?.IsAccepted == true ? fieldSelector(src) : null;
         }
     }
 }

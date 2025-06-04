@@ -6,7 +6,10 @@ using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Application.Repositories
 {
-    public class UserProxyRepository(DataContext context, IIdentityVerifier identityVerifier, IIdentityService identityService) : BaseRepository(context), IUserProxyRepository
+    public class UserProxyRepository(
+        DataContext context,
+        IIdentityVerifier identityVerifier,
+        IIdentityService identityService) : BaseRepository(context), IUserProxyRepository
     {
         private readonly DataContext _context = context;
 
@@ -17,7 +20,7 @@ namespace thirdpartynetwork.Application.Repositories
             query = query
                 .Include(x => x.User)
                 .ThenInclude(x => x.UserProxies);
-            
+
             return query;
         }
 
@@ -33,27 +36,40 @@ namespace thirdpartynetwork.Application.Repositories
 
         public UserProxy? GetById(Guid userProxyId)
         {
+            Console.WriteLine("Getting (repo level) user proxy with id: " + userProxyId);
             var query = GetQueryable();
+            Console.WriteLine("Before identity service");
             var currentUser = identityService.GetUserProxy(true);
+            Console.WriteLine("After identity service");
 
-            if (identityVerifier.IsUserOwner(currentUser.Id, userProxyId))
-                query.Include(up => up.User)
-                    .ThenInclude(u => u.UserProxies);
-            
+            if (identityVerifier.IsUserProxyOwner(currentUser.Id, userProxyId))
+            {
+                Console.WriteLine("Is Userowner!");
+                query = query.Include(up => up.User)
+                    .ThenInclude(u => u.UserProxies)
+                    .ThenInclude(up => up.NetworkUsers)
+                    .Include(up => up.NetworkUsers)
+                    .ThenInclude(nu => nu.NetworkUserAccesses)
+                    .ThenInclude(nua => nua.Access);
+            }
+
             return query.FirstOrDefault(up => up.Id == userProxyId);
         }
 
         public UserProxy? GetByUsername(string username)
         {
             var query = GetQueryable();
-            
+
             return query.FirstOrDefault(up => up.Username == username);
         }
 
         public ICollection<UserProxy> GetByUserId(Guid userId)
         {
-            return [.. GetQueryable()
-                .Where(up => up.User.Id == userId)];
+            return
+            [
+                .. GetQueryable()
+                    .Where(up => up.User.Id == userId)
+            ];
         }
 
         public UserProxy Create(UserProxy userProxy)

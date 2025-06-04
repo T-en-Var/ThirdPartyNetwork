@@ -45,41 +45,17 @@ builder.Services.AddAuthentication(o =>
     o.Events = new JwtBearerEvents
     {
         OnForbidden = context =>
-            ErrorResponseWriter.WriteJsonError(context.HttpContext, 403, "You are not authorized to access this resource."),
+        {
+            Console.WriteLine("Yo!!!");
+            return ErrorResponseWriter.WriteJsonError(context.HttpContext, 403,
+                "You are not authorized to access this resource.");
+        },
 
         OnChallenge = context =>
         {
             context.HandleResponse(); // Prevent default
             return ErrorResponseWriter.WriteJsonError(context.HttpContext, 401, "Authentication is required to access this resource.");
         }
-        // OnForbidden = async context =>
-        // {
-        //     context.Response.StatusCode = StatusCodes.Status403Forbidden;
-        //     context.Response.ContentType = "application/json; charset=utf-8";
-        //
-        //     var json = JsonSerializer.Serialize(new
-        //     {
-        //         StatusCode = 403,
-        //         Message = "You are not authorized to access this resource."
-        //     });
-        //
-        //     await context.Response.WriteAsync(json);
-        // },
-        // OnChallenge = async context =>
-        // {
-        //     // This handles 401 (unauthenticated) responses similarly
-        //     context.HandleResponse(); // Prevent default
-        //     context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-        //     context.Response.ContentType = "application/json; charset=utf-8";
-        //
-        //     var json = JsonSerializer.Serialize(new
-        //     {
-        //         StatusCode = 401,
-        //         Message = "Authentication is required to access this resource."
-        //     });
-        //
-        //     await context.Response.WriteAsync(json);
-        // }
     };
 });
 
@@ -95,11 +71,11 @@ builder.Services.AddCors(options =>
 });
 
 // Add all permissions to Authorization.
-var permissions = typeof(Constants.Permissions).GetFields()
-    .Where(f => f is { IsLiteral: true, IsInitOnly: false })
-    .Select(f => f.GetValue(null)?.ToString())
-    .Where(p => p != null)
-    .ToList();
+// var permissions = typeof(Constants.Permissions).GetFields()
+//     .Where(f => f is { IsLiteral: true, IsInitOnly: false })
+//     .Select(f => f.GetValue(null)?.ToString())
+//     .Where(p => p != null)
+//     .ToList();
 
 // builder.Services.AddAuthorizationBuilder()
 //     .AddPolicy("NetworkAdminPolicy", policy =>
@@ -149,7 +125,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 // Add Helpers
 builder.Services.AddScoped<ITokenGenerator, TokenGenerator>();
 builder.Services.AddScoped<IJwtHandler, JwtHandler>();
-builder.Services.AddScoped<IJtiCacheService, JtiCacheService>();
+builder.Services.AddSingleton<IJtiCacheService, JtiCacheService>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IIdentityVerifier, IdentityVerifier>();
 builder.Services.AddScoped<IIdentityService, IdentityService>();
@@ -201,6 +177,7 @@ app.UseCors("AllowAll");
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication(); 
 app.UseAuthorization();
 
 app.MapControllers();

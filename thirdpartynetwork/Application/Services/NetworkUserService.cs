@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using System.Text.Json;
+using AutoMapper;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using thirdpartynetwork.Core.Models;
 
@@ -19,6 +20,12 @@ namespace thirdpartynetwork.Application.Services
         public NetworkUser? GetByIds(Guid networkId, Guid userProxyId)
         {
             var networkUser = repository.GetByIds(networkId, userProxyId);
+            return networkUser;
+        }
+
+        public NetworkUser? GetByIdsPreAuth(Guid networkId, Guid userProxyId)
+        {
+            var networkUser = repository.GetByIdsPreAuth(networkId, userProxyId);
             return networkUser;
         }
 
@@ -55,34 +62,52 @@ namespace thirdpartynetwork.Application.Services
             return networkUser;
         }
 
-        public NetworkUser? GetByNetworkIdAndUsername(Guid networkId, string username)
+        public NetworkUser? GetByNetworkIdAndEmail(Guid networkId, string email)
         {
-            var networkUser = repository.GetByNetworkIdAndUsername(networkId, username);
+            var networkUser = repository.GetByNetworkIdAndEmail(networkId, email);
             return networkUser;
         }
 
         public NetworkUser Create(Guid networkId, Guid userProxyId, CreateNetworkUserDto createNetworkUser)
         {
-            var network = networkService.GetDetailsById(networkId);
+            var network = networkService.GetById(networkId, bypass: true);
             if (network == null) throw new NotFoundHttpException("Network not Found");
-            if (userProxyService.GetById(userProxyId) == null) throw new NotFoundHttpException("UserProxy not Found");
-
+            
+            var userProxy = userProxyService.GetById(userProxyId);
+            if (userProxy == null) throw new NotFoundHttpException("UserProxy not Found");
+            
             if (GetByIds(networkId, userProxyId) != null) throw new ConflictHttpException("NetworkUser already exists");
+            if (GetByNetworkIdAndEmail(networkId, userProxy.Email) != null) throw new ConflictHttpException("User with this email already exists");
 
             var networkUser = mapper.Map<NetworkUser>(createNetworkUser);
             networkUser.NetworkId = networkId;
             networkUser.UserProxyId = userProxyId;
-
+            
             foreach (var networkAccess in network.NetworkAccesses)
             {
                 networkUser.NetworkUserAccesses.Add(new NetworkUserAccess()
                 {
-                    Access = networkAccess.Access,
+                    AccessId = networkAccess.AccessId,
                     IsAccepted = networkAccess.IsRequired,
-                    NetworkUser = networkUser
+                    NetworkUserId = networkUser.Id,
+                    Access = default!,
+                    NetworkUser = default!,
                 });
             }
-
+            
+            foreach (var role in network.Roles)
+            {
+                if (!role.IsDefault) continue;
+                
+                networkUser.NetworkUserRoles.Add(new NetworkUserRole()
+                {
+                    RoleId = role.Id,
+                    NetworkUserId = networkUser.Id,
+                    Role = default!,
+                    NetworkUser = default!,
+                });
+            }
+            
             networkUser = repository.Create(networkUser);
             return networkUser;
         }
@@ -100,8 +125,16 @@ namespace thirdpartynetwork.Application.Services
             return networkUser;
         }
 
+        public void NetworkAccessUpdate(Guid networkId)
+        {
+            repository.NetworkAccessUpdate(networkId);
+        }
+
         public bool DeleteById(Guid networkId, Guid id)
         {
+            var network = networkService.GetById(networkId);
+            if (network is { IsSystemProtected: true }) throw new UnauthorizedHttpException("Network is system protected");
+
             var networkUser = repository.GetById(networkId, id);
             return networkUser != null && repository.Delete(networkUser);
         }

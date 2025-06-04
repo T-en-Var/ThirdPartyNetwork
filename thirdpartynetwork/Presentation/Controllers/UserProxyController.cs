@@ -64,6 +64,12 @@ public class UserProxyController(IUserProxyService service, IMapper mapper, INet
     public IActionResult GetNetworks(Guid userId, Guid userProxyId)
     {
         var networks = networkUserService.GetNetworksByUserProxyId(userProxyId);
-        return Ok(networks);
+        var networkDtos = networks
+            .Select(network => mapper.Map<NetworkDto>(network, opts =>
+            {
+                opts.Items["networkId"] = network.Id;
+            }))
+            .ToList();
+        return StatusCode(200, networkDtos);
     }
 }

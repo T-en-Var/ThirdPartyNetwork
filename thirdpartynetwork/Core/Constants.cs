@@ -59,6 +59,11 @@ public static class Constants
         // public const string TimoutUserAdmin = "Timout User Admin";
     }
 
+    public static readonly string[] GeneralPermissions = [
+        Permissions.ReadAccess,
+        Permissions.ReadPermission,
+    ];
+    
     public static readonly string[] OwnerPermissions =
     [
         Permissions.IsUserOwner,

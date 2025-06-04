@@ -27,8 +27,17 @@ public static class ErrorResponseWriter
             Message = message,
             Details = details
         };
+        
+        var options = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
 
-        var json = JsonSerializer.Serialize(error);
+        var json = JsonSerializer.Serialize(error, options);
+        // string stackTrace = Environment.StackTrace;
+
+        // Console.WriteLine(stackTrace);
+        Console.WriteLine(json);
         await context.Response.WriteAsync(json);
     }
 }

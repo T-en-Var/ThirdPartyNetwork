@@ -34,6 +34,16 @@ namespace thirdpartynetwork.Application.Services
             return networkUserAccesses;
         }
 
+        public void Populate(Guid networkId, Guid accessId)
+        {
+            repository.Populate(networkId, accessId);
+        }
+
+        public void Depopulate(Guid networkId, Guid accessId)
+        {
+            repository.Depopulate(networkId, accessId);
+        }
+
         public NetworkUserAccess? GetByIds(Guid networkId, Guid networkUserId, Guid accessId)
         {
             if (networkService.GetById(networkId) == null) throw new NotFoundHttpException("Network not found");

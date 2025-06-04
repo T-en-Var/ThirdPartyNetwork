@@ -6,6 +6,7 @@ public interface IPermissionService : IBaseService
 {
     ICollection<Permission> GetAll();
     Permission? GetById(Guid permissionId);
+    Permission? GetByName(string name);
     Permission Create(CreatePermissionDto createPermission);
     Permission Update(Guid permissionId, UpdatePermissionDto updatePermission);
     bool DeleteById(Guid permissionId);

@@ -17,7 +17,7 @@ public class NetworkUserController(INetworkUserService service, IMapper mapper) 
     public IActionResult GetNetworkUsers(Guid networkId)
     {
         var networkUsers = service.GetByNetworkId(networkId);
-        return Ok(mapper.Map<IEnumerable<NetworkUserDto>>(networkUsers));
+        return Ok(mapper.Map<IEnumerable<NetworkUserDto>>(networkUsers, opts => opts.Items["networkId"] = networkId));
     }
 
     [HttpGet("{networkUserId:guid}")]
@@ -27,7 +27,7 @@ public class NetworkUserController(INetworkUserService service, IMapper mapper) 
     public IActionResult GetNetworkUser(Guid networkId, Guid networkUserId)
     {
         var networkUser = service.GetById(networkId, networkUserId);
-        return networkUser != null ? Ok(mapper.Map<NetworkUserDto>(networkUser)) : NotFound();
+        return networkUser != null ? Ok(mapper.Map<NetworkUserDto>(networkUser, opts => opts.Items["networkId"] = networkId)) : NotFound();
     }
 
     [HttpPost("{userProxyId:guid}")]
@@ -36,7 +36,7 @@ public class NetworkUserController(INetworkUserService service, IMapper mapper) 
     public IActionResult CreateNetworkUser(Guid networkId, Guid userProxyId, CreateNetworkUserDto networkUser)
     {
         var user = service.Create(networkId, userProxyId, networkUser);
-        return Ok(mapper.Map<NetworkUserDto>(user));
+        return Ok(mapper.Map<NetworkUserDto>(user, opts => opts.Items["networkId"] = networkId));
     }
 
     [HttpPut("{networkUserId:guid}")]
@@ -46,7 +46,7 @@ public class NetworkUserController(INetworkUserService service, IMapper mapper) 
     public IActionResult UpdateNetworkUser(Guid networkId, Guid networkUserId, UpdateNetworkUserDto updateNetworkUser)
     {
         var networkUser = service.Update(networkId, networkUserId, updateNetworkUser);
-        return Ok(mapper.Map<NetworkUserDto>(networkUser));
+        return Ok(mapper.Map<NetworkUserDto>(networkUser, opts => opts.Items["networkId"] = networkId));
     }
 
     [HttpDelete("{networkUserId:guid}")]
