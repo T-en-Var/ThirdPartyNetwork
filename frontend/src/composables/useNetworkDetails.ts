@@ -15,7 +15,7 @@ export default function useNetworkDetails() {
     globalStore.startFetching();
     loading.value = true;
     try {
-      const response = await api.get<Network>(`/networks/${networkId}/details`)
+      const response = await api.get<Network>(`/networks/${networkId}/details`);
 
       network.value = response.data;
     } catch (err) {

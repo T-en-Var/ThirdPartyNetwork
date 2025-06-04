@@ -1,3 +1,4 @@
+import type { NetworkUser } from "./networkUser";
 import type { User } from "./user";
 
 export interface UserProxy {
@@ -6,9 +7,9 @@ export interface UserProxy {
   firstName?: string,
   lastName?: string,
   email?: string,
-  // password: string,
   imageUrl?: string,
   createdOn: Date,
   isDefault: boolean,
   user: User
+  networkUsers: NetworkUser[];
 }

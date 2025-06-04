@@ -1,9 +1,9 @@
 <template>
-  <header>
+  <header v-if="showNavbar">
     <NavBar />
   </header>
 
-  <main>
+  <main :class="showNavbar ? 'pt-8' : ''">
     <RouterView />
     <FetchingToast />
   </main>
@@ -13,7 +13,7 @@
 import FetchingToast from '@/components/toasts/FetchingToast.vue';
 import { RouterView } from 'vue-router'
 import NavBar from '@/components/NavBar.vue';
-import { onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { initializeApiClient } from './api/api'
 
@@ -22,6 +22,10 @@ const route = useRoute()
 
 onMounted(() => {
   initializeApiClient(router, route)
+})
+
+const showNavbar = computed(() => {
+  return !(route.meta.showNavbar === false || route.query.hideNavbar !== undefined);
 })
 </script>
 
@@ -32,7 +36,6 @@ header {
 }
 
 main {
-  padding-top: 2rem;
   height: 100%;
   overflow: scroll;
 }

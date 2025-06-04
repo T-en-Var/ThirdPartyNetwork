@@ -1,10 +1,10 @@
 export interface TokenPair {
-    accessToken: string
-    refreshToken: string
+    accessToken: string;
+    refreshToken: string;
 }
 
 
-export interface accessTokenClaims {
+export interface AccessTokenClaims {
     aud: string;
     exp: number;
     iat: number;
@@ -13,4 +13,11 @@ export interface accessTokenClaims {
     name: string;
     nbf: number;
     uid: string;
+    AccessIncomplete?: string;
+}
+
+
+export interface AuthorizationCode {
+    code: string;
+    accessToken: string;
 }

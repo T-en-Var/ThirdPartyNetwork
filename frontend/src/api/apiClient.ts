@@ -18,6 +18,8 @@ class ApiClient {
     });
 
     this.instance.interceptors.request.use(async (config) => {
+      if (config.headers.Authorization) return config;
+      
       config = await this.auth.applyHeaders(config);
       return config;
     });

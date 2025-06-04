@@ -23,8 +23,8 @@
 
               <form @submit.prevent="login">
                 <div class="form-group">
-                  <label for="username">Username</label>
-                  <input id="username" v-model="username" type="text" placeholder="Enter your username" required>
+                  <label for="email">Email</label>
+                  <input id="email" v-model="email" type="text" placeholder="Enter your email" required>
                 </div>
 
                 <div class="form-group">
@@ -133,7 +133,7 @@ const authStore = useAuthStore();
 const router = useRouter();
 const route = useRoute();
 
-const username = ref('');
+const email = ref('');
 const password = ref('');
 const error = ref('');
 const isLoading = ref(false);
@@ -176,7 +176,7 @@ const switchMode = (modalValue: "signup" | "login") => {
 const closeModal = () => {
   authStore.setModelOpen(false);
 
-  username.value = '';
+  email.value = '';
   password.value = '';
   signupUsername.value = '';
   signupPassword.value = '';
@@ -187,7 +187,7 @@ const closeModal = () => {
 };
 
 const login = async () => {
-  if (!username.value || !password.value) {
+  if (!email.value || !password.value) {
     error.value = 'Please enter both username and password';
     return;
   }
@@ -198,7 +198,7 @@ const login = async () => {
   let response;
 
   try {
-    response = await authStore.login(username.value.trim(), password.value);
+    response = await authStore.login(email.value.trim(), password.value);
   } catch (err) {
     isLoading.value = false;
     error.value = (err as AxiosError<ErrorMessage>).response?.data.message || "Something went wrong, please try again";
@@ -248,22 +248,27 @@ const signUp = async () => {
       signupPassword.value
     );
   } catch (err) {
+    console.log(err)
     isLoading.value = false;
-    error.value = (err as AxiosError<ErrorMessage>).response?.data.message || "Something went wrong, please try again";
+    isSigningUp.value = false;
+    signupError.value = (err as AxiosError<ErrorMessage>).response?.data.message || "Something went wrong, please try again.";
     return;
   }
-
-  closeModal();
-
+  
   if (response.status != 201) {
-    error.value = 'Unable to create account. Please try again.';
+    isLoading.value = false;
+    isSigningUp.value = false;
+    signupError.value = 'Unable to create account. Please try again.';
     return;
   }
+  
+  closeModal();
 
   const redirectPath = route.query.redirect ? atob(route.query.redirect as string) : '/networks';
   router.push(redirectPath);
 
   isLoading.value = false;
+  isSigningUp.value = false;
 };
 </script>
 

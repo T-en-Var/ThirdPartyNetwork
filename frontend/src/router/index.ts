@@ -24,38 +24,68 @@ const router = createRouter({
     {
       path: '/account',
       name: 'account',
-      component: import('@/views/AccountView.vue'),
+      component: () => import('@/views/AccountView.vue'),
       meta: {},
     },
     {
       path: '/networks',
       name: 'networks',
-      component: import('@/views/NetworksView.vue'),
+      component: () => import('@/views/NetworksView.vue'),
       meta: {},
     },
     {
       path: '/networks/create',
       name: 'create-network',
-      component: import('@/views/networks/CreateNetworkView.vue'),
+      component: () => import('@/views/networks/CreateNetworkView.vue'),
       meta: {},
     },
     {
       path: '/networks/:networkId',
       name: 'info-network',
-      component: import('@/views/networks/InfoNetworkView.vue'),
+      component: () => import('@/views/networks/InfoNetworkView.vue'),
       meta: {},
     },
     {
       path: '/networks/:networkId/manage',
       name: 'manage-network',
-      component: import('@/views/networks/ManageNetworkView.vue'),
+      component: () => import('@/views/networks/ManageNetworkView.vue'),
       meta: {},
     },
     {
       path: '/networks/:networkId/join',
       name: 'join-network',
-      component: import('@/views/networks/JoinNetworkView.vue'),
+      component: () => import('@/views/networks/JoinNetworkView.vue'),
       meta: {},
+    },
+    {
+      path: '/networks/:networkId/login',
+      name: 'login-network',
+      component: () => import('@/views/networks/LoginNetworkView.vue'),
+      meta: { 
+        showNavbar: false,
+        requiresAuth: false,
+        title: 'Sign In'
+      },
+    },
+    {
+      path: '/networks/:networkId/signup',
+      name: 'signup-network',
+      component: () => import('@/views/networks/SignupNetworkView.vue'),
+      meta: { 
+        showNavbar: false,
+        requiresAuth: false,
+        title: 'Create Account'
+      },
+    },
+    {
+      path: '/networks/:networkId/complete-access',
+      name: 'signup-network',
+      component: () => import('@/views/networks/CompleteAccessView.vue'),
+      meta: { 
+        showNavbar: false,
+        requiresAuth: false,
+        title: 'Complete Access'
+      },
     },
     {
       path: '/tos',
@@ -72,17 +102,9 @@ const router = createRouter({
     {
       path: '/401',
       name: 'unauthenticated',
-      component: import('@/views/UnauthenticatedView.vue'),
+      component: () => import('@/views/UnauthenticatedView.vue'),
       meta: {},
     },
-    // {
-    //   path: '/account',
-    //   name: 'account',
-    //   component: AccountView,
-    //   meta: {
-    //     requiresAuth: true,
-    //   },
-    // },
   ],
 });
 
@@ -92,9 +114,11 @@ router.beforeEach((to, from, next) => {
   if (to.matched.some(record => record.meta.requiresAuth)) {
     if (!authStore.isAuthenticated()) {
       next({
-        path: '/login',
+        path: '/403',
         query: { redirect: to.fullPath }
       })
+      authStore.setModelOpen(true)
+      authStore.setModelMode("login")
       return
     }
   }

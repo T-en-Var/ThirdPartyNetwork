@@ -71,15 +71,21 @@
 
 <script setup lang="ts">
 import { useAuthStore } from '@/stores/auth';
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 const authStore = useAuthStore();
 
-const route = useRoute()
+const route = useRoute();
+const router = useRouter();
 
 const hasRedirect = route.fullPath.includes('redirect')
 
 const handleContinue = () => {
+  if (route.query.fromExternal !== undefined) {
+    router.push(atob(route.query.redirect as string));
+    return
+  }
+
   authStore.setModelOpen(true);
   authStore.setModelMode('signup');
 }

@@ -1,10 +1,11 @@
 import { ref } from 'vue';
 import { defineStore } from 'pinia';
 import { type InternalAxiosRequestConfig } from 'axios';
-import type { accessTokenClaims, TokenPair, UserProxy } from '@/types';
+import type { AccessTokenClaims, TokenPair, UserProxy } from '@/types';
 import rawApi from '@/api/rawApi';
 import api from '@/api/api';
 import { useGlobalStore } from './global';
+import { decodeJWT } from '@/lib/utils';
 
 export const useAuthStore = defineStore('auth', () => {
     const accessToken = ref<string | null>(null);
@@ -23,11 +24,13 @@ export const useAuthStore = defineStore('auth', () => {
 
     const global = useGlobalStore();
 
-    async function login(username: string, password: string) {
+    async function login(email: string, password: string) {
         global.startFetching();
         let response;
         try {
-            response = await rawApi.post<TokenPair>('/auth/login', { username, password });
+            response = await rawApi.post<TokenPair>('/auth/login', { email, password });
+        } catch (err) {
+            throw err;
         } finally {
             global.stopFetching();
         }
@@ -49,13 +52,49 @@ export const useAuthStore = defineStore('auth', () => {
                 email: email,
                 password: password
             });
+        } catch (err) {
+            console.log(err)
+            throw err;
         } finally {
             global.stopFetching();
         }
 
-        if (response.status != 201) return response;
-
         saveTokens(response.data.accessToken, response.data.refreshToken);
+        return response;
+    }
+
+    async function networkLogin(networkId: string, email: string, password: string) {
+        global.startFetching();
+        let response;
+        try {
+            response = await rawApi.post<TokenPair>(`/auth/${networkId}/login`, { email, password });
+        } catch (err) {
+            throw err;
+        } finally {
+            global.stopFetching();
+        }
+
+        return response;
+    }
+
+    async function networkSignUp(networkId: string, username: string, email: string, firstname: string, lastname: string, password: string) {
+        global.startFetching();
+        let response;
+        try {
+            response = await rawApi.post<TokenPair>(`/auth/${networkId}/register`, {
+                username: username,
+                firstName: firstname,
+                lastName: lastname,
+                email: email,
+                password: password
+            });
+        } catch (err) {
+            console.log(err)
+            throw err;
+        } finally {
+            global.stopFetching();
+        }
+
         return response;
     }
 
@@ -88,7 +127,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     function getUserProxyId() {
         if (!isAuthenticated()) return "NotFound";
-        const decodedPayload = decodeToken(accessToken.value!);
+        const decodedPayload = decodeJWT<AccessTokenClaims>(accessToken.value!);
 
         return decodedPayload.uid;
     }
@@ -168,14 +207,8 @@ export const useAuthStore = defineStore('auth', () => {
         return config;
     }
 
-    function decodeToken(token: string) {
-        const payload = token.split('.')[1];
-        const decodedPayload = JSON.parse(atob(payload)) as accessTokenClaims;
-        return decodedPayload;
-    }
-
     function isTokenExpired(token: string): boolean {
-        const decodedPayload = decodeToken(token);
+        const decodedPayload = decodeJWT<AccessTokenClaims>(token);
         return decodedPayload.exp < Math.floor(Date.now() / 1000);
     }
 
@@ -206,6 +239,8 @@ export const useAuthStore = defineStore('auth', () => {
         isAdmin,
         login,
         signUp,
+        networkLogin,
+        networkSignUp,
         logout,
         getUserProxyId,
         getUserProxy,

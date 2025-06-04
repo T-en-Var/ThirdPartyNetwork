@@ -31,7 +31,7 @@
         <input id="isRequired" v-model="form.isRequired" type="checkbox"
           class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
         <label for="isRequired" class="ml-2 block text-sm text-gray-700">
-          Required for network access (Users must have this access approved)
+          Access is required
         </label>
       </div>
 
@@ -69,7 +69,7 @@ const emit = defineEmits(['close', 'add-access']);
 
 const form = ref({
   accessId: '',
-  isRequired: true
+  isRequired: false
 });
 
 const accessesState = useAccesses();

@@ -19,3 +19,9 @@ export function isValidHttpUrl(value?: string) {
 
   return url.protocol === "http:" || url.protocol === "https:";
 }
+
+export function decodeJWT<T>(token: string): T {
+  const payloadBase64 = token.split('.')[1];
+  const decodedPayload = atob(payloadBase64);
+  return JSON.parse(decodedPayload);
+}

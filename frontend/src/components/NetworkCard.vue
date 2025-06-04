@@ -14,10 +14,17 @@
             <h2 class="text-lg font-semibold text-gray-800">{{ network.name }}</h2>
             <p class="text-sm text-gray-600">{{ network.networkUsers?.length || 0 }} members</p>
           </div>
-          <span v-if="network.isSystemProtected"
-            class="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-            Protected
-          </span>
+
+          <div class="flex gap-1">
+            <span v-if="network.isSystemProtected"
+              class="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+              Protected
+            </span>
+            <span v-if="!network.isPublic"
+              class="px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+              Private
+            </span>
+          </div>
         </div>
       </div>
 
