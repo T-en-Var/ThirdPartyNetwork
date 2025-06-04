@@ -17,7 +17,7 @@ public class NetworkUserAccessController(INetworkUserAccessService service, IMap
     public IActionResult GetNetworkUserAccesses(Guid networkId, Guid networkUserId)
     {
         var networkUserAccesses = service.GetByNetworkId(networkId, networkUserId);
-        return Ok(mapper.Map<IEnumerable<NetworkUserAccessDto>>(networkUserAccesses));
+        return Ok(mapper.Map<IEnumerable<NetworkUserAccessDto>>(networkUserAccesses, opts => opts.Items["networkId"] = networkId));
     }
 
     [HttpGet("{accessId:guid}")]
@@ -28,7 +28,7 @@ public class NetworkUserAccessController(INetworkUserAccessService service, IMap
     public IActionResult GetNetworkUserPermission(Guid networkId, Guid networkUserId, Guid accessId)
     {
         var networkUserPermission = service.GetByIds(networkId, networkUserId, accessId);
-        return networkUserPermission != null ? Ok(mapper.Map<NetworkUserAccessDto>(networkUserPermission)) : NotFound();
+        return networkUserPermission != null ? Ok(mapper.Map<NetworkUserAccessDto>(networkUserPermission, opts => opts.Items["networkId"] = networkId)) : NotFound();
     }
 
     // [HttpPost("{accessId:guid}")]
@@ -50,7 +50,7 @@ public class NetworkUserAccessController(INetworkUserAccessService service, IMap
         UpdateNetworkUserAccessDto updateNetworkUserPermission)
     {
         var networkUserPermission = service.Update(networkId, networkUserId, accessId, updateNetworkUserPermission);
-        return Ok(mapper.Map<NetworkUserAccessDto>(networkUserPermission));
+        return Ok(mapper.Map<NetworkUserAccessDto>(networkUserPermission, opts => opts.Items["networkId"] = networkId));
     }
 
     // [HttpDelete("{accessId:guid}")]

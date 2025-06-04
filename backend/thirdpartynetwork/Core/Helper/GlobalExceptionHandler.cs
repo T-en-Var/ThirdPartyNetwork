@@ -19,6 +19,7 @@ namespace thirdpartynetwork.Core.Helper
             httpContext.Response.ContentType = "application/json; charset=utf-8";
 
             var message = exception.Message;
+            string? details = null;
             
             Console.WriteLine("Printing stack trace from GlobalExceptionHandler.");
             Console.WriteLine(exception.StackTrace);
@@ -27,9 +28,10 @@ namespace thirdpartynetwork.Core.Helper
             {
                 httpContext.Response.StatusCode = baseHttpException.StatusCode;
                 message = baseHttpException.ErrorMessage;
+                details = baseHttpException.ErrorDetails;
             }
 
-            return WriteResponseAsync(httpContext, httpContext.Response.StatusCode, message);
+            return WriteResponseAsync(httpContext, httpContext.Response.StatusCode, message, details);
         }
 
         private async ValueTask<bool> WriteResponseAsync(HttpContext context, int statusCode, string message, string? details = null)

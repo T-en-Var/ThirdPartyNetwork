@@ -11,15 +11,15 @@ namespace thirdpartynetwork.Application.Repositories
     {
         private readonly DataContext _context = context;
 
-        private IQueryable<Network> GetQueryable(Guid id)
+        private IQueryable<Network> GetQueryable(Guid id, bool bypass = false)
         {
             var query = _context.Networks.AsQueryable();
             var currentUser = identityService.GetUserProxy(true);
 
-            var allowUsers = identityVerifier.IsAllowed(id, currentUser.Id, Constants.Permissions.ReadUser);
-            var allowRoles = identityVerifier.IsAllowed(id, currentUser.Id, Constants.Permissions.ReadRole);
-            var allowAccess = identityVerifier.IsAllowed(id, currentUser.Id, Constants.Permissions.ReadAccess);
-            var allowPerms = identityVerifier.IsAllowed(id, currentUser.Id, Constants.Permissions.ReadPermission);
+            var allowUsers = bypass || identityVerifier.IsAllowed(id, currentUser.Id, Constants.Permissions.ReadUser);
+            var allowRoles = bypass || identityVerifier.IsAllowed(id, currentUser.Id, Constants.Permissions.ReadRole);
+            var allowAccess = bypass || identityVerifier.IsAllowed(id, currentUser.Id, Constants.Permissions.ReadAccess);
+            var allowPerms = bypass || identityVerifier.IsAllowed(id, currentUser.Id, Constants.Permissions.ReadPermission);
             
             if (allowUsers)
             {
@@ -92,18 +92,25 @@ namespace thirdpartynetwork.Application.Repositories
             return [.. GetQueryableReduced(mainNetwork.Id)];
         }
 
-        public Network? GetById(Guid id)
+        public Network? GetById(Guid id, bool bypass = false)
         {
-            return GetQueryable(id).FirstOrDefault(x => x.Id == id);
+            Console.WriteLine("Getting (repo level) network with id: " + id);
+            Console.WriteLine("Getting (repo level) network with id: " + id);
+            Console.WriteLine("Getting (repo level) network with id: " + id);
+            return GetQueryable(id, bypass).FirstOrDefault(x => x.Id == id);
         }
 
         public Network? GetDetailsById(Guid id)
         {
+            Console.WriteLine("Getting (repo level) network details with id: " + id);
+            Console.WriteLine("Getting (repo level) network details with id: " + id);
+            Console.WriteLine("Getting (repo level) network details with id: " + id);
             var network = _context.Networks
                 .Include(x => x.NetworkAccesses)
                 .ThenInclude(x => x.Access)
                 .Include(x => x.NetworkUsers)
                 .ThenInclude(n => n.NetworkUserAccesses)
+                .AsNoTracking()
                 .FirstOrDefault(n => n.Id == id);
             return network;
         }

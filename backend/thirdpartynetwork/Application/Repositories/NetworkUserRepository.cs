@@ -1,6 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 using thirdpartynetwork.Core;
 using thirdpartynetwork.Core.Data;
+using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using thirdpartynetwork.Core.Interfaces.Auth;
 using thirdpartynetwork.Core.Models;
 
@@ -66,17 +68,24 @@ namespace thirdpartynetwork.Application.Repositories
                 .FirstOrDefault(u => u.Id == id);
         }
 
-        public NetworkUser? GetByNetworkIdAndUsername(Guid networkId, string username)
+        public NetworkUser? GetByNetworkIdAndEmail(Guid networkId, string email)
         {
             // Used for login, so always requires UserProxy
             return GetQueryable(networkId)
                 .Include(n => n.UserProxy)
-                .FirstOrDefault(u => u.NetworkId == networkId && u.UserProxy.Username == username);
+                .FirstOrDefault(u => u.NetworkId == networkId && u.UserProxy.Email == email);
         }
 
         public NetworkUser? GetByIds(Guid networkId, Guid userProxyId)
         {
             return GetQueryable(networkId)
+                .FirstOrDefault(u => u.NetworkId == networkId && u.UserProxyId == userProxyId);
+        }
+
+        public NetworkUser? GetByIdsPreAuth(Guid networkId, Guid userProxyId)
+        {
+            return _context.NetworkUsers
+                .Include(n => n.UserProxy)
                 .FirstOrDefault(u => u.NetworkId == networkId && u.UserProxyId == userProxyId);
         }
 
@@ -96,6 +105,13 @@ namespace thirdpartynetwork.Application.Repositories
 
             Save();
             return existing;
+        }
+
+        public void NetworkAccessUpdate(Guid networkId)
+        {
+            _context.NetworkUsers
+                .Where(u => u.NetworkId == networkId)
+                .ExecuteUpdate(u => u.SetProperty(nu => nu.AccessIncomplete, true));
         }
 
         public bool Delete(NetworkUser networkUser)

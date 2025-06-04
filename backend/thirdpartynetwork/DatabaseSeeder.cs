@@ -18,6 +18,7 @@ namespace thirdpartynetwork
                 Name = Constants.Networks.Main,
                 Description = "Thirdpartynetwork's main network",
                 ImageUrl = "/src/images/logo_transparent.png",
+                RedirectURI = "#",
                 IsSystemProtected = true,
                 IsPublic = true,
             };

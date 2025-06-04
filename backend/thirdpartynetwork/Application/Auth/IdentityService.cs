@@ -14,26 +14,34 @@ public class IdentityService(
     public UserProxy GetUserProxy(bool omitThrow = false)
     {
         var userProxyId = _ExtractUserProxyId(omitThrow);
+        
+        var httpContext = GetHttpContext();
+        var cacheKey = $"UserProxy_{userProxyId}";
+        
+        if (httpContext.Items.TryGetValue(cacheKey, out var cached) && cached is UserProxy cachedProxy)
+        {
+            return cachedProxy;
+        }
 
         var userProxy = _GetUserProxy(userProxyId);
         if (userProxy == null)
         {
             if (!omitThrow) throw new UnauthorizedHttpException();
             
-            userProxy = new UserProxy()
+            userProxy = new UserProxy
             {
-                Id = Guid.Empty,
-                Username = "Anonymous",
-                Email = "anonymous@gmail.com",
-                Password = "anonymous",
-                FirstName = "Anonymous",
-                LastName = "Anonymous",
-                ImageUrl = "https://www.shutterstock.com/image-vector/default-avatar-profile-icon-social-600nw-1677509740.jpg",
-                IsDefault = true,
-                User = new User()
+                Id = Guid.NewGuid(),
+                Username = null,
+                FirstName = null,
+                LastName = null,
+                Email = null,
+                Password = null,
+                IsDefault = false,
+                User = null
             };
         };
 
+        httpContext.Items[cacheKey] = userProxy;
         return userProxy;
     }
 

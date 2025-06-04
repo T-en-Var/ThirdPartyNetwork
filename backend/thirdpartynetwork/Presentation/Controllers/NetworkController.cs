@@ -16,7 +16,13 @@ public class NetworkController(INetworkService service, IMapper mapper) : Contro
     public IActionResult GetNetworks()
     {
         var networks = service.GetAll();
-        return StatusCode(200, mapper.Map<IEnumerable<NetworkDto>>(networks));
+        var networkDtos = networks
+            .Select(network => mapper.Map<NetworkDto>(network, opts =>
+            {
+                opts.Items["networkId"] = network.Id;
+            }))
+            .ToList();
+        return StatusCode(200, networkDtos);
     }
 
     [HttpGet("{networkId:guid}")]
@@ -26,26 +32,25 @@ public class NetworkController(INetworkService service, IMapper mapper) : Contro
     public IActionResult GetNetworkById(Guid networkId)
     {
         var network = service.GetById(networkId);
-        return network != null ? Ok(mapper.Map<NetworkDto>(network)) : NotFound();
+        return network != null ? Ok(mapper.Map<NetworkDto>(network, opts => opts.Items["networkId"] = networkId)) : NotFound();
     }
 
     [HttpGet("{networkId:guid}/details")]
-    [Authorize]
     [ProducesResponseType(200, Type = typeof(NetworkDto))]
     [ProducesResponseType(404)]
     public IActionResult GetNetworkDetailsById(Guid networkId)
     {
         var network = service.GetDetailsById(networkId);
-        return network != null ? Ok(mapper.Map<NetworkDto>(network)) : NotFound();
+        return network != null ? Ok(mapper.Map<NetworkDto>(network, opts => opts.Items["networkId"] = networkId)) : NotFound();
     }
 
     [HttpPost]
-    [RequirePermission(Constants.Permissions.ManageNetwork)]
+    [Authorize]
     [ProducesResponseType(201, Type = typeof(NetworkDto))]
     public IActionResult CreateNetwork([FromBody] CreateNetworkDto networkCreate)
     {
         var network = service.Create(networkCreate);
-        return StatusCode(201, mapper.Map<NetworkDto>(network));
+        return StatusCode(201, mapper.Map<NetworkDto>(network, opts => opts.Items["networkId"] = network.Id));
     }
 
     [HttpPut("{networkId:guid}")]
@@ -55,7 +60,7 @@ public class NetworkController(INetworkService service, IMapper mapper) : Contro
     public IActionResult Update(Guid networkId, UpdateNetworkDto networkUpdate)
     {
         var network = service.Update(networkId, networkUpdate);
-        return StatusCode(200, mapper.Map<NetworkDto>(network));
+        return StatusCode(200, mapper.Map<NetworkDto>(network, opts => opts.Items["networkId"] = networkId));
     }
 
     [HttpDelete("{networkId:guid}")]

@@ -18,6 +18,12 @@ public class PermissionService(IPermissionRepository repository, IMapper mapper)
         return permission;
     }
 
+    public Permission? GetByName(string name)
+    {
+        var permission = repository.GetByName(name);
+        return permission;
+    }
+
     public Permission Create(CreatePermissionDto createPermission)
     {
         var permission = mapper.Map<Permission>(createPermission);

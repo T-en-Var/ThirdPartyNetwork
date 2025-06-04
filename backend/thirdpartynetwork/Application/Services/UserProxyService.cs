@@ -25,7 +25,9 @@ namespace thirdpartynetwork.Application.Services
 
         public UserProxy? GetById(Guid userProxyId)
         {
+            Console.WriteLine("Getting user proxy with id: " + userProxyId);
             var proxy = repository.GetById(userProxyId);
+            Console.WriteLine("Got proxy: " + proxy?.Username);
             return proxy;
         }
 
@@ -48,9 +50,12 @@ namespace thirdpartynetwork.Application.Services
             var user = userService.GetById(userId);
             if (user == null) throw new NotFoundHttpException("User not found");
 
+            var isDefault = user.UserProxies.Count == 0;
+                
             var proxy = mapper.Map<UserProxy>(createUserProxy);
             proxy.User = user;
             proxy.Password = passwordHasher.HashPassword(proxy.Password);
+            proxy.IsDefault = isDefault;
             
             proxy = repository.Create(proxy);
             return proxy;

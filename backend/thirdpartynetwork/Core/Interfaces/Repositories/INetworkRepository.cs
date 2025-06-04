@@ -6,7 +6,7 @@ namespace thirdpartynetwork.Core.Interfaces.Repositories
     {
         bool Exists(Guid id);
         ICollection<Network> GetAll();
-        Network? GetById(Guid id);
+        Network? GetById(Guid id, bool bypass = false);
         Network? GetDetailsById(Guid id);
         Network GetMainNetwork();
         Network? GetByName(string name);

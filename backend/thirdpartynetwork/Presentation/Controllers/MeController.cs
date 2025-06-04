@@ -1,3 +1,4 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -5,7 +6,7 @@ namespace thirdpartynetwork.Presentation.Controllers;
 
 [Route("api/me")]
 [ApiController]
-public class MeController(IMeService service) : ControllerBase
+public class MeController(IMeService service, IMapper mapper) : ControllerBase
 {
     [HttpGet("")]
     [ProducesResponseType(200, Type = typeof(UserProxyDto))]
@@ -14,6 +15,6 @@ public class MeController(IMeService service) : ControllerBase
     public IActionResult MainNetworkRegister()
     {
         var userProxy = service.GetMe();
-        return Ok(userProxy);
+        return Ok(mapper.Map<UserProxyDto>(userProxy));
     }
 }

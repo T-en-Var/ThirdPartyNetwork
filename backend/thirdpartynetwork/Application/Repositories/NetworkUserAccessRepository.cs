@@ -31,6 +31,35 @@ namespace thirdpartynetwork.Application.Repositories
             return [.. GetQueryable()];
         }
 
+        public void Populate(Guid networkId, Guid accessId)
+        {
+            var networkUsers = _context.NetworkUsers
+                .Where(u => u.NetworkId == networkId)
+                .ToList();
+
+            var newAccesses = networkUsers.Select(nu => new NetworkUserAccess
+            {
+                NetworkUserId = nu.Id,
+                AccessId = accessId,
+                IsAccepted = false,
+                NetworkUser = null,
+                Access = null
+            }).ToList();
+
+            _context.NetworkUserAccesses.AddRange(newAccesses);
+            Save();
+        }
+
+        public void Depopulate(Guid networkId, Guid accessId)
+        {
+            var accessesToRemove = _context.NetworkUserAccesses
+                .Where(nua => nua.AccessId == accessId && nua.NetworkUser.NetworkId == networkId)
+                .ToList();
+
+            _context.NetworkUserAccesses.RemoveRange(accessesToRemove);
+            Save();
+        }
+
         public NetworkUserAccess? GetByIds(Guid networkUserId, Guid accessId)
         {
             return GetQueryable()

@@ -1,6 +1,4 @@
-﻿using thirdpartynetwork.Application.Dtos.Common.Ommitables;
-
-namespace thirdpartynetwork.Application.Dtos.NetworkUserAccess
+﻿namespace thirdpartynetwork.Application.Dtos.NetworkUserAccess
 {
     public class UpdateNetworkUserAccessDto
     {

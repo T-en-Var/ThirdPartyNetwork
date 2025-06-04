@@ -15,7 +15,7 @@ public class AuthController(IAuthService service) : ControllerBase
         var tokens = service.MainNetworkLogin(login);
         return Ok(tokens);
     }
-    
+
     [HttpPost("register")]
     [ProducesResponseType(200, Type = typeof(TokensDto))]
     [ProducesResponseType(401)]
@@ -34,18 +34,19 @@ public class AuthController(IAuthService service) : ControllerBase
         var tokens = service.MainNetworkRefresh(refreshToken);
         return Ok(tokens);
     }
-    
+
     [HttpPost("{networkId:guid}/login")]
-    [ProducesResponseType(200, Type = typeof(TokensDto))]
+    [ProducesResponseType(200, Type = typeof(AuthorizationCodeDto))]
     [ProducesResponseType(401)]
-    public IActionResult Login(Guid networkId, [FromBody] LoginDto login)
+    public IActionResult Login([FromRoute] Guid networkId, [FromBody] LoginDto login,
+        [FromQuery] string clientId, [FromQuery] string redirectUri, [FromQuery] string codeChallenge)
     {
-        var tokens = service.Login(networkId, login);
+        var tokens = service.Login(networkId, login, clientId, redirectUri, codeChallenge);
         return Ok(tokens);
     }
 
     [HttpPost("{networkId:guid}/refresh")]
-    [ProducesResponseType(200, Type = typeof(AccessTokenDto))]
+    [ProducesResponseType(200, Type = typeof(TokensDto))]
     [ProducesResponseType(401)]
     [Authorize]
     public IActionResult Refresh(Guid networkId, [FromBody] RefreshTokenDto refreshToken)
@@ -53,13 +54,23 @@ public class AuthController(IAuthService service) : ControllerBase
         var tokens = service.Refresh(networkId, refreshToken);
         return Ok(tokens);
     }
-    
+
     [HttpPost("{networkId:guid}/register")]
+    [ProducesResponseType(200, Type = typeof(AuthorizationCodeDto))]
+    [ProducesResponseType(401)]
+    public IActionResult Register([FromRoute] Guid networkId, [FromBody] CreateUserProxyDto createUserProxy,
+        [FromQuery] string clientId, [FromQuery] string redirectUri, [FromQuery] string codeChallenge)
+    {
+        var code = service.Register(networkId, createUserProxy, clientId, redirectUri, codeChallenge);
+        return Ok(code);
+    }
+    
+    [HttpPost("token")]
     [ProducesResponseType(200, Type = typeof(TokensDto))]
     [ProducesResponseType(401)]
-    public IActionResult Register(Guid networkId, [FromBody] CreateUserProxyDto createUserProxy)
+    public IActionResult Token([FromBody] TokenRequestDto dto)
     {
-        var tokens = service.Register(networkId, createUserProxy);
+        var tokens = service.Token(dto);
         return Ok(tokens);
     }
 }

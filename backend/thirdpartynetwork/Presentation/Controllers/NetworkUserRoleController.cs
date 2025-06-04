@@ -18,7 +18,7 @@ public class NetworkUserRoleController(INetworkUserRoleService service, IMapper 
     public IActionResult GetNetworkUserRoles(Guid networkId, Guid networkUserId)
     {
         var networkUserRoles = service.GetByNetworkUserId(networkId, networkUserId);
-        return Ok(mapper.Map<IEnumerable<NetworkUserRoleDto>>(networkUserRoles));
+        return Ok(mapper.Map<IEnumerable<NetworkUserRoleDto>>(networkUserRoles, opts => opts.Items["networkId"] = networkId));
     }
 
     [HttpGet("{roleId:guid}")]
@@ -29,7 +29,7 @@ public class NetworkUserRoleController(INetworkUserRoleService service, IMapper 
     public IActionResult GetNetworkUserRole(Guid networkId, Guid networkUserId, Guid roleId)
     {
         var networkUserRole = service.GetByIds(networkId, networkUserId, roleId);
-        return networkUserRole != null ? Ok(mapper.Map<NetworkUserRoleDto>(networkUserRole)) : NotFound();
+        return networkUserRole != null ? Ok(mapper.Map<NetworkUserRoleDto>(networkUserRole, opts => opts.Items["networkId"] = networkId)) : NotFound();
     }
 
     [HttpPost("{roleId:guid}")]
@@ -40,7 +40,7 @@ public class NetworkUserRoleController(INetworkUserRoleService service, IMapper 
         CreateNetworkUserRoleDto createNetworkUserRole)
     {
         var networkUserRole = service.Create(networkId, networkUserId, roleId, createNetworkUserRole);
-        return Ok(mapper.Map<NetworkUserRoleDto>(networkUserRole));
+        return Ok(mapper.Map<NetworkUserRoleDto>(networkUserRole, opts => opts.Items["networkId"] = networkId));
     }
 
     [HttpPut("{roleId:guid}")]
@@ -52,7 +52,7 @@ public class NetworkUserRoleController(INetworkUserRoleService service, IMapper 
         UpdateNetworkUserRoleDto updateNetworkUserRole)
     {
         var networkUserRole = service.Update(networkId, networkUserId, roleId, updateNetworkUserRole);
-        return Ok(mapper.Map<NetworkUserRoleDto>(networkUserRole));
+        return Ok(mapper.Map<NetworkUserRoleDto>(networkUserRole, opts => opts.Items["networkId"] = networkId));
     }
 
     [HttpDelete("{roleId:guid}")]

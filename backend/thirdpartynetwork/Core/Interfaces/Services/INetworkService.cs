@@ -6,7 +6,7 @@ namespace thirdpartynetwork.Core.Interfaces.Services
     public interface INetworkService : IBaseService
     {
         ICollection<Network> GetAll();
-        Network? GetById(Guid networkId);
+        Network? GetById(Guid networkId, bool bypass = false);
         Network? GetDetailsById(Guid networkId);
         Network Create(CreateNetworkDto createNetworkDto);
         Network Update(Guid id, UpdateNetworkDto updateNetworkDto);
