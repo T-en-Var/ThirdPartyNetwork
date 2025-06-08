@@ -359,7 +359,7 @@ async function updateRolePermissions(localForm: Ref<RoleForm>) {
         ...removedPerms.map(permId => api.delete(`/networks/${networkId}/roles/${roleId}/permissions/${permId}/`)),
       ]);
     }
-    
+
     await networkState.fetchNetwork(networkState.network.value!.id);
     showManageRoleModal.value = false;
   } catch (err) {

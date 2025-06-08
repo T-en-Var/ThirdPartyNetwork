@@ -8,6 +8,7 @@ export interface Network {
   description: string,
   imageUrl?: string,
   isPublic: boolean,
+  redirectURI: string,
   createdOn: Date,
   networkAccesses: NetworkAccess[],
   roles: Role[],

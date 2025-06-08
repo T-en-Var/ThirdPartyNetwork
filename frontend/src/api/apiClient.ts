@@ -1,6 +1,6 @@
 // apiClient.ts
 import { useAuthStore } from '@/stores/auth';
-import type { ErrorMessage } from '@/types';
+import type { ErrorMessage, TokenPair } from '@/types';
 import axios from 'axios';
 import type { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { type Router, type RouteLocationNormalizedLoaded } from 'vue-router';
@@ -18,8 +18,12 @@ class ApiClient {
     });
 
     this.instance.interceptors.request.use(async (config) => {
+      if (config.headers['x-skip-auth-headers']) {
+        delete config.headers['x-skip-auth-headers'];
+        return config;
+      }
       if (config.headers.Authorization) return config;
-      
+
       config = await this.auth.applyHeaders(config);
       return config;
     });
@@ -28,6 +32,7 @@ class ApiClient {
       (response) => {
         // Automatically convert fields that are string dates
         response.data = this.convertDatesInResponse(response.data);
+        console.log(response.data)
         return response;
       },
       (error) => {
@@ -36,7 +41,7 @@ class ApiClient {
         if (statusCode == 401) {
           let uri = this.route.query.redirect;
           if (this.route.name !== "Terms of Service") uri = btoa(this.route.fullPath);
-        
+
           this.router.push(`/401?redirect=${uri}`);
           this.auth.setModelOpen(true);
           this.auth.setModelMode("login");
@@ -46,7 +51,8 @@ class ApiClient {
           this.auth.setUnauthModalOpen(true);
         }
 
-        return Promise.reject(error)}
+        return Promise.reject(error)
+      }
     );
   }
 
@@ -56,7 +62,7 @@ class ApiClient {
     }
 
     if (data !== null && typeof data === 'object') {
-      const convertedData: {[key: string]: unknown} = {};
+      const convertedData: { [key: string]: unknown } = {};
       for (const key in data) {
         if (data.hasOwnProperty(key)) {
           // Check if the value is a valid date string
@@ -92,6 +98,12 @@ class ApiClient {
 
   public async post<T, B>(url: string, data?: B, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
     const response: AxiosResponse<T> = await this.instance.post(url, data, config);
+    return response;
+  }
+
+  public async refresh(refreshToken: string): Promise<AxiosResponse<TokenPair>> {
+    const config = { headers: { 'x-skip-auth-headers': true } };
+    const response: AxiosResponse<TokenPair> = await this.instance.post(`/auth/refresh`, { refreshToken: refreshToken }, config);
     return response;
   }
 

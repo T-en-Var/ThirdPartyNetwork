@@ -79,7 +79,7 @@ const router = createRouter({
     },
     {
       path: '/networks/:networkId/complete-access',
-      name: 'signup-network',
+      name: 'complete-access-network',
       component: () => import('@/views/networks/CompleteAccessView.vue'),
       meta: { 
         showNavbar: false,

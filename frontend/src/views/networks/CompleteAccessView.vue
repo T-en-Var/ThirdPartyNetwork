@@ -69,7 +69,7 @@
           </div>
         </div>
 
-        <div v-else-if="network">
+        <div v-else-if="network?.networkAccesses.length == 0">
           <p class="text-gray-600">This network does not require any special permissions.</p>
         </div>
 
@@ -90,7 +90,8 @@
               @click="navigateBack">
               Back
             </button>
-            <button type="submit" :class="`px-4 py-2 ${canSubmit && !isSubmitting ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400 cursor-not-allowed'} text-white rounded-md `"
+            <button type="submit"
+              :class="`px-4 py-2 ${canSubmit && !isSubmitting ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400 cursor-not-allowed'} text-white rounded-md `"
               :disabled="!canSubmit || isSubmitting">
               <span v-if="isSubmitting" class="flex items-center">
                 <span
@@ -142,10 +143,11 @@ onMounted(async () => {
   const networkId = route.params.networkId as string;
 
   temporaryAccessToken = localStorage.getItem('temporaryAccessToken') || '';
+  console.log(localStorage.getItem('temporaryAccessToken'))
   if (!temporaryAccessToken) {
     router.push(`/networks/${networkId}/login`)
-      pageLoading.value = false;
-      return;
+    pageLoading.value = false;
+    return;
   }
 
   await fetchNetworkDetails(networkId);
@@ -171,8 +173,11 @@ onMounted(async () => {
     }
     currentNetworkUser.value = networkUser;
 
+    console.log(networkUser?.networkUserAccesses)
+
     for (const na of network.value.networkAccesses) {
       const isCheckedByUser = networkUser?.networkUserAccesses.some(nua => nua.accessId == na.accessId && nua.isAccepted);
+      console.log(na.access.name, isCheckedByUser)
       userAccesses.value[na.accessId] = { value: isCheckedByUser, userChecked: false };
     }
   }
@@ -204,17 +209,24 @@ async function handleUpdateAccesses() {
 
   try {
     const acceptedAccesses = network.value!.networkAccesses
-      .filter(access => !access.isRequired && userAccesses.value[access.accessId])
+      .filter(access => userAccesses.value[access.accessId].value && !currentNetworkUser.value?.networkUserAccesses.find(n => n.accessId == access.accessId)?.isAccepted)
       .map(access => access.accessId);
 
-    await Promise.all(
-      acceptedAccesses.map(accessId =>
+    const rejectedAccesses = network.value!.networkAccesses
+      .filter(access => !userAccesses.value[access.accessId].value && currentNetworkUser.value?.networkUserAccesses.find(n => n.accessId == access.accessId)?.isAccepted)
+      .map(access => access.accessId);
+
+    await Promise.all([
+      ...acceptedAccesses.map(accessId =>
         api.put(`/networks/${networkId}/users/${networkUserId}/accesses/${accessId}/`, { isAccepted: true }, {
-          headers: {
-            "Authorization": `Bearer ${temporaryAccessToken}`
-          }
+          headers: { "Authorization": `Bearer ${temporaryAccessToken}` }
         })
-      )
+      ),
+      ...rejectedAccesses.map(accessId =>
+        api.put(`/networks/${networkId}/users/${networkUserId}/accesses/${accessId}/`, { isAccepted: false }, {
+          headers: { "Authorization": `Bearer ${temporaryAccessToken}` }
+        })
+      )]
     );
 
     const redirectUrl = atob(route.query.redirectUri as string);
@@ -237,7 +249,8 @@ function navigateBack() {
 }
 
 function switchAccount() {
-  console.log('switch');
+  const url = btoa(route.fullPath)
+  router.push(`/account?redirect=${url}`)
 }
 
 function handleNetworkDetails() {

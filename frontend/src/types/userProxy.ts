@@ -13,3 +13,16 @@ export interface UserProxy {
   user: User
   networkUsers: NetworkUser[];
 }
+
+export interface UserLogin {
+  email: string;
+  password: string;
+}
+
+export interface UserSignup {
+  username: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+}

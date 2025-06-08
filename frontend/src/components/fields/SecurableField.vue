@@ -9,7 +9,7 @@
       <span class="text-xs text-blue-600 ml-2">(Click to view)</span>
     </template>
     <template v-else>
-      {{ value || 'Not provided' }}
+      <span  class="break-all">{{ value || 'Not provided' }}</span>
       <span v-if="sensitive" class="text-xs text-blue-600 ml-2">(Click to hide)</span>
     </template>
   </div>

@@ -9,6 +9,7 @@ export interface NetworkUser {
   userProxyId: string,
   network: Network,
   userProxy: UserProxy,
+  accessIncomplete: boolean,
   networkUserAccesses: NetworkUserAccess[],
   networkUserRoles: NetworkUserRole[],
   createdOn: Date

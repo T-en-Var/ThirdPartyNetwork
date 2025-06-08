@@ -169,12 +169,10 @@ export const useAuthStore = defineStore('auth', () => {
             }
 
             global.startFetching();
-            const response = await rawApi.post('/auth/refresh', {
-                refresh_token: refreshToken.value
-            });
+            const response = await api.refresh(refreshToken.value);
 
-            saveTokens(response.data.access_token, response.data.refresh_token);
-            return response.data.access_token;
+            saveTokens(response.data.accessToken, response.data.refreshToken);
+            return response.data.accessToken;
         } catch (error) {
             console.error("Failed to refresh token", error);
             clearTokens();

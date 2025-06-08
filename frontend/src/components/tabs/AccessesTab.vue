@@ -54,9 +54,9 @@
                 v-for="userAccess in networkAccess.access.networkUserAccesses.filter(uA => uA.networkUser.id == networkUser.id)"
                 :key="userAccess.networkUser.id"
                 class="ml-2 inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium"
-                :class="getUserAccessForAccessId(networkUser, networkAccess.accessId)?.isAccepted ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'"
+                :class="networkUser.accessIncomplete ? 'bg-yellow-100 text-yellow-800' : getUserAccessForAccessId(networkUser, networkAccess.accessId)?.isAccepted ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
               >
-                {{ getUserAccessForAccessId(networkUser, networkAccess.accessId)?.isAccepted ? 'Accepted' : 'Pending' }}
+                {{ networkUser.accessIncomplete ? 'Pending' : getUserAccessForAccessId(networkUser, networkAccess.accessId)?.isAccepted ? 'Accepted' : 'Pending' }}
               </span>
             </div>
             <span v-if="getUsersWithAccess(networkAccess.accessId).length === 0" class="text-sm text-gray-500">

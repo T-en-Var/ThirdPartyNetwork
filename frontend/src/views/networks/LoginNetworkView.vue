@@ -109,17 +109,18 @@ const imageSrc = ref(`https://ui-avatars.com/api/?name=default&background=random
 const networkDetails = useNetworkDetails();
 const networkId = computed(() => route.params.networkId as string);
 const clientId = computed(() => route.query.clientId as string);
-const redirectUri = computed(() => route.query.redirectUri as string);
 const codeChallenge = computed(() => route.query.codeChallenge as string);
 const state = computed(() => route.query.state as string);
+const back = computed(() => atob(route.query.back as string));
 
 let temporaryAccessToken = '';
 
 const validUrl = computed(() => {
-  return networkId.value && clientId.value && redirectUri.value && codeChallenge.value && state.value;
+  return networkId.value && clientId.value && codeChallenge.value && state.value;
 })
 
 onMounted(async () => {
+  localStorage.removeItem('temporaryAccessToken');
   await networkDetails.fetchNetworkDetails(networkId.value);
 
   if (networkDetails.network.value?.imageUrl && isValidHttpUrl(networkDetails.network.value?.imageUrl)) {
@@ -131,27 +132,30 @@ onMounted(async () => {
 });
 
 const goBack = () => {
-  router.go(-1);
+  window.location.href = back.value;
 };
 
 const navigateToSignup = () => {
-  router.push(`/networks/${networkId.value}/signup`);
+  router.push(`/networks/${networkId.value}/signup?clientId=${clientId.value}&codeChallenge=${codeChallenge.value}&state=${state.value}&back=${btoa(back.value)}`);
 };
 
 const login = async () => {
+  if (!networkDetails.network.value) {
+    error.value = 'Network could not be loaded, please try again later.';
+    return;
+  }
+
   if (!email.value || !password.value) {
     error.value = 'Please enter both username and password';
     return;
   }
 
+  global.startFetching();
   isLoading.value = true;
   error.value = '';
 
-  const loginUrl = `/auth/${networkId.value}/login?clientId=${clientId.value}&redirectUri=${redirectUri.value}&codeChallenge=${codeChallenge.value}`
+  const loginUrl = `/auth/${networkId.value}/login?clientId=${clientId.value}&redirectUri=${networkDetails.network.value.redirectURI}&codeChallenge=${codeChallenge.value}`
 
-  console.log(loginUrl)
-
-  global.startFetching();
   let response;
 
   try {
@@ -170,7 +174,7 @@ const login = async () => {
     return;
   }
 
-  const redirectUrl = `${redirectUri.value}?code=${response.data.code}&state=${state.value}`;
+  const redirectUrl = `${networkDetails.network.value?.redirectURI}?code=${response.data.code}&state=${state.value}`;
   const jwt = decodeJWT<AccessTokenClaims>(response.data.accessToken);
 
   if (jwt.AccessIncomplete === "true") {
@@ -190,7 +194,7 @@ const login = async () => {
 function handleIncompleteAccess(redirectUri: string) {
   showConfirmationModal.value = true;
   confirmationTitle.value = 'This network has updated their Access requirements'
-  confirmationMessage.value = 'Please check you access and see that they comply with the network\'s requirements.'
+  confirmationMessage.value = 'Please check your shared accesses and see that they comply with the network\'s requirements.'
   confirmButtonText.value = 'Continue'
   confirmButtonColor.value = 'white'
 

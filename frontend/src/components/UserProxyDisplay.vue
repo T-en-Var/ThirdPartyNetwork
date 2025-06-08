@@ -27,6 +27,7 @@
 
           <!-- Switch Account Button -->
           <button 
+            v-if="showSwitch"
             @click="emit('switch-account')" 
             class="px-4 py-2 text-sm font-medium bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-300 rounded-md transition">
             Switch Account
@@ -66,6 +67,10 @@ const props = defineProps({
   userProxy: {
     type: Object as () => UserProxy | null,
     required: true
+  },
+  showSwitch: {
+    type: Boolean,
+    default: () => true,
   },
   // Object defining which fields are sensitive
   sensitiveFields: {
