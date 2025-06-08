@@ -28,7 +28,6 @@ public class AuthController(IAuthService service) : ControllerBase
     [HttpPost("refresh")]
     [ProducesResponseType(200, Type = typeof(AccessTokenDto))]
     [ProducesResponseType(401)]
-    [Authorize]
     public IActionResult MainNetworkRefresh([FromBody] RefreshTokenDto refreshToken)
     {
         var tokens = service.MainNetworkRefresh(refreshToken);
@@ -39,16 +38,15 @@ public class AuthController(IAuthService service) : ControllerBase
     [ProducesResponseType(200, Type = typeof(AuthorizationCodeDto))]
     [ProducesResponseType(401)]
     public IActionResult Login([FromRoute] Guid networkId, [FromBody] LoginDto login,
-        [FromQuery] string clientId, [FromQuery] string redirectUri, [FromQuery] string codeChallenge)
+        [FromQuery] string clientId, [FromQuery] string codeChallenge)
     {
-        var tokens = service.Login(networkId, login, clientId, redirectUri, codeChallenge);
+        var tokens = service.Login(networkId, login, clientId, codeChallenge);
         return Ok(tokens);
     }
 
     [HttpPost("{networkId:guid}/refresh")]
     [ProducesResponseType(200, Type = typeof(TokensDto))]
     [ProducesResponseType(401)]
-    [Authorize]
     public IActionResult Refresh(Guid networkId, [FromBody] RefreshTokenDto refreshToken)
     {
         var tokens = service.Refresh(networkId, refreshToken);
@@ -59,9 +57,9 @@ public class AuthController(IAuthService service) : ControllerBase
     [ProducesResponseType(200, Type = typeof(AuthorizationCodeDto))]
     [ProducesResponseType(401)]
     public IActionResult Register([FromRoute] Guid networkId, [FromBody] CreateUserProxyDto createUserProxy,
-        [FromQuery] string clientId, [FromQuery] string redirectUri, [FromQuery] string codeChallenge)
+        [FromQuery] string clientId, [FromQuery] string codeChallenge)
     {
-        var code = service.Register(networkId, createUserProxy, clientId, redirectUri, codeChallenge);
+        var code = service.Register(networkId, createUserProxy, clientId, codeChallenge);
         return Ok(code);
     }
     

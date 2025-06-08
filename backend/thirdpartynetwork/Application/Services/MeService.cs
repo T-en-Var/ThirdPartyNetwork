@@ -14,7 +14,7 @@ namespace thirdpartynetwork.Application.Services
             if (appUser == null) throw new UnauthorizedHttpException("No HttpContext User");
 
             var uidClaim = appUser.Claims.FirstOrDefault(x => x.Type == "uid");
-            if (uidClaim == null) throw new UnauthorizedHttpException("Invalid token 1");
+            if (uidClaim == null) throw new UnauthorizedHttpException("Invalid token 1 (Me)");
 
             var userProxyId = Guid.Parse(uidClaim.Value);
             

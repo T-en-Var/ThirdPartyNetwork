@@ -24,31 +24,17 @@ public class JtiCacheService : IJtiCacheService
 
         if (previousJti != null) AppendValidateJti(newTracker, previousJti);
 
-        Console.WriteLine("New Jti: " + newTracker.Jti);
         _jtiTrackers.Add(newTracker);
-        foreach (var t in _jtiTrackers)
-        {
-            Console.WriteLine($"Tracker Jti: {t.Jti}, Next: {t.Next?.Jti ?? "null"}, Expiration: {t.Expiration}");
-        }
     }
 
     private void AppendValidateJti(IJtiCacheService.JtiTracker newTracker, string previousJti)
     {
-        Console.WriteLine("Checking: " + previousJti);
         var previousTracker = _jtiTrackers.Find(t => t.Jti == previousJti);
-        Console.WriteLine("Previous Jti: " + previousTracker?.Jti);
-        Console.WriteLine("Tracker Count: " + _jtiTrackers.Count);
-        
-        foreach (var t in _jtiTrackers)
-        {
-            Console.WriteLine("Tracker Jti: " + t.Jti);
-        }
-        
         if (previousTracker == null) throw new UnauthorizedHttpException("Invalid token 4");
 
         if (previousTracker.Next != null)
         {
-            RemoveTrackerTree(previousTracker);
+            RemoveTrackerTree(previousTracker.Jti);
             throw new UnauthorizedHttpException("Invalid token 5");
         }
 
@@ -60,22 +46,26 @@ public class JtiCacheService : IJtiCacheService
     {
         GarbageCollect();
 
-        var tracker = _jtiTrackers.Find(t => t.Jti == jti);
-        if (tracker == null) return;
-        RemoveTrackerTree(tracker);
+        RemoveTrackerTree(jti);
     }
 
-    private void RemoveTrackerTree(IJtiCacheService.JtiTracker tracker)
+    private void RemoveTrackerTree(string jti)
     {
-        if (tracker.Next != null) RemoveTrackerTree(tracker.Next);
+        var tracker = _jtiTrackers.Find(t => t.Jti == jti);
+        if (tracker == null) return;
+        
+        _jtiTrackers.Remove(tracker);
+        
+        if (tracker.Next != null)
+        {
+            RemoveTrackerTree(tracker.Next.Jti);
+        }
         
         var childTrackers = _jtiTrackers.FindAll(t => t.Next == tracker);
         foreach (var childTracker in childTrackers)
         {
-            RemoveTrackerTree(childTracker);
+            RemoveTrackerTree(childTracker.Jti);
         }
-
-        _jtiTrackers.Remove(tracker);
     }
 
     private void GarbageCollect()
@@ -86,8 +76,8 @@ public class JtiCacheService : IJtiCacheService
         
         foreach (var expiredTracker in expiredTrackers)
         {
-            Console.WriteLine("Removing Jti: " + expiredTracker.Jti);
-            RemoveTrackerTree(expiredTracker);
+            Console.WriteLine("[JtiCache] Removing Jti: " + expiredTracker.Jti);
+            RemoveTrackerTree(expiredTracker.Jti);
         }
     }
 }

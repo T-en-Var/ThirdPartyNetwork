@@ -96,6 +96,27 @@ namespace thirdpartynetwork.Application.Repositories
             return existing;
         }
 
+        public void MarkAccessComplete(Guid networkUserId)
+        {
+            // Fast check: are there any required accesses that are NOT accepted?
+            bool hasUnacceptedRequiredAccess = _context.NetworkAccesses
+                .Where(na => na.IsRequired && na.Network.NetworkUsers.Any(nu => nu.Id == networkUserId))
+                .Any(na => !_context.NetworkUserAccesses
+                    .Any(nua => nua.NetworkUserId == networkUserId && nua.AccessId == na.AccessId && nua.IsAccepted));
+
+            if (hasUnacceptedRequiredAccess)
+                return;
+
+            var networkUser = _context.NetworkUsers.FirstOrDefault(nu => nu.Id == networkUserId);
+            if (networkUser == null)
+                return;
+            
+            Console.WriteLine("User complies");
+
+            networkUser.AccessIncomplete = false;
+            _context.SaveChanges();
+        }
+
         public bool Delete(NetworkUserAccess networkUserAccess)
         {
             _context.Remove(networkUserAccess);

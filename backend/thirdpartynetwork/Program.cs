@@ -88,7 +88,12 @@ builder.Services.AddCors(options =>
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, DynamicPermissionPolicyProvider>();
 
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+        options.JsonSerializerOptions.MaxDepth = 32; // Optional: Increase if necessary
+    });
 
 builder.Services.AddTransient<DatabaseSeeder>();
 builder.Services.AddControllers().AddJsonOptions(o => {

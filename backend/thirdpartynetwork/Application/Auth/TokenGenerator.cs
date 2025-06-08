@@ -10,7 +10,7 @@ namespace thirdpartynetwork.Application.Auth;
 public class TokenGenerator(IJtiCacheService jtiCacheService) : ITokenGenerator
 {
     private static readonly string TokenSecret = Environment.GetEnvironmentVariable("TOKEN_SECRET")!;
-    private static readonly TimeSpan AccessTokenLifetime = TimeSpan.FromMinutes(30);
+    private static readonly TimeSpan AccessTokenLifetime = TimeSpan.FromMinutes(2);
     private static readonly TimeSpan RefreshTokenLifetime = TimeSpan.FromHours(3 * 24);
 
     public TokensDto GenerateTokenPair(NetworkUser networkUser, string? previousJti = null)
@@ -20,7 +20,7 @@ public class TokenGenerator(IJtiCacheService jtiCacheService) : ITokenGenerator
         var tokensDto = new TokensDto()
         {
             AccessToken = GenerateAccessToken(jti, networkUser.UserProxyId, networkUser.UserProxy.Username, networkUser.AccessIncomplete),
-            RefreshToken = GenerateRefreshToken(jti, previousJti)
+            RefreshToken = GenerateRefreshToken(jti, networkUser.UserProxyId, previousJti)
         };
         
         return tokensDto;
@@ -58,7 +58,7 @@ public class TokenGenerator(IJtiCacheService jtiCacheService) : ITokenGenerator
         return jwt;
     }
 
-    private string GenerateRefreshToken(Guid jti, string? previousJti = null)
+    private string GenerateRefreshToken(Guid jti, Guid userId, string? previousJti = null)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.UTF8.GetBytes(TokenSecret);
@@ -68,6 +68,7 @@ public class TokenGenerator(IJtiCacheService jtiCacheService) : ITokenGenerator
         var claims = new List<Claim>
         {
             new(JwtRegisteredClaimNames.Jti, jti.ToString()),
+            new("uid", userId.ToString()),
         };
 
         var tokenDescriptor = new SecurityTokenDescriptor
