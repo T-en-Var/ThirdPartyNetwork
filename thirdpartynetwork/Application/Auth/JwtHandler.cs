@@ -14,24 +14,10 @@ public class JwtHandler : IJwtHandler
     {
         var jwtToken = TokenHandler.ReadJwtToken(token);
         
-        // // Access the header
-        // Console.WriteLine("Header claims:");
-        // foreach (var header in jwtToken.Header)
-        // {
-        //     Console.WriteLine($"{header.Key}: {header.Value}");
-        // }
-        //
-        // // Access the payload claims
-        // Console.WriteLine("\nPayload claims:");
-        // foreach (var claim in jwtToken.Claims)
-        // {
-        //     Console.WriteLine($"{claim.Type}: {claim.Value}");
-        // }
-        
         return jwtToken;
     }
     
-    public bool ValidateToken(string token)
+    public bool ValidateToken(string token, bool validateLifetime = true)
     {
         var validationParameters = new TokenValidationParameters
         {
@@ -43,7 +29,8 @@ public class JwtHandler : IJwtHandler
             // You can add additional validation as needed:
             // ValidIssuer = "your-issuer",
             // ValidAudience = "your-audience",
-            ClockSkew = TimeSpan.Zero
+            ClockSkew = TimeSpan.Zero,
+            ValidateLifetime = validateLifetime, 
         };
         
         try

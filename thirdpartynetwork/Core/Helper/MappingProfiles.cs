@@ -102,6 +102,7 @@ namespace thirdpartynetwork.Core.Helper
                 .FirstOrDefault(nu => nu.NetworkId == networkId)?
                 .NetworkUserAccesses
                 .FirstOrDefault(a => a.Access.Name == accessName);
+            var x = access?.IsAccepted == true ? fieldSelector(src) : null;
 
             return access?.IsAccepted == true ? fieldSelector(src) : null;
         }

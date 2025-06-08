@@ -7,7 +7,6 @@ public class AuthorizationCode
     public Guid UserId { get; set; }
     public Guid NetworkId { get; set; }
     public string ClientId { get; set; }
-    public string RedirectUri { get; set; }
     public string CodeChallenge { get; set; }
     public DateTime ExpiresAt { get; set; }
 }

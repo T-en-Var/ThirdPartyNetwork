@@ -67,6 +67,9 @@ namespace thirdpartynetwork.Application.Services
             networkUserAccess.AccessId = permissionId;
             
             networkUserAccess = repository.Create(networkUserAccess);
+
+            MarkAccessComplete(networkUserId);
+            
             return networkUserAccess;
         }
 
@@ -79,7 +82,15 @@ namespace thirdpartynetwork.Application.Services
             networkUserAccess.AccessId = permissionId;
             
             networkUserAccess = repository.Update(networkUserAccess);
+
+            MarkAccessComplete(networkUserId);
+            
             return networkUserAccess;
+        }
+
+        private void MarkAccessComplete(Guid networkUserId)
+        {
+            repository.MarkAccessComplete(networkUserId);
         }
 
         public bool DeleteByIds(Guid networkId, Guid networkUserId, Guid permissionId)

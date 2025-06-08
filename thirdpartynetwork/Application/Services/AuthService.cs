@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using thirdpartynetwork.Application.Auth;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using thirdpartynetwork.Core.Interfaces.Auth;
@@ -15,8 +14,7 @@ public class AuthService(
     INetworkService networkService,
     INetworkUserService networkUserService,
     IUserProxyService userProxyService,
-    IUserService userService,
-    IHttpContextAccessor httpContextAccessor) : IAuthService
+    IUserService userService) : IAuthService
 {
     private NetworkUser GetUserById(Guid networkId, Guid userProxyId)
     {
@@ -34,7 +32,7 @@ public class AuthService(
         return networkUser;
     }
 
-    public AuthorizationCodeDto Login(Guid networkId, LoginDto loginData, string clientId, string redirectUri, string codeChallenge)
+    public AuthorizationCodeDto Login(Guid networkId, LoginDto loginData, string clientId, string codeChallenge)
     {
         var networkUser = GetNetworkUserByEmail(networkId, loginData.Email);
         if (!passwordHasher.VerifyPassword(loginData.Password, networkUser.UserProxy.Password))
@@ -49,7 +47,6 @@ public class AuthService(
             UserId = networkUser.UserProxy.Id,
             NetworkId = networkId,
             ClientId = clientId,
-            RedirectUri = redirectUri,
             CodeChallenge = codeChallenge,
             ExpiresAt = DateTime.UtcNow.AddMinutes(5)
         });
@@ -59,49 +56,40 @@ public class AuthService(
     
     public TokensDto Refresh(Guid networkId, RefreshTokenDto refreshTokenDto)
     {
-        if (httpContextAccessor.HttpContext == null) throw new UnauthorizedHttpException("No HttpContext User");
-
-        var appUser = httpContextAccessor.HttpContext.User;
-        if (appUser == null) throw new UnauthorizedHttpException("No HttpContext User");
-
-        var uidClaim = appUser.Claims.FirstOrDefault(x => x.Type == "uid");
-        if (uidClaim == null) throw new UnauthorizedHttpException("Invalid token 1");
-
-        var userId = Guid.Parse(uidClaim.Value);
-        var networkUser = GetUserById(networkId, userId);
-        
-        var isTokenInvalid = jwtHandler.ValidateToken(refreshTokenDto.RefreshToken);
-        var isTokenPairValid = jwtHandler.ValidateTokenPair(appUser, refreshTokenDto.RefreshToken);
-
-        if (!isTokenInvalid || !isTokenPairValid) throw new UnauthorizedHttpException("Invalid token 2");
+        var isTokenValid = jwtHandler.ValidateToken(refreshTokenDto.RefreshToken);
+        if (!isTokenValid) throw new UnauthorizedHttpException("Invalid token 1");
 
         var oldToken = jwtHandler.DecodeToken(refreshTokenDto.RefreshToken);
+        var uidClaim = oldToken.Claims.FirstOrDefault(x => x.Type == "uid");
         var oldJti = oldToken.Claims.FirstOrDefault(x => x.Type == "jti");
-
+        
+        if (uidClaim == null) throw new UnauthorizedHttpException("Invalid token 2");
         if (oldJti == null) throw new UnauthorizedHttpException("Invalid token 3");
         
-        Console.WriteLine("OldJti: " + oldJti.Value);
+        var userId = Guid.Parse(uidClaim.Value);
+        var networkUser = GetUserById(networkId, userId);
 
         return tokenGenerator.GenerateTokenPair(networkUser, oldJti.Value);
     }
 
-    public AuthorizationCodeDto Register(Guid networkId, CreateUserProxyDto createUserProxy, string clientId, string redirectUri, string codeChallenge)
+    public AuthorizationCodeDto Register(Guid networkId, CreateUserProxyDto createUserProxy, string clientId, string codeChallenge)
     {
-        var userProxy = CreateUserProxy(networkId, createUserProxy);
+        var networkUser = CreateNetworkUser(networkId, createUserProxy);
+        
         var code = Guid.NewGuid().ToString("N");
+        var tokens = tokenGenerator.GenerateTokenPair(networkUser);
 
         AuthorizationCodeStore.Store(new AuthorizationCode
         {
             Code = code,
-            UserId = userProxy.Id,
+            UserId = networkUser.UserProxyId,
             NetworkId = networkId,
             ClientId = clientId,
-            RedirectUri = redirectUri,
             CodeChallenge = codeChallenge,
             ExpiresAt = DateTime.UtcNow.AddMinutes(5)
         });
 
-        return new AuthorizationCodeDto { Code = code };
+        return new AuthorizationCodeDto { Code = code, AccessToken = tokens.AccessToken };
     }
     
     public TokensDto Token(TokenRequestDto dto)
@@ -109,9 +97,6 @@ public class AuthService(
         var authCode = AuthorizationCodeStore.Get(dto.Code);
         if (authCode == null)
             throw new UnauthorizedHttpException("Invalid or expired authorization code");
-
-        if (authCode.RedirectUri != dto.RedirectUri)
-            throw new UnauthorizedHttpException("Mismatched redirect URI");
 
         if (authCode.ClientId != dto.ClientId)
             throw new UnauthorizedHttpException("Mismatched client ID");
@@ -145,23 +130,24 @@ public class AuthService(
         return RegisterGetTokens(mainNetwork.Id, createUserProxy);
     }
 
-    private UserProxy CreateUserProxy(Guid networkId, CreateUserProxyDto createUserProxy)
+    private NetworkUser CreateNetworkUser(Guid networkId, CreateUserProxyDto createUserProxy)
     {
         if (networkUserService.GetByNetworkIdAndEmail(networkId, createUserProxy.Email) != null) throw new ConflictHttpException("Email already used");
         
-        var userDto = new CreateUserDto() { };
+        var userDto = new CreateUserDto();
         var user = userService.Create(userDto);
 
-        return userProxyService.Create(user.Id, createUserProxy);
+        var userProxy = userProxyService.Create(user.Id, createUserProxy);
+        
+        var networkUserDto = new CreateNetworkUserDto();
+        var networkUser = networkUserService.Create(networkId, userProxy.Id, networkUserDto);
+        
+        return networkUser;
     }
 
     private TokensDto RegisterGetTokens(Guid networkId, CreateUserProxyDto createUserProxy)
     {
-        var userProxy = CreateUserProxy(networkId, createUserProxy);
-
-        var networkUserDto = new CreateNetworkUserDto() { };
-        var networkUser = networkUserService.Create(networkId, userProxy.Id, networkUserDto);
-
+        var networkUser = CreateNetworkUser(networkId, createUserProxy);
         return tokenGenerator.GenerateTokenPair(networkUser);
     }
 
