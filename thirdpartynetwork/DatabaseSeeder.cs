@@ -17,7 +17,7 @@ namespace thirdpartynetwork
             {
                 Name = Constants.Networks.Main,
                 Description = "Thirdpartynetwork's main network",
-                ImageUrl = "/src/images/logo_transparent.png",
+                ImageUrl = "/src/images/logo_transparent.png", // alternative: https://i.imgur.com/sTTwc3G.png
                 RedirectURI = "#",
                 IsSystemProtected = true,
                 IsPublic = true,
@@ -101,43 +101,18 @@ namespace thirdpartynetwork
                 Description = "",
                 IsSystemProtected = true,
             };
-
-            // Permission kickUser = new()
-            // {
-            //     Name = Constants.Permissions.KickUser, 
-            //     Description = "Allows user to kick lower ranked users.",
-            //     IsSystemProtected = true
-            // };
-            // Permission kickUserAdmin = new()
-            // {
-            //     Name = Constants.Permissions.KickUserAdmin, 
-            //     Description = "Allows user to kick any user.",
-            //     IsSystemProtected = true
-            // };
-            // Permission banUser = new()
-            // {
-            //     Name = Constants.Permissions.BanUser, 
-            //     Description = "Allows user to ban lower ranked users.",
-            //     IsSystemProtected = true
-            // };
-            // Permission banUserAdmin = new()
-            // {
-            //     Name = Constants.Permissions.BanUserAdmin, 
-            //     Description = "Allows user to ban any user.",
-            //     IsSystemProtected = true
-            // };
-            // Permission timeoutUser = new()
-            // {
-            //     Name = Constants.Permissions.TimoutUser, 
-            //     Description = "Allows user to timeout lower ranked users.",
-            //     IsSystemProtected = true
-            // };
-            // Permission timeoutUserAdmin = new()
-            // {
-            //     Name = Constants.Permissions.TimoutUserAdmin, 
-            //     Description = "Allows user to timeout any user.",
-            //     IsSystemProtected = true
-            // };
+            Permission readFile = new()
+            {
+                Name = Constants.Permissions.ReadFile,
+                Description = "",
+                IsSystemProtected = true,
+            };
+            Permission manageFile = new()
+            {
+                Name = Constants.Permissions.ManageFile,
+                Description = "",
+                IsSystemProtected = true,
+            };
 
             Access accessUsername = new()
             {
@@ -203,7 +178,7 @@ namespace thirdpartynetwork
                 Username = "Admin",
                 FirstName = "Admin",
                 LastName = "Noodle",
-                Email = "admin.noodle@gmail.com",
+                Email = "admin@gmail.com",
                 Password = passwordHasher.HashPassword("Admin"),
                 ImageUrl =
                     "https://cdn.discordapp.com/avatars/196606443703631874/a_336c3be4f4e5c1ba3563c74a7cc065da.gif?size=1024",
@@ -321,7 +296,9 @@ namespace thirdpartynetwork
                 readUser,
                 manageUser,
                 readContent,
-                manageContent
+                manageContent,
+                readFile,
+                manageFile
             );
             await context.SaveChangesAsync();
         }

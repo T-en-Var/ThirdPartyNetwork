@@ -81,14 +81,14 @@ namespace thirdpartynetwork.Application.Services
             return networkAccess;
         }
 
-        public bool DeleteByIds(Guid networkId, Guid accessId)
+        public void DeleteByIds(Guid networkId, Guid accessId)
         {
             var networkAccess = repository.GetByIds(networkId, accessId);
             if (networkAccess != null) HandleNetworkAccessUpdate(networkId);
             
             networkUserAccessService.Depopulate(networkId, accessId);
             
-            return networkAccess != null && repository.Delete(networkAccess);
+            if (networkAccess != null) repository.Delete(networkAccess);
         }
     }
 }

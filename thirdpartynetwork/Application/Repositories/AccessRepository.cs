@@ -36,7 +36,7 @@ namespace thirdpartynetwork.Application.Repositories
         public Access Create(Access access)
         {
             _context.Accesses.Add(access);
-            Save();
+            SaveAndUpdate(access);
             return access;
         }
 
@@ -49,16 +49,16 @@ namespace thirdpartynetwork.Application.Repositories
 
             _context.Entry(existing).CurrentValues.SetValues(access);
 
-            Save();
+            SaveAndUpdate(existing);
             return existing;
         }
 
-        public bool Delete(Access access)
+        public void Delete(Access access)
         {
             if (access.IsSystemProtected) throw new UnauthorizedHttpException("Access is system protected");
 
             _context.Remove(access);
-            return Save();
+            _context.SaveChanges();
         }
     }
 }

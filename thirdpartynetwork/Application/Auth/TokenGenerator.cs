@@ -10,7 +10,7 @@ namespace thirdpartynetwork.Application.Auth;
 public class TokenGenerator(IJtiCacheService jtiCacheService) : ITokenGenerator
 {
     private static readonly string TokenSecret = Environment.GetEnvironmentVariable("TOKEN_SECRET")!;
-    private static readonly TimeSpan AccessTokenLifetime = TimeSpan.FromMinutes(2);
+    private static readonly TimeSpan AccessTokenLifetime = TimeSpan.FromMinutes(30);
     private static readonly TimeSpan RefreshTokenLifetime = TimeSpan.FromHours(3 * 24);
 
     public TokensDto GenerateTokenPair(NetworkUser networkUser, string? previousJti = null)

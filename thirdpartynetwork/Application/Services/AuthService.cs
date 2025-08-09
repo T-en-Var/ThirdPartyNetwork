@@ -133,14 +133,15 @@ public class AuthService(
     private NetworkUser CreateNetworkUser(Guid networkId, CreateUserProxyDto createUserProxy)
     {
         if (networkUserService.GetByNetworkIdAndEmail(networkId, createUserProxy.Email) != null) throw new ConflictHttpException("Email already used");
+        var mainNetwork = networkService.GetMainNetwork();
         
         var userDto = new CreateUserDto();
         var user = userService.Create(userDto);
 
         var userProxy = userProxyService.Create(user.Id, createUserProxy);
         
-        var networkUserDto = new CreateNetworkUserDto();
-        var networkUser = networkUserService.Create(networkId, userProxy.Id, networkUserDto);
+        var networkUser = networkUserService.Create(networkId, userProxy.Id, new CreateNetworkUserDto());
+        if (mainNetwork.Id != networkId) networkUserService.Create(mainNetwork.Id, userProxy.Id, new CreateNetworkUserDto());
         
         return networkUser;
     }

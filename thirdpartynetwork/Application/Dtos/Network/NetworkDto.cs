@@ -12,6 +12,7 @@
         public ICollection<NetworkAccessDto> NetworkAccesses { get; set; } = [];
         public ICollection<RoleDto> Roles { get; set; } = [];
         public ICollection<NetworkUserDto> NetworkUsers { get; set; } = [];
+        public ICollection<FileDto> Files { get; set; } = [];
         public required bool IsSystemProtected { get; set; }
     }
 }

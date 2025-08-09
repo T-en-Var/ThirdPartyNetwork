@@ -1,6 +1,4 @@
-﻿using System.Text.Json;
-using thirdpartynetwork.Core.Exceptions;
-using thirdpartynetwork.Core.Exceptions.HttpExceptions;
+﻿using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 
 namespace thirdpartynetwork.Core.Helper
 {
@@ -8,9 +6,7 @@ namespace thirdpartynetwork.Core.Helper
     {
         public async Task InvokeAsync(HttpContext context)
         {
-            Console.WriteLine("REQUEST: " + context.Request.Path);
-            Console.WriteLine("REQUEST: " + context.Request.Path);
-            Console.WriteLine("REQUEST: " + context.Request.Path);
+            Console.WriteLine("[Middleware (Request)] " + context.Request.Path);
             try
             {
                 await next(context);

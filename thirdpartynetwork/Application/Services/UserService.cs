@@ -48,10 +48,10 @@ namespace thirdpartynetwork.Application.Services
             return user;
         }
 
-        public bool DeleteById(Guid userId)
+        public void DeleteById(Guid userId)
         {
             var user = GetById(userId);
-            return user != null && repository.Delete(user);
+            if (user != null) repository.Delete(user);
         }
     }
 }

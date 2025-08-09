@@ -10,6 +10,6 @@ namespace thirdpartynetwork.Core.Interfaces.Repositories
         Role? GetById(Guid networkId, Guid roleId);
         Role Create(Role role);
         Role Update(Guid networkId, Role role);
-        bool Delete(Role role);
+        void Delete(Role role);
     }
 }

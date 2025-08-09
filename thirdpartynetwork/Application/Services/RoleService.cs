@@ -52,10 +52,10 @@ namespace thirdpartynetwork.Application.Services
             return role;
         }
 
-        public bool DeleteById(Guid networkId, Guid roleId)
+        public void DeleteById(Guid networkId, Guid roleId)
         {
             var role = GetById(networkId, roleId);
-            return role != null && repository.Delete(role);
+            if (role != null) repository.Delete(role);
         }
     }
 }

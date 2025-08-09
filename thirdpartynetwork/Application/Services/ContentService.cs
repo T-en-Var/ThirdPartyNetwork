@@ -51,10 +51,10 @@ namespace thirdpartynetwork.Application.Services
             return content;
         }
 
-        public bool DeleteById(Guid contentId)
+        public void DeleteById(Guid contentId)
         {
             var content = GetById(contentId);
-            return content != null && repository.Delete(content);
+            if (content != null) repository.Delete(content);
         }
     }
 }

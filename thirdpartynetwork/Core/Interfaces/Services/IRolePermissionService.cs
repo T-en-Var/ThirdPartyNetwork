@@ -10,5 +10,5 @@ public interface IRolePermissionService : IBaseService
     RolePermission? GetByIds(Guid networkId, Guid roleId, Guid permissionId);
     RolePermission Create(Guid networkId, Guid roleId, Guid permissionId, CreateRolePermissionDto createRolePermission);
     RolePermission Update(Guid networkId, Guid roleId, Guid permissionId, UpdateRolePermissionDto updateRolePermission);
-    bool DeleteByIds(Guid networkId, Guid roleId, Guid permissionId);
+    void DeleteByIds(Guid networkId, Guid roleId, Guid permissionId);
 }

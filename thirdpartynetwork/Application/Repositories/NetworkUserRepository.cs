@@ -1,14 +1,15 @@
-﻿using System.Text.Json;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using thirdpartynetwork.Core;
 using thirdpartynetwork.Core.Data;
-using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using thirdpartynetwork.Core.Interfaces.Auth;
 using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Application.Repositories
 {
-    public class NetworkUserRepository(DataContext context, IIdentityService identityService, IIdentityVerifier identityVerifier) : BaseRepository(context), INetworkUserRepository
+    public class NetworkUserRepository(
+        DataContext context,
+        IIdentityService identityService,
+        IIdentityVerifier identityVerifier) : BaseRepository(context), INetworkUserRepository
     {
         private readonly DataContext _context = context;
 
@@ -31,7 +32,7 @@ namespace thirdpartynetwork.Application.Repositories
             if (identityVerifier.IsAllowed(networkId, currentUser.Id, Constants.Permissions.ReadUser))
                 query = query
                     .Include(x => x.UserProxy);
-            
+
             return query;
         }
 
@@ -42,24 +43,32 @@ namespace thirdpartynetwork.Application.Repositories
 
         public ICollection<NetworkUser> GetAll()
         {
-            return [.. _context.NetworkUsers
-                .Include(n => n.Network)
-                .Include(n => n.UserProxy)];
+            return
+            [
+                .. _context.NetworkUsers
+                    .Include(n => n.Network)
+                    .Include(n => n.UserProxy)
+            ];
         }
 
         public ICollection<NetworkUser> GetByNetworkId(Guid networkId)
         {
-            return [.. GetQueryable(networkId)
-                .Where(nu => nu.NetworkId == networkId)];
+            return [
+                .. GetQueryable(networkId)
+                    .Where(nu => nu.NetworkId == networkId)
+            ];
         }
 
         public ICollection<NetworkUser> GetByUserProxyId(Guid id)
         {
-            return [.. _context.NetworkUsers
-                .Include(n => n.Network)
-                .ThenInclude(x => x.NetworkUsers)
-                .ThenInclude(x => x.UserProxy)
-                .Where(nu => nu.UserProxyId == id)];
+            return
+            [
+                .. _context.NetworkUsers
+                    .Include(n => n.Network)
+                    .ThenInclude(x => x.NetworkUsers)
+                    .ThenInclude(x => x.UserProxy)
+                    .Where(nu => nu.UserProxyId == id)
+            ];
         }
 
         public NetworkUser? GetById(Guid networkId, Guid id)
@@ -82,6 +91,12 @@ namespace thirdpartynetwork.Application.Repositories
                 .FirstOrDefault(u => u.NetworkId == networkId && u.UserProxyId == userProxyId);
         }
 
+        public NetworkUser? GetByIdsNoInclude(Guid networkId, Guid userProxyId)
+        {
+            return _context.NetworkUsers
+                .FirstOrDefault(u => u.NetworkId == networkId && u.UserProxyId == userProxyId);
+        }
+
         public NetworkUser? GetByIdsPreAuth(Guid networkId, Guid userProxyId)
         {
             return _context.NetworkUsers
@@ -92,7 +107,7 @@ namespace thirdpartynetwork.Application.Repositories
         public NetworkUser Create(NetworkUser networkUser)
         {
             _context.NetworkUsers.Add(networkUser);
-            Save();
+            SaveAndUpdate(networkUser);
             return networkUser;
         }
 
@@ -103,7 +118,7 @@ namespace thirdpartynetwork.Application.Repositories
 
             _context.Entry(existing).CurrentValues.SetValues(networkUser);
 
-            Save();
+            SaveAndUpdate(existing);
             return existing;
         }
 
@@ -114,10 +129,10 @@ namespace thirdpartynetwork.Application.Repositories
                 .ExecuteUpdate(u => u.SetProperty(nu => nu.AccessIncomplete, true));
         }
 
-        public bool Delete(NetworkUser networkUser)
+        public void Delete(NetworkUser networkUser)
         {
             _context.Remove(networkUser);
-            return Save();
+            _context.SaveChanges();
         }
     }
 }

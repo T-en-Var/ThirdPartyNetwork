@@ -9,6 +9,6 @@ namespace thirdpartynetwork.Core.Interfaces.Services
         Content? GetById(Guid contentId);
         Content Create(Guid networkId, CreateContentDto createContent);
         Content Update(Guid networkId, Guid contentId, UpdateContentDto updateContent);
-        bool DeleteById(Guid contentId);
+        void DeleteById(Guid contentId);
     }
 }

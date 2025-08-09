@@ -13,6 +13,8 @@ namespace thirdpartynetwork.Application.Services
         IIdentityService identityService,
         IIdentityVerifier identityVerifier) : INetworkService
     {
+        private static Network? _cachedMainNetwork;
+        
         private ICollection<Network> FilterNetworks(ICollection<Network> networks, bool bypass = false)
         {
             var currentUser = identityService.GetUserProxy(bypass);
@@ -34,9 +36,6 @@ namespace thirdpartynetwork.Application.Services
 
         public Network? GetById(Guid id, bool bypass = false)
         {
-            Console.WriteLine("Getting (service) network with id: " + id);
-            Console.WriteLine("Getting (service) network with id: " + id);
-            Console.WriteLine("Getting (service) network with id: " + id);
             var network = repository.GetById(id, bypass);
             if (network == null) return null;
 
@@ -46,9 +45,6 @@ namespace thirdpartynetwork.Application.Services
 
         public Network? GetDetailsById(Guid id)
         {
-            Console.WriteLine("Getting (service) network details with id: " + id);
-            Console.WriteLine("Getting (service) network details with id: " + id);
-            Console.WriteLine("Getting (service) network details with id: " + id);
             var network = repository.GetDetailsById(id);
             if (network == null) return null;
 
@@ -97,7 +93,6 @@ namespace thirdpartynetwork.Application.Services
             ];
 
             var currentUser = identityService.GetUserProxy();
-            Console.WriteLine(currentUser.Username);
             network.Roles = [userRole, adminRole];
 
             network.NetworkUsers =
@@ -140,17 +135,19 @@ namespace thirdpartynetwork.Application.Services
             return network;
         }
 
-        public bool DeleteById(Guid id)
+        public void DeleteById(Guid id)
         {
             var network = GetById(id);
-            return network != null && repository.Delete(network);
+            if (network != null) repository.Delete(network);
         }
 
         public Network GetMainNetwork()
         {
-            var mainNetwork = repository.GetMainNetwork();
+            if (_cachedMainNetwork != null)
+                return _cachedMainNetwork;
 
-            return mainNetwork;
+            _cachedMainNetwork = repository.GetMainNetwork();
+            return _cachedMainNetwork;
         }
 
         public IQueryable<Network> GetMainNetworkQueryable()

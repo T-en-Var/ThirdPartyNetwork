@@ -9,6 +9,6 @@ namespace thirdpartynetwork.Core.Interfaces.Repositories
         Access? GetById(Guid id);
         Access Create(Access access);
         Access Update(Access access);
-        bool Delete(Access access);
+        void Delete(Access access);
     }
 }

@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using thirdpartynetwork.Core.Models;
+using File = thirdpartynetwork.Core.Models.File;
 
 namespace thirdpartynetwork.Core.Helper
 {
@@ -83,6 +84,11 @@ namespace thirdpartynetwork.Core.Helper
                         MapFieldIfAccessGranted(src, context, Constants.Access.AccessProfilePicture, s => s.ImageUrl)));
             CreateMap<CreateUserProxyDto, UserProxy>();
             CreateMap<UpdateUserProxyDto, UserProxy>();
+
+            CreateMap<File, FileDto>();
+                // .ForMember(dest => dest.Author.Network, opt => opt.Ignore());
+            CreateMap<CreateFileDto, File>();
+            CreateMap<UpdateFileDto, File>();
         }
         
         private static string? MapFieldIfAccessGranted(
@@ -102,7 +108,6 @@ namespace thirdpartynetwork.Core.Helper
                 .FirstOrDefault(nu => nu.NetworkId == networkId)?
                 .NetworkUserAccesses
                 .FirstOrDefault(a => a.Access.Name == accessName);
-            var x = access?.IsAccepted == true ? fieldSelector(src) : null;
 
             return access?.IsAccepted == true ? fieldSelector(src) : null;
         }

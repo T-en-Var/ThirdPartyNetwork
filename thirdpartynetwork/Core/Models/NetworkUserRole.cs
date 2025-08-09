@@ -1,6 +1,6 @@
 ﻿namespace thirdpartynetwork.Core.Models
 {
-    public class NetworkUserRole
+    public class NetworkUserRole : BaseModel
     {
         public Guid NetworkUserId { get; set; }
         public Guid RoleId { get; set; }

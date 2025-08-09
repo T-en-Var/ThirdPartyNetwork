@@ -12,6 +12,6 @@ namespace thirdpartynetwork.Core.Interfaces.Repositories
         NetworkUserRole? GetByIdAndName(Guid networkId, Guid networkUserId, string roleName);
         NetworkUserRole Create(NetworkUserRole networkUserRole);
         NetworkUserRole Update(Guid networkId, NetworkUserRole networkUserRole);
-        bool Delete(NetworkUserRole networkUserRole);
+        void Delete(NetworkUserRole networkUserRole);
     }
 }

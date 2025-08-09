@@ -10,6 +10,6 @@ namespace thirdpartynetwork.Core.Interfaces.Repositories
         Content? GetById(Guid id);
         Content Create(Content content);
         Content Update(Content content);
-        bool Delete(Content content);
+        void Delete(Content content);
     }
 }

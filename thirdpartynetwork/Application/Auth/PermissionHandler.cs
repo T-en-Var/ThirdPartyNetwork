@@ -47,8 +47,6 @@ public class PermissionHandler(
 
     private bool HandleRequirement(string permission)
     {
-        Console.WriteLine("[PermissionHandler] HandleRequirement: " + permission);
-
         var httpContext = httpContextAccessor.HttpContext;
         if (httpContext == null) throw new UnauthorizedHttpException();
         var userProxy = identityService.GetUserProxy();
@@ -63,8 +61,6 @@ public class PermissionHandler(
 
     private bool HandleGeneralRequirement(string permission)
     {
-        Console.WriteLine("[PermissionHandler] HandleGeneralRequirement: " + permission);
-
         var userProxy = identityService.GetUserProxy();
 
         if (identityVerifier.IsSuperAdminOrHasSuperPermission(userProxy.Id, permission))
@@ -80,7 +76,6 @@ public class PermissionHandler(
 
     private bool HandleOwnerRequirement(string permission)
     {
-        Console.WriteLine("[PermissionHandler] HandleOwnerRequirement: " + permission);
         var httpContext = httpContextAccessor.HttpContext;
         if (httpContext == null) throw new UnauthorizedHttpException();
 
@@ -108,8 +103,6 @@ public class PermissionHandler(
         {
             if (claim is { Type: "AccessIncomplete", Value: "true" })
             {
-                Console.WriteLine(httpContext.Request.Path.Value);
-                
                 var routeData = httpContext.GetRouteData();
                 var isAccessUpdateRoute =
                     httpContext.Request.Method.Equals("PUT", StringComparison.OrdinalIgnoreCase) &&
@@ -119,7 +112,6 @@ public class PermissionHandler(
                 
                 // The route `/api/me` is not checked as it never invokes the PermissionHandler, so automatically passes
                 
-                Console.WriteLine($"isAccessUpdateRoute: {isAccessUpdateRoute}");
                 if (!isAccessUpdateRoute)
                 {
                     throw new UnauthorizedHttpException(UnauthorizedHttpException.BaseMessage, "ACCESS_INCOMPLETE");

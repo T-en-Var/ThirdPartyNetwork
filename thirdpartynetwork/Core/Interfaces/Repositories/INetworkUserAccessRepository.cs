@@ -14,6 +14,6 @@ namespace thirdpartynetwork.Core.Interfaces.Repositories
         NetworkUserAccess Create(NetworkUserAccess networkUserPermission);
         NetworkUserAccess Update(NetworkUserAccess networkUserPermission);
         void MarkAccessComplete(Guid networkUserId);
-        bool Delete(NetworkUserAccess networkUserPermission);
+        void Delete(NetworkUserAccess networkUserPermission);
     }
 }

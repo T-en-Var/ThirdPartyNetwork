@@ -9,5 +9,5 @@ public interface IPermissionService : IBaseService
     Permission? GetByName(string name);
     Permission Create(CreatePermissionDto createPermission);
     Permission Update(Guid permissionId, UpdatePermissionDto updatePermission);
-    bool DeleteById(Guid permissionId);
+    void DeleteById(Guid permissionId);
 }

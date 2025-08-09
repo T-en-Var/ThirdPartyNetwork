@@ -36,10 +36,10 @@ namespace thirdpartynetwork.Application.Services
             return access;
         }
 
-        public bool DeleteById(Guid id)
+        public void DeleteById(Guid id)
         {
             var access = GetById(id);
-            return access != null && repository.Delete(access);
+            if (access != null) repository.Delete(access);
         }
     }
 }

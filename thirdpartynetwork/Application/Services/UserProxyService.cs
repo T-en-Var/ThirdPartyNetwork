@@ -25,9 +25,7 @@ namespace thirdpartynetwork.Application.Services
 
         public UserProxy? GetById(Guid userProxyId)
         {
-            Console.WriteLine("Getting user proxy with id: " + userProxyId);
             var proxy = repository.GetById(userProxyId);
-            Console.WriteLine("Got proxy: " + proxy?.Username);
             return proxy;
         }
 
@@ -82,10 +80,10 @@ namespace thirdpartynetwork.Application.Services
             return userProxyQueryable;
         }
 
-        public bool DeleteByIds(Guid userId, Guid userProxyId)
+        public void DeleteByIds(Guid userId, Guid userProxyId)
         {
             var proxy = GetByIds(userId, userProxyId);
-            return proxy != null && repository.Delete(proxy);
+            if (proxy != null) repository.Delete(proxy);
         }
     }
 }

@@ -76,7 +76,6 @@ public class JtiCacheService : IJtiCacheService
         
         foreach (var expiredTracker in expiredTrackers)
         {
-            Console.WriteLine("[JtiCache] Removing Jti: " + expiredTracker.Jti);
             RemoveTrackerTree(expiredTracker.Jti);
         }
     }

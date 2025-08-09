@@ -72,10 +72,10 @@ namespace thirdpartynetwork.Application.Services
             return networkUserRole;
         }
 
-        public bool DeleteByIds(Guid networkId, Guid networkUserId, Guid roleId)
+        public void DeleteByIds(Guid networkId, Guid networkUserId, Guid roleId)
         {
             var networkUserRole = repository.GetByIds(networkId, networkUserId, roleId);
-            return networkUserRole != null && repository.Delete(networkUserRole);
+            if (networkUserRole != null) repository.Delete(networkUserRole);
         }
     }
 }

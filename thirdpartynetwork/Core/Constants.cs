@@ -51,6 +51,9 @@ public static class Constants
         public const string ReadContent = "Read Content";
         public const string ManageContent = "Manage Content";
 
+        public const string ReadFile = "Read File";
+        public const string ManageFile = "Manage File";
+
         // public const string KickUser = "Kick User";
         // public const string KickUserAdmin = "Kick User Admin";
         // public const string BanUser = "Ban User";

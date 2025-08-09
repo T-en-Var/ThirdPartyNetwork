@@ -4,18 +4,17 @@ using System.Text.Json.Serialization;
 using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using thirdpartynetwork;
 using thirdpartynetwork.Application.Auth;
-using thirdpartynetwork.Application.Auth.Requirements;
 using thirdpartynetwork.Application.Helpers;
 using thirdpartynetwork.Core.Data;
 using thirdpartynetwork.Presentation.Swagger;
 using thirdpartynetwork.Application.Repositories;
 using thirdpartynetwork.Application.Services;
-using thirdpartynetwork.Core;
 using thirdpartynetwork.Core.Helper;
 using thirdpartynetwork.Core.Interfaces.Auth;
 using thirdpartynetwork.Core.Interfaces.Helpers;
@@ -46,7 +45,6 @@ builder.Services.AddAuthentication(o =>
     {
         OnForbidden = context =>
         {
-            Console.WriteLine("Yo!!!");
             return ErrorResponseWriter.WriteJsonError(context.HttpContext, 403,
                 "You are not authorized to access this resource.");
         },
@@ -111,11 +109,25 @@ builder.Services.AddHttpContextAccessor();
 // builder.Services.AddScoped<IAuthorizationHandler, NetworkAdminHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, PermissionHandler>();
 // builder.Services.AddScoped<IAuthorizationHandler, AdminRequirementHandler>();
+builder.Services.Configure<CloudinaryOptions>(options =>
+{
+    options.CloudName = Environment.GetEnvironmentVariable("CLOUDINARY_CLOUD_NAME")!;
+    options.ApiKey = Environment.GetEnvironmentVariable("CLOUDINARY_API_KEY")!;
+    options.ApiSecret = Environment.GetEnvironmentVariable("CLOUDINARY_API_SECRET")!;
+    options.DefaultFolder = "DataFolder";
+});
+builder.Services.Configure<FormOptions>(options =>
+{
+    // options.MultipartBodyLengthLimit = 104857600; // 100 MB
+    options.MultipartBodyLengthLimit =  52428800; // 50 MB
+});
+builder.Services.AddSingleton<ICloudinaryService, CloudinaryService>();
 
 
 // Add Repositories
 builder.Services.AddScoped<IAccessRepository, AccessRepository>();
 builder.Services.AddScoped<IContentRepository, ContentRepository>();
+builder.Services.AddScoped<IFileRepository, FileRepository>();
 builder.Services.AddScoped<INetworkAccessRepository, NetworkAccessRepository>();
 builder.Services.AddScoped<INetworkRepository, NetworkRepository>();
 builder.Services.AddScoped<INetworkUserAccessRepository, NetworkUserAccessRepository>();
@@ -139,6 +151,7 @@ builder.Services.AddScoped<IIdentityService, IdentityService>();
 builder.Services.AddScoped<IAccessService, AccessService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IContentService, ContentService>();
+builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IMeService, MeService>();
 builder.Services.AddScoped<INetworkAccessService, NetworkAccessService>();
 builder.Services.AddScoped<INetworkService, NetworkService>();

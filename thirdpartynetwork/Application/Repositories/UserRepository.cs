@@ -34,7 +34,7 @@ namespace thirdpartynetwork.Application.Repositories
         public User Create(User user)
         {
             _context.Users.Add(user);
-            Save();
+            SaveAndUpdate(user);
             return user;
         }
 
@@ -45,14 +45,14 @@ namespace thirdpartynetwork.Application.Repositories
 
             _context.Entry(existing).CurrentValues.SetValues(user);
 
-            Save();
+            SaveAndUpdate(existing);
             return existing;
         }
 
-        public bool Delete(User user)
+        public void Delete(User user)
         {
             _context.Remove(user);
-            return Save();
+            _context.SaveChanges();
         }
     }
 }

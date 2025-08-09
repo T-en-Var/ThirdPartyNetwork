@@ -9,6 +9,6 @@ namespace thirdpartynetwork.Core.Interfaces.Services
         User? GetById(Guid userId);
         User Create(CreateUserDto createUser);
         User Update(Guid userId, UpdateUserDto updateUser);
-        bool DeleteById(Guid userId);
+        void DeleteById(Guid userId);
     }
 }

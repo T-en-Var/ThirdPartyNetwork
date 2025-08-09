@@ -43,7 +43,7 @@ public class PermissionRepository(DataContext context) : BaseRepository(context)
     public Permission Create(Permission permission)
     {
         _context.Permissions.Add(permission);
-        Save();
+        SaveAndUpdate(permission);
         return permission;
     }
 
@@ -56,15 +56,15 @@ public class PermissionRepository(DataContext context) : BaseRepository(context)
 
         _context.Entry(existing).CurrentValues.SetValues(permission);
 
-        Save();
+        SaveAndUpdate(existing);
         return existing;
     }
 
-    public bool Delete(Permission permission)
+    public void Delete(Permission permission)
     {
         if (permission.IsSystemProtected) throw new UnauthorizedHttpException("Permission is system protected");
 
         _context.Remove(permission);
-        return Save();
+        _context.SaveChanges();
     }
 }
