@@ -1,6 +1,6 @@
 ﻿namespace thirdpartynetwork.Core.Models
 {
-    public class NetworkAccess
+    public class NetworkAccess : BaseModel
     {
         public Guid NetworkId { get; set; }
         public Guid AccessId { get; set; }

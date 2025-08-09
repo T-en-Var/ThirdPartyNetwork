@@ -1,7 +1,10 @@
-﻿namespace thirdpartynetwork.Core.Interfaces.Repositories
+﻿using thirdpartynetwork.Core.Models;
+
+namespace thirdpartynetwork.Core.Interfaces.Repositories
 {
     public interface IBaseRepository
     {
-        bool Save();
+        public void SaveAndUpdateAll<T>(IEnumerable<T> models) where T : BaseModel;
+        void SaveAndUpdate<T>(T model) where T : BaseModel;
     }
 }

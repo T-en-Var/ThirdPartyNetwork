@@ -20,6 +20,13 @@ namespace thirdpartynetwork.Application.Repositories
             var allowRoles = bypass || identityVerifier.IsAllowed(id, currentUser.Id, Constants.Permissions.ReadRole);
             var allowAccess = bypass || identityVerifier.IsAllowed(id, currentUser.Id, Constants.Permissions.ReadAccess);
             var allowPerms = bypass || identityVerifier.IsAllowed(id, currentUser.Id, Constants.Permissions.ReadPermission);
+            var allowFiles = bypass || identityVerifier.IsAllowed(id, currentUser.Id, Constants.Permissions.ReadFile);
+
+            if (allowFiles)
+            {
+                query = query
+                    .Include(x => x.Files);
+            }
             
             if (allowUsers)
             {
@@ -94,17 +101,11 @@ namespace thirdpartynetwork.Application.Repositories
 
         public Network? GetById(Guid id, bool bypass = false)
         {
-            Console.WriteLine("Getting (repo level) network with id: " + id);
-            Console.WriteLine("Getting (repo level) network with id: " + id);
-            Console.WriteLine("Getting (repo level) network with id: " + id);
             return GetQueryable(id, bypass).FirstOrDefault(x => x.Id == id);
         }
 
         public Network? GetDetailsById(Guid id)
         {
-            Console.WriteLine("Getting (repo level) network details with id: " + id);
-            Console.WriteLine("Getting (repo level) network details with id: " + id);
-            Console.WriteLine("Getting (repo level) network details with id: " + id);
             var network = _context.Networks
                 .Include(x => x.NetworkAccesses)
                 .ThenInclude(x => x.Access)
@@ -144,7 +145,7 @@ namespace thirdpartynetwork.Application.Repositories
         public Network Create(Network network)
         {
             _context.Networks.Add(network);
-            Save();
+            SaveAndUpdate(network);
             return network;
         }
 
@@ -157,16 +158,16 @@ namespace thirdpartynetwork.Application.Repositories
 
             _context.Entry(existing).CurrentValues.SetValues(network);
 
-            Save();
+            SaveAndUpdate(existing);
             return existing;
         }
 
-        public bool Delete(Network network)
+        public void Delete(Network network)
         {
             if (network.IsSystemProtected) throw new UnauthorizedHttpException("Network is system protected");
             
             _context.Remove(network);
-            return Save();
+            _context.SaveChanges();
         }
     }
 }

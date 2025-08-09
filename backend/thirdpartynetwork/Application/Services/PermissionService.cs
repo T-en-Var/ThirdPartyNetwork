@@ -43,9 +43,9 @@ public class PermissionService(IPermissionRepository repository, IMapper mapper)
         return permission;
     }
 
-    public bool DeleteById(Guid permissionId)
+    public void DeleteById(Guid permissionId)
     {
         var permission = repository.GetById(permissionId);
-        return permission != null && repository.Delete(permission);
+        if (permission != null) repository.Delete(permission);
     }
 }

@@ -9,6 +9,6 @@ namespace thirdpartynetwork.Core.Interfaces.Services
         Access? GetById(Guid id);
         Access Create(CreateAccessDto createAccess);
         Access Update(Guid id, UpdateAccessDto updateAccess);
-        bool DeleteById(Guid id);
+        void DeleteById(Guid id);
     }
 }

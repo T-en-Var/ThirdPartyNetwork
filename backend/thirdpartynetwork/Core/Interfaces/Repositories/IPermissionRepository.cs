@@ -10,5 +10,5 @@ public interface IPermissionRepository : IBaseRepository
     Permission? GetByName(string permissionName);
     Permission Create(Permission permission);
     Permission Update(Permission permission);
-    bool Delete(Permission permission);
+    void Delete(Permission permission);
 }

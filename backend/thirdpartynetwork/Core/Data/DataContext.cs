@@ -1,11 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using thirdpartynetwork.Core.Models;
+using File = thirdpartynetwork.Core.Models.File;
 
 namespace thirdpartynetwork.Core.Data
 {
     public class DataContext(DbContextOptions<DataContext> options) : DbContext(options)
     {
         public required DbSet<Content> Contents { get; set; }
+        public required DbSet<File> Files { get; set; }
         public required DbSet<Network> Networks { get; set; }
         public required DbSet<NetworkAccess> NetworkAccesses { get; set; }
         public required DbSet<NetworkUser> NetworkUsers { get; set; }

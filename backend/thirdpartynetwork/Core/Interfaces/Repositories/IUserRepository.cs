@@ -9,6 +9,6 @@ namespace thirdpartynetwork.Core.Interfaces.Repositories
         User? GetById(Guid id);
         User Create(User user);
         User Update(User user);
-        bool Delete(User user);
+        void Delete(User user);
     }
 }

@@ -60,9 +60,9 @@ public class RolePermissionService(IRolePermissionRepository repository, IRoleSe
         return rolePermission;
     }
 
-    public bool DeleteByIds(Guid networkId, Guid roleId, Guid permissionId)
+    public void DeleteByIds(Guid networkId, Guid roleId, Guid permissionId)
     {
         var rolePermission = repository.GetByIds(roleId, permissionId);
-        return rolePermission != null && repository.Delete(rolePermission);
+        if (rolePermission != null) repository.Delete(rolePermission);
     }
 }

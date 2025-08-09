@@ -36,15 +36,11 @@ namespace thirdpartynetwork.Application.Repositories
 
         public UserProxy? GetById(Guid userProxyId)
         {
-            Console.WriteLine("Getting (repo level) user proxy with id: " + userProxyId);
             var query = GetQueryable();
-            Console.WriteLine("Before identity service");
             var currentUser = identityService.GetUserProxy(true);
-            Console.WriteLine("After identity service");
 
             if (identityVerifier.IsUserProxyOwner(currentUser.Id, userProxyId))
             {
-                Console.WriteLine("Is Userowner!");
                 query = query.Include(up => up.User)
                     .ThenInclude(u => u.UserProxies)
                     .ThenInclude(up => up.NetworkUsers)
@@ -75,7 +71,7 @@ namespace thirdpartynetwork.Application.Repositories
         public UserProxy Create(UserProxy userProxy)
         {
             _context.UserProxies.Add(userProxy);
-            Save();
+            SaveAndUpdate(userProxy);
             return userProxy;
         }
 
@@ -86,7 +82,7 @@ namespace thirdpartynetwork.Application.Repositories
 
             _context.Entry(existing).CurrentValues.SetValues(userProxy);
 
-            Save();
+            SaveAndUpdate(existing);
             return existing;
         }
 
@@ -96,10 +92,10 @@ namespace thirdpartynetwork.Application.Repositories
                 .Where(u => u.Id == id);
         }
 
-        public bool Delete(UserProxy userProxy)
+        public void Delete(UserProxy userProxy)
         {
             _context.Remove(userProxy);
-            return Save();
+            _context.SaveChanges();
         }
     }
 }

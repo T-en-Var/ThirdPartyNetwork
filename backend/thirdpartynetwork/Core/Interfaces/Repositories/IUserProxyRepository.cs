@@ -12,6 +12,6 @@ namespace thirdpartynetwork.Core.Interfaces.Repositories
         UserProxy Create(UserProxy userProxy);
         UserProxy Update(UserProxy userProxy);
         IQueryable<UserProxy> GetByIdQueryable(Guid id);
-        bool Delete(UserProxy userProxy);
+        void Delete(UserProxy userProxy);
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace thirdpartynetwork.Core.Models
 {
-    public class Access
+    public class Access : BaseModel
     {
         public Guid Id { get; set; }
         public required string Name { get; set; }

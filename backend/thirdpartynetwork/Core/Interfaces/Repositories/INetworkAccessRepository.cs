@@ -11,6 +11,6 @@ namespace thirdpartynetwork.Core.Interfaces.Repositories
         NetworkAccess? GetByIds(Guid networkId, Guid accessId);
         NetworkAccess Create(NetworkAccess networkAccess);
         NetworkAccess Update(NetworkAccess networkAccess);
-        bool Delete(NetworkAccess networkAccess);
+        void Delete(NetworkAccess networkAccess);
     }
 }

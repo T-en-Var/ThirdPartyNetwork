@@ -14,6 +14,6 @@ namespace thirdpartynetwork.Core.Interfaces.Repositories
         IQueryable<Network> GetByIdQueryable(Guid id);
         Network Create(Network network);
         Network Update(Network network);
-        bool Delete(Network network);
+        void Delete(Network network);
     }
 }

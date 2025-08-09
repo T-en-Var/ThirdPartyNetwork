@@ -50,7 +50,7 @@ namespace thirdpartynetwork.Application.Repositories
         public NetworkAccess Create(NetworkAccess networkAccess)
         {
             _context.NetworkAccesses.Add(networkAccess);
-            Save();
+            SaveAndUpdate(networkAccess);
             return networkAccess;
         }
 
@@ -63,16 +63,16 @@ namespace thirdpartynetwork.Application.Repositories
 
             _context.Entry(existing).CurrentValues.SetValues(networkAccess);
 
-            Save();
+            SaveAndUpdate(existing);
             return existing;
         }
 
-        public bool Delete(NetworkAccess networkAccess)
+        public void Delete(NetworkAccess networkAccess)
         {
             if (networkAccess.IsSystemProtected) throw new UnauthorizedHttpException("NetworkAccess is system protected");
             
             _context.Remove(networkAccess);
-            return Save();
+            _context.SaveChanges();
         }
     }
 }

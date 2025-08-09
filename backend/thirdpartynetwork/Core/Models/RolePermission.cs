@@ -1,6 +1,6 @@
 namespace thirdpartynetwork.Core.Models;
 
-public class RolePermission
+public class RolePermission : BaseModel
 {
     public Guid RoleId { get; set; }
     public Guid PermissionId { get; set; }

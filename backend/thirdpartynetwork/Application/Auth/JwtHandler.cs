@@ -46,9 +46,6 @@ public class JwtHandler : IJwtHandler
 
     public bool ValidateTokenPair(ClaimsPrincipal accessToken, string refreshToken)
     {
-        Console.WriteLine("AccessToken: " + accessToken);
-        Console.WriteLine("RefreshToken: " + refreshToken);
-        
         var decodedRefreshToken = DecodeToken(refreshToken);
         
         var accessJti = accessToken.Claims.FirstOrDefault(x => x.Type == "jti");

@@ -10,6 +10,6 @@ namespace thirdpartynetwork.Core.Interfaces.Services
         Role? GetById(Guid networkId, Guid roleId);
         Role Create(Guid networkId, CreateRoleDto createRole);
         Role Update(Guid networkId, Guid roleId, UpdateRoleDto role);
-        bool DeleteById(Guid networkId, Guid roleId);
+        void DeleteById(Guid networkId, Guid roleId);
     }
 }

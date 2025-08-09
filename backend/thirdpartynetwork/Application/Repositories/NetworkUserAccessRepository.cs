@@ -47,7 +47,7 @@ namespace thirdpartynetwork.Application.Repositories
             }).ToList();
 
             _context.NetworkUserAccesses.AddRange(newAccesses);
-            Save();
+            SaveAndUpdateAll(newAccesses);
         }
 
         public void Depopulate(Guid networkId, Guid accessId)
@@ -57,7 +57,7 @@ namespace thirdpartynetwork.Application.Repositories
                 .ToList();
 
             _context.NetworkUserAccesses.RemoveRange(accessesToRemove);
-            Save();
+            _context.SaveChanges();
         }
 
         public NetworkUserAccess? GetByIds(Guid networkUserId, Guid accessId)
@@ -81,7 +81,7 @@ namespace thirdpartynetwork.Application.Repositories
         public NetworkUserAccess Create(NetworkUserAccess networkUserPermission)
         {
             _context.NetworkUserAccesses.Add(networkUserPermission);
-            Save();
+            SaveAndUpdate(networkUserPermission);
             return networkUserPermission;
         }
 
@@ -92,7 +92,7 @@ namespace thirdpartynetwork.Application.Repositories
 
             _context.Entry(existing).CurrentValues.SetValues(networkUserAccess);
 
-            Save();
+            SaveAndUpdate(existing);
             return existing;
         }
 
@@ -111,16 +111,14 @@ namespace thirdpartynetwork.Application.Repositories
             if (networkUser == null)
                 return;
             
-            Console.WriteLine("User complies");
-
             networkUser.AccessIncomplete = false;
             _context.SaveChanges();
         }
 
-        public bool Delete(NetworkUserAccess networkUserAccess)
+        public void Delete(NetworkUserAccess networkUserAccess)
         {
             _context.Remove(networkUserAccess);
-            return Save();
+            _context.SaveChanges();
         }
     }
 }

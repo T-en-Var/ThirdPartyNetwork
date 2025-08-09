@@ -1,5 +1,4 @@
-﻿using System.Text.Json;
-using AutoMapper;
+﻿using AutoMapper;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using thirdpartynetwork.Core.Models;
 
@@ -70,13 +69,14 @@ namespace thirdpartynetwork.Application.Services
 
         public NetworkUser Create(Guid networkId, Guid userProxyId, CreateNetworkUserDto createNetworkUser)
         {
+            Console.WriteLine($"The network id is: {networkId}");
             var network = networkService.GetById(networkId, bypass: true);
-            if (network == null) throw new NotFoundHttpException("Network not Found");
+            if (network == null) throw new NotFoundHttpException("Network not Found asdasd");
             
             var userProxy = userProxyService.GetById(userProxyId);
             if (userProxy == null) throw new NotFoundHttpException("UserProxy not Found");
             
-            if (GetByIds(networkId, userProxyId) != null) throw new ConflictHttpException("NetworkUser already exists");
+            if (GetByIds(networkId, userProxyId) != null) throw new ConflictHttpException("Email is already in use.");
             if (GetByNetworkIdAndEmail(networkId, userProxy.Email) != null) throw new ConflictHttpException("User with this email already exists");
 
             var networkUser = mapper.Map<NetworkUser>(createNetworkUser);
@@ -130,13 +130,13 @@ namespace thirdpartynetwork.Application.Services
             repository.NetworkAccessUpdate(networkId);
         }
 
-        public bool DeleteById(Guid networkId, Guid id)
+        public void DeleteById(Guid networkId, Guid id)
         {
             var network = networkService.GetById(networkId);
             if (network is { IsSystemProtected: true }) throw new UnauthorizedHttpException("Network is system protected");
 
             var networkUser = repository.GetById(networkId, id);
-            return networkUser != null && repository.Delete(networkUser);
+            if (networkUser != null) repository.Delete(networkUser);
         }
     }
 }

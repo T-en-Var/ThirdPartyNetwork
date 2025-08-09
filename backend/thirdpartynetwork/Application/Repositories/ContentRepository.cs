@@ -12,14 +12,14 @@ namespace thirdpartynetwork.Application.Repositories
         public Content Create(Content content)
         {
             _context.Contents.Add(content);
-            Save();
+            SaveAndUpdate(content);
             return content;
         }
 
-        public bool Delete(Content content)
+        public void Delete(Content content)
         {
             _context.Remove(content);
-            return Save();
+            _context.SaveChanges();
         }
 
         public bool Exists(Guid id)
@@ -49,7 +49,7 @@ namespace thirdpartynetwork.Application.Repositories
 
             _context.Entry(existing).CurrentValues.SetValues(content);
 
-            Save();
+            SaveAndUpdate(existing);
             return existing;
         }
     }

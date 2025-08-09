@@ -11,5 +11,5 @@ public interface IRolePermissionRepository : IBaseRepository
     RolePermission? GetByIds(Guid roleId, Guid permissionId);
     RolePermission Create(RolePermission createRolePermission);
     RolePermission Update(RolePermission updateRolePermission);
-    bool Delete(RolePermission rolePermission);
+    void Delete(RolePermission rolePermission);
 }

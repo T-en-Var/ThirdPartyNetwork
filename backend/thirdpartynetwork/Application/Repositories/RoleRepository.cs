@@ -57,7 +57,7 @@ namespace thirdpartynetwork.Application.Repositories
         public Role Create(Role role)
         {
             _context.Roles.Add(role);
-            Save();
+            SaveAndUpdate(role);
             return role;
         }
 
@@ -70,16 +70,16 @@ namespace thirdpartynetwork.Application.Repositories
 
             _context.Entry(existing).CurrentValues.SetValues(role);
 
-            Save();
+            SaveAndUpdate(existing);
             return existing;
         }
 
-        public bool Delete(Role role)
+        public void Delete(Role role)
         {
             if (role.IsSystemProtected) throw new UnauthorizedHttpException("Role is system protected");
 
             _context.Remove(role);
-            return Save();
+            _context.SaveChanges();
         }
     }
 }

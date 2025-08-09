@@ -63,7 +63,7 @@ namespace thirdpartynetwork.Application.Repositories
         public NetworkUserRole Create(NetworkUserRole networkUserRole)
         {
             _context.NetworkUserRoles.Add(networkUserRole);
-            Save();
+            SaveAndUpdate(networkUserRole);
             return networkUserRole;
         }
 
@@ -74,14 +74,14 @@ namespace thirdpartynetwork.Application.Repositories
 
             _context.Entry(existing).CurrentValues.SetValues(networkUserRole);
 
-            Save();
+            SaveAndUpdate(existing);
             return existing;
         }
 
-        public bool Delete(NetworkUserRole networkUserRole)
+        public void Delete(NetworkUserRole networkUserRole)
         {
             _context.Remove(networkUserRole);
-            return Save();
+            _context.SaveChanges();
         }
     }
 }

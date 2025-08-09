@@ -93,10 +93,10 @@ namespace thirdpartynetwork.Application.Services
             repository.MarkAccessComplete(networkUserId);
         }
 
-        public bool DeleteByIds(Guid networkId, Guid networkUserId, Guid permissionId)
+        public void DeleteByIds(Guid networkId, Guid networkUserId, Guid permissionId)
         {
             var networkUserPermission = GetByIds(networkId, networkUserId, permissionId);
-            return networkUserPermission != null && repository.Delete(networkUserPermission);
+            if (networkUserPermission != null) repository.Delete(networkUserPermission);
         }
     }
 }

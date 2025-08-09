@@ -13,6 +13,6 @@ namespace thirdpartynetwork.Core.Interfaces.Services
         NetworkUserAccess? GetByIds(Guid networkId, Guid networkUserId, Guid accessId);
         NetworkUserAccess Create(Guid networkId, Guid networkUserId, Guid accessId, CreateNetworkUserAccessDto createNetworkUserAccess);
         NetworkUserAccess Update(Guid networkId, Guid networkUserId, Guid accessId, UpdateNetworkUserAccessDto updateNetworkUserAccess);
-        bool DeleteByIds(Guid networkId, Guid networkUserId, Guid accessId);
+        void DeleteByIds(Guid networkId, Guid networkUserId, Guid accessId);
     }
 }

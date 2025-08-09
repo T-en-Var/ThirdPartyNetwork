@@ -1,7 +1,4 @@
-﻿using System.Text.Json.Serialization;
-using thirdpartynetwork.Application.Dtos.User;
-
-namespace thirdpartynetwork.Application.Dtos.UserProxy
+﻿namespace thirdpartynetwork.Application.Dtos.UserProxy
 {
     public class UserProxyDto
     {

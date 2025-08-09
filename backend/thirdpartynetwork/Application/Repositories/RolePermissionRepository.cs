@@ -53,7 +53,7 @@ public class RolePermissionRepository(DataContext context) : BaseRepository(cont
     public RolePermission Create(RolePermission rolePermission)
     {
         _context.RolePermissions.Add(rolePermission);
-        Save();
+        SaveAndUpdate(rolePermission);
         return rolePermission;
     }
 
@@ -64,13 +64,13 @@ public class RolePermissionRepository(DataContext context) : BaseRepository(cont
             
         _context.Entry(existing).CurrentValues.SetValues(rolePermission);
 
-        Save();
+        SaveAndUpdate(existing);
         return existing;
     }
 
-    public bool Delete(RolePermission rolePermission)
+    public void Delete(RolePermission rolePermission)
     {
         _context.Remove(rolePermission);
-        return Save();
+        _context.SaveChanges();
     }
 }
