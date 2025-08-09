@@ -23,6 +23,13 @@
         >
           Accesses
         </button>
+        <button 
+          @click="$emit('tabChanged', 'files')" 
+          class="px-6 py-4 font-medium text-sm"
+          :class="activeTab === 'files' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-600 hover:text-gray-800'"
+        >
+          Files
+        </button>
       </nav>
     </div>
     
@@ -53,15 +60,26 @@
         @toggle-access-required="$emit('toggleAccessRequired', $event)"
         @remove-access="$emit('removeAccess', $event)"
       />
+      
+      <!-- Accesses Tab -->
+      <files-tab
+        v-if="activeTab === 'files'"
+        :network="network"
+        @add-file="$emit('addFile')"
+        @edit-file="$emit('editFile')"
+        @remove-file="$emit('removeFile', $event)"
+        @toggle-visibility="$emit('toggleFileVisibility', $event)"
+      />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { Network, NetworkUser, Role, NetworkAccess } from '@/types';
+import type { Network, NetworkUser, Role, NetworkAccess, NetworkFile } from '@/types';
 import UsersTab from './UsersTab.vue';
 import RolesTab from './RolesTab.vue';
 import AccessesTab from './AccessesTab.vue';
+import FilesTab from './FilesTab.vue';
 
 defineProps<{
   network: Network;
@@ -79,5 +97,9 @@ defineEmits<{
   (e: 'addAccess'): void;
   (e: 'toggleAccessRequired', access: NetworkAccess): void;
   (e: 'removeAccess', access: NetworkAccess): void;
+  (e: 'addFile'): void;
+  (e: 'editFile', file: NetworkFile): void;
+  (e: 'removeFile', file: NetworkFile): void;
+  (e: 'toggleFileVisibility', file: NetworkFile): void;
 }>();
 </script>

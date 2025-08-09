@@ -1,9 +1,9 @@
 <template>
-  <header v-if="showNavbar">
+  <header v-if="showNavbar" class="static">
     <NavBar />
   </header>
 
-  <main :class="showNavbar ? 'pt-8' : ''">
+  <main>
     <RouterView />
     <FetchingToast />
   </main>
@@ -21,7 +21,7 @@ const router = useRouter()
 const route = useRoute()
 
 onMounted(() => {
-  initializeApiClient(router, route)
+  initializeApiClient(router, route);
 })
 
 const showNavbar = computed(() => {

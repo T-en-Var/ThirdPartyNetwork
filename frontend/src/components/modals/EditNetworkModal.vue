@@ -14,15 +14,39 @@
         </p>
       </div>
 
-      <div class="rounded-md bg-gray-50 p-3">
-        <h4 class="text-sm font-medium text-gray-700">Description:</h4>
-        <input 
-          id="name" 
-          v-model="localForm.description" 
-          type="text"
-          class="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-600 focus:ring focus:ring-blue-100 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed transition-all"
-          :disabled="props.network.isSystemProtected"
-          required />
+      <div class="rounded-md bg-gray-50 p-3 flex flex-col gap-2">
+        <div>
+          <h4 class="text-sm font-medium text-gray-700">Description:</h4>
+          <input 
+            id="name" 
+            v-model="localForm.description" 
+            type="text"
+            class="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-600 focus:ring focus:ring-blue-100 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed transition-all"
+            :disabled="props.network.isSystemProtected"
+            required />
+        </div>
+        
+        <div>
+          <h4 class="text-sm font-medium text-gray-700">Image URL:</h4>
+          <input 
+            id="name" 
+            v-model="localForm.imageUrl" 
+            type="text"
+            class="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-600 focus:ring focus:ring-blue-100 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed transition-all"
+            :disabled="props.network.isSystemProtected"
+            required />
+        </div>
+        
+        <div>
+          <h4 class="text-sm font-medium text-gray-700">Callback URL:</h4>
+          <input 
+            id="name" 
+            v-model="localForm.redirectURI" 
+            type="text"
+            class="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-600 focus:ring focus:ring-blue-100 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed transition-all"
+            :disabled="props.network.isSystemProtected"
+            required />
+        </div>
       </div>
 
       <div class="flex items-center">
@@ -78,6 +102,7 @@ const localForm = ref<NetworkForm>({
   isPublic: false,
   description: '',
   imageUrl: undefined,
+  redirectURI: '',
 });
 
 onMounted(() => {

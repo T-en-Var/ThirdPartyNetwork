@@ -33,7 +33,7 @@
 </template>
 
 <script setup lang="ts">
-// No additional script needed
+
 </script>
 
 <style scoped>

@@ -80,9 +80,13 @@ class ApiClient {
   }
 
   private isValidDateString(dateString: string): boolean {
-    // Check if the string is a valid ISO 8601 date string (common format for API responses)
+    // ISO 8601 full date/time (e.g., "2023-08-08T12:34:56Z")
+    const iso8601Regex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?$/;
+
+    if (!iso8601Regex.test(dateString)) return false;
+
     const date = new Date(dateString);
-    return !isNaN(date.getTime()); // Returns true if it's a valid date
+    return !isNaN(date.getTime());
   }
 
   public initialize(store: ReturnType<typeof useAuthStore>, route: RouteLocationNormalizedLoaded, router: Router) {

@@ -1,9 +1,13 @@
 <template>
-  <div class="container mx-auto px-4 py-8">
+  <div class="container mx-auto px-4 py-8 mt-8">
     <div class="bg-white shadow-md rounded-lg overflow-hidden border border-gray-200">
       <div class="bg-gray-100 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
         <h1 class="text-2xl font-semibold text-gray-800">Network Details</h1>
-        <div>
+        <div class="flex space-x-3">
+          <button @click="handleNavigateBack"
+            class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+            Back to Networks
+          </button>
           <button v-if="canManageNetwork" @click="handleManageNetwork"
             class="px-4 py-2 bg-blue-600 text-white rounded-md shadow-sm hover:bg-blue-700">
             Manage Network
@@ -358,6 +362,10 @@ onMounted(async () => {
     global.stopFetching();
   }
 });
+
+function handleNavigateBack() {
+  router.push(`/networks`);
+}
 
 function handleManageNetwork() {
   router.push(`/networks/${network.value?.id}/manage`);

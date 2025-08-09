@@ -66,13 +66,15 @@
                   :class="userAccess.isAccepted ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
                   {{ userAccess.access.name }}: {{ userAccess.isAccepted ? 'Accepted' : 'Rejected' }}
                 </span>
-                <span v-if="!user.networkUserAccesses?.length" class="text-sm text-gray-500">No access
-                  requirements</span>
+                <span v-if="!user.networkUserAccesses?.length" class="text-sm text-gray-500">
+                  No access requirements
+                </span>
               </div>
               <div v-else>
                 <span
-                  class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Pending:
-                  User has not updated the new changes.</span>
+                  class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                  Pending: User has not updated the new changes.
+                </span>
               </div>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

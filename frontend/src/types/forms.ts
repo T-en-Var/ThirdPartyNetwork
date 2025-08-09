@@ -9,9 +9,15 @@ export type RoleForm = {
   isDefault: boolean;
 }
 
-export type NetworkForm = { 
+export type NetworkForm = {
   name: string;
   isPublic: boolean;
   description: string,
   imageUrl?: string,
+  redirectURI: string,
+}
+
+export type EditFileForm = {
+  name: string; 
+  isPublic: boolean;
 }

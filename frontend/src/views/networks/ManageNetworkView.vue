@@ -1,47 +1,57 @@
 <template>
-  <div class="container mx-auto px-4 py-8">
-    <!-- Loading and Error States -->
-    <loading-error-component :loading="networkState.loading.value" :error="networkState.error.value"
-      @return-to-networks="router.push('/networks')" />
+  <div class="flex h-full pt-16">
+    <!-- Sidebar -->
+    <NetworkSidebar />
 
-    <!-- Network Management UI -->
-    <div v-if="!networkState.loading.value && !networkState.error.value && networkState.network.value != null"
-      class="space-y-8">
-      <!-- Network Header -->
-      <network-header :network="networkState.network.value" @navigate-back="router.push('/networks')"
-        @edit-network="showEditNetworkModal = true" />
+    <!-- Main Content -->
+    <div class="flex-1 p-6 overflow-auto">
+      <!-- Loading and Error States -->
+      <LoadingErrorComponent :loading="networkState.loading.value" :error="networkState.error.value"
+        @return-to-networks="router.push(`/networks`)" />
 
-      <!-- Tab Navigation -->
-      <tab-container :network="networkState.network.value" :active-tab="activeTab" @tab-changed="activeTab = $event"
-        @add-user="showAddUserModal = true" @add-role="showAddRoleModal = true" @add-access="showAddAccessModal = true"
-        @manage-user="openManageUserModal" @remove-user="confirmRemoveUser" @manage-role="openManageRoleModal"
-        @remove-role="confirmRemoveRole" @toggle-access-required="confirmToggleAccessRequired"
-        @remove-access="confirmRemoveAccess" />
+      <!-- Route View (Page Content) -->
+      <div class="bg-white shadow-md rounded-lg overflow-hidden p-6">
+        <RouterView v-if="!networkState.loading.value && !networkState.error.value && networkState.network.value"
+          :network="networkState.network.value" @add-user="showAddUserModal = true" @manage-user="openManageUserModal"
+          @remove-user="confirmRemoveUser" @add-role="showAddRoleModal = true" @manage-role="openManageRoleModal"
+          @remove-role="confirmRemoveRole" @add-access="showAddAccessModal = true"
+          @toggle-access-required="confirmToggleAccessRequired" @remove-access="confirmRemoveAccess"
+          @add-file="showAddFileModal = true" @edit-file="openEditFileModal" @remove-file="confirmRemoveFile"
+          @toggle-file-visibility="confirmToggleFileVisibility" />
+      </div>
 
-      <!-- Modals -->
-      <edit-network-modal v-if="showEditNetworkModal" :network="networkState.network.value"
-        :is-submitting="isSubmitting" @close="showEditNetworkModal = false" @update="updateNetwork" />
+      <div v-if="networkState.network.value">
+        <!-- Modals -->
+        <EditNetworkModal v-if="showEditNetworkModal" :network="networkState.network.value"
+          :is-submitting="isSubmitting" @close="showEditNetworkModal = false" @update="updateNetwork" />
 
-      <add-user-modal v-if="showAddUserModal" :network="networkState.network.value" :is-submitting="isSubmitting"
-        @close="showAddUserModal = false" @add-user="addUserToNetwork" />
+        <AddUserModal v-if="showAddUserModal" :network="networkState.network.value" :is-submitting="isSubmitting"
+          @close="showAddUserModal = false" @add-user="addUserToNetwork" />
 
-      <manage-user-modal v-if="showManageUserModal && selectedUser" :network="networkState.network.value"
-        :selected-user="selectedUser" :is-submitting="isSubmitting" :manage-user-form="manageUserForm"
-        @close="showManageUserModal = false" @update="updateUserSettings" />
+        <ManageUserModal v-if="showManageUserModal && selectedUser" :network="networkState.network.value"
+          :selected-user="selectedUser" :is-submitting="isSubmitting" :manage-user-form="manageUserForm"
+          @close="showManageUserModal = false" @update="updateUserSettings" />
 
-      <add-role-modal v-if="showAddRoleModal" :network="networkState.network.value" :is-submitting="isSubmitting"
-        @close="showAddRoleModal = false" @add-role="addRoleToNetwork" />
+        <AddRoleModal v-if="showAddRoleModal" :network="networkState.network.value" :is-submitting="isSubmitting"
+          @close="showAddRoleModal = false" @add-role="addRoleToNetwork" />
 
-      <manage-role-modal v-if="showManageRoleModal && selectedRole" :network="networkState.network.value"
-        :selected-role="selectedRole" :manage-role-form="manageRoleForm" @close="showManageRoleModal = false"
-        @update="updateRolePermissions" />
+        <ManageRoleModal v-if="showManageRoleModal && selectedRole" :network="networkState.network.value"
+          :selected-role="selectedRole" :manage-role-form="manageRoleForm" @close="showManageRoleModal = false"
+          @update="updateRolePermissions" />
 
-      <add-access-modal v-if="showAddAccessModal" :network="networkState.network.value" :is-submitting="isSubmitting"
-        @close="showAddAccessModal = false" @add-access="addAccessToNetwork" />
+        <AddAccessModal v-if="showAddAccessModal" :network="networkState.network.value" :is-submitting="isSubmitting"
+          @close="showAddAccessModal = false" @add-access="addAccessToNetwork" />
 
-      <confirmation-modal v-if="showConfirmationModal" :title="confirmationTitle" :message="confirmationMessage"
-        :button-text="confirmButtonText" :color="confirmButtonColor" :is-submitting="isSubmitting"
-        @close="showConfirmationModal = false" @confirm="confirmAction" />
+        <ConfirmationModal v-if="showConfirmationModal" :title="confirmationTitle" :message="confirmationMessage"
+          :button-text="confirmButtonText" :color="confirmButtonColor" :is-submitting="isSubmitting"
+          @close="showConfirmationModal = false" @confirm="confirmAction" />
+
+        <AddFileModal v-if="showAddFileModal" :network="networkState.network.value" @close="showAddFileModal = false"
+          @open-edit-file="openEditFileModal" />
+
+        <EditFileModal v-if="showEditFileModal && fileState.file.value" :file="fileState.file.value"
+          :is-submitting="isSubmitting" @close="showEditFileModal = false" @update-file="editFile" />
+      </div>
     </div>
   </div>
 </template>
@@ -49,36 +59,37 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, type Ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import useNetwork from '@/composables/useNetwork.ts';
-import type { NetworkUser, NetworkAccess, Role, Network, UpdateNetwork, CreateRole, UpdateRole } from '@/types';
+import useNetwork from '@/composables/useNetwork';
+import usePermissions from '@/composables/usePermissions';
+import { useGlobalStore } from '@/stores/global';
 
 // Components
+import NetworkSidebar from '@/components/sidebar/NetworkSidebar.vue';
 import LoadingErrorComponent from '@/components/LoadingError.vue';
-import NetworkHeader from '@/components/NetworkHeader.vue';
-import TabContainer from '@/components/tabs/TabContainer.vue';
 import EditNetworkModal from '@/components/modals/EditNetworkModal.vue';
 import AddUserModal from '@/components/modals/AddUserModal.vue';
 import ManageUserModal from '@/components/modals/ManageUserModal.vue';
 import AddRoleModal from '@/components/modals/AddRoleModal.vue';
 import ManageRoleModal from '@/components/modals/ManageRoleModal.vue';
 import AddAccessModal from '@/components/modals/AddAccessModal.vue';
+import AddFileModal from '@/components/modals/AddFileModal.vue';
+import EditFileModal from '@/components/modals/EditFileModal.vue';
 import ConfirmationModal from '@/components/modals/ConfirmationModal.vue';
-import api from '@/api/api';
-import { useGlobalStore } from '@/stores/global';
-import usePermissions from '@/composables/usePermissions';
-import type { RoleForm, ManageUserForm, NetworkForm } from '@/types/forms';
 
-const globalStore = useGlobalStore();
+import type { NetworkUser, Role, NetworkAccess, NetworkFile, CreateRole, UpdateNetwork, Network, UpdateRole } from '@/types';
+import type { RoleForm, ManageUserForm, NetworkForm, EditFileForm } from '@/types/forms';
+
+import api from '@/api/api';
+import useFiles from '@/composables/useFiles';
 
 const router = useRouter();
 const route = useRoute();
+
+const globalStore = useGlobalStore();
+const permissionsState = usePermissions();
 const networkState = useNetwork();
-// const permissionsState = usePermissions();
+const fileState = useFiles();
 
-// Tab state
-const activeTab = ref('users');
-
-// Modal states
 const showEditNetworkModal = ref(false);
 const showAddUserModal = ref(false);
 const showManageUserModal = ref(false);
@@ -86,31 +97,20 @@ const showAddRoleModal = ref(false);
 const showManageRoleModal = ref(false);
 const showAddAccessModal = ref(false);
 const showConfirmationModal = ref(false);
+const showAddFileModal = ref(false);
+const showEditFileModal = ref(false);
 
-// User states
 const selectedUser = ref<NetworkUser | null>(null);
-
-// Role states
 const selectedRole = ref<Role | null>(null);
+const isSubmitting = ref(false);
 
-// Permission states
-const permissionsState = usePermissions();
-
-// Confirmation states
 const confirmationTitle = ref('');
 const confirmationMessage = ref('');
 const confirmButtonText = ref('');
 const confirmButtonColor = ref('');
 const confirmationAction = ref(() => { });
 
-// Submission state
-const isSubmitting = ref(false);
-
-// Form states
-const manageUserForm = reactive<ManageUserForm>({
-  roleIds: [],
-});
-
+const manageUserForm = reactive<ManageUserForm>({ roleIds: [] });
 const manageRoleForm = reactive<RoleForm>({
   name: '',
   description: '',
@@ -122,6 +122,7 @@ onMounted(async () => {
   const networkId = route.params.networkId as string;
   await networkState.fetchNetwork(networkId);
 });
+
 
 // Methods
 function openManageUserModal(user: NetworkUser) {
@@ -385,8 +386,83 @@ async function addAccessToNetwork(accessData: { accessId: string, isRequired: bo
   }
 }
 
+async function confirmToggleFileVisibility(networkFile: NetworkFile) {
+  confirmationTitle.value = 'Toggle File Visibility';
+  confirmationMessage.value = networkFile.isPublic
+    ? `Are you sure you want to make the File ${networkFile.name} private?`
+    : `Are you sure you want to make the File ${networkFile.name} publicly visible?`;
+  confirmButtonText.value = 'Confirm';
+  confirmButtonColor.value = 'green';
+
+  confirmationAction.value = async () => {
+    isSubmitting.value = true;
+    globalStore.startFetching();
+
+    try {
+      const response = await api.put<NetworkFile, EditFileForm>(`/networks/${networkState.network.value!.id}/files/${networkFile.id}`,
+        { isPublic: !networkFile.isPublic, name: networkFile.name })
+      fileState.insertFile(response.data, networkState.network.value);
+    } catch (err) {
+      console.error('Error toggling file visibility:', err);
+    } finally {
+      isSubmitting.value = false;
+      globalStore.stopFetching();
+    }
+  }
+
+  showConfirmationModal.value = true;
+}
+
+function confirmRemoveFile(networkFile: NetworkFile) {
+  confirmationTitle.value = 'Delete File';
+  confirmationMessage.value = `Are you sure you want to delete the file '${networkFile.name}'?`;
+  confirmButtonText.value = 'Confirm';
+  confirmButtonColor.value = 'red';
+
+  confirmationAction.value = async () => {
+    isSubmitting.value = true;
+    globalStore.startFetching();
+
+    try {
+      await api.delete(`/networks/${networkState.network.value!.id}/files/${networkFile.id}`)
+      networkState.network.value!.files = networkState.network.value!.files.filter(f => f.id != networkFile.id);
+    } catch (err) {
+      console.error('Error deleting file:', err);
+    } finally {
+      isSubmitting.value = false;
+      globalStore.stopFetching();
+    }
+  }
+
+  showConfirmationModal.value = true;
+}
+
+async function openEditFileModal(file: NetworkFile) {
+  fileState.file.value = file;
+  showAddFileModal.value = false;
+  showEditFileModal.value = true;
+  fileState.insertFile(file, networkState.network.value);
+}
+
+async function editFile(id: string, networkFile: EditFileForm) {
+  isSubmitting.value = true;
+  globalStore.startFetching();
+
+  try {
+    const response = await api.put<NetworkFile, EditFileForm>(`/networks/${networkState.network.value!.id}/files/${id}`, networkFile)
+    fileState.insertFile(response.data, networkState.network.value);
+    showEditFileModal.value = false;
+  } catch (err) {
+    console.error('Error editing file:', err);
+  } finally {
+    isSubmitting.value = false;
+    globalStore.stopFetching();
+  }
+}
+
 function confirmAction() {
   confirmationAction.value();
   showConfirmationModal.value = false;
 }
+
 </script>

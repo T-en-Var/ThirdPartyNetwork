@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full min-h-screen flex justify-center items-center bg-gray-100 relative p-5">
+  <div class="w-full min-h-screen flex justify-center items-center bg-gray-100 relative p-5 mt-8">
     <div
       class="absolute top-5 left-5 flex items-center gap-1 justify-center cursor-pointer text-sm text-slate-700 px-4 py-2 rounded bg-white shadow hover:bg-gray-100 hover:shadow-md transition"
       @click="goBack">

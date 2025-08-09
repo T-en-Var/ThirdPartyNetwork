@@ -1,6 +1,8 @@
 import type { NetworkAccess } from "./networkAccess";
 import type { Role } from "./role";
 import type { NetworkUser } from "./networkUser";
+import type { NetworkFile } from "./files";
+// import type { File } from "./files";
 
 export interface Network {
   id: string,
@@ -14,6 +16,7 @@ export interface Network {
   roles: Role[],
   networkUsers: NetworkUser[],
   isSystemProtected: boolean,
+  files: NetworkFile[],
 }
 
 export interface CreateNetwork {
@@ -21,6 +24,7 @@ export interface CreateNetwork {
   isPublic: boolean,
   description: string,
   imageUrl?: string,
+  redirectURI: string,
 }
 
 export interface UpdateNetwork {
@@ -28,4 +32,5 @@ export interface UpdateNetwork {
   isPublic: boolean,
   description: string,
   imageUrl?: string,
+  redirectURI: string,
 }

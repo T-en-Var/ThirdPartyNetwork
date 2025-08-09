@@ -50,6 +50,53 @@ const router = createRouter({
       name: 'manage-network',
       component: () => import('@/views/networks/ManageNetworkView.vue'),
       meta: {},
+      children: [
+        {
+          path: '',
+          name: 'manage-network-home',
+          component: () => import('@/components/tabs/NetworkDasboard.vue'),
+          meta: {
+            requiresAuth: false,
+            title: 'Dashboard'
+          },
+        },
+        {
+          path: 'users',
+          name: 'manage-network-users',
+          component: () => import('@/components/tabs/UsersTab.vue'),
+          meta: {
+            requiresAuth: false,
+            title: 'Users'
+          },
+        },
+        {
+          path: 'roles',
+          name: 'manage-network-roles',
+          component: () => import('@/components/tabs/RolesTab.vue'),
+          meta: {
+            requiresAuth: false,
+            title: 'Roles'
+          },
+        },
+        {
+          path: 'access',
+          name: 'manage-network-access',
+          component: () => import('@/components/tabs/AccessesTab.vue'),
+          meta: {
+            requiresAuth: false,
+            title: 'Complete Access'
+          },
+        },
+        {
+          path: 'files',
+          name: 'manage-network-files',
+          component: () => import('@/components/tabs/FilesTab.vue'),
+          meta: {
+            requiresAuth: false,
+            title: 'Complete Access'
+          },
+        },
+      ]
     },
     {
       path: '/networks/:networkId/join',
@@ -61,7 +108,7 @@ const router = createRouter({
       path: '/networks/:networkId/login',
       name: 'login-network',
       component: () => import('@/views/networks/LoginNetworkView.vue'),
-      meta: { 
+      meta: {
         showNavbar: false,
         requiresAuth: false,
         title: 'Sign In'
@@ -71,7 +118,7 @@ const router = createRouter({
       path: '/networks/:networkId/signup',
       name: 'signup-network',
       component: () => import('@/views/networks/SignupNetworkView.vue'),
-      meta: { 
+      meta: {
         showNavbar: false,
         requiresAuth: false,
         title: 'Create Account'
@@ -81,7 +128,7 @@ const router = createRouter({
       path: '/networks/:networkId/complete-access',
       name: 'complete-access-network',
       component: () => import('@/views/networks/CompleteAccessView.vue'),
-      meta: { 
+      meta: {
         showNavbar: false,
         requiresAuth: false,
         title: 'Complete Access'

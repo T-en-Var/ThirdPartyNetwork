@@ -1,5 +1,5 @@
 <template>
-  <div class="wrapper">
+  <div class="fixed w-full shadow-md bg-white z-50">
     <nav class="corporate-navbar">
       <div class="logo-container">
         <RouterLink to="/" class="logo-text">Thirdpartynetwork</RouterLink>
@@ -45,14 +45,8 @@ const openSignupModal = () => {
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Rufina:wght@400;700&display=swap');
 
-.wrapper {
-  width: 100%;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  z-index: 100;
-  background-color: #ffffff;
-}
-
 .corporate-navbar {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
