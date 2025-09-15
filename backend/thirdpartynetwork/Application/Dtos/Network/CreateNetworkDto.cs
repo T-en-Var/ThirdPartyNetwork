@@ -6,6 +6,6 @@
         public required bool IsPublic { get; init; }
         public required string Description { get; set; }
         public required string RedirectURI { get; set; }
-        public string? ImageUrl { get; set; }
+        public FileDto? ImageFile { get; set; }
     }
 }

@@ -19,7 +19,9 @@ namespace thirdpartynetwork.Application.Repositories
 
             query = query
                 .Include(x => x.User)
-                .ThenInclude(x => x.UserProxies);
+                .ThenInclude(x => x.UserProxies)
+                .Include(x => x.NetworkUsers)
+                .ThenInclude(x => x.Network);
 
             return query;
         }

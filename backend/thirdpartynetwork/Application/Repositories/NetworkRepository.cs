@@ -13,7 +13,9 @@ namespace thirdpartynetwork.Application.Repositories
 
         private IQueryable<Network> GetQueryable(Guid id, bool bypass = false)
         {
-            var query = _context.Networks.AsQueryable();
+            var query = _context.Networks
+                .Include(x => x.ImageFile)
+                .AsQueryable();
             var currentUser = identityService.GetUserProxy(true);
 
             var allowUsers = bypass || identityVerifier.IsAllowed(id, currentUser.Id, Constants.Permissions.ReadUser);

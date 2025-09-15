@@ -4,7 +4,7 @@ using CloudinaryDotNet.Actions;
 using Microsoft.Extensions.Options;
 using thirdpartynetwork.Core.Helper;
 
-public sealed class CloudinaryService : ICloudinaryService
+public sealed class CloudinaryService : ICDNService
 {
     private readonly Cloudinary _cloudinary;
     private readonly CloudinaryOptions _opts;
@@ -87,7 +87,7 @@ public sealed class CloudinaryService : ICloudinaryService
         return MapUploadResult(result);
     }
 
-    public async Task DeleteAsync(Guid publicId, ResourceType resourceType = ResourceType.Auto)
+    public async Task DeleteAsync(Guid publicId, ResourceType resourceType)
     {
         var deletionParams = new DeletionParams(publicId.ToString())
         {

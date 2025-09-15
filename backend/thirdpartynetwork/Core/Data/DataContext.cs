@@ -81,6 +81,20 @@ namespace thirdpartynetwork.Core.Data
                 .HasMany(n => n.Roles)
                 .WithOne(r => r.Network)
                 .HasForeignKey(r => r.NetworkId);
+            
+            // One-to-many: Network -> Files
+            modelBuilder.Entity<File>()
+                .HasOne(f => f.Network)
+                .WithMany(n => n.Files)
+                .HasForeignKey(f => f.NetworkId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // One-to-one: Network -> ImageFile
+            modelBuilder.Entity<Network>()
+                .HasOne(n => n.ImageFile)
+                .WithMany()
+                .HasForeignKey(f => f.ImageFileId)
+                .IsRequired(false);
 
             base.OnModelCreating(modelBuilder);
         }

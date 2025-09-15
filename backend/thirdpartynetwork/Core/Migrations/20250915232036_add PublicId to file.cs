@@ -6,25 +6,25 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace thirdpartynetwork.Core.Migrations
 {
     /// <inheritdoc />
-    public partial class NetworkUserCreationDate : Migration
+    public partial class addPublicIdtofile : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<DateTime>(
-                name: "CreatedOn",
-                table: "NetworkUsers",
-                type: "timestamp with time zone",
+            migrationBuilder.AddColumn<Guid>(
+                name: "PublicId",
+                table: "Files",
+                type: "uuid",
                 nullable: false,
-                defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified));
+                defaultValue: new Guid("00000000-0000-0000-0000-000000000000"));
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "CreatedOn",
-                table: "NetworkUsers");
+                name: "PublicId",
+                table: "Files");
         }
     }
 }

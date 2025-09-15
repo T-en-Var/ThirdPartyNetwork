@@ -118,6 +118,9 @@ namespace thirdpartynetwork.Core.Migrations
                     b.Property<Guid>("NetworkId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid>("PublicId")
+                        .HasColumnType("uuid");
+
                     b.Property<long>("SizeBytes")
                         .HasColumnType("bigint");
 
@@ -153,8 +156,8 @@ namespace thirdpartynetwork.Core.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("ImageUrl")
-                        .HasColumnType("text");
+                    b.Property<Guid?>("ImageFileId")
+                        .HasColumnType("uuid");
 
                     b.Property<bool>("IsPublic")
                         .HasColumnType("boolean");
@@ -174,6 +177,8 @@ namespace thirdpartynetwork.Core.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ImageFileId");
 
                     b.ToTable("Networks");
                 });
@@ -399,8 +404,8 @@ namespace thirdpartynetwork.Core.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("ImageUrl")
-                        .HasColumnType("text");
+                    b.Property<Guid?>("ImageFileId")
+                        .HasColumnType("uuid");
 
                     b.Property<bool>("IsDefault")
                         .HasColumnType("boolean");
@@ -424,6 +429,8 @@ namespace thirdpartynetwork.Core.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ImageFileId");
 
                     b.HasIndex("UserId");
 
@@ -458,6 +465,15 @@ namespace thirdpartynetwork.Core.Migrations
                     b.Navigation("Author");
 
                     b.Navigation("Network");
+                });
+
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.Network", b =>
+                {
+                    b.HasOne("thirdpartynetwork.Core.Models.File", "ImageFile")
+                        .WithMany()
+                        .HasForeignKey("ImageFileId");
+
+                    b.Navigation("ImageFile");
                 });
 
             modelBuilder.Entity("thirdpartynetwork.Core.Models.NetworkAccess", b =>
@@ -568,11 +584,17 @@ namespace thirdpartynetwork.Core.Migrations
 
             modelBuilder.Entity("thirdpartynetwork.Core.Models.UserProxy", b =>
                 {
+                    b.HasOne("thirdpartynetwork.Core.Models.File", "ImageFile")
+                        .WithMany()
+                        .HasForeignKey("ImageFileId");
+
                     b.HasOne("thirdpartynetwork.Core.Models.User", "User")
                         .WithMany("UserProxies")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("ImageFile");
 
                     b.Navigation("User");
                 });

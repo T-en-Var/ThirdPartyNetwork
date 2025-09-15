@@ -8,7 +8,7 @@
         public required string LastName { get; set; }
         public required string Email { get; set; }
         public required string Password { get; set; }
-        public string? ImageUrl { get; set; }
+        public File? ImageFile { get; set; }
         public required bool IsDefault { get; set; }
         public required User User { get; set; }
         public ICollection<NetworkUser> NetworkUsers { get; set; } = new List<NetworkUser>();
