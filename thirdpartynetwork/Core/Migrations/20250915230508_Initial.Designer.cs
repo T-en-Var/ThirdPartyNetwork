@@ -12,8 +12,8 @@ using thirdpartynetwork.Core.Data;
 namespace thirdpartynetwork.Core.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250805120334_Files")]
-    partial class Files
+    [Migration("20250915230508_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -95,9 +95,6 @@ namespace thirdpartynetwork.Core.Migrations
                     b.Property<Guid>("AuthorId")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<DateTime>("CreatedOn")
                         .HasColumnType("timestamp with time zone");
 
@@ -159,8 +156,8 @@ namespace thirdpartynetwork.Core.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("ImageUrl")
-                        .HasColumnType("text");
+                    b.Property<Guid?>("ImageFileId")
+                        .HasColumnType("uuid");
 
                     b.Property<bool>("IsPublic")
                         .HasColumnType("boolean");
@@ -180,6 +177,8 @@ namespace thirdpartynetwork.Core.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ImageFileId");
 
                     b.ToTable("Networks");
                 });
@@ -405,8 +404,8 @@ namespace thirdpartynetwork.Core.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("ImageUrl")
-                        .HasColumnType("text");
+                    b.Property<Guid?>("ImageFileId")
+                        .HasColumnType("uuid");
 
                     b.Property<bool>("IsDefault")
                         .HasColumnType("boolean");
@@ -430,6 +429,8 @@ namespace thirdpartynetwork.Core.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ImageFileId");
 
                     b.HasIndex("UserId");
 
@@ -456,7 +457,7 @@ namespace thirdpartynetwork.Core.Migrations
                         .IsRequired();
 
                     b.HasOne("thirdpartynetwork.Core.Models.Network", "Network")
-                        .WithMany()
+                        .WithMany("Files")
                         .HasForeignKey("NetworkId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -464,6 +465,15 @@ namespace thirdpartynetwork.Core.Migrations
                     b.Navigation("Author");
 
                     b.Navigation("Network");
+                });
+
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.Network", b =>
+                {
+                    b.HasOne("thirdpartynetwork.Core.Models.File", "ImageFile")
+                        .WithMany()
+                        .HasForeignKey("ImageFileId");
+
+                    b.Navigation("ImageFile");
                 });
 
             modelBuilder.Entity("thirdpartynetwork.Core.Models.NetworkAccess", b =>
@@ -574,11 +584,17 @@ namespace thirdpartynetwork.Core.Migrations
 
             modelBuilder.Entity("thirdpartynetwork.Core.Models.UserProxy", b =>
                 {
+                    b.HasOne("thirdpartynetwork.Core.Models.File", "ImageFile")
+                        .WithMany()
+                        .HasForeignKey("ImageFileId");
+
                     b.HasOne("thirdpartynetwork.Core.Models.User", "User")
                         .WithMany("UserProxies")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("ImageFile");
 
                     b.Navigation("User");
                 });
@@ -593,6 +609,8 @@ namespace thirdpartynetwork.Core.Migrations
             modelBuilder.Entity("thirdpartynetwork.Core.Models.Network", b =>
                 {
                     b.Navigation("Contents");
+
+                    b.Navigation("Files");
 
                     b.Navigation("NetworkAccesses");
 

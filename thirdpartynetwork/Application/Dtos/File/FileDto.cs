@@ -3,6 +3,7 @@
     public class FileDto
     {
         public Guid Id { get; set; }
+        public Guid PublicId { get; set; }
         public string Url { get; set; }
         public string? Format { get; set; }
         public long SizeBytes { get; set; }

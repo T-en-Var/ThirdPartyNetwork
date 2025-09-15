@@ -18,24 +18,13 @@ namespace thirdpartynetwork.Core.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
                     Description = table.Column<string>(type: "text", nullable: false),
-                    IsSystemProtected = table.Column<bool>(type: "boolean", nullable: false)
+                    IsSystemProtected = table.Column<bool>(type: "boolean", nullable: false),
+                    CreatedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Accesses", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Networks",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Name = table.Column<string>(type: "text", nullable: false),
-                    IsSystemProtected = table.Column<bool>(type: "boolean", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Networks", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -45,7 +34,9 @@ namespace thirdpartynetwork.Core.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
                     Description = table.Column<string>(type: "text", nullable: false),
-                    IsSystemProtected = table.Column<bool>(type: "boolean", nullable: false)
+                    IsSystemProtected = table.Column<bool>(type: "boolean", nullable: false),
+                    CreatedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -56,7 +47,9 @@ namespace thirdpartynetwork.Core.Migrations
                 name: "Users",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreatedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -70,16 +63,92 @@ namespace thirdpartynetwork.Core.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Title = table.Column<string>(type: "text", nullable: false),
                     Value = table.Column<string>(type: "text", nullable: false),
+                    CreatedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     CreatedBy = table.Column<Guid>(type: "uuid", nullable: false),
-                    NetworkId = table.Column<Guid>(type: "uuid", nullable: false)
+                    NetworkId = table.Column<Guid>(type: "uuid", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Contents", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Files",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Url = table.Column<string>(type: "text", nullable: false),
+                    Format = table.Column<string>(type: "text", nullable: true),
+                    SizeBytes = table.Column<long>(type: "bigint", nullable: false),
+                    Width = table.Column<int>(type: "integer", nullable: true),
+                    Height = table.Column<int>(type: "integer", nullable: true),
+                    Duration = table.Column<TimeSpan>(type: "interval", nullable: true),
+                    MediaType = table.Column<string>(type: "text", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    IsPublic = table.Column<bool>(type: "boolean", nullable: false),
+                    AuthorId = table.Column<Guid>(type: "uuid", nullable: false),
+                    NetworkId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreatedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Files", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Networks",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    IsPublic = table.Column<bool>(type: "boolean", nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: false),
+                    RedirectURI = table.Column<string>(type: "text", nullable: false),
+                    ImageFileId = table.Column<Guid>(type: "uuid", nullable: true),
+                    IsSystemProtected = table.Column<bool>(type: "boolean", nullable: false),
+                    CreatedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Networks", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Contents_Networks_NetworkId",
-                        column: x => x.NetworkId,
-                        principalTable: "Networks",
+                        name: "FK_Networks_Files_ImageFileId",
+                        column: x => x.ImageFileId,
+                        principalTable: "Files",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UserProxies",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Username = table.Column<string>(type: "text", nullable: false),
+                    FirstName = table.Column<string>(type: "text", nullable: false),
+                    LastName = table.Column<string>(type: "text", nullable: false),
+                    Email = table.Column<string>(type: "text", nullable: false),
+                    Password = table.Column<string>(type: "text", nullable: false),
+                    ImageFileId = table.Column<Guid>(type: "uuid", nullable: true),
+                    IsDefault = table.Column<bool>(type: "boolean", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreatedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserProxies", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_UserProxies_Files_ImageFileId",
+                        column: x => x.ImageFileId,
+                        principalTable: "Files",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_UserProxies_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -91,7 +160,9 @@ namespace thirdpartynetwork.Core.Migrations
                     NetworkId = table.Column<Guid>(type: "uuid", nullable: false),
                     AccessId = table.Column<Guid>(type: "uuid", nullable: false),
                     IsRequired = table.Column<bool>(type: "boolean", nullable: false),
-                    IsSystemProtected = table.Column<bool>(type: "boolean", nullable: false)
+                    IsSystemProtected = table.Column<bool>(type: "boolean", nullable: false),
+                    CreatedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -117,8 +188,11 @@ namespace thirdpartynetwork.Core.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
                     Description = table.Column<string>(type: "text", nullable: false),
+                    IsDefault = table.Column<bool>(type: "boolean", nullable: false),
                     NetworkId = table.Column<Guid>(type: "uuid", nullable: false),
-                    IsSystemProtected = table.Column<bool>(type: "boolean", nullable: false)
+                    IsSystemProtected = table.Column<bool>(type: "boolean", nullable: false),
+                    CreatedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -132,61 +206,15 @@ namespace thirdpartynetwork.Core.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "UserProxies",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Username = table.Column<string>(type: "text", nullable: false),
-                    FirstName = table.Column<string>(type: "text", nullable: false),
-                    LastName = table.Column<string>(type: "text", nullable: false),
-                    Email = table.Column<string>(type: "text", nullable: false),
-                    Password = table.Column<string>(type: "text", nullable: false),
-                    ProfilePicture = table.Column<string>(type: "text", nullable: false),
-                    IsDefault = table.Column<bool>(type: "boolean", nullable: false),
-                    UserId = table.Column<Guid>(type: "uuid", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_UserProxies", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_UserProxies_Users_UserId",
-                        column: x => x.UserId,
-                        principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "RolePermissions",
-                columns: table => new
-                {
-                    RoleId = table.Column<Guid>(type: "uuid", nullable: false),
-                    PermissionId = table.Column<Guid>(type: "uuid", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_RolePermissions", x => new { x.PermissionId, x.RoleId });
-                    table.ForeignKey(
-                        name: "FK_RolePermissions_Permissions_PermissionId",
-                        column: x => x.PermissionId,
-                        principalTable: "Permissions",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_RolePermissions_Roles_RoleId",
-                        column: x => x.RoleId,
-                        principalTable: "Roles",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "NetworkUsers",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     NetworkId = table.Column<Guid>(type: "uuid", nullable: false),
-                    UserProxyId = table.Column<Guid>(type: "uuid", nullable: false)
+                    UserProxyId = table.Column<Guid>(type: "uuid", nullable: false),
+                    AccessIncomplete = table.Column<bool>(type: "boolean", nullable: false),
+                    CreatedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -206,12 +234,40 @@ namespace thirdpartynetwork.Core.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "RolePermissions",
+                columns: table => new
+                {
+                    RoleId = table.Column<Guid>(type: "uuid", nullable: false),
+                    PermissionId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreatedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RolePermissions", x => new { x.PermissionId, x.RoleId });
+                    table.ForeignKey(
+                        name: "FK_RolePermissions_Permissions_PermissionId",
+                        column: x => x.PermissionId,
+                        principalTable: "Permissions",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_RolePermissions_Roles_RoleId",
+                        column: x => x.RoleId,
+                        principalTable: "Roles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "NetworkUserAccesses",
                 columns: table => new
                 {
                     NetworkUserId = table.Column<Guid>(type: "uuid", nullable: false),
                     AccessId = table.Column<Guid>(type: "uuid", nullable: false),
-                    IsAccepted = table.Column<bool>(type: "boolean", nullable: false)
+                    IsAccepted = table.Column<bool>(type: "boolean", nullable: false),
+                    CreatedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -235,7 +291,9 @@ namespace thirdpartynetwork.Core.Migrations
                 columns: table => new
                 {
                     NetworkUserId = table.Column<Guid>(type: "uuid", nullable: false),
-                    RoleId = table.Column<Guid>(type: "uuid", nullable: false)
+                    RoleId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreatedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -260,9 +318,24 @@ namespace thirdpartynetwork.Core.Migrations
                 column: "NetworkId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Files_AuthorId",
+                table: "Files",
+                column: "AuthorId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Files_NetworkId",
+                table: "Files",
+                column: "NetworkId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_NetworkAccesses_AccessId",
                 table: "NetworkAccesses",
                 column: "AccessId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Networks_ImageFileId",
+                table: "Networks",
+                column: "ImageFileId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_NetworkUserAccesses_AccessId",
@@ -295,14 +368,55 @@ namespace thirdpartynetwork.Core.Migrations
                 column: "NetworkId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_UserProxies_ImageFileId",
+                table: "UserProxies",
+                column: "ImageFileId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_UserProxies_UserId",
                 table: "UserProxies",
                 column: "UserId");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Contents_Networks_NetworkId",
+                table: "Contents",
+                column: "NetworkId",
+                principalTable: "Networks",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Files_NetworkUsers_AuthorId",
+                table: "Files",
+                column: "AuthorId",
+                principalTable: "NetworkUsers",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Files_Networks_NetworkId",
+                table: "Files",
+                column: "NetworkId",
+                principalTable: "Networks",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropForeignKey(
+                name: "FK_Files_Networks_NetworkId",
+                table: "Files");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_NetworkUsers_Networks_NetworkId",
+                table: "NetworkUsers");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_Files_NetworkUsers_AuthorId",
+                table: "Files");
+
             migrationBuilder.DropTable(
                 name: "Contents");
 
@@ -322,19 +436,22 @@ namespace thirdpartynetwork.Core.Migrations
                 name: "Accesses");
 
             migrationBuilder.DropTable(
-                name: "NetworkUsers");
-
-            migrationBuilder.DropTable(
                 name: "Permissions");
 
             migrationBuilder.DropTable(
                 name: "Roles");
 
             migrationBuilder.DropTable(
+                name: "Networks");
+
+            migrationBuilder.DropTable(
+                name: "NetworkUsers");
+
+            migrationBuilder.DropTable(
                 name: "UserProxies");
 
             migrationBuilder.DropTable(
-                name: "Networks");
+                name: "Files");
 
             migrationBuilder.DropTable(
                 name: "Users");

@@ -3,8 +3,8 @@
     public class NetworkUser : BaseModel
     {
         public Guid Id { get; set; }
-        public required Guid NetworkId { get; set; }
-        public required Guid UserProxyId { get; set; }
+        public Guid NetworkId { get; set; }
+        public Guid UserProxyId { get; set; }
         public required UserProxy UserProxy { get; set; }
         public required Network Network { get; set; }
         public bool AccessIncomplete { get; set; } = false;

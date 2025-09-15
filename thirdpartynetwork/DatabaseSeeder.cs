@@ -1,311 +1,236 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using CloudinaryDotNet.Actions;
+using Microsoft.EntityFrameworkCore;
 using thirdpartynetwork.Core;
 using thirdpartynetwork.Core.Models;
 using thirdpartynetwork.Core.Data;
 using thirdpartynetwork.Core.Interfaces.Helpers;
+using File = thirdpartynetwork.Core.Models.File;
+using Role = thirdpartynetwork.Core.Models.Role;
+using Microsoft.AspNetCore.StaticFiles;
+
 
 namespace thirdpartynetwork
 {
-    public class DatabaseSeeder(DataContext context, IPasswordHasher passwordHasher)
+    public class DatabaseSeeder(DataContext context, IPasswordHasher passwordHasher, ICDNService cdnService)
     {
+        private readonly string _assetsPath = Path.Combine(Directory.GetCurrentDirectory(), "Assets");
+
+        private FormFile PrepareFormFile(string fileName)
+        {
+            var fullPath = Path.Combine(_assetsPath, fileName);
+
+            if (!System.IO.File.Exists(fullPath))
+                throw new FileNotFoundException($"Asset not found at {fullPath}");
+
+            var stream = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+
+            return new FormFile(stream, 0, stream.Length, Path.GetFileNameWithoutExtension(fullPath), Path.GetFileName(fullPath))
+            {
+                Headers = new HeaderDictionary(),
+                ContentType = GetContentType(fullPath)
+            };
+        }
+
+        private static string GetContentType(string path)
+        {
+            var provider = new FileExtensionContentTypeProvider();
+            return provider.TryGetContentType(path, out var contentType)
+                ? contentType
+                : "application/octet-stream";
+        }
+
         public async Task SeedAsync()
         {
             if (context.Networks.Any()) return;
-            ClearDatabase();
+            await ClearDatabase();
 
-            Network network = new()
+            // Start transaction for safe rollback
+            await using var transaction = await context.Database.BeginTransactionAsync();
+            try
             {
-                Name = Constants.Networks.Main,
-                Description = "Thirdpartynetwork's main network",
-                ImageUrl = "/src/images/logo_transparent.png", // alternative: https://i.imgur.com/sTTwc3G.png
-                RedirectURI = "#",
-                IsSystemProtected = true,
-                IsPublic = true,
-            };
-
-            Permission administrator = new()
-            {
-                Name = Constants.Permissions.Administrator,
-                Description = "User has ALL permissions and can do ANYTHING.",
-                IsSystemProtected = true
-            };
-            Permission readNetwork = new()
-            {
-                Name = Constants.Permissions.ReadNetwork,
-                Description = "",
-                IsSystemProtected = true,
-            };
-            Permission manageNetwork = new()
-            {
-                Name = Constants.Permissions.ManageNetwork,
-                Description = "",
-                IsSystemProtected = true,
-            };
-            Permission readAccess = new()
-            {
-                Name = Constants.Permissions.ReadAccess,
-                Description = "",
-                IsSystemProtected = true,
-            };
-            Permission manageAccess = new()
-            {
-                Name = Constants.Permissions.ManageAccess,
-                Description = "",
-                IsSystemProtected = true,
-            };
-            Permission readPermission = new()
-            {
-                Name = Constants.Permissions.ReadPermission,
-                Description = "",
-                IsSystemProtected = true,
-            };
-            Permission managePermission = new()
-            {
-                Name = Constants.Permissions.ManagePermission,
-                Description = "",
-                IsSystemProtected = true,
-            };
-            Permission readRole = new()
-            {
-                Name = Constants.Permissions.ReadRole,
-                Description = "",
-                IsSystemProtected = true,
-            };
-            Permission manageRole = new()
-            {
-                Name = Constants.Permissions.ManageRole,
-                Description = "",
-                IsSystemProtected = true,
-            };
-            Permission readUser = new()
-            {
-                Name = Constants.Permissions.ReadUser,
-                Description = "",
-                IsSystemProtected = true,
-            };
-            Permission manageUser = new()
-            {
-                Name = Constants.Permissions.ManageUser,
-                Description = "",
-                IsSystemProtected = true,
-            };
-            Permission readContent = new()
-            {
-                Name = Constants.Permissions.ReadContent,
-                Description = "",
-                IsSystemProtected = true,
-            };
-            Permission manageContent = new()
-            {
-                Name = Constants.Permissions.ManageContent,
-                Description = "",
-                IsSystemProtected = true,
-            };
-            Permission readFile = new()
-            {
-                Name = Constants.Permissions.ReadFile,
-                Description = "",
-                IsSystemProtected = true,
-            };
-            Permission manageFile = new()
-            {
-                Name = Constants.Permissions.ManageFile,
-                Description = "",
-                IsSystemProtected = true,
-            };
-
-            Access accessUsername = new()
-            {
-                Name = Constants.Access.AccessUsername,
-                Description = "Allows Network to Access User's Username",
-                IsSystemProtected = true
-            };
-            Access accessFirstname = new()
-            {
-                Name = Constants.Access.AccessFirstname,
-                Description = "Allows Network to Access User's Firstname",
-                IsSystemProtected = true
-            };
-            Access accessLastname = new()
-            {
-                Name = Constants.Access.AccessLastname,
-                Description = "Allows Network to Access User's Lastname",
-                IsSystemProtected = true
-            };
-            Access accessEmail = new()
-            {
-                Name = Constants.Access.AccessEmail,
-                Description = "Allows Network to Access User's Email",
-                IsSystemProtected = true
-            };
-            Access accessProfilePicture = new()
-            {
-                Name = Constants.Access.AccessProfilePicture,
-                Description = "Allows Network to Access User's ProfilePicture",
-                IsSystemProtected = true
-            };
-
-            Role adminRole = new()
-            {
-                Name = Constants.Roles.Admin,
-                Description = "Application Administrator",
-                IsSystemProtected = true,
-                Network = network,
-                IsDefault = false,
-            };
-
-            adminRole.RolePermissions =
-            [
-                new RolePermission() { Permission = administrator, Role = adminRole }
-            ];
-
-            Role userRole = new()
-            {
-                Name = Constants.Roles.User,
-                Description = "Application User",
-                IsSystemProtected = true,
-                Network = network,
-                IsDefault = true,
-            };
-
-            userRole.RolePermissions =
-            [
-                new RolePermission() { Permission = readContent, Role = userRole },
-            ];
-
-            UserProxy adminUser = new()
-            {
-                Username = "Admin",
-                FirstName = "Admin",
-                LastName = "Noodle",
-                Email = "admin@gmail.com",
-                Password = passwordHasher.HashPassword("Admin"),
-                ImageUrl =
-                    "https://cdn.discordapp.com/avatars/196606443703631874/a_336c3be4f4e5c1ba3563c74a7cc065da.gif?size=1024",
-                IsDefault = true,
-                User = new User()
-            };
-
-            NetworkUser adminNetworkUser = new()
-            {
-                UserProxy = adminUser,
-                UserProxyId = adminUser.Id,
-                Network = network,
-                NetworkId = network.Id,
-            };
-
-            adminNetworkUser.NetworkUserRoles =
-            [
-                new NetworkUserRole
+                // -------------------
+                // 1. Create base data
+                // -------------------
+                var network = new Network
                 {
-                    Role = adminRole,
-                    NetworkUser = adminNetworkUser,
-                },
-                new NetworkUserRole
-                {
-                    Role = userRole,
-                    NetworkUser = adminNetworkUser
-                }
-            ];
-
-            adminNetworkUser.NetworkUserAccesses =
-            [
-                new NetworkUserAccess
-                {
-                    NetworkUser = adminNetworkUser,
-                    Access = accessUsername,
-                    IsAccepted = true,
-                },
-                new NetworkUserAccess
-                {
-                    NetworkUser = adminNetworkUser,
-                    Access = accessFirstname,
-                    IsAccepted = true,
-                },
-                new NetworkUserAccess
-                {
-                    NetworkUser = adminNetworkUser,
-                    Access = accessLastname,
-                    IsAccepted = true,
-                },
-                new NetworkUserAccess
-                {
-                    NetworkUser = adminNetworkUser,
-                    Access = accessEmail,
-                    IsAccepted = true,
-                },
-                new NetworkUserAccess
-                {
-                    NetworkUser = adminNetworkUser,
-                    Access = accessProfilePicture,
-                    IsAccepted = true,
-                },
-            ];
-
-            network.NetworkAccesses =
-            [
-                new NetworkAccess
-                {
-                    Access = accessUsername,
-                    Network = network,
-                    IsRequired = false,
+                    Name = Constants.Networks.Main,
+                    Description = "Thirdpartynetwork's main network",
+                    ImageFile = null,
+                    RedirectURI = "#",
                     IsSystemProtected = true,
-                },
-                new NetworkAccess
-                {
-                    Access = accessFirstname,
-                    Network = network,
-                    IsRequired = true,
-                    IsSystemProtected = true,
-                },
-                new NetworkAccess
-                {
-                    Access = accessLastname,
-                    Network = network,
-                    IsRequired = true,
-                    IsSystemProtected = true,
-                },
-                new NetworkAccess
-                {
-                    Access = accessEmail,
-                    Network = network,
-                    IsRequired = true,
-                    IsSystemProtected = true,
-                },
-                new NetworkAccess
-                {
-                    Access = accessProfilePicture,
-                    Network = network,
-                    IsRequired = false,
-                    IsSystemProtected = true,
-                },
-            ];
+                    IsPublic = true,
+                };
 
-            network.NetworkUsers = [adminNetworkUser];
+                var permissions = new List<Permission>
+                {
+                    new() { Name = Constants.Permissions.Administrator, Description = "User has ALL permissions and can do ANYTHING.", IsSystemProtected = true },
+                    new() { Name = Constants.Permissions.ReadNetwork, Description = "", IsSystemProtected = true },
+                    new() { Name = Constants.Permissions.ManageNetwork, Description = "", IsSystemProtected = true },
+                    new() { Name = Constants.Permissions.ReadAccess, Description = "", IsSystemProtected = true },
+                    new() { Name = Constants.Permissions.ManageAccess, Description = "", IsSystemProtected = true },
+                    new() { Name = Constants.Permissions.ReadPermission, Description = "", IsSystemProtected = true },
+                    new() { Name = Constants.Permissions.ManagePermission, Description = "", IsSystemProtected = true },
+                    new() { Name = Constants.Permissions.ReadRole, Description = "", IsSystemProtected = true },
+                    new() { Name = Constants.Permissions.ManageRole, Description = "", IsSystemProtected = true },
+                    new() { Name = Constants.Permissions.ReadUser, Description = "", IsSystemProtected = true },
+                    new() { Name = Constants.Permissions.ManageUser, Description = "", IsSystemProtected = true },
+                    new() { Name = Constants.Permissions.ReadContent, Description = "", IsSystemProtected = true },
+                    new() { Name = Constants.Permissions.ManageContent, Description = "", IsSystemProtected = true },
+                    new() { Name = Constants.Permissions.ReadFile, Description = "", IsSystemProtected = true },
+                    new() { Name = Constants.Permissions.ManageFile, Description = "", IsSystemProtected = true }
+                };
 
-            context.Networks.Add(network);
-            context.Permissions.AddRange(
-                readNetwork,
-                manageNetwork,
-                readAccess,
-                manageAccess,
-                readPermission,
-                managePermission,
-                readRole,
-                manageRole,
-                readUser,
-                manageUser,
-                readContent,
-                manageContent,
-                readFile,
-                manageFile
-            );
-            await context.SaveChangesAsync();
+                var accesses = new List<Access>
+                {
+                    new() { Name = Constants.Access.AccessUsername, Description = "Allows Network to Access User's Username", IsSystemProtected = true },
+                    new() { Name = Constants.Access.AccessFirstname, Description = "Allows Network to Access User's Firstname", IsSystemProtected = true },
+                    new() { Name = Constants.Access.AccessLastname, Description = "Allows Network to Access User's Lastname", IsSystemProtected = true },
+                    new() { Name = Constants.Access.AccessEmail, Description = "Allows Network to Access User's Email", IsSystemProtected = true },
+                    new() { Name = Constants.Access.AccessProfilePicture, Description = "Allows Network to Access User's ProfilePicture", IsSystemProtected = true }
+                };
+
+                var adminRole = new Role
+                {
+                    Name = Constants.Roles.Admin,
+                    Description = "Application Administrator",
+                    IsSystemProtected = true,
+                    Network = network,
+                    IsDefault = false,
+                };
+
+                adminRole.RolePermissions = new List<RolePermission>
+                {
+                    new() { Permission = permissions.First(p => p.Name == Constants.Permissions.Administrator), Role = adminRole }
+                };
+
+                var userRole = new Role
+                {
+                    Name = Constants.Roles.User,
+                    Description = "Application User",
+                    IsSystemProtected = true,
+                    Network = network,
+                    IsDefault = true,
+                };
+
+                userRole.RolePermissions = new List<RolePermission>
+                {
+                    new() { Permission = permissions.First(p => p.Name == Constants.Permissions.ReadContent), Role = userRole }
+                };
+
+                var adminUser = new UserProxy
+                {
+                    Username = "Admin",
+                    FirstName = "Admin",
+                    LastName = "Noodle",
+                    Email = "admin@gmail.com",
+                    Password = passwordHasher.HashPassword("LittleNoodleBigNoodle"),
+                    ImageFile = null,
+                    IsDefault = true,
+                    User = new User()
+                };
+
+                var adminNetworkUser = new NetworkUser
+                {
+                    UserProxy = adminUser,
+                    Network = network,
+                };
+
+                adminNetworkUser.NetworkUserRoles = new List<NetworkUserRole>
+                {
+                    new() { Role = adminRole, NetworkUser = adminNetworkUser },
+                    new() { Role = userRole, NetworkUser = adminNetworkUser }
+                };
+
+                adminNetworkUser.NetworkUserAccesses = accesses.Select(access => new NetworkUserAccess
+                {
+                    NetworkUser = adminNetworkUser,
+                    Access = access,
+                    IsAccepted = true
+                }).ToList();
+
+                network.NetworkAccesses = accesses.Select(access => new NetworkAccess
+                {
+                    Access = access,
+                    Network = network,
+                    IsRequired = access.Name != Constants.Access.AccessUsername && access.Name != Constants.Access.AccessProfilePicture,
+                    IsSystemProtected = true
+                }).ToList();
+
+                network.NetworkUsers = new List<NetworkUser> { adminNetworkUser };
+
+                context.Networks.Add(network);
+                context.Permissions.AddRange(permissions);
+                
+                var networkIconImage = PrepareFormFile("networkIcon.png");
+                var adminAvatarImage = PrepareFormFile("adminAvatar.png");
+
+                // -------------------
+                // 2. Upload images
+                // -------------------
+                var networkImage = await cdnService.UploadAsync(networkIconImage, Guid.NewGuid(), network.Id.ToString());
+                var networkFile = new File
+                {
+                    PublicId = networkImage.Id,
+                    Url = networkImage.SecureUrl,
+                    Format = networkImage.Format,
+                    SizeBytes = networkImage.Bytes,
+                    Width = networkImage.Width,
+                    Height = networkImage.Height,
+                    Duration = networkImage.Duration,
+                    MediaType = networkImage.ResourceType,
+                    Name = "networkIcon.png",
+                    IsPublic = true,
+                    Network = network,
+                    Author = adminNetworkUser
+                };
+
+                // Insert file first
+                context.Files.Add(networkFile);
+                await context.SaveChangesAsync();
+
+                // Now safely link it
+                network.ImageFileId = networkFile.Id;
+                await context.SaveChangesAsync();
+
+                var adminImage = await cdnService.UploadAsync(adminAvatarImage, Guid.NewGuid(), network.Id.ToString());
+                adminUser.ImageFile = new File
+                {
+                    PublicId = adminImage.Id,
+                    Url = adminImage.SecureUrl,
+                    Format = adminImage.Format,
+                    SizeBytes = adminImage.Bytes,
+                    Width = adminImage.Width,
+                    Height = adminImage.Height,
+                    Duration = adminImage.Duration,
+                    MediaType = adminImage.ResourceType,
+                    Name = "adminAvatar.png",
+                    IsPublic = true,
+                    Network = network,
+                    Author = adminNetworkUser
+                };
+
+                await context.SaveChangesAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+            await transaction.CommitAsync();
         }
 
-        private void ClearDatabase()
+        private async Task ClearDatabase()
         {
             Console.WriteLine("Clearing database.");
+
+            var storedFiles = context.Files.ToList();
+            foreach (var file in storedFiles)
+            {
+                if (!Enum.TryParse<ResourceType>(file.MediaType, true, out var resourceType))
+                    throw new InvalidOperationException($"Invalid resource type: {file.MediaType}");
+
+                await cdnService.DeleteAsync(file.Id, resourceType);
+            }
 
             var dbSets = context.GetType().GetProperties()
                 .Where(p => p.PropertyType.IsGenericType &&
@@ -313,10 +238,10 @@ namespace thirdpartynetwork
                 .Select(p => p.Name)
                 .ToList();
 
-            var tables = string.Join(", ", dbSets.Select(tableName => $"\"{tableName}\""));
-            var truncateCommand = $"TRUNCATE TABLE {tables} RESTART IDENTITY CASCADE;";
+            var tables = string.Join(", ", dbSets.Select(t => $"\"{t}\""));
 
-            context.Database.ExecuteSqlRaw(truncateCommand);
+            var sql = $"TRUNCATE TABLE {tables} RESTART IDENTITY CASCADE;";
+            await context.Database.ExecuteSqlRawAsync(sql);
         }
     }
 }

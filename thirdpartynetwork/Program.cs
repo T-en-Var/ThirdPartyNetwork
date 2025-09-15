@@ -121,7 +121,7 @@ builder.Services.Configure<FormOptions>(options =>
     // options.MultipartBodyLengthLimit = 104857600; // 100 MB
     options.MultipartBodyLengthLimit =  52428800; // 50 MB
 });
-builder.Services.AddSingleton<ICloudinaryService, CloudinaryService>();
+builder.Services.AddSingleton<ICDNService, CloudinaryService>();
 
 
 // Add Repositories

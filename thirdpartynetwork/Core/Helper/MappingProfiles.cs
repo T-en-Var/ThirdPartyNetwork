@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using System.Runtime.InteropServices.JavaScript;
+using AutoMapper;
 using thirdpartynetwork.Core.Models;
 using File = thirdpartynetwork.Core.Models.File;
 
@@ -79,9 +80,9 @@ namespace thirdpartynetwork.Core.Helper
                 .ForMember(dest => dest.Username, opt =>
                     opt.MapFrom((src, dest, destMember, context) =>
                         MapFieldIfAccessGranted(src, context, Constants.Access.AccessUsername, s => s.Username)))
-                .ForMember(dest => dest.ImageUrl, opt =>
+                .ForMember(dest => dest.ImageFile, opt =>
                     opt.MapFrom((src, dest, destMember, context) =>
-                        MapFieldIfAccessGranted(src, context, Constants.Access.AccessProfilePicture, s => s.ImageUrl)));
+                        MapFieldIfAccessGranted(src, context, Constants.Access.AccessProfilePicture, s => s.ImageFile)));
             CreateMap<CreateUserProxyDto, UserProxy>();
             CreateMap<UpdateUserProxyDto, UserProxy>();
 
@@ -91,11 +92,11 @@ namespace thirdpartynetwork.Core.Helper
             CreateMap<UpdateFileDto, File>();
         }
         
-        private static string? MapFieldIfAccessGranted(
+        private static T? MapFieldIfAccessGranted<T>(
             UserProxy src,
             ResolutionContext context,
             string accessName,
-            Func<UserProxy, string?> fieldSelector)
+            Func<UserProxy, T?> fieldSelector)
         {
             if (!context.TryGetItems(out var items) ||
                 !items.TryGetValue("networkId", out var networkIdObj) ||
@@ -109,7 +110,7 @@ namespace thirdpartynetwork.Core.Helper
                 .NetworkUserAccesses
                 .FirstOrDefault(a => a.Access.Name == accessName);
 
-            return access?.IsAccepted == true ? fieldSelector(src) : null;
+            return access?.IsAccepted == true ? fieldSelector(src) : default;
         }
     }
 }

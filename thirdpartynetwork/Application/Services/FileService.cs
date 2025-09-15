@@ -11,7 +11,7 @@ namespace thirdpartynetwork.Application.Services
         INetworkService networkService,
         IIdentityService identityService,
         INetworkUserService networkUserService,
-        ICloudinaryService cloudinaryService,
+        ICDNService cdnService,
         IMapper mapper) : IFileService
     {
         public ICollection<File> GetAll()
@@ -59,12 +59,12 @@ namespace thirdpartynetwork.Application.Services
             var publicId = Guid.NewGuid();
 
             // Upload via your ICloudinaryService (which wraps Cloudinary SDK)
-            var uploadResult = await cloudinaryService.UploadAsync(file, publicId, network.Id.ToString());
+            var uploadResult = await cdnService.UploadAsync(file, publicId, network.Id.ToString());
 
             // Map to your File entity
             var newFile = new File
             {
-                Id = uploadResult.Id,
+                PublicId = uploadResult.Id,
                 Url = uploadResult.SecureUrl,
                 Format = uploadResult.Format,
                 SizeBytes = uploadResult.Bytes,
@@ -75,7 +75,7 @@ namespace thirdpartynetwork.Application.Services
                 Network = network,
                 Author = networkUser,
                 Name = file.FileName,
-                IsPublic = false
+                IsPublic = false,
             };
 
             return repository.Create(newFile);

@@ -12,8 +12,8 @@ using thirdpartynetwork.Core.Data;
 namespace thirdpartynetwork.Core.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250425145811_UserImageUrlOptional")]
-    partial class UserImageUrlOptional
+    [Migration("20250915232036_add PublicId to file")]
+    partial class addPublicIdtofile
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -31,6 +31,9 @@ namespace thirdpartynetwork.Core.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("text");
@@ -41,6 +44,9 @@ namespace thirdpartynetwork.Core.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
@@ -66,6 +72,9 @@ namespace thirdpartynetwork.Core.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("Value")
                         .IsRequired()
                         .HasColumnType("text");
@@ -75,6 +84,66 @@ namespace thirdpartynetwork.Core.Migrations
                     b.HasIndex("NetworkId");
 
                     b.ToTable("Contents");
+                });
+
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.File", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AuthorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<TimeSpan?>("Duration")
+                        .HasColumnType("interval");
+
+                    b.Property<string>("Format")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("Height")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsPublic")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("MediaType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("NetworkId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("PublicId")
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("SizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int?>("Width")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuthorId");
+
+                    b.HasIndex("NetworkId");
+
+                    b.ToTable("Files");
                 });
 
             modelBuilder.Entity("thirdpartynetwork.Core.Models.Network", b =>
@@ -90,8 +159,8 @@ namespace thirdpartynetwork.Core.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("ImageUrl")
-                        .HasColumnType("text");
+                    b.Property<Guid?>("ImageFileId")
+                        .HasColumnType("uuid");
 
                     b.Property<bool>("IsPublic")
                         .HasColumnType("boolean");
@@ -103,7 +172,16 @@ namespace thirdpartynetwork.Core.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("RedirectURI")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("ImageFileId");
 
                     b.ToTable("Networks");
                 });
@@ -116,11 +194,17 @@ namespace thirdpartynetwork.Core.Migrations
                     b.Property<Guid>("AccessId")
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<bool>("IsRequired")
                         .HasColumnType("boolean");
 
                     b.Property<bool>("IsSystemProtected")
                         .HasColumnType("boolean");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("NetworkId", "AccessId");
 
@@ -135,8 +219,17 @@ namespace thirdpartynetwork.Core.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<bool>("AccessIncomplete")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<Guid>("NetworkId")
                         .HasColumnType("uuid");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("UserProxyId")
                         .HasColumnType("uuid");
@@ -158,8 +251,14 @@ namespace thirdpartynetwork.Core.Migrations
                     b.Property<Guid>("AccessId")
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<bool>("IsAccepted")
                         .HasColumnType("boolean");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("NetworkUserId", "AccessId");
 
@@ -176,6 +275,12 @@ namespace thirdpartynetwork.Core.Migrations
                     b.Property<Guid>("RoleId")
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.HasKey("NetworkUserId", "RoleId");
 
                     b.HasIndex("RoleId");
@@ -189,6 +294,9 @@ namespace thirdpartynetwork.Core.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("text");
@@ -200,6 +308,9 @@ namespace thirdpartynetwork.Core.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.HasKey("Id");
 
                     b.ToTable("Permissions");
@@ -210,6 +321,9 @@ namespace thirdpartynetwork.Core.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -228,6 +342,9 @@ namespace thirdpartynetwork.Core.Migrations
                     b.Property<Guid>("NetworkId")
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.HasKey("Id");
 
                     b.HasIndex("NetworkId");
@@ -243,6 +360,12 @@ namespace thirdpartynetwork.Core.Migrations
                     b.Property<Guid>("RoleId")
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.HasKey("PermissionId", "RoleId");
 
                     b.HasIndex("RoleId");
@@ -257,6 +380,9 @@ namespace thirdpartynetwork.Core.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
@@ -281,8 +407,8 @@ namespace thirdpartynetwork.Core.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("ImageUrl")
-                        .HasColumnType("text");
+                    b.Property<Guid?>("ImageFileId")
+                        .HasColumnType("uuid");
 
                     b.Property<bool>("IsDefault")
                         .HasColumnType("boolean");
@@ -295,6 +421,9 @@ namespace thirdpartynetwork.Core.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
 
@@ -303,6 +432,8 @@ namespace thirdpartynetwork.Core.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ImageFileId");
 
                     b.HasIndex("UserId");
 
@@ -318,6 +449,34 @@ namespace thirdpartynetwork.Core.Migrations
                         .IsRequired();
 
                     b.Navigation("Network");
+                });
+
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.File", b =>
+                {
+                    b.HasOne("thirdpartynetwork.Core.Models.NetworkUser", "Author")
+                        .WithMany()
+                        .HasForeignKey("AuthorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("thirdpartynetwork.Core.Models.Network", "Network")
+                        .WithMany("Files")
+                        .HasForeignKey("NetworkId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Author");
+
+                    b.Navigation("Network");
+                });
+
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.Network", b =>
+                {
+                    b.HasOne("thirdpartynetwork.Core.Models.File", "ImageFile")
+                        .WithMany()
+                        .HasForeignKey("ImageFileId");
+
+                    b.Navigation("ImageFile");
                 });
 
             modelBuilder.Entity("thirdpartynetwork.Core.Models.NetworkAccess", b =>
@@ -428,11 +587,17 @@ namespace thirdpartynetwork.Core.Migrations
 
             modelBuilder.Entity("thirdpartynetwork.Core.Models.UserProxy", b =>
                 {
+                    b.HasOne("thirdpartynetwork.Core.Models.File", "ImageFile")
+                        .WithMany()
+                        .HasForeignKey("ImageFileId");
+
                     b.HasOne("thirdpartynetwork.Core.Models.User", "User")
                         .WithMany("UserProxies")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("ImageFile");
 
                     b.Navigation("User");
                 });
@@ -447,6 +612,8 @@ namespace thirdpartynetwork.Core.Migrations
             modelBuilder.Entity("thirdpartynetwork.Core.Models.Network", b =>
                 {
                     b.Navigation("Contents");
+
+                    b.Navigation("Files");
 
                     b.Navigation("NetworkAccesses");
 
