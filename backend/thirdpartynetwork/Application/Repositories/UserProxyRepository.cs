@@ -43,12 +43,22 @@ namespace thirdpartynetwork.Application.Repositories
 
             if (identityVerifier.IsUserProxyOwner(currentUser.Id, userProxyId))
             {
-                query = query.Include(up => up.User)
+                query = query
+                    .Include(up => up.ImageFile)
+                    .Include(up => up.User)
                     .ThenInclude(u => u.UserProxies)
                     .ThenInclude(up => up.NetworkUsers)
+                    .ThenInclude(nu => nu.Network)
+                    .ThenInclude(nu => nu.ImageFile)
+                    .Include(up => up.User)
+                    .ThenInclude(u => u.UserProxies)
+                    .ThenInclude(up => up.ImageFile)
                     .Include(up => up.NetworkUsers)
                     .ThenInclude(nu => nu.NetworkUserAccesses)
-                    .ThenInclude(nua => nua.Access);
+                    .ThenInclude(nua => nua.Access)
+                    .Include(up => up.NetworkUsers)
+                    .ThenInclude(nu => nu.Network)
+                    .ThenInclude(nu => nu.ImageFile);
             }
 
             return query.FirstOrDefault(up => up.Id == userProxyId);
