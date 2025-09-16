@@ -1,7 +1,7 @@
 import { ref } from 'vue';
 import { defineStore } from 'pinia';
-import { type InternalAxiosRequestConfig } from 'axios';
-import type { AccessTokenClaims, TokenPair, UserProxy } from '@/types';
+import { AxiosError, type AxiosResponse, type InternalAxiosRequestConfig } from 'axios';
+import type { AccessTokenClaims, ErrorMessage, TokenPair, UserProxy } from '@/types';
 import rawApi from '@/api/rawApi';
 import api from '@/api/api';
 import { useGlobalStore } from './global';
@@ -21,17 +21,22 @@ export const useAuthStore = defineStore('auth', () => {
     let modalCallback = () => { };
 
     const currentUser = ref<UserProxy | null>(null);
+    const loading = ref(false);
+    const error = ref<string | null>(null);
 
     const global = useGlobalStore();
 
     async function login(email: string, password: string) {
         global.startFetching();
         let response;
+        loading.value = true;
         try {
             response = await rawApi.post<TokenPair>('/auth/login', { email, password });
         } catch (err) {
+            error.value = (err as AxiosError<ErrorMessage>).response?.data.message || 'Failed to login.';
             throw err;
         } finally {
+            loading.value = false;
             global.stopFetching();
         }
 
@@ -44,6 +49,7 @@ export const useAuthStore = defineStore('auth', () => {
     async function signUp(username: string, email: string, firstname: string, lastname: string, password: string) {
         global.startFetching();
         let response;
+        loading.value = true;
         try {
             response = await rawApi.post<TokenPair>('/auth/register', {
                 username: username,
@@ -53,10 +59,11 @@ export const useAuthStore = defineStore('auth', () => {
                 password: password
             });
         } catch (err) {
-            console.log(err)
+            error.value = (err as AxiosError<ErrorMessage>).response?.data.message || 'Failed to signup.';
             throw err;
         } finally {
             global.stopFetching();
+            loading.value = false;
         }
 
         saveTokens(response.data.accessToken, response.data.refreshToken);
@@ -66,12 +73,15 @@ export const useAuthStore = defineStore('auth', () => {
     async function networkLogin(networkId: string, email: string, password: string) {
         global.startFetching();
         let response;
+        loading.value = true;
         try {
             response = await rawApi.post<TokenPair>(`/auth/${networkId}/login`, { email, password });
         } catch (err) {
+            error.value = (err as AxiosError<ErrorMessage>).response?.data.message || 'Failed to login to network.';
             throw err;
         } finally {
             global.stopFetching();
+            loading.value = false;
         }
 
         return response;
@@ -80,6 +90,7 @@ export const useAuthStore = defineStore('auth', () => {
     async function networkSignUp(networkId: string, username: string, email: string, firstname: string, lastname: string, password: string) {
         global.startFetching();
         let response;
+        loading.value = true;
         try {
             response = await rawApi.post<TokenPair>(`/auth/${networkId}/register`, {
                 username: username,
@@ -90,9 +101,11 @@ export const useAuthStore = defineStore('auth', () => {
             });
         } catch (err) {
             console.log(err)
+            error.value = (err as AxiosError<ErrorMessage>).response?.data.message || 'Failed to signup to network.';
             throw err;
         } finally {
             global.stopFetching();
+            loading.value = false;
         }
 
         return response;
@@ -107,11 +120,16 @@ export const useAuthStore = defineStore('auth', () => {
         if (currentUser.value) return currentUser.value;
 
         global.startFetching();
-        let response;
+        let response: AxiosResponse<UserProxy>;
+        loading.value = true;
         try {
             response = await api.get<UserProxy>("/me");
+        } catch (err) {
+            error.value = (err as AxiosError<ErrorMessage>).response?.data.message || 'Failed to get user.';
+            return null;
         } finally {
             global.stopFetching();
+            loading.value = false;
         }
 
         if (response.status != 200) {
@@ -119,14 +137,12 @@ export const useAuthStore = defineStore('auth', () => {
             return null
         }
 
-        response.data.user.userProxies = response.data.user.userProxies.map(p => p == null ? response.data : p)
-
         currentUser.value = response.data;
         return currentUser.value;
     }
 
     function getUserProxyId() {
-        if (!isAuthenticated()) return "NotFound";
+        if (!isAuthenticated()) throw new Error("User not authenticated");
         const decodedPayload = decodeJWT<AccessTokenClaims>(accessToken.value!);
 
         return decodedPayload.uid;
@@ -169,16 +185,18 @@ export const useAuthStore = defineStore('auth', () => {
             }
 
             global.startFetching();
+            loading.value = true;
             const response = await api.refresh(refreshToken.value);
 
             saveTokens(response.data.accessToken, response.data.refreshToken);
             return response.data.accessToken;
-        } catch (error) {
-            console.error("Failed to refresh token", error);
+        } catch (err) {
+            error.value = (err as AxiosError<ErrorMessage>).response?.data.message || 'Failed to login.';
             clearTokens();
             return null;
         } finally {
             global.stopFetching();
+            loading.value = false;
         }
     }
 
@@ -249,5 +267,8 @@ export const useAuthStore = defineStore('auth', () => {
         setModelOpenCallback,
         setUnauthModalOpen,
         isUnauthModalOpen,
+        loading,
+        error,
+        currentUser
     };
 });

@@ -1,17 +1,17 @@
 <template>
-  <div :class="['rounded-xl border shadow-sm p-4 bg-white dark:bg-neutral-900 space-y-3', customClass]">
-    <div class="text-sm font-medium text-neutral-800 dark:text-neutral-200">
+  <div :class="customClass ? '' : 'rounded-xl border shadow-sm p-4 bg-white dark:bg-neutral-900 space-y-3'">
+    <div v-if="!displayOnly" class="text-sm font-medium text-neutral-800 dark:text-neutral-200">
       {{ file.name }}
     </div>
     <div class="rounded overflow-hidden">
       <template v-if="isImage">
-        <img :src="file.url" alt="Image preview" class="w-full max-h-[400px] object-contain rounded" />
+        <img :src="file.url" alt="Image preview" :class="customClass ?? 'w-full max-h-[400px] object-contain rounded'" />
       </template>
       <template v-else-if="isAudio">
-        <audio controls :src="file.url" class="w-full" />
+        <audio controls :src="file.url" :class="customClass ?? 'w-full'" />
       </template>
       <template v-else-if="isVideo">
-        <video controls :src="file.url" class="w-full max-h-[400px] rounded" />
+        <video controls :src="file.url" :class="customClass ?? 'w-full max-h-[400px] rounded'" />
       </template>
       <template v-else>
         <div class="flex items-center justify-between bg-neutral-100 dark:bg-neutral-800 p-3 rounded">
@@ -24,11 +24,11 @@
         </div>
       </template>
     </div>
-    <div class="text-xs text-neutral-500 flex justify-between">
+    <div v-if="!displayOnly" class="text-xs text-neutral-500 flex justify-between">
       <span>{{ file.format?.toUpperCase() || 'Unknown' }} • {{ readableSize(file.sizeBytes) }}</span>
       <span v-if="file.duration">Duration: {{ file.duration }}</span>
     </div>
-    <div v-if="allowDownload && (isImage || isVideo || isAudio)" class="pt-1">
+    <div v-if="!displayOnly && allowDownload && (isImage || isVideo || isAudio)" class="pt-1">
       <span @click="downloadFile(file.url, file.name)" class="inline-block text-sm text-blue-600 hover:underline cursor-pointer">
         Download
       </span>
@@ -44,8 +44,11 @@ import { computed } from 'vue'
 const props = defineProps<{
   file: NetworkFile
   allowDownload?: boolean
-  customClass?: string
+  class?: string
+  displayOnly?: boolean
 }>()
+
+const customClass = computed(() => props.class);
 
 const isImage = computed(() => props.file.mediaType === 'image')
 const isVideo = computed(() => props.file.mediaType === 'video')

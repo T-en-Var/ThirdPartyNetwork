@@ -7,10 +7,10 @@
     <div class="flex-1 p-6 overflow-auto">
       <!-- Loading and Error States -->
       <LoadingErrorComponent :loading="networkState.loading.value" :error="networkState.error.value"
-        @return-to-networks="router.push(`/networks`)" />
+        button-value="Return to networks" @button-action="router.push(`/networks`)" />
 
       <!-- Route View (Page Content) -->
-      <div class="bg-white shadow-md rounded-lg overflow-hidden p-6">
+      <div class="bg-white shadow-md rounded-lg overflow-hidden p-6" v-if="networkState.network.value">
         <RouterView v-if="!networkState.loading.value && !networkState.error.value && networkState.network.value"
           :network="networkState.network.value" @add-user="showAddUserModal = true" @manage-user="openManageUserModal"
           @remove-user="confirmRemoveUser" @add-role="showAddRoleModal = true" @manage-role="openManageRoleModal"
@@ -66,14 +66,14 @@ import { useGlobalStore } from '@/stores/global';
 // Components
 import NetworkSidebar from '@/components/sidebar/NetworkSidebar.vue';
 import LoadingErrorComponent from '@/components/LoadingError.vue';
-import EditNetworkModal from '@/components/modals/EditNetworkModal.vue';
-import AddUserModal from '@/components/modals/AddUserModal.vue';
-import ManageUserModal from '@/components/modals/ManageUserModal.vue';
-import AddRoleModal from '@/components/modals/AddRoleModal.vue';
-import ManageRoleModal from '@/components/modals/ManageRoleModal.vue';
-import AddAccessModal from '@/components/modals/AddAccessModal.vue';
-import AddFileModal from '@/components/modals/AddFileModal.vue';
-import EditFileModal from '@/components/modals/EditFileModal.vue';
+import EditNetworkModal from '@/components/modals/network/EditNetworkModal.vue';
+import AddUserModal from '@/components/modals/network/AddUserModal.vue';
+import ManageUserModal from '@/components/modals/network/ManageUserModal.vue';
+import AddRoleModal from '@/components/modals/network/AddRoleModal.vue';
+import ManageRoleModal from '@/components/modals/network/ManageRoleModal.vue';
+import AddAccessModal from '@/components/modals/network/AddAccessModal.vue';
+import AddFileModal from '@/components/modals/network/AddFileModal.vue';
+import EditFileModal from '@/components/modals/network/EditFileModal.vue';
 import ConfirmationModal from '@/components/modals/ConfirmationModal.vue';
 
 import type { NetworkUser, Role, NetworkAccess, NetworkFile, CreateRole, UpdateNetwork, Network, UpdateRole } from '@/types';

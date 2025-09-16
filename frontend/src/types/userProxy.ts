@@ -1,3 +1,4 @@
+import type { NetworkFile } from "./files";
 import type { NetworkUser } from "./networkUser";
 import type { User } from "./user";
 
@@ -7,7 +8,7 @@ export interface UserProxy {
   firstName?: string,
   lastName?: string,
   email?: string,
-  imageUrl?: string,
+  imageFile?: NetworkFile,
   createdOn: Date,
   isDefault: boolean,
   user: User

@@ -3,10 +3,6 @@
     <button class="profile-button" @click="toggleDropdown" aria-haspopup="true" :aria-expanded="isOpen">
       <div class="avatar">
         <ProfileAvatar :userProxy="user!" />
-        <!-- <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="user-icon">
-          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-          <circle cx="12" cy="7" r="4"></circle>
-        </svg> -->
       </div>
       <span class="dropdown-arrow" :class="{ 'open': isOpen }">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -25,14 +21,9 @@
       </div>
       <div class="dropdown-divider"></div>
       <ul class="dropdown-list">
-        <li>
-          <RouterLink to="/profile" class="dropdown-item" @click="closeDropdown">
-            Your Profile
-          </RouterLink>
-        </li>
-        <li>
-          <RouterLink to="/account" class="dropdown-item" @click="closeDropdown">
-            Account Settings
+        <li v-for="link in links" :key="link.value">
+          <RouterLink :to="link.to" class="dropdown-item" @click="closeDropdown">
+            {{ link.value }}
           </RouterLink>
         </li>
         <li class="dropdown-divider"></li>
@@ -65,6 +56,13 @@ const router = useRouter();
 const isOpen = ref(false);
 
 const user = ref<UserProxy | null>(null);
+
+const links = [
+  {
+    value: 'Account Settings',
+    to: "/account",
+  }
+]
 
 const toggleDropdown = async () => {
   isOpen.value = !isOpen.value;

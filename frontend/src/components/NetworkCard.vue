@@ -1,12 +1,13 @@
 <template>
-  <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+  <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow" v-if="network">
     <div class="p-4">
       <div class="flex items-center mb-3">
         <div class="logo-container">
-          <div class="logo">
-            <img
-              :src="network?.imageUrl ? network?.imageUrl : `https://ui-avatars.com/api/?name=${network?.name}&size=24&background=random`"
-              :alt="network?.name" />
+          <CloudinaryFile v-if="network.imageFile" :display-only="true" :file="network.imageFile" class="w-10 max-h-10 object-cover" />
+          <div v-else class="logo">
+            <img 
+              :src="`https://ui-avatars.com/api/?name=${network?.name}&size=24&background=random`"
+              :alt="network.name" />
           </div>
         </div>
         <div class="flex justify-between items-center w-full">
@@ -46,6 +47,7 @@
 
 <script setup lang="ts">
 import type { Network } from '@/types';
+import CloudinaryFile from '@/components/cdn/CloudinaryFile.vue';
 // import { isValidHttpUrl } from '@/lib/utils';
 
 defineProps<{

@@ -24,9 +24,6 @@ type SrcSetOpts = Omit<ImageOpts, 'width' | 'height'> & { widths?: number[] };
 
 const DEFAULT_WIDTHS = [320, 480, 768, 1024, 1440, 1920];
 
-/**
- * Generate an image URL with common options.
- */
 export function imageUrl(publicId: string, opts: ImageOpts = {}) {
   const {
     width,

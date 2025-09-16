@@ -8,7 +8,7 @@ export interface Network {
   id: string,
   name: string,
   description: string,
-  imageUrl?: string,
+  imageFile?: NetworkFile,
   isPublic: boolean,
   redirectURI: string,
   createdOn: Date,

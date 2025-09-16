@@ -24,12 +24,28 @@
               <form @submit.prevent="login">
                 <div class="form-group">
                   <label for="email">Email</label>
-                  <input id="email" v-model="email" type="text" placeholder="Enter your email" required>
+                  <input 
+                    id="email" 
+                    name="email" 
+                    v-model="email" 
+                    type="text" 
+                    placeholder="Enter your email" 
+                    autocomplete="username" 
+                    required
+                  >
                 </div>
 
                 <div class="form-group">
                   <label for="password">Password</label>
-                  <input id="password" v-model="password" type="password" placeholder="Enter your password" required>
+                  <input 
+                    id="password" 
+                    name="password" 
+                    v-model="password" 
+                    type="password"
+                    placeholder="Enter your password" 
+                    autocomplete="username" 
+                    required
+                  >
                 </div>
 
                 <button type="submit" class="btn-primary" :disabled="isLoading">
@@ -254,14 +270,14 @@ const signUp = async () => {
     signupError.value = (err as AxiosError<ErrorMessage>).response?.data.message || "Something went wrong, please try again.";
     return;
   }
-  
+
   if (response.status != 201) {
     isLoading.value = false;
     isSigningUp.value = false;
     signupError.value = 'Unable to create account. Please try again.';
     return;
   }
-  
+
   closeModal();
 
   const redirectPath = route.query.redirect ? atob(route.query.redirect as string) : '/networks';

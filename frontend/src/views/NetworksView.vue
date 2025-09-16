@@ -56,8 +56,8 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
 import useNetworks from '@/composables/useNetworks';
-import MyNetworksTab from '@/components/tabs/MyNetworksTab.vue';
-import BrowseNetworksTab from '@/components/tabs/BrowseNetworksTab.vue';
+import MyNetworksTab from '@/components/tabs/network/MyNetworksTab.vue';
+import BrowseNetworksTab from '@/components/tabs/network/BrowseNetworksTab.vue';
 import useUsersNetworks from '@/composables/useUserNetworks';
 
 const activeTab = ref('my-networks');

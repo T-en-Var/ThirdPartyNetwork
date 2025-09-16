@@ -30,11 +30,6 @@ const showNavbar = computed(() => {
 </script>
 
 <style>
-header {
-  position: fixed;
-  width: 100vw;
-}
-
 main {
   height: 100%;
   overflow: scroll;

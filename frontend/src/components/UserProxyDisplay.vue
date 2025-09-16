@@ -3,7 +3,7 @@
     <div class="flex items-start space-x-6">
       <!-- User Avatar -->
       <div>
-        <div v-if="userProxy?.imageUrl" class="h-20 w-20 rounded-full overflow-hidden border border-gray-300">
+        <div v-if="userProxy?.imageFile" class="h-20 w-20 rounded-full overflow-hidden border border-gray-300">
           <ProfileAvatar
             :userProxy="userProxy"
             :size="20"

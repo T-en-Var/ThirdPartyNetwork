@@ -1,17 +1,14 @@
 <template>
   <div :class="['rounded-full overflow-hidden', sizeClasses]">
-    <img
-      :src="avatarSrc"
-      :alt="altText"
-      class="h-full w-full object-cover"
-    />
+    <CloudinaryFile v-if="userProxy.imageFile" :file="userProxy.imageFile" :display-only="true" class="h-full w-full object-cover" />
+    <img v-else :src="avatarSrc" :alt="altText" class="h-full w-full object-cover" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { isValidHttpUrl } from '@/lib/utils'
 import type { UserProxy } from '@/types';
 import { computed } from 'vue'
+import CloudinaryFile from '@/components/cdn/CloudinaryFile.vue';
 
 interface Props {
   userProxy: UserProxy
@@ -27,12 +24,8 @@ const sizeClasses = computed(() => {
 })
 
 const avatarSrc = computed(() => {
-  if (props.userProxy.imageUrl && isValidHttpUrl(props.userProxy.imageUrl)) {
-    return props.userProxy.imageUrl
-  } else {
-    const name = `${props.userProxy.firstName}+${props.userProxy.lastName}`
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`
-  }
+  const name = `${props.userProxy.firstName}+${props.userProxy.lastName}`
+  return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`
 })
 
 const altText = computed(() => {

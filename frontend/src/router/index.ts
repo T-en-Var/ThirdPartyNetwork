@@ -24,8 +24,28 @@ const router = createRouter({
     {
       path: '/account',
       name: 'account',
-      component: () => import('@/views/AccountView.vue'),
-      meta: {},
+      component: () => import('@/views/account/ManageAccountView.vue'),
+      meta: {
+        requiresAuth: true,
+      },
+      children: [
+        {
+          path: '',
+          name: 'manage-account-home',
+          component: () => import('@/components/tabs/account/AccountHomeTab.vue'),
+          meta: {
+            title: 'Dashboard'
+          },
+        },
+        {
+          path: 'proxies',
+          name: 'manage-account-proxies',
+          component: () => import('@/components/tabs/account/UserProxyTab.vue'),
+          meta: {
+            title: 'User Proxies'
+          },
+        },
+      ]
     },
     {
       path: '/networks',
@@ -54,7 +74,7 @@ const router = createRouter({
         {
           path: '',
           name: 'manage-network-home',
-          component: () => import('@/components/tabs/NetworkDasboard.vue'),
+          component: () => import('@/components/tabs/network/NetworkDasboard.vue'),
           meta: {
             requiresAuth: false,
             title: 'Dashboard'
@@ -63,7 +83,7 @@ const router = createRouter({
         {
           path: 'users',
           name: 'manage-network-users',
-          component: () => import('@/components/tabs/UsersTab.vue'),
+          component: () => import('@/components/tabs/network/UsersTab.vue'),
           meta: {
             requiresAuth: false,
             title: 'Users'
@@ -72,7 +92,7 @@ const router = createRouter({
         {
           path: 'roles',
           name: 'manage-network-roles',
-          component: () => import('@/components/tabs/RolesTab.vue'),
+          component: () => import('@/components/tabs/network/RolesTab.vue'),
           meta: {
             requiresAuth: false,
             title: 'Roles'
@@ -81,7 +101,7 @@ const router = createRouter({
         {
           path: 'access',
           name: 'manage-network-access',
-          component: () => import('@/components/tabs/AccessesTab.vue'),
+          component: () => import('@/components/tabs/network/AccessesTab.vue'),
           meta: {
             requiresAuth: false,
             title: 'Complete Access'
@@ -90,7 +110,7 @@ const router = createRouter({
         {
           path: 'files',
           name: 'manage-network-files',
-          component: () => import('@/components/tabs/FilesTab.vue'),
+          component: () => import('@/components/tabs/network/FilesTab.vue'),
           meta: {
             requiresAuth: false,
             title: 'Complete Access'
@@ -162,7 +182,7 @@ router.beforeEach((to, from, next) => {
     if (!authStore.isAuthenticated()) {
       next({
         path: '/403',
-        query: { redirect: to.fullPath }
+        query: { redirect: btoa(to.fullPath) }
       })
       authStore.setModelOpen(true)
       authStore.setModelMode("login")
