@@ -52,24 +52,38 @@
         <p class="text-gray-500">No proxies found. Add your first proxy.</p>
       </div>
 
-      <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-6 pb-16">
         <div v-for="proxy in allProxies" :key="proxy.id"
           class="border rounded-lg p-4 bg-white hover:shadow-md transition">
-          <div class="flex items-center mb-3">
-            <CloudinaryFile v-if="proxy.imageFile" :file="proxy.imageFile" :display-only="true"
-              class="h-16 w-16 rounded-full object-cover" />
-            <img v-else :src="getAvatarSrc(proxy)" :alt="proxy.username"
-              class="h-16 w-16 rounded-full object-cover" />
-            <div class="ml-3">
-              <h4 class="text-sm font-medium text-gray-900">
-                {{ getFullName(proxy) || 'Unnamed Proxy' }}
-                <span v-if="proxy.isDefault"
-                  class="ml-2 px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-800">
-                  Default
-                </span>
-              </h4>
-              <p class="text-xs text-gray-500">@{{ proxy.username }}</p>
-              <p class="text-xs text-gray-500 truncate">{{ proxy.email }}</p>
+          <div class="flex items-start justify-between w-full">
+            <div class="flex items-center mb-3">
+              <CloudinaryFile v-if="proxy.imageFile" :file="proxy.imageFile" :display-only="true"
+                class="h-16 w-16 rounded-full object-cover" />
+              <img v-else :src="getAvatarSrc(proxy)" :alt="proxy.username"
+                class="h-16 w-16 rounded-full object-cover" />
+              <div class="ml-3">
+                <h4 class="text-sm font-medium text-gray-900">
+                  {{ getFullName(proxy) || 'Unnamed Proxy' }}
+                  <span v-if="proxy.isDefault"
+                    class="ml-2 px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                    Default
+                  </span>
+                </h4>
+                <p class="text-xs text-gray-500">@{{ proxy.username }}</p>
+                <p class="text-xs text-gray-500 truncate">{{ proxy.email }}</p>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex space-x-2">
+              <button @click="$emit('editProxy', proxy.id)"
+                class="px-3 py-1 border border-blue-300 rounded-md text-blue-700 hover:bg-blue-50 text-xs">
+                Edit
+              </button>
+              <button v-if="!isActiveProxy(proxy)" @click="$emit('switchProxy', proxy.id)"
+                class="px-3 py-1 border border-green-300 text-green-700 rounded-md hover:bg-green-50 text-xs">
+                Switch
+              </button>
             </div>
           </div>
 
@@ -81,7 +95,9 @@
                 <a :href="`/networks/${network.id}`" class="block">
                   <CloudinaryFile v-if="network.imageFile" :file="network.imageFile" :display-only="true"
                     class="h-10 w-10 rounded-full object-cover" />
-                  <img v-else :src="`https://ui-avatars.com/api/?name=${encodeURIComponent(network.name)}&background=random`" :alt="network.name" class="h-16 w-16 rounded-full object-cover" />
+                  <img v-else
+                    :src="`https://ui-avatars.com/api/?name=${encodeURIComponent(network.name)}&background=random`"
+                    :alt="network.name" class="h-16 w-16 rounded-full object-cover" />
                 </a>
                 <!-- Hover Card -->
                 <div
@@ -92,17 +108,39 @@
               </div>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
 
-          <!-- Actions -->
-          <div class="mt-3 flex space-x-2">
-            <button @click="$emit('editProxy', proxy.id)"
-              class="px-3 py-1 border border-blue-300 rounded-md text-blue-700 hover:bg-blue-50 text-xs">
-              Edit
-            </button>
-            <button v-if="!isActiveProxy(proxy)" @click="$emit('switchProxy', proxy.id)"
-              class="px-3 py-1 border border-green-300 text-green-700 rounded-md hover:bg-green-50 text-xs">
-              Switch
-            </button>
+    <!-- Proxy List -->
+    <div>
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-medium text-gray-700">Proxy Previews</h3>
+      </div>
+
+      <div v-if="allProxies.length === 0" class="text-center py-8 bg-gray-50 rounded-lg">
+        <p class="text-gray-500">No proxies found. Add your first proxy.</p>
+      </div>
+
+      <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-6 pb-16">
+        <div v-for="proxy in allProxies" :key="proxy.id"
+          class="border rounded-lg p-4 bg-white hover:shadow-md transition">
+          <div class="flex items-start justify-between w-full">
+            <div class="flex items-center mb-3">
+              <CloudinaryFile :file="proxy.imageFile ?? activeProxy!.imageFile!" :display-only="true"
+                class="h-16 w-16 rounded-full object-cover" />
+              <div class="ml-3">
+                <h4 class="text-sm font-medium text-gray-900">
+                  {{ getFullName(proxy) || getFullName(activeProxy!) }}
+                  <span v-if="proxy.isDefault"
+                    class="ml-2 px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                    Default
+                  </span>
+                </h4>
+                <p class="text-xs text-gray-500">@{{ proxy.username ?? activeProxy?.username }}</p>
+                <p class="text-xs text-gray-500 truncate">{{ proxy.email ?? activeProxy?.email }}</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>

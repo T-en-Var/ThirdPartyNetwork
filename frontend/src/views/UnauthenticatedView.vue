@@ -34,7 +34,11 @@ import { onMounted } from 'vue';
 
 const authStore = useAuthStore();
 
-onMounted(() => authStore.setModelOpen(true))
+onMounted(() => {
+  authStore.setModelOpen(true);
+  authStore.setModelMode("login");
+})
+
 
 function handleLogin() {
   authStore.setModelOpen(true);

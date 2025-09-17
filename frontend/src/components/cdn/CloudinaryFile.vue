@@ -5,7 +5,7 @@
     </div>
     <div class="rounded overflow-hidden">
       <template v-if="isImage">
-        <img :src="file.url" alt="Image preview" :class="customClass ?? 'w-full max-h-[400px] object-contain rounded'" />
+        <img :src="file.url" :alt="`${file.name}`" :class="customClass ?? 'w-full max-h-[400px] object-contain rounded'" />
       </template>
       <template v-else-if="isAudio">
         <audio controls :src="file.url" :class="customClass ?? 'w-full'" />

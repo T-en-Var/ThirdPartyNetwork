@@ -47,7 +47,7 @@
           @close="showConfirmationModal = false" @confirm="confirmAction" />
 
         <AddFileModal v-if="showAddFileModal" :network="networkState.network.value" @close="showAddFileModal = false"
-          @open-edit-file="openEditFileModal" />
+          @uploaded="openEditFileModal" />
 
         <EditFileModal v-if="showEditFileModal && fileState.file.value" :file="fileState.file.value"
           :is-submitting="isSubmitting" @close="showEditFileModal = false" @update-file="editFile" />

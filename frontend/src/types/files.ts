@@ -13,4 +13,10 @@ export interface NetworkFile {
   createdAt: Date;
   isPublic: boolean;
   author: NetworkUser;
+  networkId: string;
+}
+
+export interface NetworkFileLink {
+  id: string;
+  networkId: string;
 }

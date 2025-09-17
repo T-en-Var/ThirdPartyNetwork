@@ -1,4 +1,4 @@
-import type { NetworkFile } from "./files";
+import type { NetworkFile, NetworkFileLink } from "./files";
 import type { NetworkUser } from "./networkUser";
 import type { User } from "./user";
 
@@ -26,4 +26,13 @@ export interface UserSignup {
   lastName: string;
   email: string;
   password: string;
+}
+
+export interface UserProxyCreate {
+  username?: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  password?: string;
+  imageFile?: NetworkFileLink;
 }

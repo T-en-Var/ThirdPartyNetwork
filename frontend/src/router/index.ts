@@ -1,7 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import HomeView from '../views/HomeView.vue';
 import { useAuthStore } from '@/stores/auth';
-import NotFoundView from '@/views/NotFoundView.vue';
 import AboutView from '@/views/AboutView.vue';
 import ToSView from '@/views/ToSView.vue';
 // import NetworksView from '@/views/NetworksView.vue';
@@ -161,15 +160,21 @@ const router = createRouter({
       meta: {},
     },
     {
-      path: '/404',
-      name: 'not-found',
-      component: NotFoundView,
-      meta: {},
-    },
-    {
       path: '/401',
       name: 'unauthenticated',
       component: () => import('@/views/UnauthenticatedView.vue'),
+      meta: {},
+    },
+    {
+      path: '/403',
+      name: 'unauthorized',
+      component: () => import('@/views/UnauthorizedView.vue'),
+      meta: {},
+    },
+    {
+      path: '/404',
+      name: 'not-found',
+      component: () => import('@/views/NotFoundView.vue'),
       meta: {},
     },
   ],

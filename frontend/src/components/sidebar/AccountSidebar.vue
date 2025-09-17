@@ -64,6 +64,7 @@ const navItems = [
     items: [
       { page: '', label: 'Home' },
       { page: 'proxies', label: 'Proxies' },
+      { page: 'files', label: 'Files' },
     ],
   },
 ];
