@@ -30,12 +30,12 @@ public class UserProxyController(IUserProxyService service, IMapper mapper, INet
     }
     
     [HttpPost]
-    [RequirePermission(Constants.Permissions.IsUserProxyOwner)]
+    [RequirePermission(Constants.Permissions.IsUserOwner)]
     [ProducesResponseType(201, Type = typeof(UserProxyDto))]
     [ProducesResponseType(404)]
-    public IActionResult Create(Guid userId, CreateUserProxyDto createUserProxy)
+    public IActionResult Create(Guid userId, AddUserProxyDto addUserProxy)
     {
-        var userProxy = service.Create(userId, createUserProxy);
+        var userProxy = service.Add(userId, addUserProxy);
         return Ok(mapper.Map<UserProxyDto>(userProxy));
     }
 

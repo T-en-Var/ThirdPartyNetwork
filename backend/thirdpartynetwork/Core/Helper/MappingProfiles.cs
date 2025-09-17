@@ -85,6 +85,7 @@ namespace thirdpartynetwork.Core.Helper
                         MapFieldIfAccessGranted(src, context, Constants.Access.AccessProfilePicture, s => s.ImageFile)));
             CreateMap<CreateUserProxyDto, UserProxy>();
             CreateMap<UpdateUserProxyDto, UserProxy>();
+            CreateMap<AddUserProxyDto, UserProxy>();
 
             CreateMap<File, FileDto>();
                 // .ForMember(dest => dest.Author.Network, opt => opt.Ignore());
