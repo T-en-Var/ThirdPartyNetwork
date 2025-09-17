@@ -59,6 +59,26 @@ namespace thirdpartynetwork.Application.Services
             return proxy;
         }
 
+        public UserProxy Add(Guid userId, AddUserProxyDto addUserProxy)
+        {
+            var user = userService.GetById(userId);
+            if (user == null) throw new NotFoundHttpException("User not found");
+
+            var isDefault = user.UserProxies.Count == 0;
+                
+            var proxy = mapper.Map<UserProxy>(addUserProxy);
+            proxy.User = user;
+            if (proxy.Password != null) proxy.Password = passwordHasher.HashPassword(proxy.Password);
+            proxy.IsDefault = isDefault;
+            if (addUserProxy.ImageFile != null)
+            {
+                proxy.ImageFileId = addUserProxy.ImageFile.Id;
+            }
+            
+            proxy = repository.Create(proxy);
+            return proxy;
+        }
+
         public UserProxy Update(Guid userId, Guid userProxyId, UpdateUserProxyDto updateUserProxy)
         {
             var user = userService.GetById(userId);

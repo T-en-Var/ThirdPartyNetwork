@@ -10,7 +10,7 @@ public class IdentityVerifier(DataContext context) : IIdentityVerifier
 {
     public bool IsContentOwner(Guid userProxyId, Guid targetContentId)
     {
-        return true;
+        throw new NotImplementedException();
         // var content = contentService.GetById(targetContentId);
         // return content != null && content.CreatedBy == userProxyId;
     }
