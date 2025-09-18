@@ -89,7 +89,6 @@ public class PermissionHandler(
                 CustomParser.GetGuidFromHttpContextUrl(httpContext, "networkUserId")),
             Constants.Permissions.IsUserProxyOwner => identityVerifier.IsUserProxyOwner(currentUser.Id,
                 CustomParser.GetGuidFromHttpContextUrl(httpContext, "userProxyId")),
-            // Constants.Permissions.ReadUser => identityVerifier.IsUserProxyOwner(currentUser.Id, CustomParser.GetGuidFromHttpContextUrl(httpContext, "userProxyId")),
             _ => false
         };
     }

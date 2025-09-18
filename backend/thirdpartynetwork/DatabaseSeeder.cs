@@ -15,30 +15,6 @@ namespace thirdpartynetwork
     {
         private readonly string _assetsPath = Path.Combine(Directory.GetCurrentDirectory(), "Assets");
 
-        private FormFile PrepareFormFile(string fileName)
-        {
-            var fullPath = Path.Combine(_assetsPath, fileName);
-
-            if (!System.IO.File.Exists(fullPath))
-                throw new FileNotFoundException($"Asset not found at {fullPath}");
-
-            var stream = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read);
-
-            return new FormFile(stream, 0, stream.Length, Path.GetFileNameWithoutExtension(fullPath), Path.GetFileName(fullPath))
-            {
-                Headers = new HeaderDictionary(),
-                ContentType = GetContentType(fullPath)
-            };
-        }
-
-        private static string GetContentType(string path)
-        {
-            var provider = new FileExtensionContentTypeProvider();
-            return provider.TryGetContentType(path, out var contentType)
-                ? contentType
-                : "application/octet-stream";
-        }
-
         public async Task SeedAsync()
         {
             if (context.Networks.Any()) return;
@@ -74,8 +50,10 @@ namespace thirdpartynetwork
                     new() { Name = Constants.Permissions.ManageRole, Description = "", IsSystemProtected = true },
                     new() { Name = Constants.Permissions.ReadUser, Description = "", IsSystemProtected = true },
                     new() { Name = Constants.Permissions.ManageUser, Description = "", IsSystemProtected = true },
-                    new() { Name = Constants.Permissions.ReadContent, Description = "", IsSystemProtected = true },
-                    new() { Name = Constants.Permissions.ManageContent, Description = "", IsSystemProtected = true },
+                    new() { Name = Constants.Permissions.ReadCustomPage, Description = "", IsSystemProtected = true },
+                    new() { Name = Constants.Permissions.ManageCustomPage, Description = "", IsSystemProtected = true },
+                    new() { Name = Constants.Permissions.ReadPageBlock, Description = "", IsSystemProtected = true },
+                    new() { Name = Constants.Permissions.ManagePageBlock, Description = "", IsSystemProtected = true },
                     new() { Name = Constants.Permissions.ReadFile, Description = "", IsSystemProtected = true },
                     new() { Name = Constants.Permissions.ManageFile, Description = "", IsSystemProtected = true }
                 };
@@ -110,11 +88,6 @@ namespace thirdpartynetwork
                     IsSystemProtected = true,
                     Network = network,
                     IsDefault = true,
-                };
-
-                userRole.RolePermissions = new List<RolePermission>
-                {
-                    new() { Permission = permissions.First(p => p.Name == Constants.Permissions.ReadContent), Role = userRole }
                 };
 
                 var adminUser = new UserProxy
@@ -217,6 +190,30 @@ namespace thirdpartynetwork
                 throw;
             }
             await transaction.CommitAsync();
+        }
+
+        private FormFile PrepareFormFile(string fileName)
+        {
+            var fullPath = Path.Combine(_assetsPath, fileName);
+
+            if (!System.IO.File.Exists(fullPath))
+                throw new FileNotFoundException($"Asset not found at {fullPath}");
+
+            var stream = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+
+            return new FormFile(stream, 0, stream.Length, Path.GetFileNameWithoutExtension(fullPath), Path.GetFileName(fullPath))
+            {
+                Headers = new HeaderDictionary(),
+                ContentType = GetContentType(fullPath)
+            };
+        }
+
+        private static string GetContentType(string path)
+        {
+            var provider = new FileExtensionContentTypeProvider();
+            return provider.TryGetContentType(path, out var contentType)
+                ? contentType
+                : "application/octet-stream";
         }
 
         private async Task ClearDatabase()

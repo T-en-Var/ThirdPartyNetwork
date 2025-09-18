@@ -48,8 +48,11 @@ public static class Constants
         public const string ReadUser = "Read User";
         public const string ManageUser = "Manage User";
 
-        public const string ReadContent = "Read Content";
-        public const string ManageContent = "Manage Content";
+        public const string ReadCustomPage = "Read CustomPage";
+        public const string ManageCustomPage = "Manage CustomPage";
+
+        public const string ReadPageBlock = "Read PageBlock";
+        public const string ManagePageBlock = "Manage PageBlock";
 
         public const string ReadFile = "Read File";
         public const string ManageFile = "Manage File";
@@ -74,7 +77,5 @@ public static class Constants
         Permissions.IsUserProxyOwner,
         // Permissions.ManageUser,
         // Permissions.ReadUser,
-        // Permissions.ReadContent,
-        // Permissions.ManageContent,
     ];
 }
