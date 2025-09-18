@@ -126,13 +126,14 @@ builder.Services.AddSingleton<ICDNService, CloudinaryService>();
 
 // Add Repositories
 builder.Services.AddScoped<IAccessRepository, AccessRepository>();
-builder.Services.AddScoped<IContentRepository, ContentRepository>();
+builder.Services.AddScoped<ICustomPageRepository, CustomPageRepository>();
 builder.Services.AddScoped<IFileRepository, FileRepository>();
 builder.Services.AddScoped<INetworkAccessRepository, NetworkAccessRepository>();
 builder.Services.AddScoped<INetworkRepository, NetworkRepository>();
 builder.Services.AddScoped<INetworkUserAccessRepository, NetworkUserAccessRepository>();
 builder.Services.AddScoped<INetworkUserRepository, NetworkUserRepository>();
 builder.Services.AddScoped<INetworkUserRoleRepository, NetworkUserRoleRepository>();
+builder.Services.AddScoped<IPageBlockRepository, PageBlockRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IRolePermissionRepository, RolePermissionRepository>();
 builder.Services.AddScoped<IPermissionRepository, PermissionRepository>();
@@ -150,7 +151,7 @@ builder.Services.AddScoped<IIdentityService, IdentityService>();
 // Add Services
 builder.Services.AddScoped<IAccessService, AccessService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IContentService, ContentService>();
+builder.Services.AddScoped<ICustomPageService, CustomPageService>();
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IMeService, MeService>();
 builder.Services.AddScoped<INetworkAccessService, NetworkAccessService>();
@@ -158,6 +159,7 @@ builder.Services.AddScoped<INetworkService, NetworkService>();
 builder.Services.AddScoped<INetworkUserAccessService, NetworkUserAccessService>();
 builder.Services.AddScoped<INetworkUserService, NetworkUserService>();
 builder.Services.AddScoped<INetworkUserRoleService, NetworkUserRoleService>();
+builder.Services.AddScoped<IPageBlockService, PageBlockService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IRolePermissionService, RolePermissionService>();
 builder.Services.AddScoped<IPermissionService, PermissionService>();

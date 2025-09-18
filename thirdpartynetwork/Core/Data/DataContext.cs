@@ -6,13 +6,14 @@ namespace thirdpartynetwork.Core.Data
 {
     public class DataContext(DbContextOptions<DataContext> options) : DbContext(options)
     {
-        public required DbSet<Content> Contents { get; set; }
+        public required DbSet<CustomPage> CustomPages { get; set; }
         public required DbSet<File> Files { get; set; }
         public required DbSet<Network> Networks { get; set; }
         public required DbSet<NetworkAccess> NetworkAccesses { get; set; }
         public required DbSet<NetworkUser> NetworkUsers { get; set; }
         public required DbSet<NetworkUserAccess> NetworkUserAccesses { get; set; }
         public required DbSet<NetworkUserRole> NetworkUserRoles { get; set; }
+        public required DbSet<PageBlock> PageBlocks { get; set; }
         public required DbSet<Access> Accesses { get; set; }
         public required DbSet<Role> Roles { get; set; }
         public required DbSet<RolePermission> RolePermissions { get; set; }
@@ -102,6 +103,22 @@ namespace thirdpartynetwork.Core.Data
                 .WithMany()
                 .HasForeignKey(f => f.ImageFileId)
                 .IsRequired(false);
+            
+            modelBuilder.Entity<CustomPage>()
+                .HasMany(cp => cp.Pages)
+                .WithOne()
+                .HasForeignKey(pb => pb.CustomPageId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            modelBuilder.Entity<CustomPage>()
+                .HasOne(f => f.Network)
+                .WithMany(n => n.CustomPages)
+                .HasForeignKey(f => f.NetworkId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<PageBlock>()
+                .Property(pb => pb.Data)
+                .HasColumnType("jsonb");
 
             base.OnModelCreating(modelBuilder);
         }

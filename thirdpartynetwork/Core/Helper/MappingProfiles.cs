@@ -9,10 +9,6 @@ namespace thirdpartynetwork.Core.Helper
     {
         public MappingProfiles()
         {
-            CreateMap<Content, ContentDto>();
-            CreateMap<CreateContentDto, Content>();
-            CreateMap<UpdateContentDto, Content>();
-            
             CreateMap<Network, NetworkDto>();
             CreateMap<CreateNetworkDto, Network>();
             CreateMap<UpdateNetworkDto, Network>();
@@ -91,6 +87,14 @@ namespace thirdpartynetwork.Core.Helper
                 // .ForMember(dest => dest.Author.Network, opt => opt.Ignore());
             CreateMap<CreateFileDto, File>();
             CreateMap<UpdateFileDto, File>();
+            
+            CreateMap<CustomPage, CustomPageDto>();
+            CreateMap<CreateCustomPageDto, CustomPage>();
+            CreateMap<UpdateCustomPageDto, CustomPage>();
+            
+            CreateMap<PageBlock, PageBlockDto>();
+            CreateMap<CreatePageBlockDto, PageBlock>();
+            CreateMap<UpdatePageBlockDto, PageBlock>();
         }
         
         private static T? MapFieldIfAccessGranted<T>(

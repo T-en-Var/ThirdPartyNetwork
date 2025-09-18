@@ -16,11 +16,10 @@ namespace thirdpartynetwork.Core.Models
 
         // One-to-many
         public ICollection<File> Files { get; set; } = new List<File>();
-
-        public ICollection<Content> Contents { get; set; } = new List<Content>();
         public ICollection<NetworkUser> NetworkUsers { get; set; } = new List<NetworkUser>();
         public ICollection<Role> Roles { get; set; } = new List<Role>();
         public ICollection<NetworkAccess> NetworkAccesses { get; set; } = new List<NetworkAccess>();
+        public ICollection<CustomPage> CustomPages { get; set; } = new List<CustomPage>();
         public bool IsSystemProtected { get; set; } = false;
     }
 }
