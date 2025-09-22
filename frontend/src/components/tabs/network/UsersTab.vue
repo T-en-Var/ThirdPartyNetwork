@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="bg-white shadow-md rounded-lg overflow-hidden p-6">
     <div class="flex justify-between items-center mb-6">
       <h2 class="text-xl font-medium text-gray-800">Network Users</h2>
       <button @click="$emit('addUser')" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">

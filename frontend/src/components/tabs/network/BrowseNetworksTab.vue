@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="bg-white shadow-md rounded-lg overflow-hidden p-6">
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-xl font-medium text-gray-800">Public Networks</h2>
       <div class="relative">

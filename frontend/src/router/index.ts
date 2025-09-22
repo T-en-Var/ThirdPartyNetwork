@@ -75,7 +75,7 @@ const router = createRouter({
           name: 'manage-network-home',
           component: () => import('@/components/tabs/network/NetworkDasboard.vue'),
           meta: {
-            requiresAuth: false,
+            requiresAuth: true,
             title: 'Dashboard'
           },
         },
@@ -84,7 +84,7 @@ const router = createRouter({
           name: 'manage-network-users',
           component: () => import('@/components/tabs/network/UsersTab.vue'),
           meta: {
-            requiresAuth: false,
+            requiresAuth: true,
             title: 'Users'
           },
         },
@@ -93,7 +93,7 @@ const router = createRouter({
           name: 'manage-network-roles',
           component: () => import('@/components/tabs/network/RolesTab.vue'),
           meta: {
-            requiresAuth: false,
+            requiresAuth: true,
             title: 'Roles'
           },
         },
@@ -102,8 +102,8 @@ const router = createRouter({
           name: 'manage-network-access',
           component: () => import('@/components/tabs/network/AccessesTab.vue'),
           meta: {
-            requiresAuth: false,
-            title: 'Complete Access'
+            requiresAuth: true,
+            title: 'Access'
           },
         },
         {
@@ -111,8 +111,35 @@ const router = createRouter({
           name: 'manage-network-files',
           component: () => import('@/components/tabs/network/FilesTab.vue'),
           meta: {
-            requiresAuth: false,
-            title: 'Complete Access'
+            requiresAuth: true,
+            title: 'Files'
+          },
+        },
+        {
+          path: 'custom-pages',
+          name: 'manage-network-custom-pages',
+          component: () => import('@/components/tabs/network/CustomPagesTab.vue'),
+          meta: {
+            requiresAuth: true,
+            title: 'Custom Pages'
+          },
+        },
+        {
+          path: 'custom-pages/:customPageId/edit',
+          name: 'manage-network-edit-custom-page',
+          component: () => import('@/components/tabs/network/EditCustomPageTab.vue'),
+          meta: {
+            requiresAuth: true,
+            title: 'Edit Custom Page'
+          },
+        },
+        {
+          path: 'custom-pages/:customPageId/blocks/:pageBlockId/edit',
+          name: 'manage-network-edit-page-block',
+          component: () => import('@/components/tabs/network/EditPageBlockTab.vue'),
+          meta: {
+            requiresAuth: true,
+            title: 'Edit Page Block'
           },
         },
       ]

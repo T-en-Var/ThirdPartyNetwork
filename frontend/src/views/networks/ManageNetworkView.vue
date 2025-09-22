@@ -10,15 +10,17 @@
         button-value="Return to networks" @button-action="router.push(`/networks`)" />
 
       <!-- Route View (Page Content) -->
-      <div class="bg-white shadow-md rounded-lg overflow-hidden p-6" v-if="networkState.network.value">
-        <RouterView v-if="!networkState.loading.value && !networkState.error.value && networkState.network.value"
-          :network="networkState.network.value" @add-user="showAddUserModal = true" @manage-user="openManageUserModal"
-          @remove-user="confirmRemoveUser" @add-role="showAddRoleModal = true" @manage-role="openManageRoleModal"
-          @remove-role="confirmRemoveRole" @add-access="showAddAccessModal = true"
-          @toggle-access-required="confirmToggleAccessRequired" @remove-access="confirmRemoveAccess"
-          @add-file="showAddFileModal = true" @edit-file="openEditFileModal" @remove-file="confirmRemoveFile"
-          @toggle-file-visibility="confirmToggleFileVisibility" />
-      </div>
+      <RouterView v-if="!networkState.loading.value && !networkState.error.value && networkState.network.value"
+        :network="networkState.network.value" @add-user="showAddUserModal = true" @manage-user="openManageUserModal"
+        @remove-user="confirmRemoveUser" @add-role="showAddRoleModal = true" @manage-role="openManageRoleModal"
+        @remove-role="confirmRemoveRole" @add-access="showAddAccessModal = true"
+        @toggle-access-required="confirmToggleAccessRequired" @remove-access="confirmRemoveAccess"
+        @add-file="showAddFileModal = true" @edit-file="openEditFileModal" @remove-file="confirmRemoveFile"
+        @toggle-file-visibility="confirmToggleFileVisibility"
+        @open-create-custom-page-modal="showCreateCustomPageModal = true" @edit-custom-page="handleEditCustomPage"
+        @remove-custom-page="handleRemoveCustomPage" @update-custom-page="handleUpdateCustomPage"
+        @edit-page-block="handleEditPageBlock" @create-page-block="handleShowCreatePageBlockModal"
+        @update-page-block="handleUpdatePageBlock" />
 
       <div v-if="networkState.network.value">
         <!-- Modals -->
@@ -51,6 +53,13 @@
 
         <EditFileModal v-if="showEditFileModal && fileState.file.value" :file="fileState.file.value"
           :is-submitting="isSubmitting" @close="showEditFileModal = false" @update-file="editFile" />
+
+        <AddCustomPageModal v-if="showCreateCustomPageModal" :is-submitting="isSubmitting"
+          @create-custom-page="handleCreateCustomPage" @close="showCreateCustomPageModal = false" />
+
+        <AddPageBlockModal v-if="showCreatePageBlockModal && createPageBlockCustomPage"
+          :custom-page="createPageBlockCustomPage" :is-submitting="isSubmitting"
+          @create-page-block="handleCreatePageBlock" @close="handleCloseCreatePageBlockModal" />
       </div>
     </div>
   </div>
@@ -76,11 +85,13 @@ import AddFileModal from '@/components/modals/network/AddFileModal.vue';
 import EditFileModal from '@/components/modals/network/EditFileModal.vue';
 import ConfirmationModal from '@/components/modals/ConfirmationModal.vue';
 
-import type { NetworkUser, Role, NetworkAccess, NetworkFile, CreateRole, UpdateNetwork, Network, UpdateRole } from '@/types';
+import type { NetworkUser, Role, NetworkAccess, NetworkFile, CreateRole, UpdateNetwork, Network, UpdateRole, CustomPage, CreateCustomPage, PageBlock, CreatePageBlock } from '@/types';
 import type { RoleForm, ManageUserForm, NetworkForm, EditFileForm } from '@/types/forms';
 
 import api from '@/api/api';
 import useFiles from '@/composables/useFiles';
+import AddCustomPageModal from '@/components/modals/network/AddCustomPageModal.vue';
+import AddPageBlockModal from '@/components/modals/network/AddPageBlockModal.vue';
 
 const router = useRouter();
 const route = useRoute();
@@ -99,6 +110,9 @@ const showAddAccessModal = ref(false);
 const showConfirmationModal = ref(false);
 const showAddFileModal = ref(false);
 const showEditFileModal = ref(false);
+const showCreateCustomPageModal = ref(false);
+const showCreatePageBlockModal = ref(false);
+const createPageBlockCustomPage = ref<CustomPage | null>(null);
 
 const selectedUser = ref<NetworkUser | null>(null);
 const selectedRole = ref<Role | null>(null);
@@ -459,6 +473,108 @@ async function editFile(id: string, networkFile: EditFileForm) {
     globalStore.stopFetching();
   }
 }
+
+// @create-custom-page="handleCreateCustomPage"
+async function handleCreateCustomPage(customPageData: CreateCustomPage) {
+  isSubmitting.value = true;
+  globalStore.startFetching();
+  try {
+    await api.post(`/networks/${networkState.network.value!.id}/customPages/`, customPageData);
+    await networkState.fetchNetwork(networkState.network.value!.id);
+    showAddUserModal.value = false;
+  } catch (err) {
+    console.error('Error creating custom page:', err);
+  } finally {
+    isSubmitting.value = false;
+    globalStore.stopFetching();
+  }
+}
+
+function handleEditCustomPage(customPage: CustomPage) {
+  router.push(`/networks/${networkState.network.value?.id}/manage/custom-pages/${customPage.id}/edit`)
+}
+
+function handleRemoveCustomPage(customPage: CustomPage) {
+  confirmationTitle.value = 'Remove Custom Page';
+  confirmationMessage.value = `Are you sure you want to remove ${customPage.name} from this network?`;
+  confirmButtonText.value = 'Remove';
+  confirmButtonColor.value = 'red';
+
+  confirmationAction.value = async () => {
+    globalStore.startFetching();
+    isSubmitting.value = true;
+    try {
+      await api.delete(`/networks/${networkState.network.value!.id}/customPages/${customPage.id}/`);
+      await networkState.fetchNetwork(networkState.network.value!.id);
+    } catch (err) {
+      console.error('Error removing custom page:', err);
+    } finally {
+      isSubmitting.value = false;
+      globalStore.stopFetching();
+    }
+  };
+  showConfirmationModal.value = true;
+}
+
+function handleShowCreatePageBlockModal(customPage: CustomPage) {
+  showCreatePageBlockModal.value = true;
+  createPageBlockCustomPage.value = customPage;
+}
+
+function handleCloseCreatePageBlockModal() {
+  showCreatePageBlockModal.value = false
+  createPageBlockCustomPage.value = null;
+}
+
+async function handleUpdateCustomPage(id: string, customPage: CreateCustomPage) {
+  isSubmitting.value = true;
+  globalStore.startFetching();
+
+  try {
+    await api.put<CustomPage, CreateCustomPage>(`/networks/${networkState.network.value!.id}/customPages/${id}`, customPage)
+    await networkState.fetchNetwork(networkState.network.value!.id);
+  } catch (err) {
+    console.error('Error editing custom page:', err);
+  } finally {
+    isSubmitting.value = false;
+    globalStore.stopFetching();
+  }
+}
+
+async function handleCreatePageBlock(customPageId: string, pageBlock: CreatePageBlock) {
+  isSubmitting.value = true;
+  globalStore.startFetching();
+  try {
+    await api.post(`/networks/${networkState.network.value!.id}/customPages/${customPageId}/pageBlocks`, pageBlock);
+    await networkState.fetchNetwork(networkState.network.value!.id);
+    handleCloseCreatePageBlockModal();
+  } catch (err) {
+    console.error('Error creating custop page:', err);
+  } finally {
+    isSubmitting.value = false;
+    globalStore.stopFetching();
+  }
+}
+
+function handleEditPageBlock(customPage: CustomPage, pageBlock: PageBlock) {
+  router.push(`/networks/${networkState.network.value!.id}/manage/custom-pages/${customPage.id}/blocks/${pageBlock.id}/edit`)
+}
+
+async function handleUpdatePageBlock(customPageId: string, pageBlock: PageBlock) {
+  isSubmitting.value = true;
+  globalStore.startFetching();
+
+  try {
+    await api.put<PageBlock, PageBlock>(`/networks/${networkState.network.value!.id}/customPages/${customPageId}/pageBlocks/${pageBlock.id}`, pageBlock)
+    await networkState.fetchNetwork(networkState.network.value!.id);
+  } catch (err) {
+    console.error('Error editing page block:', err);
+  } finally {
+    isSubmitting.value = false;
+    globalStore.stopFetching();
+  }
+}
+
 
 function confirmAction() {
   confirmationAction.value();

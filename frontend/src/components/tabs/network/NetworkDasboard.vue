@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-white overflow-hidden">
+  <div class="bg-white shadow-md rounded-lg overflow-hidden p-6">
     <div>
       <h1 class="text-2xl font-semibold text-gray-800">
         {{ network.name }}

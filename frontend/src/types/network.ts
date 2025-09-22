@@ -2,6 +2,7 @@ import type { NetworkAccess } from "./networkAccess";
 import type { Role } from "./role";
 import type { NetworkUser } from "./networkUser";
 import type { NetworkFile } from "./files";
+import type { CustomPage } from "./customPage";
 // import type { File } from "./files";
 
 export interface Network {
@@ -17,6 +18,7 @@ export interface Network {
   networkUsers: NetworkUser[],
   isSystemProtected: boolean,
   files: NetworkFile[],
+  customPages: CustomPage[]
 }
 
 export interface CreateNetwork {
