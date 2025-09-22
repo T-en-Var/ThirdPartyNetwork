@@ -9,6 +9,16 @@ namespace thirdpartynetwork.Application.Repositories
     {
         private readonly DataContext _context = context;
 
+        private IQueryable<CustomPage> GetQueryable(Guid networkId, bool bypass = false)
+        {
+            var query = _context.CustomPages
+                .Include(x => x.Pages)
+                .AsQueryable();
+            // var currentUser = identityService.GetUserProxy(true);
+            
+            return query;
+        }
+
         public bool Exists(Guid id)
         {
             return _context.CustomPages.Any(c => c.Id == id);
@@ -19,9 +29,9 @@ namespace thirdpartynetwork.Application.Repositories
             return [.. _context.CustomPages];
         }
 
-        public CustomPage? GetById(Guid id)
+        public CustomPage? GetById(Guid networkId, Guid id)
         {
-            return _context.CustomPages.Find(id);
+            return GetQueryable(networkId).FirstOrDefault(c => c.Id == id);
         }
 
         public ICollection<CustomPage> GetByNetworkId(Guid networkId)
@@ -36,9 +46,9 @@ namespace thirdpartynetwork.Application.Repositories
             return customPage;
         }
 
-        public CustomPage Update(Guid customPageId, UpdateCustomPageDto updateCustomPage)
+        public CustomPage Update(Guid networkId, Guid customPageId, UpdateCustomPageDto updateCustomPage)
         {
-            var existing = GetById(customPageId);
+            var existing = GetById(networkId, customPageId);
             if (existing == null) throw new Exception("CustomPage not found");
 
             mapper.Map(updateCustomPage, existing); 

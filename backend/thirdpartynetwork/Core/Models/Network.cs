@@ -1,6 +1,4 @@
-﻿using System.Net.Mime;
-
-namespace thirdpartynetwork.Core.Models
+﻿namespace thirdpartynetwork.Core.Models
 {
     public class Network : BaseModel
     {

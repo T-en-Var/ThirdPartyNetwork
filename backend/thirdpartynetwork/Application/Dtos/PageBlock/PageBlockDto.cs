@@ -4,7 +4,8 @@ namespace thirdpartynetwork.Application.Dtos.PageBlock;
 
 public class PageBlockDto
 {
-    public Guid ParentPageId { get; set; }
+    public Guid Id { get; set; }
+    public Guid? ParentPageId { get; set; }
     public required string Text { get; set; }
     public required int Position { get; set; }
     public JsonDocument Data { get; set; }

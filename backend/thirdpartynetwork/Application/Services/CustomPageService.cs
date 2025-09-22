@@ -26,7 +26,7 @@ namespace thirdpartynetwork.Application.Services
 
         public CustomPage? GetById(Guid networkId, Guid customPageId)
         {
-            var customPage = repository.GetById(customPageId);
+            var customPage = repository.GetById(networkId, customPageId);
             return customPage;
         }
 
@@ -54,7 +54,7 @@ namespace thirdpartynetwork.Application.Services
             var network = networkService.GetById(networkId);
             if (network == null) throw new NotFoundHttpException("Network not found");
 
-            var customPage = repository.Update(customPageId, updateCustomPage);
+            var customPage = repository.Update(networkId, customPageId, updateCustomPage);
             return customPage;
         }
 
