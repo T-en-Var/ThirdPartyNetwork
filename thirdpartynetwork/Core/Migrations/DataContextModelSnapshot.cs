@@ -300,17 +300,14 @@ namespace thirdpartynetwork.Core.Migrations
                     b.Property<DateTime>("CreatedOn")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid?>("CustomPageId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("CustomPageId1")
+                    b.Property<Guid>("CustomPageId")
                         .HasColumnType("uuid");
 
                     b.Property<JsonDocument>("Data")
                         .IsRequired()
                         .HasColumnType("jsonb");
 
-                    b.Property<Guid>("ParentPageId")
+                    b.Property<Guid?>("ParentPageId")
                         .HasColumnType("uuid");
 
                     b.Property<int>("Position")
@@ -328,8 +325,6 @@ namespace thirdpartynetwork.Core.Migrations
                     b.HasIndex("AuthorId");
 
                     b.HasIndex("CustomPageId");
-
-                    b.HasIndex("CustomPageId1");
 
                     b.ToTable("PageBlocks");
                 });
@@ -486,7 +481,7 @@ namespace thirdpartynetwork.Core.Migrations
                     b.HasOne("thirdpartynetwork.Core.Models.NetworkUser", "Author")
                         .WithMany()
                         .HasForeignKey("AuthorId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("thirdpartynetwork.Core.Models.Network", "Network")
@@ -609,17 +604,12 @@ namespace thirdpartynetwork.Core.Migrations
                     b.HasOne("thirdpartynetwork.Core.Models.NetworkUser", "Author")
                         .WithMany()
                         .HasForeignKey("AuthorId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("thirdpartynetwork.Core.Models.CustomPage", null)
+                    b.HasOne("thirdpartynetwork.Core.Models.CustomPage", "CustomPage")
                         .WithMany("Pages")
                         .HasForeignKey("CustomPageId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("thirdpartynetwork.Core.Models.CustomPage", "CustomPage")
-                        .WithMany()
-                        .HasForeignKey("CustomPageId1")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

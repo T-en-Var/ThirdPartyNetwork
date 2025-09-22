@@ -13,6 +13,7 @@
         public ICollection<RoleDto> Roles { get; set; } = [];
         public ICollection<NetworkUserDto> NetworkUsers { get; set; } = [];
         public ICollection<FileDto> Files { get; set; } = [];
+        public ICollection<CustomPageDto> CustomPages { get; set; } = [];
         public required bool IsSystemProtected { get; set; }
     }
 }

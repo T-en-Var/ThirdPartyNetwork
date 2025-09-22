@@ -106,7 +106,7 @@ namespace thirdpartynetwork.Core.Data
             
             modelBuilder.Entity<CustomPage>()
                 .HasMany(cp => cp.Pages)
-                .WithOne()
+                .WithOne(pb => pb.CustomPage)
                 .HasForeignKey(pb => pb.CustomPageId)
                 .OnDelete(DeleteBehavior.Cascade);
             
@@ -115,10 +115,22 @@ namespace thirdpartynetwork.Core.Data
                 .WithMany(n => n.CustomPages)
                 .HasForeignKey(f => f.NetworkId)
                 .OnDelete(DeleteBehavior.Cascade);
+            
+            modelBuilder.Entity<CustomPage>()
+                .HasOne(cp => cp.Author)
+                .WithMany()
+                .HasForeignKey(cp => cp.AuthorId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<PageBlock>()
                 .Property(pb => pb.Data)
                 .HasColumnType("jsonb");
+            
+            modelBuilder.Entity<PageBlock>()
+                .HasOne(pb => pb.Author)
+                .WithMany()
+                .HasForeignKey(pb => pb.AuthorId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             base.OnModelCreating(modelBuilder);
         }
