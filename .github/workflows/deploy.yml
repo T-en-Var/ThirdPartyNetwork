@@ -18,6 +18,11 @@ jobs:
         with:
           dotnet-version: 9.0.x
 
+      - name: Install EF Core CLI globally
+        run: |
+          dotnet tool install --global dotnet-ef
+          echo "$HOME/.dotnet/tools:$PATH" >> $GITHUB_ENV
+
       - name: Publish backend
         run: dotnet publish -c Release -o publish
 
@@ -32,7 +37,7 @@ jobs:
           target: "/var/www/thirdpartynetwork"
 
       - name: Generate SQL migrations
-        run: dotnet ef migrations script -c YourDbContext -o migration.sql
+        run: dotnet ef migrations script -c DataContext -o migration.sql
 
       - name: Copy backend and migrations to server
         uses: appleboy/scp-action@v0.1.7
