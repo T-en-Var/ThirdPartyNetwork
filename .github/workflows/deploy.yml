@@ -58,9 +58,9 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: 22
           script: |
-            # set connection string directly
-            DB_CONNECTION_STRING="${{ secrets.DB_CONNECTION_STRING }}"
-            psql "$DB_CONNECTION_STRING" -f /var/www/thirdpartynetwork/migration.sql
+            PSQL_ARGS="${{ secrets.POSTGRESQL_CONNECTION_ARGS }}"
+            export PGPASSWORD="${{ secrets.POSTGRESQL_CONNECTION_PASSWORD }}"
+            psql $PSQL_ARGS -f /var/www/thirdpartynetwork/migration.sql
             
       - name: Restart backend service
         uses: appleboy/ssh-action@v0.1.7
