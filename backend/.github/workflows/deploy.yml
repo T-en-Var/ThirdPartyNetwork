@@ -30,6 +30,12 @@ jobs:
           port: 22
           source: "publish/*"
           target: "/var/www/thirdpartynetwork"
+
+      - name: Install EF Core CLI
+        run: dotnet tool install --global dotnet-ef
+      
+      - name: Add dotnet tools to PATH
+        run: echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
           
       - name: Run migrations
         run: |
