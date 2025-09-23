@@ -30,7 +30,7 @@ namespace thirdpartynetwork
                 var network = new Network
                 {
                     Name = Constants.Networks.Main,
-                    Description = "Thirdpartynetwork's main network",
+                    Description = "TrojoNetworks' main network",
                     ImageFile = null,
                     RedirectURI = "#",
                     IsSystemProtected = true,
