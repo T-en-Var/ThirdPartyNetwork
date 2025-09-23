@@ -52,8 +52,7 @@ jobs:
             export PATH="$HOME/.dotnet/tools:$PATH"
             
             # run EF migrations
-            dotnet ef database update --project thirdpartynetwork.dll
-
+            dotnet ef database update --project thirdpartynetwork.csproj
 
       - name: Restart backend service
         uses: appleboy/ssh-action@v0.1.7
