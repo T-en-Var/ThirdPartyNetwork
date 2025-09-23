@@ -31,7 +31,22 @@ jobs:
           source: "publish/*"
           target: "/var/www/thirdpartynetwork"
 
-      - name: Run migrations on server
+      - name: Generate SQL migrations
+        run: dotnet ef migrations script -c YourDbContext -o migration.sql
+
+      - name: Copy backend and migrations to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: 22
+          source: |
+            publish/*
+            migration.sql
+          target: /var/www/thirdpartynetwork
+
+      - name: Apply migrations on server
         uses: appleboy/ssh-action@v0.1.7
         with:
           host: ${{ secrets.SERVER_IP }}
@@ -39,21 +54,10 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: 22
           script: |
-            # navigate to deployed folder
-            cd /var/www/thirdpartynetwork/publish
+            # set connection string directly
+            DB_CONNECTION_STRING="${{ secrets.DB_CONNECTION_STRING }}"
+            psql "$DB_CONNECTION_STRING" -f /var/www/thirdpartynetwork/migration.sql
             
-            # export environment variables from .env
-            export $(grep -v '^#' .env | xargs)
-            
-            # install dotnet-ef globally if missing
-            dotnet tool install --global dotnet-ef || true
-            
-            # add global tools to PATH for this session
-            export PATH="$HOME/.dotnet/tools:$PATH"
-            
-            # run EF migrations
-            dotnet ef database update --project thirdpartynetwork.csproj
-
       - name: Restart backend service
         uses: appleboy/ssh-action@v0.1.7
         with:
