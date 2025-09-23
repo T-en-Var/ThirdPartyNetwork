@@ -27,15 +27,15 @@ jobs:
       - name: Publish backend
         run: dotnet publish -c Release -o publish
 
-      # - name: Copy to server
-      #   uses: appleboy/scp-action@v0.1.7
-      #   with:
-      #     host: ${{ secrets.SERVER_IP }}
-      #     username: ${{ secrets.SERVER_USER }}
-      #     key: ${{ secrets.SERVER_SSH_KEY }}
-      #     port: 22
-      #     source: "publish/*"
-      #     target: "/var/www/thirdpartynetwork"
+      - name: Copy to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: 22
+          source: "publish/*"
+          target: "/var/www/thirdpartynetwork"
 
       - name: Generate SQL migrations
         run: dotnet ef migrations script --project thirdpartynetwork/thirdpartynetwork.csproj -c DataContext -o migration.sql
@@ -47,9 +47,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: 22
-          source: |
-            publish/*
-            ThirdPartyNetwork/thirdpartynetwork/migration.sql
+          source: migration.sql
           target: /var/www/thirdpartynetwork
 
       - name: Apply migrations on server
