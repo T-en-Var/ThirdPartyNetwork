@@ -38,9 +38,9 @@ jobs:
           target: "/var/www/thirdpartynetwork"
 
       - name: Generate SQL migrations
-        run: dotnet ef migrations script --project thirdpartynetwork/thirdpartynetwork.csproj -c DataContext -o migration.sql
+        run: dotnet ef migrations script --idempotent --project thirdpartynetwork/thirdpartynetwork.csproj -c DataContext -o migration.sql
         
-      - name: Copy backend and migrations to server
+      - name: Copy migrations to server
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SERVER_IP }}
