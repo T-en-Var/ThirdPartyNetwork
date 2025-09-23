@@ -36,7 +36,13 @@ jobs:
       
       - name: Add dotnet tools to PATH
         run: echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
-          
+
+      - name: Debug directory
+        run: |
+          pwd
+          ls -la
+          ls -la thirdpartynetwork
+
       - name: Run migrations
         run: |
           dotnet restore
