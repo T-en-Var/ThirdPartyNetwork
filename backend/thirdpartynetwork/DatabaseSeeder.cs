@@ -13,8 +13,6 @@ namespace thirdpartynetwork
 {
     public class DatabaseSeeder(DataContext context, IPasswordHasher passwordHasher, ICDNService cdnService)
     {
-        private readonly string _assetsPath = Path.Combine(Directory.GetCurrentDirectory(), "Assets");
-
         public async Task SeedAsync()
         {
             if (context.Networks.Any()) return;
@@ -133,49 +131,35 @@ namespace thirdpartynetwork
 
                 context.Networks.Add(network);
                 context.Permissions.AddRange(permissions);
-                
-                var networkIconImage = PrepareFormFile("networkIcon.png");
-                var adminAvatarImage = PrepareFormFile("adminAvatar.png");
 
-                // -------------------
-                // 2. Upload images
-                // -------------------
-                var networkImage = await cdnService.UploadAsync(networkIconImage, Guid.NewGuid(), network.Id.ToString());
                 var networkFile = new File
                 {
-                    PublicId = networkImage.Id,
-                    Url = networkImage.SecureUrl,
-                    Format = networkImage.Format,
-                    SizeBytes = networkImage.Bytes,
-                    Width = networkImage.Width,
-                    Height = networkImage.Height,
-                    Duration = networkImage.Duration,
-                    MediaType = networkImage.ResourceType,
+                    PublicId = Guid.Parse("42870851-0cb1-4bc2-bf3d-80708bcff9a1"),
+                    Url = "https://res.cloudinary.com/dm77smcp6/image/upload/v1758664347/01997890-52ad-7de0-8128-5e0b6b885f95/42870851-0cb1-4bc2-bf3d-80708bcff9a1.png",
+                    Format = "png",
+                    SizeBytes = 634101,
+                    Width = 748,
+                    Height = 686,
+                    MediaType = "image",
                     Name = "networkIcon.png",
                     IsPublic = true,
                     Network = network,
                     Author = adminNetworkUser
                 };
 
-                // Insert file first
                 context.Files.Add(networkFile);
-                await context.SaveChangesAsync();
 
-                // Now safely link it
                 network.ImageFileId = networkFile.Id;
-                await context.SaveChangesAsync();
 
-                var adminImage = await cdnService.UploadAsync(adminAvatarImage, Guid.NewGuid(), network.Id.ToString());
                 adminUser.ImageFile = new File
                 {
-                    PublicId = adminImage.Id,
-                    Url = adminImage.SecureUrl,
-                    Format = adminImage.Format,
-                    SizeBytes = adminImage.Bytes,
-                    Width = adminImage.Width,
-                    Height = adminImage.Height,
-                    Duration = adminImage.Duration,
-                    MediaType = adminImage.ResourceType,
+                    PublicId = Guid.Parse("93adb17e-02d5-4fd3-b088-9ca793613a75"),
+                    Url = "https://res.cloudinary.com/dm77smcp6/image/upload/v1758664348/01997890-52ad-7de0-8128-5e0b6b885f95/93adb17e-02d5-4fd3-b088-9ca793613a75.png",
+                    Format = "image",
+                    SizeBytes = 68212,
+                    Width = 1024,
+                    Height = 1024,
+                    MediaType = "image",
                     Name = "adminAvatar.png",
                     IsPublic = true,
                     Network = network,
@@ -192,36 +176,12 @@ namespace thirdpartynetwork
             await transaction.CommitAsync();
         }
 
-        private FormFile PrepareFormFile(string fileName)
-        {
-            var fullPath = Path.Combine(_assetsPath, fileName);
-
-            if (!System.IO.File.Exists(fullPath))
-                throw new FileNotFoundException($"Asset not found at {fullPath}");
-
-            var stream = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read);
-
-            return new FormFile(stream, 0, stream.Length, Path.GetFileNameWithoutExtension(fullPath), Path.GetFileName(fullPath))
-            {
-                Headers = new HeaderDictionary(),
-                ContentType = GetContentType(fullPath)
-            };
-        }
-
-        private static string GetContentType(string path)
-        {
-            var provider = new FileExtensionContentTypeProvider();
-            return provider.TryGetContentType(path, out var contentType)
-                ? contentType
-                : "application/octet-stream";
-        }
-
         private async Task ClearDatabase()
         {
             Console.WriteLine("Clearing database.");
 
             var storedFiles = context.Files.ToList();
-            foreach (var file in storedFiles)
+            foreach (var file in storedFiles.Where(file => file.Name is not ("networkIcon.png" or "adminAvatar.png")))
             {
                 if (!Enum.TryParse<ResourceType>(file.MediaType, true, out var resourceType))
                     throw new InvalidOperationException($"Invalid resource type: {file.MediaType}");
