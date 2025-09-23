@@ -47,10 +47,13 @@ jobs:
             
             # install dotnet-ef globally if missing
             dotnet tool install --global dotnet-ef || true
-            echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
+            
+            # add global tools to PATH for this session
+            export PATH="$HOME/.dotnet/tools:$PATH"
             
             # run EF migrations
             dotnet ef database update --project thirdpartynetwork.dll
+
 
       - name: Restart backend service
         uses: appleboy/ssh-action@v0.1.7
