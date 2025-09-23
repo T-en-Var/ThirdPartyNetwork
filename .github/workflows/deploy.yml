@@ -41,7 +41,7 @@ jobs:
         run: |
           dotnet restore
           dotnet build -c Release
-          dotnet ef database update --project ThirdPartyNetwork.csproj
+          dotnet ef database update --project thirdpartynetwork.csproj
 
       - name: Restart backend service
         uses: appleboy/ssh-action@v0.1.7
