@@ -7,6 +7,8 @@
 .env
 thirdpartynetwork/.env
 
+# other
+.github
 
 # User-specific files
 *.rsuser
