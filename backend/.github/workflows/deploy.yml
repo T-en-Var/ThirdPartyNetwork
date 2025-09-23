@@ -38,12 +38,15 @@ jobs:
       #   run: echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
 
       - name: Run migrations
+        env:
+          CONNECTION_STRING: ${{ secrets.DB_CONNECTION_STRING }}
         run: |
           dotnet tool install --global dotnet-ef
           echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
           dotnet restore thirdpartynetwork/thirdpartynetwork.csproj
           dotnet build -c Release thirdpartynetwork/thirdpartynetwork.csproj
-          dotnet ef database update --project thirdpartynetwork/thirdpartynetwork.csproj
+          dotnet ef database update --project thirdpartynetwork/thirdpartynetwork.csproj --connection "$CONNECTION_STRING"
+
 
       - name: Restart backend service
         uses: appleboy/ssh-action@v0.1.7
