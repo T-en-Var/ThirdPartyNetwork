@@ -6,7 +6,6 @@ using thirdpartynetwork.Core.Data;
 using thirdpartynetwork.Core.Interfaces.Helpers;
 using File = thirdpartynetwork.Core.Models.File;
 using Role = thirdpartynetwork.Core.Models.Role;
-using Microsoft.AspNetCore.StaticFiles;
 
 
 namespace thirdpartynetwork
@@ -15,7 +14,7 @@ namespace thirdpartynetwork
     {
         public async Task SeedAsync()
         {
-            if (context.Networks.Any()) return;
+            // if (context.Networks.Any()) return;
             await ClearDatabase();
 
             // Start transaction for safe rollback
@@ -131,6 +130,7 @@ namespace thirdpartynetwork
 
                 context.Networks.Add(network);
                 context.Permissions.AddRange(permissions);
+                await context.SaveChangesAsync();
 
                 var networkFile = new File
                 {
