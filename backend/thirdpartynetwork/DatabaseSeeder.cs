@@ -14,7 +14,7 @@ namespace thirdpartynetwork
     {
         public async Task SeedAsync()
         {
-            // if (context.Networks.Any()) return;
+            if (context.Networks.Any()) return;
             await ClearDatabase();
 
             // Start transaction for safe rollback
@@ -180,8 +180,6 @@ namespace thirdpartynetwork
             Console.WriteLine("Clearing database.");
 
             var storedFiles = context.Files.ToList();
-            Console.WriteLine("File count: " + storedFiles.Count);
-            if (!storedFiles.Any(file => !file.IsSystemProtected)) throw new Exception("No files found.");
             
             foreach (var file in storedFiles.Where(file => !file.IsSystemProtected))
             {
