@@ -7,7 +7,7 @@ using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Presentation.Controllers;
 
-[Route("api/networks/{networkId:guid}/users")]
+[Route("networks/{networkId:guid}/users")]
 [ApiController]
 public class NetworkUserController(INetworkUserService service, IMapper mapper) : ControllerBase
 {

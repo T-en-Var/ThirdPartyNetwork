@@ -5,7 +5,7 @@ using thirdpartynetwork.Core;
 
 namespace thirdpartynetwork.Presentation.Controllers;
 
-[Route("api/permissions")]
+[Route("permissions")]
 [ApiController]
 public class PermissionController(IPermissionService service, IMapper mapper) : ControllerBase
 {

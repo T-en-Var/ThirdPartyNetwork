@@ -11,7 +11,6 @@ namespace thirdpartynetwork.Core.Interfaces.Services
         UserProxy? GetByIds(Guid userId, Guid userProxyId);
         UserProxy? GetByUsername(string username);
         UserProxy Create(Guid userId, CreateUserProxyDto createUser);
-        UserProxy Add(Guid userId, AddUserProxyDto addUserProxy);
         UserProxy Update(Guid userId, Guid userProxyId, UpdateUserProxyDto updateUser);
         IQueryable<UserProxy> GetByIdQueryable(Guid userProxyId);
         void DeleteByIds(Guid userId, Guid userProxyId);

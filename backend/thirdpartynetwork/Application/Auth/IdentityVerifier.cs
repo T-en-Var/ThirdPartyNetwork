@@ -24,6 +24,7 @@ public class IdentityVerifier(DataContext context) : IIdentityVerifier
 
     public bool IsUserProxyOwner(Guid userProxyId, Guid targetUserProxyId)
     {
+        Console.WriteLine("IsUserProxyOwner: " + userProxyId + " vs " + targetUserProxyId);
         if (userProxyId == targetUserProxyId) return true;
 
         var userProxyQueryable = context.UserProxies;

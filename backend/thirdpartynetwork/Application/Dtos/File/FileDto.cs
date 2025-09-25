@@ -16,6 +16,6 @@
         public DateTime UpdatedAt { get; set; }
         public required bool IsPublic { get; set; }
         public required NetworkUserDto Author { get; set; }
-        // public required NetworkDto Network { get; set; }
+        public required bool IsSystemProtected { get; set; }
     }
 }

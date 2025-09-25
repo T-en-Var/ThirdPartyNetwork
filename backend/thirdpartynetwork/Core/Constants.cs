@@ -11,7 +11,7 @@ public static class Constants
 
     public static class Networks
     {
-        public const string Main = "thirdpartynetwork";
+        public const string Main = "TrojoNetworks";
     }
 
     public static class Access

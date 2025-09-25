@@ -7,6 +7,7 @@ namespace thirdpartynetwork.Application.Services
 {
     public class UserProxyService(
         IUserProxyRepository repository,
+        INetworkService networkService,
         IUserService userService,
         IPasswordHasher passwordHasher,
         IMapper mapper) : IUserProxyService
@@ -52,28 +53,10 @@ namespace thirdpartynetwork.Application.Services
                 
             var proxy = mapper.Map<UserProxy>(createUserProxy);
             proxy.User = user;
-            proxy.Password = passwordHasher.HashPassword(proxy.Password);
             proxy.IsDefault = isDefault;
             
-            proxy = repository.Create(proxy);
-            return proxy;
-        }
-
-        public UserProxy Add(Guid userId, AddUserProxyDto addUserProxy)
-        {
-            var user = userService.GetById(userId);
-            if (user == null) throw new NotFoundHttpException("User not found");
-
-            var isDefault = user.UserProxies.Count == 0;
-                
-            var proxy = mapper.Map<UserProxy>(addUserProxy);
-            proxy.User = user;
+            if (isDefault && proxy.Password == null) throw new BadHttpRequestException("Password is required for default proxy");
             if (proxy.Password != null) proxy.Password = passwordHasher.HashPassword(proxy.Password);
-            proxy.IsDefault = isDefault;
-            if (addUserProxy.ImageFile != null)
-            {
-                proxy.ImageFileId = addUserProxy.ImageFile.Id;
-            }
             
             proxy = repository.Create(proxy);
             return proxy;
@@ -83,12 +66,26 @@ namespace thirdpartynetwork.Application.Services
         {
             var user = userService.GetById(userId);
             if (user == null) throw new NotFoundHttpException("User not found");
-            if (GetByIds(userId, userProxyId) == null) throw new NotFoundHttpException();
+            var existing = GetByIds(userId, userProxyId);
+            if (existing == null) throw new NotFoundHttpException();
+
+            if (updateUserProxy is { KeepPassword: false, IsDefault: true }) throw new BadHttpRequestException("Default proxies require a password");
             
             var proxy = mapper.Map<UserProxy>(updateUserProxy);
             proxy.Id = userProxyId;
-            proxy.User = user;
-            proxy.Password = passwordHasher.HashPassword(proxy.Password);
+            
+            if (!updateUserProxy.KeepPassword || updateUserProxy.Password != null)
+            {
+                proxy.Password = updateUserProxy.Password != null 
+                    ? passwordHasher.HashPassword(updateUserProxy.Password) 
+                    : null;
+            }
+            else
+            {
+                proxy.Password = existing.Password;
+            }
+
+            proxy.ImageFileId = updateUserProxy.FileLink?.Id;
             
             proxy = repository.Update(proxy);
             return proxy;

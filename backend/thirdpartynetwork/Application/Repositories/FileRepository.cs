@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using thirdpartynetwork.Core.Data;
+using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using File = thirdpartynetwork.Core.Models.File;
 
 namespace thirdpartynetwork.Application.Repositories
@@ -18,6 +19,8 @@ namespace thirdpartynetwork.Application.Repositories
 
         public void Delete(File file)
         {
+            if (file.IsSystemProtected) throw new UnauthorizedHttpException("File is system protected");
+            
             _context.Remove(file);
             _context.SaveChanges();
         }
@@ -46,6 +49,8 @@ namespace thirdpartynetwork.Application.Repositories
         {
             var existing = GetById(fileId);
             if (existing == null) throw new Exception("File not found");
+            
+            if (existing.IsSystemProtected) throw new UnauthorizedHttpException("File is system protected");
 
             mapper.Map(updateFile, existing); 
 

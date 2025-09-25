@@ -11,5 +11,6 @@
         public DateTime CreatedOn { get; set; }
         public ICollection<NetworkUserAccessDto> NetworkUserAccesses { get; set; } = [];
         public ICollection<NetworkUserRoleDto> NetworkUserRoles { get; set; } = [];
+        public ICollection<FileDto> Files { get; set; }
     }
 }

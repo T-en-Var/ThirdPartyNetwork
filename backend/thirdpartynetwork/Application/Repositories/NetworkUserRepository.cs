@@ -82,6 +82,10 @@ namespace thirdpartynetwork.Application.Repositories
             // Used for login, so always requires UserProxy
             return GetQueryable(networkId)
                 .Include(n => n.UserProxy)
+                .Include(n => n.NetworkUserRoles)
+                .ThenInclude(nr => nr.Role)
+                .ThenInclude(nr => nr.RolePermissions)
+                .ThenInclude(nr => nr.Permission)
                 .FirstOrDefault(u => u.NetworkId == networkId && u.UserProxy.Email == email);
         }
 
@@ -101,6 +105,10 @@ namespace thirdpartynetwork.Application.Repositories
         {
             return _context.NetworkUsers
                 .Include(n => n.UserProxy)
+                .Include(n => n.NetworkUserRoles)
+                .ThenInclude(nr => nr.Role)
+                .ThenInclude(nr => nr.RolePermissions)
+                .ThenInclude(nr => nr.Permission)
                 .FirstOrDefault(u => u.NetworkId == networkId && u.UserProxyId == userProxyId);
         }
 

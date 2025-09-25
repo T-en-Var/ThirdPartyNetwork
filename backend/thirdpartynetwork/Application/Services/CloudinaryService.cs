@@ -96,6 +96,7 @@ public sealed class CloudinaryService : ICDNService
         };
 
         var result = await _cloudinary.DestroyAsync(deletionParams).ConfigureAwait(false);
+        Console.WriteLine(result);
         if (result.Error != null) throw new InvalidOperationException(result.Error.Message);
     }
     

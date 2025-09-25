@@ -13,5 +13,29 @@
         public required bool IsDefault { get; set; }
         public required User User { get; set; }
         public ICollection<NetworkUser> NetworkUsers { get; set; } = new List<NetworkUser>();
+        
+        public UserProxy ApplyDefaults()
+        {
+            Console.WriteLine("ApplyDefaults");
+            if (IsDefault) return this;
+            
+            var defaultProxy = this.User.DefaultProxy;
+            
+            Console.WriteLine("defaultProxy.Username: " + defaultProxy.Username);
+
+            return new UserProxy
+            {
+                Id = this.Id,
+                Username = this.Username ?? defaultProxy.Username,
+                FirstName = this.FirstName ?? defaultProxy.FirstName,
+                LastName = this.LastName ?? defaultProxy.LastName,
+                Email = this.Email ?? defaultProxy.Email,
+                ImageFile = this.ImageFile ?? defaultProxy.ImageFile,
+                ImageFileId = this.ImageFileId ?? defaultProxy.ImageFileId,
+                IsDefault = this.IsDefault,
+                User = this.User,
+                NetworkUsers = this.NetworkUsers,
+            };
+        }
     }
 }

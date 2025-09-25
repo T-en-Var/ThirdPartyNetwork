@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace thirdpartynetwork.Presentation.Controllers;
 
-[Route("api/me")]
+[Route("me")]
 [ApiController]
 public class MeController(IMeService service, IMapper mapper) : ControllerBase
 {

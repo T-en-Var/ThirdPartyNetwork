@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json;
 using Microsoft.IdentityModel.Tokens;
 using thirdpartynetwork.Core.Interfaces.Auth;
 using thirdpartynetwork.Core.Models;
@@ -13,30 +14,80 @@ public class TokenGenerator(IJtiCacheService jtiCacheService) : ITokenGenerator
     private static readonly TimeSpan AccessTokenLifetime = TimeSpan.FromMinutes(30);
     private static readonly TimeSpan RefreshTokenLifetime = TimeSpan.FromHours(3 * 24);
 
+    private class CustomClaim
+    {
+        public string Key { get; set; }
+        public bool Value { get; set; }
+    }
+    
+    private class NetworkClaim
+    {
+        public Guid Id { get; set; }
+        public List<CustomClaim> Claims { get; set; } = [];
+    }
+
     public TokensDto GenerateTokenPair(NetworkUser networkUser, string? previousJti = null)
     {
         var jti = Guid.NewGuid();
+
+        var networkClaims = new List<NetworkClaim>();
+
+        // Collect distinct permission names for this network
+        var permissionNames = networkUser.NetworkUserRoles
+            .SelectMany(r => r.Role.RolePermissions)
+            .Select(rp => rp.Permission.Name)
+            .Distinct()
+            .ToList();
+
+        var claimObjects = permissionNames
+            .Select(p => new CustomClaim() { Key = p, Value = true })
+            .ToList();
+
+        networkClaims.Add(new NetworkClaim
+        {
+            Id = networkUser.NetworkId,
+            Claims = claimObjects
+        });
+        
+        Console.WriteLine("Before Apply");
+        var userProxy = networkUser.UserProxy.ApplyDefaults();
         
         var tokensDto = new TokensDto()
         {
-            AccessToken = GenerateAccessToken(jti, networkUser.UserProxyId, networkUser.UserProxy.Username, networkUser.AccessIncomplete),
-            RefreshToken = GenerateRefreshToken(jti, networkUser.UserProxyId, previousJti)
+            AccessToken = GenerateAccessToken(jti, userProxy.Id, userProxy.Username!, networkUser.AccessIncomplete, networkClaims),
+            RefreshToken = GenerateRefreshToken(jti, userProxy.Id, previousJti)
         };
         
         return tokensDto;
     }
 
-    private static string GenerateAccessToken(Guid jti, Guid userId, string username, bool accessIncomplete)
+    private static string GenerateAccessToken(Guid jti, Guid userId, string username, bool accessIncomplete, List<NetworkClaim> networkClaims)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.UTF8.GetBytes(TokenSecret);
+        
+        var networksJson = JsonSerializer.Serialize(
+            networkClaims.Select(n => new
+            {
+                id = n.Id,
+                claims = n.Claims
+            }));
+        
+        Console.WriteLine("Generating access token... networksJson:" + networksJson);
+        Console.WriteLine("Generating access token... jti.ToString():" + jti.ToString());
+        Console.WriteLine("Generating access token... userId.ToString():" + userId.ToString());
+        Console.WriteLine("Generating access token... username:" + username);
+        Console.WriteLine("Generating access token... networksJson:" + networksJson);
         
         var claims = new List<Claim>
         {
             new(JwtRegisteredClaimNames.Jti, jti.ToString()),
             new(JwtRegisteredClaimNames.Name, username),
             new("uid", userId.ToString()),
+            new("networks", networksJson),
         };
+        
+        Console.WriteLine("we made it");
 
         if (accessIncomplete)
         {

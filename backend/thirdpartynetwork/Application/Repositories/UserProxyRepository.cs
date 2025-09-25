@@ -41,21 +41,34 @@ namespace thirdpartynetwork.Application.Repositories
             var query = GetQueryable();
             var currentUser = identityService.GetUserProxy(true);
 
+            Console.WriteLine("GetById, IsUserOwner: " + identityVerifier.IsUserProxyOwner(currentUser.Id, userProxyId));
             if (identityVerifier.IsUserProxyOwner(currentUser.Id, userProxyId))
             {
                 query = query
+                    .Include(up => up.User)
+                    .ThenInclude(u => u.UserProxies)
+                    .ThenInclude(up => up.NetworkUsers)
+                    .ThenInclude(nu => nu.Files)
+                    
+                    .Include(up => up.NetworkUsers)
+                    .ThenInclude(nu => nu.Files)
+                    
                     .Include(up => up.ImageFile)
+                    
                     .Include(up => up.User)
                     .ThenInclude(u => u.UserProxies)
                     .ThenInclude(up => up.NetworkUsers)
                     .ThenInclude(nu => nu.Network)
                     .ThenInclude(nu => nu.ImageFile)
+                    
                     .Include(up => up.User)
                     .ThenInclude(u => u.UserProxies)
                     .ThenInclude(up => up.ImageFile)
+                    
                     .Include(up => up.NetworkUsers)
                     .ThenInclude(nu => nu.NetworkUserAccesses)
                     .ThenInclude(nua => nua.Access)
+                    
                     .Include(up => up.NetworkUsers)
                     .ThenInclude(nu => nu.Network)
                     .ThenInclude(nu => nu.ImageFile);
@@ -85,6 +98,23 @@ namespace thirdpartynetwork.Application.Repositories
             _context.UserProxies.Add(userProxy);
             SaveAndUpdate(userProxy);
             return userProxy;
+        }
+
+        public void SetDefaultUserProxy(Guid userProxyId)
+        {
+            var userProxy = GetById(userProxyId);
+            if (userProxy == null) throw new Exception("UserProxy not found");
+            
+            if (userProxy.IsDefault) return;
+            
+            foreach (var userUserProxy in userProxy.User.UserProxies)
+            {
+                userUserProxy.IsDefault = false;
+            }
+            
+            userProxy.IsDefault = true;
+            // don't save, assume this is part of another process
+            // assume that process calls _context.SaveChanges();
         }
 
         public UserProxy Update(UserProxy userProxy)

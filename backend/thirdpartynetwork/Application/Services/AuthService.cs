@@ -32,6 +32,22 @@ public class AuthService(
         return networkUser;
     }
 
+    private NetworkUser CreateNetworkUser(Guid networkId, CreateUserProxyDto createUserProxy)
+    {
+        if (networkUserService.GetByNetworkIdAndEmail(networkId, createUserProxy.Email) != null) throw new ConflictHttpException("Email already used");
+        var mainNetwork = networkService.GetMainNetwork();
+        
+        var userDto = new CreateUserDto();
+        var user = userService.Create(userDto);
+
+        var userProxy = userProxyService.Create(user.Id, createUserProxy);
+        
+        var networkUser = networkUserService.Create(networkId, userProxy.Id, new CreateNetworkUserDto());
+        if (mainNetwork.Id != networkId) networkUserService.Create(mainNetwork.Id, userProxy.Id, new CreateNetworkUserDto());
+        
+        return networkUser;
+    }
+
     public AuthorizationCodeDto Login(Guid networkId, LoginDto loginData, string clientId, string codeChallenge)
     {
         var networkUser = GetNetworkUserByEmail(networkId, loginData.Email);
@@ -130,22 +146,6 @@ public class AuthService(
         return RegisterGetTokens(mainNetwork.Id, createUserProxy);
     }
 
-    private NetworkUser CreateNetworkUser(Guid networkId, CreateUserProxyDto createUserProxy)
-    {
-        if (networkUserService.GetByNetworkIdAndEmail(networkId, createUserProxy.Email) != null) throw new ConflictHttpException("Email already used");
-        var mainNetwork = networkService.GetMainNetwork();
-        
-        var userDto = new CreateUserDto();
-        var user = userService.Create(userDto);
-
-        var userProxy = userProxyService.Create(user.Id, createUserProxy);
-        
-        var networkUser = networkUserService.Create(networkId, userProxy.Id, new CreateNetworkUserDto());
-        if (mainNetwork.Id != networkId) networkUserService.Create(mainNetwork.Id, userProxy.Id, new CreateNetworkUserDto());
-        
-        return networkUser;
-    }
-
     private TokensDto RegisterGetTokens(Guid networkId, CreateUserProxyDto createUserProxy)
     {
         var networkUser = CreateNetworkUser(networkId, createUserProxy);
@@ -157,7 +157,7 @@ public class AuthService(
         var networkUser = GetNetworkUserByEmail(networkId, loginData.Email);
         if (networkUser == null) throw new UnauthorizedHttpException("Invalid email or password");
 
-        if (!passwordHasher.VerifyPassword(loginData.Password, networkUser.UserProxy.Password))
+        if (networkUser.UserProxy.Password is null || !passwordHasher.VerifyPassword(loginData.Password, networkUser.UserProxy.Password))
             throw new UnauthorizedHttpException("Invalid email or password");
 
         return tokenGenerator.GenerateTokenPair(networkUser);

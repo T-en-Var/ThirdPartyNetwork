@@ -69,9 +69,8 @@ namespace thirdpartynetwork.Application.Services
 
         public NetworkUser Create(Guid networkId, Guid userProxyId, CreateNetworkUserDto createNetworkUser)
         {
-            Console.WriteLine($"The network id is: {networkId}");
             var network = networkService.GetById(networkId, bypass: true);
-            if (network == null) throw new NotFoundHttpException("Network not Found asdasd");
+            if (network == null) throw new NotFoundHttpException("Network not Found");
             
             var userProxy = userProxyService.GetById(userProxyId);
             if (userProxy == null) throw new NotFoundHttpException("UserProxy not Found");

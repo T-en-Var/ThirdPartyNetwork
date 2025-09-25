@@ -6,7 +6,7 @@ using thirdpartynetwork.Core;
 
 namespace thirdpartynetwork.Presentation.Controllers;
 
-[Route("api/users")]
+[Route("users")]
 [ApiController]
 public class UserController(IUserService service, IMapper mapper) : ControllerBase
 {

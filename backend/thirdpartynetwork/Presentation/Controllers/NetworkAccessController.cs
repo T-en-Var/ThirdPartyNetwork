@@ -5,7 +5,7 @@ using thirdpartynetwork.Core;
 
 namespace thirdpartynetwork.Presentation.Controllers;
 
-[Route("api/networks/{networkId:guid}/accesses")]
+[Route("networks/{networkId:guid}/accesses")]
 public class NetworkAccessController(INetworkAccessService service, IMapper mapper) : ControllerBase
 {
     [HttpGet]

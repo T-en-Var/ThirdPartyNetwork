@@ -16,4 +16,5 @@ public class File : BaseModel
     public required NetworkUser Author { get; set; }
     public required Network Network { get; set; }
     public Guid NetworkId { get; set; }
+    public bool IsSystemProtected { get; set; } = false;
 }
