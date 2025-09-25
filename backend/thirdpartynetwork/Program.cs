@@ -52,6 +52,7 @@ builder.Services.AddAuthentication(o =>
         OnChallenge = context =>
         {
             context.HandleResponse(); // Prevent default
+            Console.WriteLine("Yeah that is here");
             return ErrorResponseWriter.WriteJsonError(context.HttpContext, 401, "Authentication is required to access this resource.");
         }
     };

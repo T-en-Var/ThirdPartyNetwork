@@ -87,6 +87,9 @@ public class TokenGenerator(IJtiCacheService jtiCacheService, IConfiguration _co
         
         var issuer = _configuration["JwtSettings:Issuer"];
         var audience = _configuration["JwtSettings:Audience"];
+        
+        Console.WriteLine("issuer: " + issuer);
+        Console.WriteLine("audience: " + audience);
 
         var tokenDescriptor = new SecurityTokenDescriptor
         {
