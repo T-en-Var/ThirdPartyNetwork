@@ -24,6 +24,8 @@ var config = builder.Configuration;
 
 Env.Load();
 
+Console.WriteLine("BasePath: " + builder.Environment.ContentRootPath);
+
 Console.WriteLine("JwtSettings:Issuer: " + config["JwtSettings:Issuer"]);
 Console.WriteLine("JwtSettings:Audience: " + config["JwtSettings:Audience"]);
 
