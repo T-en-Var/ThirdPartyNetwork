@@ -118,13 +118,19 @@ public class TokenGenerator(IJtiCacheService jtiCacheService, IConfiguration _co
             new(JwtRegisteredClaimNames.Jti, jti.ToString()),
             new("uid", userId.ToString()),
         };
+        
+        var issuer = _configuration["JwtSettings:Issuer"];
+        var audience = _configuration["JwtSettings:Audience"];
+        
+        Console.WriteLine("issuer: " + issuer);
+        Console.WriteLine("audience: " + audience);
 
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(claims),
             Expires = DateTime.UtcNow.Add(RefreshTokenLifetime),
-            Issuer = "https://localhost/",
-            Audience = "https://localhost/",
+            Issuer = issuer,
+            Audience = audience,
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
         };
         

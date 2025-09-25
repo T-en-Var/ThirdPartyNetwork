@@ -24,6 +24,13 @@ var config = builder.Configuration;
 
 Env.Load();
 
+Console.WriteLine("JwtSettings:Issuer: " + config["JwtSettings:Issuer"]);
+Console.WriteLine("JwtSettings:Audience: " + config["JwtSettings:Audience"]);
+
+builder.Services.AddLogging();
+var env = builder.Environment;
+Console.WriteLine($"Environment: {env.EnvironmentName}");
+
 builder.Services.AddAuthentication(o =>
 {
     o.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
