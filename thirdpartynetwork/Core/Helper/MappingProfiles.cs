@@ -62,6 +62,7 @@ namespace thirdpartynetwork.Core.Helper
             CreateMap<UpdateUserDto, User>();
 
             CreateMap<UserProxy, UserProxyDto>()
+                .ForMember(dest => dest.HasPassword, opt => opt.MapFrom(src => src.Password != null))
                 .ForMember(dest => dest.User, opt => opt.MapFrom(src => src.User))
                 .ForMember(dest => dest.NetworkUsers, opt => opt.MapFrom(src => src.NetworkUsers))
                 .ForMember(dest => dest.Email, opt =>

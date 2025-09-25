@@ -6,7 +6,7 @@ using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Presentation.Controllers;
 
-[Route("api/accesses")]
+[Route("accesses")]
 [ApiController]
 public class AccessController(IAccessService service, IMapper mapper) : ControllerBase
 {

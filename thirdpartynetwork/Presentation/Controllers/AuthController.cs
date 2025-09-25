@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace thirdpartynetwork.Presentation.Controllers;
 
-[Route("api/auth")]
+[Route("auth")]
 [ApiController]
 public class AuthController(IAuthService service) : ControllerBase
 {

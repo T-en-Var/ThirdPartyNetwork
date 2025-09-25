@@ -5,7 +5,7 @@ using thirdpartynetwork.Core;
 
 namespace thirdpartynetwork.Presentation.Controllers;
 
-[Route("api/networks/{networkId:guid}/customPages/{customPageId:guid}/pageBlocks")]
+[Route("networks/{networkId:guid}/customPages/{customPageId:guid}/pageBlocks")]
 [ApiController]
 public class PageBlockController(IPageBlockService service, IMapper mapper) : ControllerBase
 {

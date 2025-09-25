@@ -7,7 +7,7 @@ using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Presentation.Controllers;
 
-[Route("/api/networks/{networkId:guid}/users/{networkUserId:guid}/roles")]
+[Route("networks/{networkId:guid}/users/{networkUserId:guid}/roles")]
 [ApiController]
 public class NetworkUserRoleController(INetworkUserRoleService service, IMapper mapper) : ControllerBase
 {

@@ -10,6 +10,7 @@ namespace thirdpartynetwork.Core.Interfaces.Repositories
         UserProxy? GetById(Guid id);
         UserProxy? GetByUsername(string username);
         UserProxy Create(UserProxy userProxy);
+        void SetDefaultUserProxy(Guid userProxyId);
         UserProxy Update(UserProxy userProxy);
         IQueryable<UserProxy> GetByIdQueryable(Guid id);
         void Delete(UserProxy userProxy);

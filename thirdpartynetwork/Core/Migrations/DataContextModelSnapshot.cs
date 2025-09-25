@@ -110,6 +110,9 @@ namespace thirdpartynetwork.Core.Migrations
                     b.Property<bool>("IsPublic")
                         .HasColumnType("boolean");
 
+                    b.Property<bool>("IsSystemProtected")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("MediaType")
                         .IsRequired()
                         .HasColumnType("text");

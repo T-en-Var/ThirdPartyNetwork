@@ -5,7 +5,7 @@ using thirdpartynetwork.Core;
 
 namespace thirdpartynetwork.Presentation.Controllers;
 
-[Route("api/networks/{networkId:guid}/files")]
+[Route("networks/{networkId:guid}/files")]
 [ApiController]
 public class FileController(IFileService service, IMapper mapper) : ControllerBase
 {

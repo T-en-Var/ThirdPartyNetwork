@@ -134,6 +134,7 @@ namespace thirdpartynetwork.Application.Repositories
                 .ThenInclude(x => x.Access)
                 .Include(x => x.NetworkUsers)
                 .ThenInclude(n => n.NetworkUserAccesses)
+                .Include(n => n.ImageFile)
                 .AsNoTracking()
                 .FirstOrDefault(n => n.Id == id);
             return network;

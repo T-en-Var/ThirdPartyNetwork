@@ -6,7 +6,7 @@ using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Presentation.Controllers;
 
-[Route("api/networks/{networkId:guid}/roles/{roleId:guid}/permissions")]
+[Route("networks/{networkId:guid}/roles/{roleId:guid}/permissions")]
 [ApiController]
 public class RolePermissionController(IRolePermissionService service, IMapper mapper) : ControllerBase
 {

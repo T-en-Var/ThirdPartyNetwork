@@ -109,7 +109,7 @@ public class PermissionHandler(
                     routeData.Values.ContainsKey("networkUserId") &&
                     routeData.Values.ContainsKey("accessId");
                 
-                // The route `/api/me` is not checked as it never invokes the PermissionHandler, so automatically passes
+                // The route `/me` is not checked as it never invokes the PermissionHandler, so automatically passes
                 
                 if (!isAccessUpdateRoute)
                 {

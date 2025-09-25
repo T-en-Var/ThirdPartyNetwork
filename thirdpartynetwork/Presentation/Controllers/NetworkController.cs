@@ -6,7 +6,7 @@ using thirdpartynetwork.Core;
 
 namespace thirdpartynetwork.Presentation.Controllers;
 
-[Route("api/networks")]
+[Route("networks")]
 [ApiController]
 public class NetworkController(INetworkService service, IMapper mapper) : ControllerBase
 {

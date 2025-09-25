@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace thirdpartynetwork.Presentation.Controllers;
 
-[Route("api/health")]
+[Route("health")]
 [ApiController]
 public class HealthController() : ControllerBase
 {

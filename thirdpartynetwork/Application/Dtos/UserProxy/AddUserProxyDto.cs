@@ -10,6 +10,6 @@ namespace thirdpartynetwork.Application.Dtos.UserProxy
         [EmailAddress(ErrorMessage = "Invalid email address")]
         public string? Email { get; set; }
         public string? Password { get; set; }
-        public FileLinkDto? ImageFile { get; set; }
+        public FileLinkDto? FileLink { get; set; }
     }
 }

@@ -5,7 +5,7 @@ using thirdpartynetwork.Core;
 
 namespace thirdpartynetwork.Presentation.Controllers;
 
-[Route("api/networks/{networkId:guid}/customPages/")]
+[Route("networks/{networkId:guid}/customPages/")]
 [ApiController]
 public class CustomPageController(ICustomPageService service, IMapper mapper) : ControllerBase
 {

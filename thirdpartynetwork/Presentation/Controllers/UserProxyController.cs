@@ -6,9 +6,9 @@ using thirdpartynetwork.Core;
 
 namespace thirdpartynetwork.Presentation.Controllers;
 
-[Route("api/users/{userId:guid}/proxies")]
+[Route("users/{userId:guid}/proxies")]
 [ApiController]
-public class UserProxyController(IUserProxyService service, IMapper mapper, INetworkUserService networkUserService) : ControllerBase
+public class UserProxyController(IUserProxyService service, IUserProxyManagerService managerService, IMapper mapper, INetworkUserService networkUserService) : ControllerBase
 {
     [HttpGet]
     [RequirePermission(Constants.Permissions.ReadUser)]
@@ -35,7 +35,7 @@ public class UserProxyController(IUserProxyService service, IMapper mapper, INet
     [ProducesResponseType(404)]
     public IActionResult Create(Guid userId, AddUserProxyDto addUserProxy)
     {
-        var userProxy = service.Add(userId, addUserProxy);
+        var userProxy = managerService.AddUserProxy(userId, addUserProxy);
         return Ok(mapper.Map<UserProxyDto>(userProxy));
     }
 

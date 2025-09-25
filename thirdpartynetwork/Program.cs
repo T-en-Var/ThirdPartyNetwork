@@ -163,6 +163,7 @@ builder.Services.AddScoped<IPageBlockService, PageBlockService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IRolePermissionService, RolePermissionService>();
 builder.Services.AddScoped<IPermissionService, PermissionService>();
+builder.Services.AddScoped<IUserProxyManagerService, UserProxyManagerService>();
 builder.Services.AddScoped<IUserProxyService, UserProxyService>();
 builder.Services.AddScoped<IUserService, UserService>();
 
