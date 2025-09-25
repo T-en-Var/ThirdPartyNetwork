@@ -8,7 +8,7 @@ using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Application.Auth;
 
-public class TokenGenerator(IJtiCacheService jtiCacheService) : ITokenGenerator
+public class TokenGenerator(IJtiCacheService jtiCacheService, IConfiguration _configuration) : ITokenGenerator
 {
     private static readonly string TokenSecret = Environment.GetEnvironmentVariable("TOKEN_SECRET")!;
     private static readonly TimeSpan AccessTokenLifetime = TimeSpan.FromMinutes(30);
@@ -49,7 +49,6 @@ public class TokenGenerator(IJtiCacheService jtiCacheService) : ITokenGenerator
             Claims = claimObjects
         });
         
-        Console.WriteLine("Before Apply");
         var userProxy = networkUser.UserProxy.ApplyDefaults();
         
         var tokensDto = new TokensDto()
@@ -61,7 +60,7 @@ public class TokenGenerator(IJtiCacheService jtiCacheService) : ITokenGenerator
         return tokensDto;
     }
 
-    private static string GenerateAccessToken(Guid jti, Guid userId, string username, bool accessIncomplete, List<NetworkClaim> networkClaims)
+    private string GenerateAccessToken(Guid jti, Guid userId, string username, bool accessIncomplete, List<NetworkClaim> networkClaims)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.UTF8.GetBytes(TokenSecret);
@@ -73,12 +72,6 @@ public class TokenGenerator(IJtiCacheService jtiCacheService) : ITokenGenerator
                 claims = n.Claims
             }));
         
-        Console.WriteLine("Generating access token... networksJson:" + networksJson);
-        Console.WriteLine("Generating access token... jti.ToString():" + jti.ToString());
-        Console.WriteLine("Generating access token... userId.ToString():" + userId.ToString());
-        Console.WriteLine("Generating access token... username:" + username);
-        Console.WriteLine("Generating access token... networksJson:" + networksJson);
-        
         var claims = new List<Claim>
         {
             new(JwtRegisteredClaimNames.Jti, jti.ToString()),
@@ -86,20 +79,21 @@ public class TokenGenerator(IJtiCacheService jtiCacheService) : ITokenGenerator
             new("uid", userId.ToString()),
             new("networks", networksJson),
         };
-        
-        Console.WriteLine("we made it");
 
         if (accessIncomplete)
         {
             claims.Add(new Claim("AccessIncomplete", "true"));
         }
+        
+        var issuer = _configuration["JwtSettings:Issuer"];
+        var audience = _configuration["JwtSettings:Audience"];
 
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(claims),
             Expires = DateTime.UtcNow.Add(AccessTokenLifetime),
-            Issuer = "https://localhost/",
-            Audience = "https://localhost/",
+            Issuer = issuer,
+            Audience = audience,
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
         };
 
