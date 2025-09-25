@@ -16,12 +16,9 @@
         
         public UserProxy ApplyDefaults()
         {
-            Console.WriteLine("ApplyDefaults");
             if (IsDefault) return this;
             
             var defaultProxy = this.User.DefaultProxy;
-            
-            Console.WriteLine("defaultProxy.Username: " + defaultProxy.Username);
 
             return new UserProxy
             {
