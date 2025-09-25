@@ -1,195 +1,80 @@
 <template>
-  <div class="container">
-    <div class="logo-container">
-      <img src="@/images/logo_transparent.png" alt="Company Logo">
-      <div class="star star-top-right"/>
-      <div class="star star-bottom-left"/>
+  <div
+    class="relative min-h-screen w-full flex flex-col items-center justify-center p-8 bg-gradient-to-b from-purple-100 via-purple-50 to-white overflow-hidden">
+
+    <!-- Stars -->
+    <div v-motion :initial="{ opacity: 0, x: 50 }" :enter="{ opacity: 1, x: 0 }" class="absolute top-32 right-8 w-10 h-10 bg-black clip-star"></div>
+    <div v-motion :initial="{ opacity: 0, x: -50 }" :enter="{ opacity: 1, x: 0 }" class="absolute bottom-16 left-8 w-10 h-10 bg-black clip-star"></div>
+
+    <!-- Logo -->
+    <div class="fixed w-full flex justify-center mb-72 z-10">
+      <div
+        class="relative w-64 h-64 rounded-full bg-gradient-radial from-yellow-200 to-purple-300 flex items-center justify-center border border-black/10 shadow-[0_10px_30px_rgba(149,104,210,0.2)]">
+      </div>
     </div>
-    <div class="content">
+
+    <!-- Glass content -->
+    <div v-motion :initial="{ opacity: 0, y: 50 }" :enter="{ opacity: 1, y: 0 }"
+      class="relative z-20 w-full max-w-5xl text-center bg-white/80 backdrop-blur-lg rounded-2xl border-t border-purple-600 shadow-lg p-8 flex flex-col gap-6 mt-72 mb-36">
+      <!-- Header -->
       <header>
-        <span class="title">Connect your Web</span>
+        <div class="w-full flex justify-center">
+          <h1
+            class="text-4xl font-bold w-fit bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent pb-1">
+            Connect your Web
+          </h1>
+        </div>
       </header>
 
-      <main>
-        <div>
-          <span>Thirdpartynetwork is a way to connect the web.</span>
-        </div>
-
-        <div>
-          <span>Create and manage public or private networks with customizable permissions.</span>
-        </div>
-
-        <div>
-          <span>Allow users to reuse accounts used in other networks.</span>
-        </div>
+      <!-- Main description -->
+      <main class="flex flex-col gap-4 text-gray-700">
+        <p class="text-lg">TrojoNetworks is a way to connect the web.</p>
+        <p class="text-lg">Create and manage public or private networks with customizable permissions.</p>
+        <p class="text-lg">Allow users to reuse accounts used in other networks.</p>
+        <p class="text-lg">Create contant fully customizable inside the network.</p>
       </main>
 
-      <div class="buttons">
-        <button class="btn primary">Get Started</button>
-        <button class="btn secondary">Learn More</button>
+      <!-- Buttons -->
+      <div class="flex justify-center gap-4 mt-6">
+        <button
+          class="px-6 py-3 rounded-full font-medium bg-purple-600 text-white hover:bg-purple-700 hover:shadow-lg transition">
+          Get Started
+        </button>
+        <button
+          class="px-6 py-3 rounded-full font-medium border border-purple-600 text-purple-600 hover:bg-purple-100 transition">
+          Learn More
+        </button>
       </div>
+
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+// import { useMotion } from '@vueuse/motion'
+// import { onMounted, ref } from 'vue'
 
+// const contentRef = ref<HTMLElement | null>(null)
+
+// onMounted(() => {
+//   if (contentRef.value) {
+//     useMotion(contentRef.value, {
+//       initial: { opacity: 0, y: 50 },
+//       enter: { opacity: 1, y: 0 },
+//       transition: { duration: 0.01, easing: 'ease-out', delay: 2 },
+//     })
+//   }
+// })
 </script>
 
 <style scoped>
-.container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  min-width: 100vw;
-  padding: 2rem;
-  font-family: 'Helvetica Neue', Arial, sans-serif;
-  z-index: 0;
-}
-
-.logo-container {
-  position: fixed;
-  width: 100%;
-  max-width: 600px;
-  margin-bottom: 20rem;
-  z-index: 1;
-}
-
-.logo-circle {
-  position: relative;
-  width: 100%;
-  height: 0;
-  padding-bottom: 100%;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 240, 170, 0.9) 20%, rgba(190, 149, 230, 0.85) 80%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  box-shadow: 0 10px 30px rgba(149, 104, 210, 0.2);
-}
-
-.logo-text {
-  position: absolute;
-  font-size: 4vw;
-  font-weight: 500;
-  color: #121212;
-  text-align: center;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 90%;
-}
-
-.star {
-  position: absolute;
-  width: 40px;
-  height: 40px;
-  background-color: #000;
+.clip-star {
   clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%,
       50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
 }
 
-.star-top-right {
-  top: 10%;
-  right: 5%;
-}
-
-.star-bottom-left {
-  bottom: 10%;
-  left: 5%;
-}
-
-.content {
-  width: 100%;
-  max-width: 1200px;
-  text-align: center;
-  border-top: 1px solid var(--primary-color);
-  border-radius: 1.5rem;
-  box-shadow: 3px 5px 7px rgba(0, 0, 0, 0.2);
-  background-color: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(30px);
-  -webkit-backdrop-filter: blur(10px);
-  filter: drop-shadow(0 0 3px rgba(255, 255, 255, 1));
-  z-index: 10;
-}
-
-.title {
-  font-size: 2rem;
-  font-weight: 700;
-  padding: .5rem 0 1rem;
-  display: inline-block;
-  background: linear-gradient(90deg, var(--primary-accent-color), var(--primary-color));
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.tagline {
-  font-size: 1.5rem;
-  font-weight: 500;
-  margin-bottom: 1.5rem;
-  color: #333;
-}
-
-.description {
-  font-size: 1.2rem;
-  color: #555;
-  margin-bottom: 1rem;
-  line-height: 1.5;
-}
-
-.buttons {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  margin-top: 2rem;
-}
-
-.btn {
-  padding: 0.75rem 1.5rem;
-  font-size: 1rem;
-  font-weight: 500;
-  border-radius: 2rem;
-  cursor: pointer;
-  border: none;
-  transition: all 0.3s ease;
-}
-
-.primary {
-  background-color: #9966cc;
-  color: white;
-}
-
-.primary:hover {
-  background-color: #8a4fc8;
-  box-shadow: 0 4px 12px rgba(149, 104, 210, 0.3);
-}
-
-.secondary {
-  background-color: transparent;
-  color: #9966cc;
-  border: 1px solid #9966cc;
-}
-
-.secondary:hover {
-  background-color: rgba(153, 102, 204, 0.1);
-}
-
-@media (max-width: 768px) {
-  .logo-text {
-    font-size: 2rem;
-  }
-
-  .tagline {
-    font-size: 1.2rem;
-  }
-
-  .description {
-    font-size: 1rem;
-  }
+/* Radial gradient background for logo circle */
+.bg-gradient-radial {
+  background: radial-gradient(circle, rgba(255, 240, 170, 0.9) 20%, rgba(190, 149, 230, 0.85) 80%);
 }
 </style>

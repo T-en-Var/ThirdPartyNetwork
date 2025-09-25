@@ -1,3 +1,4 @@
+import type { NetworkFile } from "./files";
 import type { Network } from "./network";
 import type { NetworkUserAccess } from "./networkUserAccess";
 import type { NetworkUserRole } from "./networkUserRole";
@@ -12,9 +13,11 @@ export interface NetworkUser {
   accessIncomplete: boolean,
   networkUserAccesses: NetworkUserAccess[],
   networkUserRoles: NetworkUserRole[],
-  createdOn: Date
+  createdOn: Date,
+  files: NetworkFile[]
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface CreateNetworkUser {
   
 }

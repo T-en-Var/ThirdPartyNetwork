@@ -31,10 +31,12 @@
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
-              :class="{ 'border-blue-300 bg-blue-50': isCurrentProxy(userProxy) }">
+              @click="handleUserProxyClick">
               <div class="flex items-center">
-                <div class="flex-shrink-0 h-12 w-12 bg-gray-200 rounded-full overflow-hidden flex items-center justify-center text-gray-500">
-                  <CloudinaryFile v-if="userProxy.imageFile" :file="userProxy.imageFile" :display-only="true" class="h-full w-full object-cover" />
+                <div
+                  class="flex-shrink-0 h-12 w-12 bg-gray-200 rounded-full overflow-hidden flex items-center justify-center text-gray-500">
+                  <CloudinaryFile v-if="userProxy.imageFile" :file="userProxy.imageFile" :display-only="true"
+                    class="h-full w-full object-cover" />
                   <img v-else :src="getAvatarSrc(userProxy)" :alt="userProxy.username"
                     class="h-full w-full object-cover" />
                 </div>
@@ -71,28 +73,22 @@ import { ref, computed, onMounted } from 'vue';
 import type { UserProxy } from '@/types';
 import { useAuthStore } from '@/stores/auth';
 import CloudinaryFile from '@/components/cdn/CloudinaryFile.vue';
+import { useRouter } from 'vue-router';
 
 const authStore = useAuthStore();
 const loading = ref(true);
 const userProxy = ref<UserProxy | null>(null);
+const router = useRouter();
 
 onMounted(async () => {
   userProxy.value = await authStore.getUserProxy();
   loading.value = false;
 })
 
-const selectedProxyId = ref<string | null>(
-  userProxy.value?.user.userProxies.find(p => p.isDefault)?.id || null
-);
-
 const proxyList = computed(() => {
   if (userProxy.value == null) return [];
   return userProxy.value.user.userProxies.filter(p => p != null)
 })
-
-function isCurrentProxy(proxy: UserProxy): boolean {
-  return selectedProxyId.value === proxy.id;
-}
 
 function getFullName(proxy: UserProxy): string {
   if (proxy.firstName && proxy.lastName) {
@@ -116,5 +112,9 @@ function formatDate(date: Date): string {
     month: 'short',
     day: 'numeric'
   });
+}
+
+function handleUserProxyClick() {
+  router.push(`/account/proxies/${userProxy.value?.id}/edit`)
 }
 </script>

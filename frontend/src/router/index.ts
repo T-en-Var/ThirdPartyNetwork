@@ -12,13 +12,17 @@ const router = createRouter({
       path: '/',
       name: 'home',
       component: HomeView,
-      meta: {},
+      meta: {
+        title: 'TrojoNetworks'
+      }
     },
     {
       path: '/about',
       name: 'about',
       component: AboutView,
-      meta: {},
+      meta: {
+        title: 'TrojoNetworks | About'
+      },
     },
     {
       path: '/account',
@@ -26,6 +30,7 @@ const router = createRouter({
       component: () => import('@/views/account/ManageAccountView.vue'),
       meta: {
         requiresAuth: true,
+        title: 'Your Account'
       },
       children: [
         {
@@ -33,6 +38,7 @@ const router = createRouter({
           name: 'manage-account-home',
           component: () => import('@/components/tabs/account/AccountHomeTab.vue'),
           meta: {
+            requiresAuth: true,
             title: 'Dashboard'
           },
         },
@@ -41,7 +47,17 @@ const router = createRouter({
           name: 'manage-account-proxies',
           component: () => import('@/components/tabs/account/UserProxyTab.vue'),
           meta: {
+            requiresAuth: true,
             title: 'User Proxies'
+          },
+        },
+        {
+          path: 'proxies/:userProxyId/edit',
+          name: 'manage-account-edit-proxy',
+          component: () => import('@/components/tabs/account/EditUserProxyTab.vue'),
+          meta: {
+            requiresAuth: true,
+            title: 'Edit User Proxy'
           },
         },
       ]
@@ -50,25 +66,33 @@ const router = createRouter({
       path: '/networks',
       name: 'networks',
       component: () => import('@/views/NetworksView.vue'),
-      meta: {},
+      meta: {
+        title: 'Networks'
+      },
     },
     {
       path: '/networks/create',
       name: 'create-network',
       component: () => import('@/views/networks/CreateNetworkView.vue'),
-      meta: {},
+      meta: {
+        title: 'Create new network'
+      },
     },
     {
       path: '/networks/:networkId',
       name: 'info-network',
       component: () => import('@/views/networks/InfoNetworkView.vue'),
-      meta: {},
+      meta: {
+        title: 'Network details'
+      },
     },
     {
       path: '/networks/:networkId/manage',
       name: 'manage-network',
       component: () => import('@/views/networks/ManageNetworkView.vue'),
-      meta: {},
+      meta: {
+        title: 'Manage network'
+      },
       children: [
         {
           path: '',
@@ -148,7 +172,9 @@ const router = createRouter({
       path: '/networks/:networkId/join',
       name: 'join-network',
       component: () => import('@/views/networks/JoinNetworkView.vue'),
-      meta: {},
+      meta: {
+        title: 'Join this network'
+      },
     },
     {
       path: '/networks/:networkId/login',
@@ -184,25 +210,33 @@ const router = createRouter({
       path: '/tos',
       name: 'Terms of Service',
       component: ToSView,
-      meta: {},
+      meta: {
+        title: 'TrojoNetworks | Terms of Service'
+      },
     },
     {
       path: '/401',
       name: 'unauthenticated',
       component: () => import('@/views/UnauthenticatedView.vue'),
-      meta: {},
+      meta: {
+        title: 'Unauthenticated'
+      },
     },
     {
       path: '/403',
       name: 'unauthorized',
       component: () => import('@/views/UnauthorizedView.vue'),
-      meta: {},
+      meta: {
+        title: 'Unauthorized'
+      },
     },
     {
       path: '/404',
       name: 'not-found',
       component: () => import('@/views/NotFoundView.vue'),
-      meta: {},
+      meta: {
+        title: 'Page not found'
+      },
     },
   ],
 });
@@ -230,6 +264,12 @@ router.beforeEach((to, from, next) => {
   }
 
   next()
+})
+
+router.afterEach((to) => {
+  if (to.meta.title) {
+    document.title = to.meta.title as string
+  }
 })
 
 export default router;

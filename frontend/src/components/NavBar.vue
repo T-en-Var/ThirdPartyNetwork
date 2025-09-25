@@ -2,7 +2,7 @@
   <div class="fixed w-full shadow-md bg-white z-50">
     <nav class="corporate-navbar">
       <div class="logo-container">
-        <RouterLink to="/" class="logo-text">Thirdpartynetwork</RouterLink>
+        <RouterLink to="/" class="logo-text">TrojoNetworks</RouterLink>
       </div>
       <div class="nav-links">
         <RouterLink to="/" class="nav-link" active-class="active">Home</RouterLink>

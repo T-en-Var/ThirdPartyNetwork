@@ -43,6 +43,14 @@
           class="block w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-600 focus:ring focus:ring-blue-100 transition-all" />
       </div>
 
+      <div v-if="form.password">
+        <span class="text-xs text-red-500" v-if="form.password != form.password_retype">Passwords do not match!</span>
+        <label for="password_retype" class="block text-sm font-semibold text-gray-800 mb-2">Retype Password</label>
+        <input id="password" v-model="form.password_retype" type="password"
+          placeholder="Defaults to your default proxy's password"
+          class="block w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-600 focus:ring focus:ring-blue-100 transition-all" />
+      </div>
+
       <!-- Image Upload Section -->
       <div class="flex gap-8">
         <div>
@@ -123,7 +131,7 @@ import { computed, ref } from 'vue';
 import ModalContainer from '@/components/modals/ModalContainer.vue';
 import UploadFileModal from '@/components/modals/network/AddFileModal.vue';
 import CloudinaryFile from '@/components/cdn/CloudinaryFile.vue';
-import type { UserProxy, UserProxyCreate, NetworkFile, Network } from '@/types';
+import type { UserProxy, UserProxyCreate, NetworkFile, Network, UserProxyForm } from '@/types';
 
 const props = defineProps<{
   isSubmitting?: boolean;
@@ -135,13 +143,7 @@ const emit = defineEmits<{
   (e: 'create-proxy', payload: UserProxyCreate): void;
 }>();
 
-const form = ref<UserProxyCreate>({
-  username: undefined,
-  firstName: undefined,
-  lastName: undefined,
-  email: undefined,
-  imageFile: undefined
-});
+const form = ref<UserProxyForm>({ keepPassword: true, isDefault: false });
 
 const uploadedFile = ref<NetworkFile | null>();
 const allNetworks = computed<Network[]>(() => {
@@ -158,17 +160,19 @@ function openUploadModal() {
 }
 
 function handleImageUploaded(file: NetworkFile) {
-  form.value.imageFile = { id: file.id, networkId: file.networkId };
+  form.value.fileLink = { id: file.id };
   uploadedFile.value = file;
   showUploadModal.value = false;
 }
 
 function removeImage() {
-  form.value.imageFile = undefined;
+  form.value.fileLink = undefined;
   uploadedFile.value = null;
 }
 
 function handleSubmit() {
+  if (!form.value.password || form.value.password != form.value.password_retype) return;
+
   const payload: UserProxyCreate = {
     ...form.value,
     username: form.value.username || undefined,
@@ -176,7 +180,7 @@ function handleSubmit() {
     lastName: form.value.lastName || undefined,
     email: form.value.email || undefined,
     password: form.value.password || undefined,
-    imageFile: form.value.imageFile || undefined,
+    fileLink: form.value.fileLink || undefined,
   };
 
   emit('create-proxy', payload);

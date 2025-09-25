@@ -36,6 +36,10 @@
           View Details
         </RouterLink>
 
+        <RouterLink v-if="canManage" :to="`/networks/${network.id}/manage`" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+          Manage
+        </RouterLink>
+
         <button v-if="showJoin" @click="$emit('joinNetwork', network)"
           class="bg-blue-100 text-blue-700 hover:bg-blue-200 px-3 py-1 rounded-md text-sm font-medium">
           Join Network
@@ -53,6 +57,7 @@ import CloudinaryFile from '@/components/cdn/CloudinaryFile.vue';
 defineProps<{
   network: Network;
   showJoin?: boolean;
+  canManage?: boolean;
 }>();
 
 defineEmits<{

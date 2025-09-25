@@ -7,7 +7,7 @@
 
           <div class="logo-container">
             <div class="logo">
-              <img src="@/images/logo_transparent.png" alt="Company Logo">
+              <img src="@/images/favicon-nobg.png" alt="Company Logo">
             </div>
           </div>
 
@@ -264,7 +264,7 @@ const signUp = async () => {
       signupPassword.value
     );
   } catch (err) {
-    console.log(err)
+    console.error(err)
     isLoading.value = false;
     isSigningUp.value = false;
     signupError.value = (err as AxiosError<ErrorMessage>).response?.data.message || "Something went wrong, please try again.";

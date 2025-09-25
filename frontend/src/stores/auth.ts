@@ -1,11 +1,12 @@
 import { ref } from 'vue';
 import { defineStore } from 'pinia';
 import { AxiosError, type AxiosResponse, type InternalAxiosRequestConfig } from 'axios';
-import type { AccessTokenClaims, ErrorMessage, TokenPair, UserProxy } from '@/types';
+import type { AccessTokenClaims, ErrorMessage, NetworkClaims, TokenPair, UserProxy } from '@/types';
 import rawApi from '@/api/rawApi';
 import api from '@/api/api';
 import { useGlobalStore } from './global';
 import { decodeJWT } from '@/lib/utils';
+import { ClaimChecker } from '@/lib/claimChecker';
 
 export const useAuthStore = defineStore('auth', () => {
     const accessToken = ref<string | null>(null);
@@ -16,6 +17,9 @@ export const useAuthStore = defineStore('auth', () => {
 
     const isModelOpen = ref<boolean>(false);
     const isUnauthModalOpen = ref<boolean>(false);
+
+    const networkClaims = ref<NetworkClaims[]>([]);
+    const claimChecker = ref(new ClaimChecker([]));
 
     const modelMode = ref<"signup" | "login">("signup");
     let modalCallback = () => { };
@@ -164,11 +168,20 @@ export const useAuthStore = defineStore('auth', () => {
         return false;
     }
 
+    function setNetworkClaims() {
+        if (!accessToken.value) throw new Error("accesstoken undefined");
+        const decodedPayload = decodeJWT<AccessTokenClaims>(accessToken.value);
+
+        networkClaims.value = JSON.parse(decodedPayload.networks);
+        claimChecker.value.setNetworkClaims(networkClaims.value);
+    }
+
     function saveTokens(aToken: string, rToken: string) {
         accessToken.value = aToken;
         refreshToken.value = rToken;
         localStorage.setItem(accessTokenKey, aToken);
         localStorage.setItem(refreshTokenKey, rToken);
+        setNetworkClaims();
     }
 
     function clearTokens() {
@@ -176,6 +189,7 @@ export const useAuthStore = defineStore('auth', () => {
         refreshToken.value = null;
         localStorage.removeItem(accessTokenKey);
         localStorage.removeItem(refreshTokenKey);
+        claimChecker.value.setNetworkClaims([])
     }
 
     async function refreshTokens() {
@@ -201,8 +215,14 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     function loadTokens() {
-        accessToken.value = localStorage.getItem(accessTokenKey);
-        refreshToken.value = localStorage.getItem(refreshTokenKey);
+        const aToken = localStorage.getItem(accessTokenKey);
+        const rToken = localStorage.getItem(refreshTokenKey);
+
+        if (accessToken.value == aToken) return;
+
+        accessToken.value = aToken;
+        refreshToken.value = rToken;
+        setNetworkClaims();
     }
 
     async function applyHeaders(config: InternalAxiosRequestConfig) {
@@ -269,6 +289,8 @@ export const useAuthStore = defineStore('auth', () => {
         isUnauthModalOpen,
         loading,
         error,
-        currentUser
+        currentUser,
+        networkClaims,
+        claimChecker,
     };
 });

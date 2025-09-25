@@ -7,9 +7,9 @@ export const CLOUDINARY_API_ENV_VAR = import.meta.env.VITE_CLOUDINARY_API_ENV_VA
 
 function getApiBaseUrl() {
     // If running in Docker/production, use relative URL
-    if (window.location.hostname !== 'localhost' || !window.location.port.startsWith('51')) {
-        return '/api/latest';
-    }
+    // if (window.location.hostname !== 'localhost' || !window.location.port.startsWith('51')) {
+    //     return '/api/latest';
+    // }
     // If in development mode, use the full URL
     return API_URL;
 }

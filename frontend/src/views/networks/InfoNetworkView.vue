@@ -38,9 +38,14 @@
           <div class="flex items-center mb-6">
             <div
               class="h-16 w-16 rounded-lg bg-white border border-gray-200 p-1 shadow-sm flex items-center justify-center mr-4">
-              <img
-                :src="network.imageUrl || `https://ui-avatars.com/api/?name=${network.name}&size=64&background=random`"
-                :alt="network.name" class="max-h-14 max-w-14 rounded" />
+              <div v-if="loading"
+                class="w-7 h-7 border-4 border-gray-300 border-t-indigo-500 rounded-full animate-spin"></div>
+              <CloudinaryFile v-else-if="network?.imageFile" :display-only="true" :file="network?.imageFile"
+                class="w-10 max-h-10 object-cover" />
+              <div v-else class="logo">
+                <img :src="`https://ui-avatars.com/api/?name=${network?.name}&size=24&background=random`"
+                  :alt="network?.name" />
+              </div>
             </div>
             <div>
               <h2 class="text-xl font-bold text-gray-800 flex items-center">
@@ -118,7 +123,7 @@
         <div class="mb-6">
           <h3 class="text-lg font-medium text-gray-800 mb-3">Connected Websites</h3>
 
-          <div v-if="connectedWebsites.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div v-if="connectedWebsites.length > 0 && false" class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div v-for="(website, index) in connectedWebsites" :key="index"
               class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
               <div class="flex items-center">
@@ -245,6 +250,7 @@ import ErrorAlert from '@/components/ErrorAlert.vue';
 import ConfirmationModal from '@/components/modals/ConfirmationModal.vue';
 import api from '@/api/api';
 import useNetworkDetails from '@/composables/useNetworkDetails';
+import CloudinaryFile from '@/components/cdn/CloudinaryFile.vue';
 
 const router = useRouter();
 const route = useRoute();
@@ -331,16 +337,13 @@ async function handleToggle(accessId: string) {
 }
 
 // Check if user has permission to manage the network
-const canManageNetwork = computed(() => {
-  // Replace with actual permission check
-  return true;
-});
+const canManageNetwork = computed(() => network.value && authStore.claimChecker.canManageNetwork(network.value));
 
 const currentNetworkUser = computed(() => {
+  if (!authStore.isAuthenticated()) return null;
+
   const userProxyId = authStore.getUserProxyId();
   if (!network.value || !userProxyId) return null;
-
-  console.log(network.value.networkUsers)
 
   // Check if user exists in the network's users
   return network.value.networkUsers?.find(

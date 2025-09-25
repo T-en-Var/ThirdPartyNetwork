@@ -141,7 +141,7 @@
 <script setup lang="ts">
 import { readableSize } from '@/lib/utils';
 import type { Network, NetworkFile } from '@/types';
-import { computed, ref, watch } from 'vue';
+import { computed, ref } from 'vue';
 
 const props = defineProps<{
   network: Network;
@@ -174,10 +174,6 @@ const formats = computed(() => {
     if (file.format) types.add(file.format.toLowerCase())
   })
   return Array.from(types).sort()
-})
-
-watch(() => props.network.files, (newFiles: NetworkFile[]) => {
-  console.log('Files updated:', newFiles)
 })
 
 const filteredFiles = computed(() => {

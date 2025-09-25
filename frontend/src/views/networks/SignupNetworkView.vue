@@ -22,7 +22,15 @@
             <div class="w-14 h-14 bg-white rounded-md shadow flex items-center justify-center p-2">
               <img v-if="!networkDetails.loading.value" :src="imageSrc" alt="Network Logo"
                 class="w-full h-full object-contain" />
-              <div v-else class="w-7 h-7 border-4 border-gray-300 border-t-indigo-500 rounded-full animate-spin"></div>
+
+              <div v-if="networkDetails.loading.value" class="w-7 h-7 border-4 border-gray-300 border-t-indigo-500 rounded-full animate-spin"></div>
+              <CloudinaryFile v-else-if="networkDetails.network.value?.imageFile" :display-only="true"
+                :file="networkDetails.network.value?.imageFile" class="w-10 max-h-10 object-cover" />
+              <div v-else class="logo">
+                <img
+                  :src="`https://ui-avatars.com/api/?name=${networkDetails.network.value?.name}&size=24&background=random`"
+                  :alt="networkDetails.network.value?.name" />
+              </div>
             </div>
           </div>
         </div>
@@ -176,7 +184,7 @@
         <div class="mb-8">
           <h2 class="text-lg font-medium text-gray-800 mb-4">Your account</h2>
           <UserProxyDisplay
-            :userProxy="{ firstName: signupFirstname, createdOn: new Date(), id: '', isDefault: true, networkUsers: [], user: { id: '', createdOn: new Date(), userProxies: [] }, email: signupEmail, imageUrl: '', lastName: signupLastname, username: signupUsername }"
+            :userProxy="{ firstName: signupFirstname, createdOn: new Date(), id: '', isDefault: true, networkUsers: [], user: { id: '', createdOn: new Date(), userProxies: [] }, email: signupEmail, lastName: signupLastname, username: signupUsername, hasPassword: false }"
             :sensitiveFields="['email', 'lastName']" :fieldsToDisplay="['username', 'firstName', 'lastName', 'email']"
             :showSwitch="false" />
         </div>
@@ -233,7 +241,7 @@ import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import type { AccessTokenClaims, AuthorizationCode, ErrorMessage, UserProxy } from '@/types';
 import useNetworkDetails from '@/composables/useNetworkDetails';
-import { decodeJWT, isValidHttpUrl } from '@/lib/utils';
+import { decodeJWT } from '@/lib/utils';
 import { useGlobalStore } from '@/stores/global';
 import ConfirmationModal from '@/components/modals/ConfirmationModal.vue';
 import UserProxyDisplay from '@/components/UserProxyDisplay.vue';
@@ -241,6 +249,7 @@ import type { AxiosError } from 'axios';
 import api from '@/api/api';
 import rawApi from '@/api/rawApi';
 import ErrorAlert from '@/components/ErrorAlert.vue';
+import CloudinaryFile from '@/components/cdn/CloudinaryFile.vue';
 
 const router = useRouter();
 const route = useRoute();
@@ -300,13 +309,6 @@ onMounted(async () => {
   if (route.query.fname) signupFirstname.value = route.query.fname as string;
   if (route.query.lname) signupLastname.value = route.query.lname as string;
   if (route.query.email) signupEmail.value = route.query.email as string;
-
-  if (networkDetails.network.value?.imageUrl && isValidHttpUrl(networkDetails.network.value?.imageUrl)) {
-    imageSrc.value = networkDetails.network.value?.imageUrl
-  } else {
-    const name = `${networkDetails.network.value?.name}`
-    imageSrc.value = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`
-  }
 });
 
 const goBack = () => {
@@ -403,8 +405,6 @@ async function handleSubmit() {
   if (response.status !== 200) {
     throw new Error("Response was not statusCode 200.");
   }
-
-  console.log(response.data)
 
   const userResponse = await api.get<UserProxy>(`/me`, { headers: { Authorization: `Bearer ${response.data.accessToken}` } })
 

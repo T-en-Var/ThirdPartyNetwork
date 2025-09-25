@@ -1,6 +1,6 @@
 <template>
   <div class="relative z-30">
-    <div :class="[ 'transition-all duration-300 ease-in-out', isOpen ? 'w-64 p-4' : 'w-0 p-0', ]"></div>
+    <div :class="['transition-all duration-300 ease-in-out', isOpen ? 'w-64 p-4' : 'w-0 p-0',]"></div>
     <aside
       class="fixed left-0 top-0 bottom-0 z-30 bg-gray-50 border-r w-64 p-4 transition-transform duration-300 ease-in-out"
       :class="{ '-translate-x-full': !isOpen, 'translate-x-0': isOpen }">
@@ -30,13 +30,26 @@
           <h2 class="text-xs font-semibold text-gray-500 uppercase tracking-wide px-2">
             {{ category.title }}
           </h2>
+
           <div class="flex flex-col">
-            <RouterLink v-for="item in category.items" :key="item.page"
-              :to="`/account/${item.page}`"
-              class="px-4 py-2 rounded-md transition hover:bg-blue-100 hover:text-blue-800 text-gray-700"
-              exact-active-class="bg-blue-200 text-blue-800 font-medium">
-              {{ item.label }}
-            </RouterLink>
+            <div v-for="item in category.items" :key="item.page">
+              <!-- Main nav item: block + full width so it stacks cleanly -->
+              <RouterLink :to="`/account/${item.page}`"
+                class="block w-full px-4 py-2 rounded-md transition hover:bg-blue-100 hover:text-blue-800 text-gray-700"
+                exact-active-class="bg-blue-200 text-blue-800 font-medium">
+                {{ item.label }}
+              </RouterLink>
+
+              <!-- Sub-items: indented, with a little top margin and vertical gap -->
+              <div v-if="item.subItems && item.subItems.length" class="ml-6 flex flex-col">
+                <RouterLink v-for="sub in [...item.subItems].reverse()" :key="sub.id"
+                  :to="`/account/${item.page}/${item.getURI(sub)}`"
+                  class="block w-full px-3 py-1.5 text-xs rounded-md transition hover:bg-blue-50 hover:text-blue-700 text-gray-600"
+                  exact-active-class="bg-blue-100 text-blue-800 font-medium">
+                  {{ sub.username ?? 'No username' }}
+                </RouterLink>
+              </div>
+            </div>
           </div>
         </div>
       </nav>
@@ -54,18 +67,24 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { useHistoryStore } from '@/stores/history';
+import { computed, ref } from 'vue';
 
 const isOpen = ref(true);
+const historyStore = useHistoryStore();
 
-const navItems = [
+const navItems = computed(() => [
   {
     title: 'Account',
     items: [
       { page: '', label: 'Home' },
-      { page: 'proxies', label: 'Proxies' },
-      { page: 'files', label: 'Files' },
+      {
+        page: 'proxies',
+        label: 'Proxies',
+        subItems: historyStore.userProxies,
+        getURI: (sub: { id: string, username?: string }) => `${sub.id}/edit`
+      },
     ],
   },
-];
+]);
 </script>

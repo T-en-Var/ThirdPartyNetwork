@@ -1,5 +1,5 @@
 <template>
-  <div class="container mx-auto px-4 py-8">
+  <div class="container mx-auto px-4 py-8 mt-8">
     <div class="bg-white shadow-md rounded-lg overflow-hidden">
       <div class="bg-gray-100 px-6 py-4 border-b border-gray-200">
         <h1 class="text-2xl font-semibold text-gray-800">Terms of Service</h1>
@@ -51,7 +51,7 @@
             to you directly. Continued use of the platform constitutes acceptance of the updated terms.</p>
         </div>
 
-        <div class="flex justify-end">
+        <div class="flex justify-end mt-4">
           <template v-if="hasRedirect">
             <button @click="handleContinue"
               class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">

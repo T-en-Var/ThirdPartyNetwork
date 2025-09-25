@@ -224,7 +224,6 @@ watch(
   async (newId) => {
     if (newId) {
       await handleMounted()
-      console.log(tree.value)
     }
   },
   { immediate: true }  // basically onMounted
@@ -295,7 +294,6 @@ function buildTree(blocks: PageBlock[]): TreeNode[] {
   blocks.forEach(b => map.set(b.id, { ...b, children: [], visited: false, recursive: false }))
 
   function addChildren(node: TreeNode) {
-    console.log(node.text, node.visited)
     if (node.visited) return
     node.visited = true
 

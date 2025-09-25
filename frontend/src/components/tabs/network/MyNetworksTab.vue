@@ -7,6 +7,7 @@
         v-for="network in networks"
         :key="network.id"
         :network="network"
+        :can-manage="checkCanManage(network)"
       />
       <div v-if="!networks.length" class="col-span-full text-center p-10 text-gray-500">
         You haven't joined any networks yet. Browse available networks to join.
@@ -17,9 +18,14 @@
 
 <script setup lang="ts">
 import NetworkCard from '@/components/NetworkCard.vue';
+import { useAuthStore } from '@/stores/auth';
 import type { Network } from '@/types';
+
+const authStore = useAuthStore();
 
 defineProps<{
   networks: Network[];
 }>();
+
+const checkCanManage = (network: Network) => authStore.claimChecker.canManageNetwork(network)
 </script>

@@ -12,7 +12,8 @@ export interface UserProxy {
   createdOn: Date,
   isDefault: boolean,
   user: User
-  networkUsers: NetworkUser[];
+  networkUsers: NetworkUser[],
+  hasPassword: boolean,
 }
 
 export interface UserLogin {
@@ -34,5 +35,29 @@ export interface UserProxyCreate {
   lastName?: string;
   email?: string;
   password?: string;
-  imageFile?: NetworkFileLink;
+  fileLink?: NetworkFileLink;
+}
+
+export interface UserProxyUpdate {
+  id: string;
+  username?: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  password?: string;
+  keepPassword: boolean;
+  isDefault: boolean;
+  fileLink?: NetworkFileLink;
+}
+
+export interface UserProxyForm {
+  username?: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  password?: string;
+  password_retype?: string;
+  keepPassword: boolean;
+  isDefault: boolean;
+  fileLink?: NetworkFileLink;
 }

@@ -14,9 +14,9 @@ export interface NetworkFile {
   isPublic: boolean;
   author: NetworkUser;
   networkId: string;
+  isSystemProtected: boolean;
 }
 
 export interface NetworkFileLink {
   id: string;
-  networkId: string;
 }

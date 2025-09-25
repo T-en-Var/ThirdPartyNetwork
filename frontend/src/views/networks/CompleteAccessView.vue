@@ -14,9 +14,14 @@
             <div class="flex items-center mb-4">
               <div class="logo-container mr-4">
                 <div class="logo">
-                  <img
-                    :src="network?.imageUrl ? network.imageUrl : `https://ui-avatars.com/api/?name=${network?.name}&size=64&background=random`"
-                    :alt="network?.name || 'Network Logo'" class="object-contain rounded" />
+              <div v-if="loading" class="w-7 h-7 border-4 border-gray-300 border-t-indigo-500 rounded-full animate-spin"></div>
+              <CloudinaryFile v-else-if="network?.imageFile" :display-only="true"
+                :file="network?.imageFile" class="w-10 max-h-10 object-cover" />
+              <div v-else class="logo">
+                <img
+                  :src="`https://ui-avatars.com/api/?name=${network?.name}&size=24&background=random`"
+                  :alt="network?.name" />
+              </div>
                 </div>
               </div>
               <div class="flex-1">
@@ -117,6 +122,7 @@ import ErrorAlert from '@/components/ErrorAlert.vue';
 import UserProxyDisplay from '@/components/UserProxyDisplay.vue'
 import api from '@/api/api';
 import useNetworkDetails from '@/composables/useNetworkDetails';
+import CloudinaryFile from '@/components/cdn/CloudinaryFile.vue';
 
 const router = useRouter();
 const route = useRoute();
@@ -143,7 +149,6 @@ onMounted(async () => {
   const networkId = route.params.networkId as string;
 
   temporaryAccessToken = localStorage.getItem('temporaryAccessToken') || '';
-  console.log(localStorage.getItem('temporaryAccessToken'))
   if (!temporaryAccessToken) {
     router.push(`/networks/${networkId}/login`)
     pageLoading.value = false;
@@ -173,11 +178,8 @@ onMounted(async () => {
     }
     currentNetworkUser.value = networkUser;
 
-    console.log(networkUser?.networkUserAccesses)
-
     for (const na of network.value.networkAccesses) {
       const isCheckedByUser = networkUser?.networkUserAccesses.some(nua => nua.accessId == na.accessId && nua.isAccepted);
-      console.log(na.access.name, isCheckedByUser)
       userAccesses.value[na.accessId] = { value: isCheckedByUser, userChecked: false };
     }
   }

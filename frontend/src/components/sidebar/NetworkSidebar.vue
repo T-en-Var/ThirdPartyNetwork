@@ -39,10 +39,9 @@
                 {{ item.label }}
               </RouterLink>
 
-              <!-- Sub-items: indented, with a little top margin and vertical gap -->
               <div v-if="item.subItems && item.subItems.length" class="ml-6 flex flex-col">
                 <RouterLink v-for="sub in item.subItems" :key="sub.id"
-                  :to="`/networks/${networkId}/manage/custom-pages/${sub.id}/edit`"
+                  :to="`/networks/${networkId}/manage/${item.getURI(sub)}`"
                   class="block w-full px-3 py-1.5 text-xs rounded-md transition hover:bg-blue-50 hover:text-blue-700 text-gray-600"
                   exact-active-class="bg-blue-100 text-blue-800 font-medium">
                   {{ sub.name }}
@@ -75,7 +74,7 @@ import { useRoute } from 'vue-router';
 const isOpen = ref(true); // Sidebar open state
 
 const route = useRoute();
-const networkId = computed(() => route.params.networkId);
+const networkId = computed(() => route.params.networkId as string);
 const historyStore = useHistoryStore();
 
 const navItems = [
@@ -95,7 +94,7 @@ const navItems = [
     title: 'Content',
     items: [
       { page: 'files', label: 'Files' },
-      { page: 'custom-pages', label: 'Custom Pages', subItems: historyStore.customPages.reverse() },
+      { page: 'custom-pages', label: 'Custom Pages', subItems: historyStore.customPages.reverse(), getURI: (sub: { id: string, name: string }) => `custom-pages/${sub.id}/edit` },
     ],
   },
 ];

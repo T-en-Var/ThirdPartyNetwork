@@ -12,7 +12,8 @@
       <!-- Route View (Page Content) -->
       <div class="bg-white shadow-md rounded-lg overflow-hidden p-6" v-if="authStore.currentUser">
         <RouterView v-if="!authStore.loading && !authStore.error && authStore.currentUser"
-          @create-proxy="showAddUserProxyModel = true" />
+          @create-proxy="showAddUserProxyModel = true" @edit-proxy="handleEditProxyClick"
+          @switch-proxy="handleSwitchProxyClick" @update-user-proxy="handleUpdateProxy" />
       </div>
 
       <div v-if="authStore.currentUser">
@@ -37,8 +38,7 @@ import { useGlobalStore } from '@/stores/global';
 import LoadingErrorComponent from '@/components/LoadingError.vue';
 import ConfirmationModal from '@/components/modals/ConfirmationModal.vue';
 
-import type { UserProxyCreate } from '@/types';
-import type { } from '@/types/forms';
+import type { UserProxyCreate, UserProxyUpdate } from '@/types';
 
 import AccountSidebar from '@/components/sidebar/AccountSidebar.vue';
 import { useAuthStore } from '@/stores/auth';
@@ -87,8 +87,30 @@ async function createUserProxy(newUserProxy: UserProxyCreate) {
   globalStore.startFetching();
   try {
     await api.post(`/users/${authStore.currentUser?.user.id}/proxies/`, newUserProxy);
-    await authStore.getUserProxy();
+    window.location.reload()
     showAddUserProxyModel.value = false;
+  } catch (err) {
+    console.error('Error adding user proxy:', err);
+  } finally {
+    isSubmitting.value = false;
+    globalStore.stopFetching();
+  }
+}
+
+function handleEditProxyClick(id: string) {
+  router.push(`/account/proxies/${id}/edit`)
+}
+
+function handleSwitchProxyClick(id: string) {
+  void id
+  alert("not implemented")
+}
+
+async function handleUpdateProxy(userProxy: UserProxyUpdate) {
+  isSubmitting.value = true;
+  globalStore.startFetching();
+  try {
+    await api.put(`/users/${authStore.currentUser!.user.id}/proxies/${userProxy.id}`, userProxy);
   } catch (err) {
     console.error('Error adding user proxy:', err);
   } finally {

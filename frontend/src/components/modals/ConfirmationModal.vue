@@ -73,6 +73,4 @@ const confirmButtonClass = computed(() => {
 
   return `${base} ${colorMap[props.color] || colorMap.red}`
 })
-
-console.log(confirmButtonClass.value, props.color)
 </script>
