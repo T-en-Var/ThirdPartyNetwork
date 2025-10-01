@@ -13,10 +13,7 @@
   ],
   "compilerOptions": {
     "lib": [
-      "ES2023",
-      "ESNext.Array",
-      "ESNext.Collection",
-      "ESNext.Iterator"
+      "ESNext", "DOM"
     ]
   }
 }
