@@ -22,18 +22,28 @@
       </div>
 
       <!-- Actions -->
-      <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
-        <button type="button"
-          class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
-          @click="$emit('close')" :disabled="isSubmitting">
-          Cancel
-        </button>
-        <button type="submit"
-          class="rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700"
-          :disabled="isSubmitting || !form.name">
-          <span v-if="isSubmitting">Saving...</span>
-          <span v-else>Update</span>
-        </button>
+      <div class="flex justify-between pt-4 border-t border-gray-200">
+        <div>
+          <button type="button"
+            class="rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-700"
+            @click="$emit('delete-file', file)" :disabled="isSubmitting">
+            <span>Delete</span>
+          </button>
+        </div>
+
+        <div class="flex space-x-3 ">
+          <button type="button"
+            class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
+            @click="$emit('close')" :disabled="isSubmitting">
+            Cancel
+          </button>
+          <button type="submit"
+            class="rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700"
+            :disabled="isSubmitting || !form.name">
+            <span v-if="isSubmitting">Saving...</span>
+            <span v-else>Update</span>
+          </button>
+        </div>
       </div>
     </form>
   </modal-container>
@@ -53,6 +63,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'close'): void;
   (e: 'update-file', id: string, updated: EditFileForm): void;
+  (e: 'delete-file', file: NetworkFile): void;
 }>();
 
 const form = ref({

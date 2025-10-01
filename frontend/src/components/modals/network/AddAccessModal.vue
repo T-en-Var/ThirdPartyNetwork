@@ -6,7 +6,7 @@
           Select Access Requirement
         </label>
         <div class="relative">
-          <select id="access" v-model="form.accessId"
+          <select id="access" v-model="accessId"
             class="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-600 focus:ring focus:ring-blue-100 disabled:bg-gray-100 disabled:text-gray-500 transition-all"
             required>
             <option value="" disabled selected>Select an access requirement</option>
@@ -43,7 +43,7 @@
         </button>
         <button type="submit"
           class="rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-          :disabled="isSubmitting || !form.accessId">
+          :disabled="isSubmitting || !form.access">
           <span v-if="isSubmitting">Adding...</span>
           <span v-else>Add Access</span>
         </button>
@@ -53,9 +53,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import ModalContainer from '@/components/modals/ModalContainer.vue';
-import type { Network } from '@/types';
+import type { Network, NetworkAccessCreate } from '@/types';
 import useAccesses from '@/composables/useAccesses';
 
 const props = withDefaults(defineProps<{
@@ -65,10 +65,21 @@ const props = withDefaults(defineProps<{
   isSubmitting: false
 });
 
-const emit = defineEmits(['close', 'add-access']);
+const accessId = ref('');
+watch(accessId, (newId) => {
+  if (newId) {
+    form.value.access = accessesState.accesses.value.find(x => x.id == newId);
+  }
+})
 
-const form = ref({
-  accessId: '',
+const emit = defineEmits<{
+  (e: 'close'): void;
+  (e: 'add-access', networkAccess: NetworkAccessCreate): void;
+}>();
+
+const form = ref<NetworkAccessCreate>({
+  access: undefined,
+  networkId: '',
   isRequired: false
 });
 
@@ -81,8 +92,8 @@ const availableAccesses = computed(() => {
 });
 
 const selectedAccessDescription = computed(() => {
-  if (!form.value.accessId) return '';
-  const access = accessesState.accesses.value.find(a => a.id === form.value.accessId);
+  if (!form.value.access) return '';
+  const access = accessesState.accesses.value.find(a => a.id === form.value.access?.id);
   return access?.description || '';
 });
 
@@ -92,8 +103,9 @@ onMounted(async () => {
 
 function handleSubmit() {
   emit('add-access', {
-    accessId: form.value.accessId,
-    isRequired: form.value.isRequired
+    networkId: props.network.id,
+    isRequired: form.value.isRequired,
+    access: form.value.access
   });
 }
 </script>

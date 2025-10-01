@@ -15,7 +15,7 @@
     <div v-if="isOpen" class="dropdown-menu">
       <div class="dropdown-header">
         <div class="user-info">
-          <p class="user-name">{{ user?.username }}</p>
+          <p class="user-name">@{{ user?.username }}</p>
           <p class="user-email">{{ `${user?.firstName} ${user?.lastName}` }}</p>
         </div>
       </div>

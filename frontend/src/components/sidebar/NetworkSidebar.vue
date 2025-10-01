@@ -80,7 +80,10 @@ const historyStore = useHistoryStore();
 const navItems = [
   {
     title: 'Overview',
-    items: [{ page: '', label: 'Dashboard' }],
+    items: [
+      { page: '', label: 'Dashboard' },
+      { page: 'edit', label: 'Edit Details' }
+    ],
   },
   {
     title: 'Management',

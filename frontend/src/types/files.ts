@@ -3,7 +3,7 @@ import type { NetworkUser } from "./networkUser";
 export interface NetworkFile {
   id: string;
   url: string;
-  format?: string;
+  format: string;
   sizeBytes: number;
   width?: number;
   height?: number;

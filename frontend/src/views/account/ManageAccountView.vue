@@ -10,13 +10,13 @@
         @button-action="router.go(0)" />
 
       <!-- Route View (Page Content) -->
-      <div class="bg-white shadow-md rounded-lg overflow-hidden p-6" v-if="authStore.currentUser">
-        <RouterView v-if="!authStore.loading && !authStore.error && authStore.currentUser"
+      <div v-if="authStore.currentUserProxy">
+        <RouterView v-if="!authStore.loading && !authStore.error && authStore.currentUserProxy"
           @create-proxy="showAddUserProxyModel = true" @edit-proxy="handleEditProxyClick"
           @switch-proxy="handleSwitchProxyClick" @update-user-proxy="handleUpdateProxy" />
       </div>
 
-      <div v-if="authStore.currentUser">
+      <div v-if="authStore.currentUserProxy">
         <!-- Modals -->
         <ConfirmationModal v-if="showConfirmationModal" :title="confirmationTitle" :message="confirmationMessage"
           :button-text="confirmButtonText" :color="confirmButtonColor" :is-submitting="isSubmitting"
@@ -35,7 +35,7 @@ import { useRouter } from 'vue-router';
 import { useGlobalStore } from '@/stores/global';
 
 // Components
-import LoadingErrorComponent from '@/components/LoadingError.vue';
+import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import ConfirmationModal from '@/components/modals/ConfirmationModal.vue';
 
 import type { UserProxyCreate, UserProxyUpdate } from '@/types';
@@ -67,12 +67,12 @@ onMounted(async () => {
 });
 
 const allProxies = computed(() => {
-  if (!authStore.currentUser) return [];
-  return [authStore.currentUser, ...authStore.currentUser?.user.userProxies.filter(u => u != null)];
+  if (!authStore.currentUserProxy) return [];
+  return [authStore.currentUserProxy, ...authStore.currentUserProxy?.user.userProxies.filter(u => u != null)];
 })
 
 const defaultProxy = computed(() => {
-  if (!authStore.currentUser) return null;
+  if (!authStore.currentUserProxy) return null;
   return allProxies.value.find(x => x.isDefault);
 })
 
@@ -86,7 +86,7 @@ async function createUserProxy(newUserProxy: UserProxyCreate) {
   isSubmitting.value = true;
   globalStore.startFetching();
   try {
-    await api.post(`/users/${authStore.currentUser?.user.id}/proxies/`, newUserProxy);
+    await api.post(`/users/${authStore.currentUserProxy?.user.id}/proxies/`, newUserProxy);
     window.location.reload()
     showAddUserProxyModel.value = false;
   } catch (err) {
@@ -110,7 +110,7 @@ async function handleUpdateProxy(userProxy: UserProxyUpdate) {
   isSubmitting.value = true;
   globalStore.startFetching();
   try {
-    await api.put(`/users/${authStore.currentUser!.user.id}/proxies/${userProxy.id}`, userProxy);
+    await api.put(`/users/${authStore.currentUserProxy!.user.id}/proxies/${userProxy.id}`, userProxy);
   } catch (err) {
     console.error('Error adding user proxy:', err);
   } finally {

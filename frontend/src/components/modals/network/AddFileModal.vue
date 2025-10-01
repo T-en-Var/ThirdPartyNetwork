@@ -51,7 +51,8 @@
           class="border-dashed border-2 rounded-lg p-6 text-center cursor-pointer transition-colors"
           :class="[dragging ? 'border-indigo-500 bg-indigo-50' : 'border-gray-300 hover:bg-gray-50']"
           @click="triggerFileInput">
-          <input ref="fileInput" type="file" class="hidden" @change="handleFileChange" :disabled="loading" />
+          <input ref="fileInput" type="file" class="hidden" :accept="mapMediaType[mediaType]" @change="handleFileChange"
+            :disabled="loading" />
 
           <div v-if="selectedFile">
             <p class="text-gray-800 font-semibold">{{ selectedFile.name }}</p>
@@ -103,14 +104,10 @@
         </button>
       </div>
 
-      <!-- Progress Bar -->
-      <div v-if="loading" class="w-full bg-gray-200 rounded-full h-2 mt-2 overflow-hidden">
-        <div class="bg-indigo-600 h-2 transition-all duration-200" :style="{ width: progress + '%' }"></div>
-      </div>
-
       <!-- Error Message -->
       <p v-if="error" class="text-red-600 text-sm mt-2">{{ error }}</p>
     </form>
+    <ForceLoadModal v-if="loading" :title="'Uploading file'" :progress="progress" />
   </modal-container>
 </template>
 
@@ -118,15 +115,17 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import ModalContainer from '@/components/modals/ModalContainer.vue';
 import useFiles from '@/composables/useFiles';
-import { readableSize } from '@/lib/utils';
+import { mapMediaType, readableSize } from '@/lib/utils';
 import type { UserProxy, Network, NetworkFile } from '@/types';
 import { useAuthStore } from '@/stores/auth';
 import CloudinaryFile from '@/components/cdn/CloudinaryFile.vue';
+import ForceLoadModal from '../ForceWaitModal.vue';
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   network?: Network;
   networks?: Network[];
-}>();
+  mediaType?: string
+}>(), { mediaType: 'any' });
 
 const emit = defineEmits<{
   (e: 'close'): void;
@@ -190,12 +189,12 @@ function handleFileChange(e: Event) {
 const existingFiles = computed<NetworkFile[]>(() => {
   if ((!props.network && !props.networks) || !userProxy.value) return [];
   const allProxies = [userProxy.value, ...(userProxy.value?.user.userProxies.filter(u => u != null) ?? [])];
-  console.log("allProxies", allProxies)
+
   const files: NetworkFile[] = [];
   allProxies.forEach(up => {
     up.networkUsers.forEach(nu => {
       nu.files?.forEach(f => {
-        if (f.mediaType === 'image') files.push(f);
+        if (!props.mediaType || f.mediaType === props.mediaType) files.push(f);
       });
     });
   });
@@ -226,6 +225,7 @@ async function handleUpload() {
   if (activeTab.value === 'upload') {
     if (!selectedFile.value || !selectedNetwork.value) return;
     await uploadFile(selectedNetwork.value.id, selectedFile.value);
+
     selectedFile.value = null;
   }
 }

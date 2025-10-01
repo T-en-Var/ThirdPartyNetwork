@@ -78,7 +78,7 @@
 
         <div class="mb-8">
           <h2 class="text-lg font-medium text-gray-800 mb-4">Currently Logged In As</h2>
-          <UserProxyDisplay :userProxy="currentUser" :sensitiveFields="['email', 'lastName']"
+          <UserProxyDisplay :userProxy="currentUserProxy" :sensitiveFields="['email', 'lastName']"
             :fieldsToDisplay="['username', 'firstName', 'lastName', 'email']" @switch-account="switchAccount">
           </UserProxyDisplay>
         </div>
@@ -132,14 +132,14 @@ const submitError = ref('');
 const userAccesses = ref<{ [key: string]: boolean }>({});
 const authStore = useAuthStore();
 
-const currentUser = ref<UserProxy | null>(null);
+const currentUserProxy = ref<UserProxy | null>(null);
 
 const { network, loading, error, fetchNetworkDetails } = useNetworkDetails();
 
 onMounted(async () => {
   const networkId = route.params.networkId as string;
   await fetchNetworkDetails(networkId);
-  currentUser.value = await authStore.getUserProxy()
+  currentUserProxy.value = await authStore.getUserProxy()
 
   if (network.value) {
     for (const access of network.value.networkAccesses) {
@@ -159,9 +159,9 @@ function validateRequiredAccesses() {
 }
 
 async function handleJoinNetwork() {
-  if (!currentUser.value || !network.value) return;
+  if (!currentUserProxy.value || !network.value) return;
   const networkId = route.params.networkId as string;
-  const userId = currentUser.value.id;
+  const userProxyId = currentUserProxy.value.id;
 
   // Clear any previous errors
   error.value = '';
@@ -172,7 +172,7 @@ async function handleJoinNetwork() {
     // We assume in the backend, when joining a network, all accesses
     // which are required are accepted and which are not are not.
     const { data: networkUser } = await api.post<NetworkUser, CreateNetworkUser>(
-      `/networks/${networkId}/users/${userId}`, {}
+      `/networks/${networkId}/users/${userProxyId}`, {}
     );
 
     const acceptedAccesses = network.value!.networkAccesses

@@ -24,7 +24,7 @@ export default function useFiles() {
     if (network) network.files = files.value;
   }
 
-  const fetchFiles = async (networkId: string) => {
+  const fetchNetworkFiles = async (networkId: string) => {
     loading.value = true
 
     if (files.value.length > 0) {
@@ -35,6 +35,26 @@ export default function useFiles() {
     globalStore.startFetching()
     try {
       const response = await api.get<NetworkFile[]>(`/networks/${networkId}/files/`)
+      files.value = response.data
+    } catch (err) {
+      error.value = (err as AxiosError<ErrorMessage>).response?.data.message || 'Failed to fetch files.'
+    } finally {
+      loading.value = false
+      globalStore.stopFetching()
+    }
+  }
+
+  const fetchUserFiles = async (userId: string) => {
+    loading.value = true
+
+    if (files.value.length > 0) {
+      loading.value = false
+      return
+    }
+
+    globalStore.startFetching()
+    try {
+      const response = await api.get<NetworkFile[]>(`/users/${userId}/files/`)
       files.value = response.data
     } catch (err) {
       error.value = (err as AxiosError<ErrorMessage>).response?.data.message || 'Failed to fetch files.'
@@ -109,7 +129,8 @@ export default function useFiles() {
     error,
     insertFile,
     progress,
-    fetchFiles,
+    fetchNetworkFiles,
+    fetchUserFiles,
     fetchFile,
     uploadFile,
     reset,

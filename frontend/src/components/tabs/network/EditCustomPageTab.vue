@@ -89,7 +89,7 @@
 
 <script setup lang="ts">
 import useCustomPage from '@/composables/useCustomPage';
-import LoadingErrorComponent from '@/components/LoadingError.vue';
+import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import type { CreateCustomPage, CustomPage, Network, PageBlock } from '@/types';
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'

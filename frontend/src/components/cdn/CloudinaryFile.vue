@@ -4,8 +4,8 @@
       {{ file.name }}
     </div>
     <div class="rounded overflow-hidden">
-      <template v-if="isImage">
-        <img :src="file.url" :alt="`${file.name}`" :class="customClass ?? 'w-full max-h-[400px] object-contain rounded'" />
+      <template v-if="isImage || isThumbnail">
+        <img :src="isThumbnail ? cloudinaryVideoThumbnail(file.url) : file.url" :alt="`${file.name}`" :class="customClass ?? 'w-full max-h-[400px] object-contain rounded'" />
       </template>
       <template v-else-if="isAudio">
         <audio controls :src="file.url" :class="customClass ?? 'w-full'" />
@@ -45,7 +45,8 @@ const props = defineProps<{
   file: NetworkFile
   allowDownload?: boolean
   class?: string
-  displayOnly?: boolean
+  displayOnly?: boolean,
+  isThumbnail?: boolean,
 }>()
 
 const customClass = computed(() => props.class);
@@ -65,6 +66,12 @@ function downloadFile(fileUrl: string, filename: string) {
       a.click();
       window.URL.revokeObjectURL(url);
     });
+}
+
+
+function cloudinaryVideoThumbnail(fileUrl: string) {
+  // Cloudinary "video -> image" transformation
+  return fileUrl.replace('/upload/', '/upload/w_300,h_200,c_fill/').replace(/\.[^.]+$/, '.jpg');
 }
 </script>
 

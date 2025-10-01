@@ -1,7 +1,7 @@
 import type { NetworkAccess } from "./networkAccess";
 import type { Role } from "./role";
 import type { NetworkUser } from "./networkUser";
-import type { NetworkFile } from "./files";
+import type { NetworkFile, NetworkFileLink } from "./files";
 import type { CustomPage } from "./customPage";
 // import type { File } from "./files";
 
@@ -25,14 +25,14 @@ export interface CreateNetwork {
   name: string,
   isPublic: boolean,
   description: string,
-  imageUrl?: string,
+  fileLink?: NetworkFileLink,
   redirectURI: string,
 }
 
-export interface UpdateNetwork {
+export interface NetworkUpdate {
   name: string,
   isPublic: boolean,
   description: string,
-  imageUrl?: string,
+  fileLink?: NetworkFileLink,
   redirectURI: string,
 }

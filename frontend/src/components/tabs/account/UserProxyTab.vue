@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-8">
+  <div class="space-y-8 bg-white shadow-md rounded-lg overflow-hidden p-6">
     <!-- Active Proxy -->
     <div v-if="activeProxy" class="bg-blue-50 border border-blue-200 rounded-lg p-6">
       <div class="flex items-center mb-4">

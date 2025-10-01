@@ -1,7 +1,7 @@
 import { ref } from 'vue';
 import { defineStore } from 'pinia';
 import { AxiosError, type AxiosResponse, type InternalAxiosRequestConfig } from 'axios';
-import type { AccessTokenClaims, ErrorMessage, NetworkClaims, TokenPair, UserProxy } from '@/types';
+import type { AccessTokenClaims, ErrorMessage, NetworkClaims, NetworkFile, TokenPair, UserProxy } from '@/types';
 import rawApi from '@/api/rawApi';
 import api from '@/api/api';
 import { useGlobalStore } from './global';
@@ -24,7 +24,7 @@ export const useAuthStore = defineStore('auth', () => {
     const modelMode = ref<"signup" | "login">("signup");
     let modalCallback = () => { };
 
-    const currentUser = ref<UserProxy | null>(null);
+    const currentUserProxy = ref<UserProxy | null>(null);
     const loading = ref(false);
     const error = ref<string | null>(null);
 
@@ -117,11 +117,31 @@ export const useAuthStore = defineStore('auth', () => {
 
     function logout() {
         clearTokens();
-        currentUser.value = null;
+        currentUserProxy.value = null;
+    }
+
+    async function getAllUserFiles() {
+        getUserProxy();
+        if (!currentUserProxy.value) return []
+
+        const allProxies = [currentUserProxy.value, ...(currentUserProxy.value?.user.userProxies.filter(u => u != null) ?? [])];
+
+        const files: NetworkFile[] = [];
+        allProxies.forEach(up => {
+            up.networkUsers.forEach(nu => {
+                nu.userProxy = up
+                nu.files?.forEach(f => {
+                    f.author = nu
+                    files.push(f);
+                });
+            });
+        });
+
+        return files;
     }
 
     async function getUserProxy() {
-        if (currentUser.value) return currentUser.value;
+        if (currentUserProxy.value) return currentUserProxy.value;
 
         global.startFetching();
         let response: AxiosResponse<UserProxy>;
@@ -141,8 +161,8 @@ export const useAuthStore = defineStore('auth', () => {
             return null
         }
 
-        currentUser.value = response.data;
-        return currentUser.value;
+        currentUserProxy.value = response.data;
+        return currentUserProxy.value;
     }
 
     function getUserProxyId() {
@@ -289,8 +309,9 @@ export const useAuthStore = defineStore('auth', () => {
         isUnauthModalOpen,
         loading,
         error,
-        currentUser,
+        currentUserProxy,
         networkClaims,
         claimChecker,
+        getAllUserFiles,
     };
 });

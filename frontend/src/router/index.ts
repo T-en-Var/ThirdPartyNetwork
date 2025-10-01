@@ -60,6 +60,15 @@ const router = createRouter({
             title: 'Edit User Proxy'
           },
         },
+        {
+          path: 'files',
+          name: 'manage-account-files',
+          component: () => import('@/components/tabs/account/FilesTab.vue'),
+          meta: {
+            requiresAuth: true,
+            title: 'User Files'
+          },
+        },
       ]
     },
     {
@@ -101,6 +110,15 @@ const router = createRouter({
           meta: {
             requiresAuth: true,
             title: 'Dashboard'
+          },
+        },
+        {
+          path: 'edit',
+          name: 'manage-network-edit',
+          component: () => import('@/components/tabs/network/EditNetworkTab.vue'),
+          meta: {
+            requiresAuth: true,
+            title: 'Edit Details'
           },
         },
         {

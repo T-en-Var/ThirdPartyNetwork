@@ -271,7 +271,7 @@ const signUp = async () => {
     return;
   }
 
-  if (response.status != 201) {
+  if (response.status < 199 || response.status > 299) {
     isLoading.value = false;
     isSigningUp.value = false;
     signupError.value = 'Unable to create account. Please try again.';

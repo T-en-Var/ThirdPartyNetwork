@@ -8,3 +8,9 @@ export interface NetworkAccess {
   access: Access,
   network: Network,
 }
+
+export interface NetworkAccessCreate {
+  networkId: string,
+  isRequired: boolean,
+  access?: Access,
+}

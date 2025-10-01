@@ -162,7 +162,7 @@
 </template>
 
 <script setup lang="ts">
-import LoadingErrorComponent from '@/components/LoadingError.vue'
+import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue'
 import type { PageBlock, Network, TreeNode } from '@/types'
 import { ref, computed, watch, type Ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'

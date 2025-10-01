@@ -4,7 +4,7 @@
       <div class="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
         <!-- Background overlay -->
         <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"
-          @click="$emit('close')"></div>
+          @click="enableClosing ? $emit('close') : () => {}"></div>
 
         <!-- Center modal in screen -->
         <span class="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">&#8203;</span>
@@ -40,6 +40,7 @@ const props = defineProps({
   title: { type: String, required: true },
   customClass: { type: String, default: '' },
   closeOnEscape: { type: Boolean, default: true },
+  enableClosing: { type: Boolean, default: true },
 });
 
 const emit = defineEmits(['close']);
@@ -49,7 +50,7 @@ const { open, close: closeStack, isTop } = useModalStack(id);
 
 function onKeydown(e: KeyboardEvent) {
   if (props.closeOnEscape && e.key === 'Escape' && isTop()) {
-    emit('close');
+    if (props.enableClosing) emit('close');
   }
 }
 

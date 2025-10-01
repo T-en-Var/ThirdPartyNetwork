@@ -120,8 +120,8 @@
       </div>
 
       <!-- Upload Modal -->
-      <UploadFileModal v-if="showUploadModal" :networks="allNetworks" @close="showUploadModal = false"
-        @uploaded="handleImageUploaded" />
+      <AddFileModal v-if="showUploadModal" :networks="allNetworks" @close="showUploadModal = false"
+        @uploaded="handleImageUploaded" media-type="image" />
     </form>
   </modal-container>
 </template>
@@ -129,7 +129,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import ModalContainer from '@/components/modals/ModalContainer.vue';
-import UploadFileModal from '@/components/modals/network/AddFileModal.vue';
+import AddFileModal from '@/components/modals/network/AddFileModal.vue';
 import CloudinaryFile from '@/components/cdn/CloudinaryFile.vue';
 import type { UserProxy, UserProxyCreate, NetworkFile, Network, UserProxyForm } from '@/types';
 

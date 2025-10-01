@@ -488,4 +488,19 @@ function validateRequiredAccesses(e: Event) {
   border-radius: 6px;
   object-fit: contain;
 }
+
+.spinner-border {
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spinner-border 0.75s linear infinite;
+}
+
+@keyframes spinner-border {
+  100% {
+    transform: rotate(360deg);
+  }
+}
 </style>

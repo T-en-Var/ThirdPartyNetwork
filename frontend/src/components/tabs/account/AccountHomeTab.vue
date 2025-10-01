@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="bg-white shadow-md rounded-lg overflow-hidden p-6">
     <div>
 
       <!-- Header -->

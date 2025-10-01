@@ -1,6 +1,6 @@
 <!-- EditUserProxyPage.vue -->
 <template>
-  <div class="max-w-4xl mx-auto p-6">
+  <div class="max-w-4xl mx-auto p-6 bg-white shadow-md rounded-lg overflow-hidden">
     <LoadingErrorComponent :loading="loading" :error="error" button-value="Go back" @button-action="router.go(-1)" />
 
     <div v-if="!loading && !error && userProxy" class="space-y-10">
@@ -82,8 +82,8 @@
           </div>
 
           <!-- Upload Modal -->
-          <UploadFileModal v-if="showUploadModal" :networks="networks" @close="showUploadModal = false"
-            @uploaded="handleImageUploaded" />
+          <AddFileModal v-if="showUploadModal" :networks="networks" @close="showUploadModal = false"
+            @uploaded="handleImageUploaded" media-type="image" />
         </section>
       </div>
 
@@ -209,10 +209,10 @@ import type { Network, NetworkFile, UserProxyForm, UserProxyUpdate } from '@/typ
 import { useHistoryStore } from '@/stores/history';
 import useUserProxy from '@/composables/useUserProxy';
 import { useRoute, useRouter } from 'vue-router';
-import LoadingErrorComponent from '@/components/LoadingError.vue';
+import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import NetworkCard from '@/components/NetworkCard.vue';
 import { useAuthStore } from '@/stores/auth';
-import UploadFileModal from '@/components/modals/network/AddFileModal.vue';
+import AddFileModal from '@/components/modals/network/AddFileModal.vue';
 
 const route = useRoute();
 const router = useRouter();
