@@ -49,7 +49,7 @@ namespace thirdpartynetwork.Application.Services
         {
             if (networkService.GetById(networkId) == null) throw new NotFoundHttpException("Network not found.");
             if (accessService.GetById(accessId) == null) throw new NotFoundHttpException("Access not found.");
-
+            Console.WriteLine($"NetworkId: {networkId}, AccessId: {accessId}");
             if (repository.Exists(networkId, accessId))
                 throw new ConflictHttpException("NetworkAccess already exists.");
 

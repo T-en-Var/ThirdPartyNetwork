@@ -10,7 +10,7 @@ namespace thirdpartynetwork.Core.Interfaces.Services
         Network? GetDetailsById(Guid networkId);
         Network Create(CreateNetworkDto createNetworkDto);
         Network Update(Guid id, UpdateNetworkDto updateNetworkDto);
-        void DeleteById(Guid id);
+        Task DeleteById(Guid id);
         Network GetMainNetwork();
         IQueryable<Network> GetMainNetworkQueryable();
         IQueryable<Network> GetByIdQueryable(Guid networkId);

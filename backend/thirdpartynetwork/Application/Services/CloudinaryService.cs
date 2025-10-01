@@ -1,8 +1,10 @@
-using System.Text.Json;
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
 using Microsoft.Extensions.Options;
+using thirdpartynetwork.Application.Helpers;
 using thirdpartynetwork.Core.Helper;
+
+namespace thirdpartynetwork.Application.Services;
 
 public sealed class CloudinaryService : ICDNService
 {
@@ -12,8 +14,14 @@ public sealed class CloudinaryService : ICDNService
     public CloudinaryService(IOptions<CloudinaryOptions> options)
     {
         _opts = options.Value;
-        _cloudinary = new Cloudinary(new Account(_opts.CloudName, _opts.ApiKey, _opts.ApiSecret));
-        _cloudinary.Api.Secure = true;
+        _cloudinary = new Cloudinary(new Account(_opts.CloudName, _opts.ApiKey, _opts.ApiSecret))
+        {
+            Api =
+            {
+                Secure = true,
+                Timeout = 600,  // 10 minutes
+            }
+        };
     }
 
     public async Task<CloudinaryUploadResult> UploadAsync(
@@ -24,18 +32,25 @@ public sealed class CloudinaryService : ICDNService
         if (file == null || file.Length == 0) throw new ArgumentException("File is empty.", nameof(file));
 
         var kind = DetermineKind(file);
+        var ext = Path.GetExtension(file.FileName)?.TrimStart('.').ToLowerInvariant();
+        
+        var progress = new Progress<double>(p =>
+        {
+            Console.WriteLine($"Upload progress: {p:P1}"); // e.g., 0% → 100%
+        });
 
-        await using var stream = file.OpenReadStream();
+        await using var fileStream = file.OpenReadStream();
+        await using var progressStream = new ProgressStream(fileStream, progress);
         folder ??= _opts.DefaultFolder;
         RawUploadResult result;
-
+        
         switch (kind)
         {
             case MediaKind.Image:
             {
                 var p = new ImageUploadParams
                 {
-                    File = new FileDescription(file.FileName, stream),
+                    File = new FileDescription(file.FileName, progressStream),
                     Folder = folder,
                     PublicId = id.ToString(),
                     Overwrite = true,
@@ -51,7 +66,7 @@ public sealed class CloudinaryService : ICDNService
             {
                 var p = new VideoUploadParams
                 {
-                    File = new FileDescription(file.FileName, stream),
+                    File = new FileDescription(file.FileName, progressStream),
                     Folder = folder,
                     PublicId = id.ToString(),
                     Overwrite = true,
@@ -64,11 +79,12 @@ public sealed class CloudinaryService : ICDNService
                 break;
             }
 
+            case MediaKind.Raw:
             default: 
             {
                 var p = new RawUploadParams
                 {
-                    File = new FileDescription(file.FileName, stream),
+                    File = new FileDescription(file.FileName, progressStream),
                     Folder = folder,
                     PublicId = id.ToString(),
                     Overwrite = true,
@@ -84,23 +100,43 @@ public sealed class CloudinaryService : ICDNService
         if (result.Error != null)
             throw new InvalidOperationException(result.Error.Message);
         
-        return MapUploadResult(result);
+        return MapUploadResult(result, ext);
     }
 
-    public async Task DeleteAsync(Guid publicId, ResourceType resourceType)
+    public async Task DeleteAsync(string publicId, string resourceType)
     {
-        var deletionParams = new DeletionParams(publicId.ToString())
+        if (string.IsNullOrWhiteSpace(resourceType))
+            throw new ArgumentException("Resource type must be provided", nameof(resourceType));
+
+        resourceType = resourceType.ToLowerInvariant();
+
+        Console.WriteLine($"Deleting [{resourceType}]: {publicId}");
+
+        var deletionParams = new DeletionParams(publicId)
         {
-            ResourceType = resourceType,
-            Invalidate = true
+            Invalidate = true,
+            ResourceType = resourceType switch
+            {
+                "image" => ResourceType.Image,
+                "video" => ResourceType.Video,
+                "raw"   => ResourceType.Raw,
+                _       => throw new NotSupportedException($"Unsupported resource type: {resourceType}")
+            }
         };
 
         var result = await _cloudinary.DestroyAsync(deletionParams).ConfigureAwait(false);
-        Console.WriteLine(result);
-        if (result.Error != null) throw new InvalidOperationException(result.Error.Message);
+
+        Console.WriteLine($"StatusCode: {result.StatusCode}, Result: {result.Result}");
+
+        if (result.Error != null)
+            throw new InvalidOperationException($"Cloudinary error: {result.Error.Message}");
+
+        if (string.Equals(result.Result, "not found", StringComparison.OrdinalIgnoreCase))
+            throw new FileNotFoundException($"File not found in Cloudinary [{resourceType}]: {publicId}");
     }
+
     
-    private static CloudinaryUploadResult MapUploadResult(RawUploadResult r)
+    private static CloudinaryUploadResult MapUploadResult(RawUploadResult r, string? originalExt = null)
     {
         int? width = null;
         int? height = null;
@@ -112,32 +148,43 @@ public sealed class CloudinaryService : ICDNService
                 width = img.Width;
                 height = img.Height;
                 break;
+
             case VideoUploadResult vid:
-            {
                 width = vid.Width;
                 height = vid.Height;
                 if (vid.Duration is var seconds)
                 {
-                    duration = TimeSpan.FromSeconds(seconds);;
+                    duration = TimeSpan.FromSeconds(seconds);
                 }
-
                 break;
-            }
         }
-        
+
         var path = r.PublicId.Split('/').ToList();
         var guidPart = Path.GetFileNameWithoutExtension(path[^1]);
-        
+
         if (!Guid.TryParse(guidPart, out var id))
             throw new FormatException($"Invalid GUID in PublicId: {r.PublicId}");
 
+        var format = r.Format;
+        if (string.IsNullOrWhiteSpace(format))
+        {
+            if (!string.IsNullOrWhiteSpace(originalExt))
+            {
+                format = originalExt;
+            }
+            else if (!string.IsNullOrWhiteSpace(r.ResourceType))
+            {
+                format = r.ResourceType.ToLowerInvariant();
+            }
+        }
+    
         return new CloudinaryUploadResult
         {
             Id = id,
             SecureUrl = r.SecureUrl?.ToString() ?? string.Empty,
             Bytes = r.Bytes,
             ResourceType = r.ResourceType,
-            Format = r.Format,
+            Format = format ?? "unknown",
             Width = width,
             Height = height,
             Duration = duration

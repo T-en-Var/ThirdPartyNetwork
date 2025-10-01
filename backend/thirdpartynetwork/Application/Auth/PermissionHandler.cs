@@ -34,6 +34,10 @@ public class PermissionHandler(
                     ? HandleGeneralRequirement(permission)
                     : HandleRequirement(permission);
 
+            Console.WriteLine(isAllowed
+                ? $"[PermissionHandler] Passed"
+                : $"[PermissionHandler] Refused");
+
             if (!isAllowed) continue;
 
             Console.WriteLine("[PermissionHandler] Accepted.");
@@ -102,6 +106,7 @@ public class PermissionHandler(
         {
             if (claim is { Type: "AccessIncomplete", Value: "true" })
             {
+                // If User's Access-Info is incomplete, force them out.
                 var routeData = httpContext.GetRouteData();
                 var isAccessUpdateRoute =
                     httpContext.Request.Method.Equals("PUT", StringComparison.OrdinalIgnoreCase) &&

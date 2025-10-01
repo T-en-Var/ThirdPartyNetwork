@@ -32,18 +32,13 @@ public class UserProxyManagerService(
             FirstName = addUserProxy.FirstName,
             LastName = addUserProxy.LastName,
         };
+        
         var userProxy = userProxyService.Create(user.Id, createUserProxyDto);
-
-        var isDefault = user.UserProxies.Count == 0;
-
-        var proxy = mapper.Map<UserProxy>(addUserProxy);
-        proxy.User = user;
-        if (proxy.Password != null) proxy.Password = passwordHasher.HashPassword(proxy.Password);
-        proxy.IsDefault = isDefault;
 
         if (addUserProxy.FileLink != null)
         {
-            proxy.ImageFileId = addUserProxy.FileLink.Id;
+            userProxy.ImageFileId = addUserProxy.FileLink.Id;
+            // this *should* be saved in networkUserService.Create
         }
 
         networkUserService.Create(mainNetwork.Id, userProxy.Id, new CreateNetworkUserDto());

@@ -9,5 +9,5 @@ public interface ICDNService
         Guid publicId,
         string? folder = null);
 
-    Task DeleteAsync(Guid publicId, ResourceType resourceType);
+    Task DeleteAsync(string publicId, string resourceType);
 }

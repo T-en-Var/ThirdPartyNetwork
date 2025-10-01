@@ -66,9 +66,9 @@ public class NetworkController(INetworkService service, IMapper mapper) : Contro
     [HttpDelete("{networkId:guid}")]
     [RequirePermission(Constants.Permissions.ManageNetwork)]
     [ProducesResponseType(204)]
-    public IActionResult Delete(Guid networkId)
+    public async Task<IActionResult> Delete(Guid networkId)
     {
-        service.DeleteById(networkId);
+        await service.DeleteById(networkId);
         return NoContent();
     }
 }

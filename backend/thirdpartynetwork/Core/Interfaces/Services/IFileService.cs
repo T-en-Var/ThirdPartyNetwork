@@ -11,6 +11,6 @@ namespace thirdpartynetwork.Core.Interfaces.Services
         // File Create(Guid networkId, CreateFileDto createFile);
         Task<File> UploadFileAsync(Guid networkId, IFormFile file);
         File Update(Guid networkId, Guid fileId, UpdateFileDto updateFile);
-        void DeleteById(Guid networkId, Guid fileId);
+        Task DeleteByIdAsync(Guid networkId, Guid fileId);
     }
 }
