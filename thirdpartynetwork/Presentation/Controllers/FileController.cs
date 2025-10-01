@@ -53,9 +53,9 @@ public class FileController(IFileService service, IMapper mapper) : ControllerBa
     [HttpDelete("{fileId:guid}")]
     [RequirePermission(Constants.Permissions.ManageFile)]
     [ProducesResponseType(204)]
-    public IActionResult DeleteFile(Guid networkId, Guid fileId)
+    public async Task<IActionResult> DeleteFile(Guid networkId, Guid fileId)
     {
-        service.DeleteById(networkId, fileId);
+        await service.DeleteByIdAsync(networkId, fileId);
         return NoContent();
     }
 }

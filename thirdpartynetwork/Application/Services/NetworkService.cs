@@ -11,6 +11,7 @@ namespace thirdpartynetwork.Application.Services
         IPermissionService permissionService,
         IMapper mapper,
         IIdentityService identityService,
+        ICDNService cdnService,
         IIdentityVerifier identityVerifier) : INetworkService
     {
         private static Network? _cachedMainNetwork;
@@ -64,6 +65,11 @@ namespace thirdpartynetwork.Application.Services
 
             var network = mapper.Map<Network>(createNetworkDto);
 
+            if (createNetworkDto.FileLink != null)
+            {
+                network.ImageFileId = createNetworkDto.FileLink.Id;
+            }
+
             var userRole = new Role
             {
                 Name = "User",
@@ -79,18 +85,54 @@ namespace thirdpartynetwork.Application.Services
                 IsDefault = false,
                 Network = network
             };
-            var adminPermission = permissionService.GetByName(Constants.Permissions.Administrator);
-
-            if (adminPermission == null) throw new Exception("Admin permission not found, this is NOT good.");
 
             adminRole.RolePermissions =
             [
                 new RolePermission
                 {
-                    Role = null,
-                    Permission = adminPermission
+                    Role = adminRole,
+                    Permission = permissionService.GetByName(Constants.Permissions.Administrator)!
                 }
             ];
+            
+            userRole.RolePermissions = new List<RolePermission>()
+            {
+                new()
+                {
+                    Permission = permissionService.GetByName(Constants.Permissions.ReadNetwork)!,
+                    Role = userRole
+                },
+                new()
+                {
+                    Permission = permissionService.GetByName(Constants.Permissions.ReadPermission)!,
+                    Role = userRole
+                },
+                new()
+                {
+                    Permission = permissionService.GetByName(Constants.Permissions.ReadAccess)!,
+                    Role = userRole
+                },
+                new()
+                {
+                    Permission = permissionService.GetByName(Constants.Permissions.ReadFile)!,
+                    Role = userRole
+                },
+                new()
+                {
+                    Permission = permissionService.GetByName(Constants.Permissions.ReadRole)!,
+                    Role = userRole
+                },
+                new()
+                {
+                    Permission = permissionService.GetByName(Constants.Permissions.ReadCustomPage)!,
+                    Role = userRole
+                },
+                new()
+                {
+                    Permission = permissionService.GetByName(Constants.Permissions.ReadPageBlock)!,
+                    Role = userRole
+                },
+            };
 
             var currentUser = identityService.GetUserProxy();
             network.Roles = [userRole, adminRole];
@@ -105,12 +147,6 @@ namespace thirdpartynetwork.Application.Services
                     UserProxy = currentUser,
                     NetworkUserRoles =
                     [
-                        new NetworkUserRole
-                        {
-                            NetworkUser = null,
-                            Role = userRole
-                        },
-
                         new NetworkUserRole
                         {
                             NetworkUser = null,
@@ -131,14 +167,29 @@ namespace thirdpartynetwork.Application.Services
             var network = mapper.Map<Network>(updateNetworkDto);
             network.Id = id;
 
+            if (updateNetworkDto.FileLink != null)
+            {
+                network.ImageFileId = updateNetworkDto.FileLink.Id;
+            }
+
             network = repository.Update(network);
             return network;
         }
 
-        public void DeleteById(Guid id)
+        public async Task DeleteById(Guid id)
         {
-            var network = GetById(id);
-            if (network != null) repository.Delete(network);
+            var network = GetById(id, true);
+            if (network == null) return;
+            
+            network.ImageFileId = null;
+            network.ImageFile = null;
+
+            foreach (var networkFile in network.Files)
+            {
+                await cdnService.DeleteAsync($"{networkFile.NetworkId}/{networkFile.PublicId}", networkFile.MediaType);
+            }
+            
+            repository.Delete(network);
         }
 
         public Network GetMainNetwork()

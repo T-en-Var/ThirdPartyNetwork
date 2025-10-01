@@ -5,7 +5,7 @@ public class File : BaseModel
     public Guid Id { get; set; }
     public required Guid PublicId { get; set; }
     public string Url { get; set; }
-    public string? Format { get; set; }
+    public string Format { get; set; }
     public long SizeBytes { get; set; }
     public int? Width { get; set; }
     public int? Height { get; set; }

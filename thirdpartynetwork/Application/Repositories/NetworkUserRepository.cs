@@ -53,7 +53,8 @@ namespace thirdpartynetwork.Application.Repositories
 
         public ICollection<NetworkUser> GetByNetworkId(Guid networkId)
         {
-            return [
+            return
+            [
                 .. GetQueryable(networkId)
                     .Where(nu => nu.NetworkId == networkId)
             ];
@@ -77,18 +78,6 @@ namespace thirdpartynetwork.Application.Repositories
                 .FirstOrDefault(u => u.Id == id);
         }
 
-        public NetworkUser? GetByNetworkIdAndEmail(Guid networkId, string email)
-        {
-            // Used for login, so always requires UserProxy
-            return GetQueryable(networkId)
-                .Include(n => n.UserProxy)
-                .Include(n => n.NetworkUserRoles)
-                .ThenInclude(nr => nr.Role)
-                .ThenInclude(nr => nr.RolePermissions)
-                .ThenInclude(nr => nr.Permission)
-                .FirstOrDefault(u => u.NetworkId == networkId && u.UserProxy.Email == email);
-        }
-
         public NetworkUser? GetByIds(Guid networkId, Guid userProxyId)
         {
             return GetQueryable(networkId)
@@ -101,15 +90,30 @@ namespace thirdpartynetwork.Application.Repositories
                 .FirstOrDefault(u => u.NetworkId == networkId && u.UserProxyId == userProxyId);
         }
 
-        public NetworkUser? GetByIdsPreAuth(Guid networkId, Guid userProxyId)
+        private IQueryable<NetworkUser> PreAuthIncludes(IQueryable<NetworkUser> query)
         {
-            return _context.NetworkUsers
+            return query
                 .Include(n => n.UserProxy)
-                .Include(n => n.NetworkUserRoles)
+                .ThenInclude(n => n.NetworkUsers)
+                .ThenInclude(n => n.NetworkUserRoles)
                 .ThenInclude(nr => nr.Role)
                 .ThenInclude(nr => nr.RolePermissions)
                 .ThenInclude(nr => nr.Permission)
+                .AsQueryable();
+        }
+
+        public NetworkUser? GetByIdsPreAuth(Guid networkId, Guid userProxyId)
+        {
+            return PreAuthIncludes(context.NetworkUsers)
                 .FirstOrDefault(u => u.NetworkId == networkId && u.UserProxyId == userProxyId);
+        }
+
+        public NetworkUser? GetByNetworkIdAndEmail(Guid networkId, string email)
+        {
+            // Used for login, so always requires UserProxy
+            var query = GetQueryable(networkId);
+            return PreAuthIncludes(query)
+                .FirstOrDefault(u => u.NetworkId == networkId && u.UserProxy.Email == email);
         }
 
         public NetworkUser Create(NetworkUser networkUser)

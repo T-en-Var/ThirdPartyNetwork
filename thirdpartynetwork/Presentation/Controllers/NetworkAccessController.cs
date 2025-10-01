@@ -32,7 +32,7 @@ public class NetworkAccessController(INetworkAccessService service, IMapper mapp
     [HttpPost("{accessId:guid}")]
     [RequirePermission(Constants.Permissions.ManageAccess)]
     [ProducesResponseType(201, Type = typeof(NetworkAccessDto))]
-    public IActionResult CreateNetworkPermission(Guid networkId, Guid accessId, CreateNetworkAccessDto createNetworkAccess)
+    public IActionResult CreateNetworkAccess(Guid networkId, Guid accessId, CreateNetworkAccessDto createNetworkAccess)
     {
         var networkAccess = service.Create(networkId, accessId, createNetworkAccess);
         return Ok(mapper.Map<NetworkAccessDto>(networkAccess, opts => opts.Items["networkId"] = networkId));
@@ -42,7 +42,7 @@ public class NetworkAccessController(INetworkAccessService service, IMapper mapp
     [RequirePermission(Constants.Permissions.ManageAccess)]
     [ProducesResponseType(200, Type = typeof(NetworkAccessDto))]
     [ProducesResponseType(404)]
-    public IActionResult UpdateNetworkPermission(Guid networkId, Guid accessId,
+    public IActionResult UpdateNetworkAccess(Guid networkId, Guid accessId,
         UpdateNetworkAccessDto updateNetworkAccess)
     {
         var networkAccess = service.Update(networkId, accessId, updateNetworkAccess);
@@ -52,7 +52,7 @@ public class NetworkAccessController(INetworkAccessService service, IMapper mapp
     [HttpDelete("{accessId:guid}")]
     [RequirePermission(Constants.Permissions.ManageAccess)]
     [ProducesResponseType(204)]
-    public IActionResult DeleteNetworkPermission(Guid networkId, Guid accessId)
+    public IActionResult DeleteNetworkAccess(Guid networkId, Guid accessId)
     {
         service.DeleteByIds(networkId, accessId);
         return NoContent();

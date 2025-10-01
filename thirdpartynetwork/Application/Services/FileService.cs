@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using CloudinaryDotNet.Actions;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using thirdpartynetwork.Core.Interfaces.Auth;
 using thirdpartynetwork.Core.Models;
@@ -92,10 +93,17 @@ namespace thirdpartynetwork.Application.Services
             return file;
         }
 
-        public void DeleteById(Guid networkId, Guid fileId)
+        public async Task DeleteByIdAsync(Guid networkId, Guid fileId)
         {
             var file = GetById(networkId, fileId);
-            if (file != null) repository.Delete(file);
+            Console.WriteLine("Removing File: " + file?.PublicId + $" ({file?.Name})");
+            if (file == null) return;
+            Console.WriteLine("File found");
+
+            await cdnService.DeleteAsync($"{networkId}/{file.PublicId}", file.MediaType);
+            Console.WriteLine("Proceeding to remove");
+
+            repository.Delete(file);
         }
     }
 }

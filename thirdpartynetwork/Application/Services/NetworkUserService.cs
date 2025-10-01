@@ -74,9 +74,13 @@ namespace thirdpartynetwork.Application.Services
             
             var userProxy = userProxyService.GetById(userProxyId);
             if (userProxy == null) throw new NotFoundHttpException("UserProxy not Found");
+
+            var isNotDefaultFlag = userProxy.Email == null;
+            userProxy = userProxy.ApplyDefaults();
             
             if (GetByIds(networkId, userProxyId) != null) throw new ConflictHttpException("Email is already in use.");
-            if (GetByNetworkIdAndEmail(networkId, userProxy.Email) != null) throw new ConflictHttpException("User with this email already exists");
+            if (GetByNetworkIdAndEmail(networkId, userProxy.Email) != null) throw new ConflictHttpException("User with this email already exists" +
+                (isNotDefaultFlag ? ". (You email was imported from your default proxy)" : ""));
 
             var networkUser = mapper.Map<NetworkUser>(createNetworkUser);
             networkUser.NetworkId = networkId;

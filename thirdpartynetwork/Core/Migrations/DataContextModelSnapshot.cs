@@ -102,6 +102,7 @@ namespace thirdpartynetwork.Core.Migrations
                         .HasColumnType("interval");
 
                     b.Property<string>("Format")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int?>("Height")
@@ -501,7 +502,7 @@ namespace thirdpartynetwork.Core.Migrations
             modelBuilder.Entity("thirdpartynetwork.Core.Models.File", b =>
                 {
                     b.HasOne("thirdpartynetwork.Core.Models.NetworkUser", "Author")
-                        .WithMany()
+                        .WithMany("Files")
                         .HasForeignKey("AuthorId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -521,7 +522,8 @@ namespace thirdpartynetwork.Core.Migrations
                 {
                     b.HasOne("thirdpartynetwork.Core.Models.File", "ImageFile")
                         .WithMany()
-                        .HasForeignKey("ImageFileId");
+                        .HasForeignKey("ImageFileId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("ImageFile");
                 });
@@ -695,6 +697,8 @@ namespace thirdpartynetwork.Core.Migrations
 
             modelBuilder.Entity("thirdpartynetwork.Core.Models.NetworkUser", b =>
                 {
+                    b.Navigation("Files");
+
                     b.Navigation("NetworkUserAccesses");
 
                     b.Navigation("NetworkUserRoles");

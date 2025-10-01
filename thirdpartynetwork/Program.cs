@@ -24,15 +24,6 @@ var config = builder.Configuration;
 
 Env.Load();
 
-Console.WriteLine("BasePath: " + builder.Environment.ContentRootPath);
-
-Console.WriteLine("JwtSettings:Issuer: " + config["JwtSettings:Issuer"]);
-Console.WriteLine("JwtSettings:Audience: " + config["JwtSettings:Audience"]);
-
-builder.Services.AddLogging();
-var env = builder.Environment;
-Console.WriteLine($"Environment: {env.EnvironmentName}");
-
 builder.Services.AddAuthentication(o =>
 {
     o.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -52,11 +43,8 @@ builder.Services.AddAuthentication(o =>
     };
     o.Events = new JwtBearerEvents
     {
-        OnForbidden = context =>
-        {
-            return ErrorResponseWriter.WriteJsonError(context.HttpContext, 403,
-                "You are not authorized to access this resource.");
-        },
+        OnForbidden = context => ErrorResponseWriter.WriteJsonError(context.HttpContext, 403,
+            "You are not authorized to access this resource."),
 
         OnChallenge = context =>
         {
@@ -78,47 +66,24 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Add all permissions to Authorization.
-// var permissions = typeof(Constants.Permissions).GetFields()
-//     .Where(f => f is { IsLiteral: true, IsInitOnly: false })
-//     .Select(f => f.GetValue(null)?.ToString())
-//     .Where(p => p != null)
-//     .ToList();
-
-// builder.Services.AddAuthorizationBuilder()
-//     .AddPolicy("NetworkAdminPolicy", policy =>
-//         policy.Requirements.Add(new NetworkAdminRequirement("networkId")));
-
-// foreach (var permission in permissions)
-//     builder.Services.AddAuthorizationBuilder()
-//         .AddPolicy($"Permission:{permission}", policy =>
-//             policy.Requirements.Add(new PermissionRequirement(permission!)));
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, DynamicPermissionPolicyProvider>();
 
 // Add services to the container.
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
-        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+        // options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
         options.JsonSerializerOptions.MaxDepth = 32; // Optional: Increase if necessary
     });
 
 builder.Services.AddTransient<DatabaseSeeder>();
-builder.Services.AddControllers().AddJsonOptions(o => {
-    o.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-    //o.JsonSerializerOptions.Converters.Add(new NullableWithStateConverterFactory());
-});
 
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
-// Cache for JtiCacheService.
-// builder.Services.AddDistributedMemoryCache();
-
 // Other
 builder.Services.AddHttpContextAccessor();
-// builder.Services.AddScoped<IAuthorizationHandler, NetworkAdminHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, PermissionHandler>();
-// builder.Services.AddScoped<IAuthorizationHandler, AdminRequirementHandler>();
 builder.Services.Configure<CloudinaryOptions>(options =>
 {
     options.CloudName = Environment.GetEnvironmentVariable("CLOUDINARY_CLOUD_NAME")!;

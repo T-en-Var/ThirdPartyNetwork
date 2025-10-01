@@ -103,7 +103,8 @@ namespace thirdpartynetwork.Core.Data
                 .HasOne(n => n.ImageFile)
                 .WithMany()
                 .HasForeignKey(f => f.ImageFileId)
-                .IsRequired(false);
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);;
 
             // One-to-one: UserProxy -> ImageFile
             modelBuilder.Entity<UserProxy>()

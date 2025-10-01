@@ -8,7 +8,7 @@ using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Application.Auth;
 
-public class TokenGenerator(IJtiCacheService jtiCacheService, IConfiguration _configuration) : ITokenGenerator
+public class TokenGenerator(IJtiCacheService jtiCacheService, IConfiguration configuration) : ITokenGenerator
 {
     private static readonly string TokenSecret = Environment.GetEnvironmentVariable("TOKEN_SECRET")!;
     private static readonly TimeSpan AccessTokenLifetime = TimeSpan.FromMinutes(30);
@@ -30,25 +30,15 @@ public class TokenGenerator(IJtiCacheService jtiCacheService, IConfiguration _co
     {
         var jti = Guid.NewGuid();
 
-        var networkClaims = new List<NetworkClaim>();
+        var networkClaims = (from nu in networkUser.UserProxy.NetworkUsers
+            let permissionNames = nu.NetworkUserRoles.SelectMany(r => r.Role.RolePermissions)
+                .Select(rp => rp.Permission.Name)
+                .Distinct()
+                .ToList()
+            let claimObjects = permissionNames.Select(p => new CustomClaim() { Key = p, Value = true })
+                .ToList()
+            select new NetworkClaim { Id = nu.NetworkId, Claims = claimObjects }).ToList();
 
-        // Collect distinct permission names for this network
-        var permissionNames = networkUser.NetworkUserRoles
-            .SelectMany(r => r.Role.RolePermissions)
-            .Select(rp => rp.Permission.Name)
-            .Distinct()
-            .ToList();
-
-        var claimObjects = permissionNames
-            .Select(p => new CustomClaim() { Key = p, Value = true })
-            .ToList();
-
-        networkClaims.Add(new NetworkClaim
-        {
-            Id = networkUser.NetworkId,
-            Claims = claimObjects
-        });
-        
         var userProxy = networkUser.UserProxy.ApplyDefaults();
         
         var tokensDto = new TokensDto()
@@ -85,11 +75,8 @@ public class TokenGenerator(IJtiCacheService jtiCacheService, IConfiguration _co
             claims.Add(new Claim("AccessIncomplete", "true"));
         }
         
-        var issuer = _configuration["JwtSettings:Issuer"];
-        var audience = _configuration["JwtSettings:Audience"];
-        
-        Console.WriteLine("issuer: " + issuer);
-        Console.WriteLine("audience: " + audience);
+        var issuer = configuration["JwtSettings:Issuer"];
+        var audience = configuration["JwtSettings:Audience"];
 
         var tokenDescriptor = new SecurityTokenDescriptor
         {
@@ -119,8 +106,8 @@ public class TokenGenerator(IJtiCacheService jtiCacheService, IConfiguration _co
             new("uid", userId.ToString()),
         };
         
-        var issuer = _configuration["JwtSettings:Issuer"];
-        var audience = _configuration["JwtSettings:Audience"];
+        var issuer = configuration["JwtSettings:Issuer"];
+        var audience = configuration["JwtSettings:Audience"];
         
         Console.WriteLine("issuer: " + issuer);
         Console.WriteLine("audience: " + audience);
