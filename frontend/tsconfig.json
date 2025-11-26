@@ -11,7 +11,4 @@
       "path": "./tsconfig.vitest.json"
     }
   ],
-  "compilerOptions": {
-    "lib": ["es2023", "dom", "dom.iterable", "webworker"]
-  }
 }

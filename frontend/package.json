@@ -47,11 +47,11 @@
     "prettier": "^3.3.3",
     "prettier-plugin-tailwindcss": "^0.6.9",
     "tailwindcss": "^3.4.16",
-    "typescript": "~5.6.3",
+    "typescript": "^5.9.3",
     "vite": "^6.0.1",
     "vite-bundle-analyzer": "^1.2.3",
     "vite-plugin-vue-devtools": "^7.6.5",
     "vitest": "^2.1.5",
-    "vue-tsc": "^2.1.10"
+    "vue-tsc": "^3.1.5"
   }
 }
