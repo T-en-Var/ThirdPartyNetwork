@@ -19,7 +19,7 @@ jobs:
           dotnet-version: 9.0.x
 
       - name: Install EF Core CLI globally
-        run: dotnet tool install --global dotnet-ef
+        run: dotnet tool install --global dotnet-ef --version 9.*
         
       - name: Add dotnet tools to PATH
         run: echo "PATH=$HOME/.dotnet/tools:$PATH" >> $GITHUB_ENV
@@ -27,32 +27,19 @@ jobs:
       - name: Publish backend
         run: dotnet publish -c Release -o publish
 
-      - name: Copy to server
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.SERVER_IP }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          port: 22
-          source: "publish/*"
-          target: "/var/www/thirdpartynetwork"
+#      - name: Copy to server
+#        uses: appleboy/scp-action@v0.1.7
+#        with:
+#          host: ${{ secrets.SERVER_IP }}
+#          username: ${{ secrets.SERVER_USER }}
+#          key: ${{ secrets.SERVER_SSH_KEY }}
+#          port: 22
+#          source: "publish/*"
+#          target: "/var/www/thirdpartynetwork"
 
-      - name: Generate SQL migrations (Local Tool)
-        run: |
-          # 1. Create a local tool manifest
-          dotnet new tool-manifest
-          
-          # 2. Install the EF tool locally. 
-          # The flag --version is omitted to let it pick the best match for the SDK, 
-          # but since you are on .NET 9, we allow prereleases if needed.
-          dotnet tool install dotnet-ef
-          
-          # 3. Run the migrations script using the LOCAL tool
-          dotnet tool run dotnet-ef migrations script --idempotent \
-            --project thirdpartynetwork/thirdpartynetwork.csproj \
-            --context DataContext \
-            --output migration.sql
-          
+      - name: Generate SQL migrations
+        run: dotnet ef migrations script --idempotent --project thirdpartynetwork/thirdpartynetwork.csproj -c DataContext -o migration.sql
+
       - name: Copy migrations to server
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -60,8 +47,8 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: 22
-          source: migration.sql
-          target: /var/www/thirdpartynetwork
+          source: "publish/*,migration.sql"
+          target: "/var/www/thirdpartynetwork"
 
       - name: Apply migrations on server
         uses: appleboy/ssh-action@v0.1.7
