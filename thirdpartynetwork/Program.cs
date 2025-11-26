@@ -74,7 +74,8 @@ builder.Services.AddControllers()
     {
         options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
         // options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
-        options.JsonSerializerOptions.MaxDepth = 32; // Optional: Increase if necessary
+        // Increased to 64. Fuck it, we ball
+        options.JsonSerializerOptions.MaxDepth = 64; // Optional: Increase if necessary
     });
 
 builder.Services.AddTransient<DatabaseSeeder>();
