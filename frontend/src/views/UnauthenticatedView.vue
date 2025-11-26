@@ -35,13 +35,13 @@ import { onMounted } from 'vue';
 const authStore = useAuthStore();
 
 onMounted(() => {
-  authStore.setModelOpen(true);
-  authStore.setModelMode("login");
+  authStore.setModalOpen(true);
+  authStore.setModalMode("login");
 })
 
 
 function handleLogin() {
-  authStore.setModelOpen(true);
-  authStore.setModelMode('login');
+  authStore.setModalOpen(true);
+  authStore.setModalMode('login');
 }
 </script>

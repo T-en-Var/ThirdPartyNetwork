@@ -43,8 +43,8 @@ class ApiClient {
           if (this.route.name !== "Terms of Service") uri = btoa(this.route.fullPath);
 
           this.router.push(`/401?redirect=${uri}`);
-          this.auth.setModelOpen(true);
-          this.auth.setModelMode("login");
+          this.auth.setModalOpen(true);
+          this.auth.setModalMode("login");
         }
 
         if (statusCode == 403) {

@@ -44,14 +44,14 @@ const authStore = useAuthStore();
 const router = useRouter();
 
 onMounted(() => {
-  authStore.setModelOpen(true);
-  authStore.setModelMode("login");
+  authStore.setModalOpen(true);
+  authStore.setModalMode("login");
 })
 
 
 function handleLogin() {
-  authStore.setModelOpen(true);
-  authStore.setModelMode('login');
+  authStore.setModalOpen(true);
+  authStore.setModalMode('login');
 }
 
 function handleBack() {

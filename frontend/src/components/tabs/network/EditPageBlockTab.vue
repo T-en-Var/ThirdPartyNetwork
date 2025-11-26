@@ -17,7 +17,8 @@
           <!-- Parent block selector -->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Parent Block</label>
-            <SearchableSelect v-model="form.parentPageId" :options="parentOptions" label="Parent Block" :nullable="true" />
+            <SearchableSelect v-model="form.parentPageId" :options="parentOptions" label="Parent Block"
+              :nullable="true" />
           </div>
 
           <!-- Text -->
@@ -162,39 +163,39 @@
 </template>
 
 <script setup lang="ts">
-import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue'
-import type { PageBlock, Network, TreeNode } from '@/types'
-import { ref, computed, watch, type Ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import JsonEditorVue from 'json-editor-vue'
-import useCustomPage from '@/composables/useCustomPage'
-import { useHistoryStore } from '@/stores/history'
-import TreeNodeComponent from '@/components/TreeNodeComponent.vue'
-import SearchableSelect from '@/components/SearchableSelect.vue'
+import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
+import type { PageBlock, Network, TreeNode } from '@/types';
+import { ref, computed, watch, type Ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import JsonEditorVue from 'json-editor-vue';
+import useCustomPage from '@/composables/useCustomPage';
+import { useHistoryStore } from '@/stores/history';
+import TreeNodeComponent from '@/components/TreeNodeComponent.vue';
+import SearchableSelect from '@/components/SearchableSelect.vue';
 
-defineProps<{ network: Network }>()
+defineProps<{ network: Network; }>();
 
 const emit = defineEmits<{
   (e: 'updatePageBlock', customPageId: string, block: PageBlock): void,
-}>()
+}>();
 
-const router = useRouter()
-const route = useRoute()
+const router = useRouter();
+const route = useRoute();
 const historyStore = useHistoryStore();
 
-const networkId = route.params.networkId as string
-const customPageId = route.params.customPageId as string
-const pageBlockId = computed(() => route.params.pageBlockId as string)
+const networkId = route.params.networkId as string;
+const customPageId = route.params.customPageId as string;
+const pageBlockId = computed(() => route.params.pageBlockId as string);
 
 const form = ref<Partial<PageBlock>>({
   parentPageId: '',
   text: '',
   position: 0,
   data: {},
-})
+});
 
-const editDataMode = ref(false)
-const jsonEditorValue = ref<object>({})
+const editDataMode = ref(false);
+const jsonEditorValue = ref<object>({});
 
 const { customPage, loading, error, fetchCustomPage } = useCustomPage();
 
@@ -208,119 +209,119 @@ const handleMounted = async () => {
     text: currentPageBlock.value.text,
     position: currentPageBlock.value.position,
     data: currentPageBlock.value.data,
-  }
+  };
 
   try {
-    jsonEditorValue.value = currentPageBlock.value.data
+    jsonEditorValue.value = currentPageBlock.value.data;
   } catch {
-    jsonEditorValue.value = {}
+    jsonEditorValue.value = {};
   }
 
   historyStore.pageBlockVisit(currentPageBlock.value);
-}
+};
 
 watch(
   () => pageBlockId.value,
   async (newId) => {
     if (newId) {
-      await handleMounted()
+      await handleMounted();
     }
   },
   { immediate: true }  // basically onMounted
-)
+);
 
-const currentPageBlock = computed(() => customPage.value?.pages.find(p => p.id == pageBlockId.value))
-const parentOptions: Ref<PageBlock[]> = computed(() => customPage.value?.pages.filter(p => p.id != pageBlockId.value) ?? [])
-const childBlocks = computed(() => customPage.value?.pages.filter(p => p.parentPageId === pageBlockId.value) ?? [])
+const currentPageBlock = computed(() => customPage.value?.pages.find(p => p.id == pageBlockId.value));
+const parentOptions: Ref<PageBlock[]> = computed(() => customPage.value?.pages.filter(p => p.id != pageBlockId.value) ?? []);
+const childBlocks = computed(() => customPage.value?.pages.filter(p => p.parentPageId === pageBlockId.value) ?? []);
 
 const sortedBlocks = computed(() =>
   customPage.value?.pages
     ? [...customPage.value.pages.filter(p => p.parentPageId == currentPageBlock.value?.parentPageId)].sort((a, b) => a.position - b.position)
     : []
-)
+);
 
-const currentIndex = computed(() => sortedBlocks.value.findIndex(b => b.id === pageBlockId.value))
+const currentIndex = computed(() => sortedBlocks.value.findIndex(b => b.id === pageBlockId.value));
 
 const previousBlock = computed(() =>
   currentIndex.value > 0
     ? sortedBlocks.value[currentIndex.value - 1]
     : null
-)
+);
 const nextBlock = computed(() =>
   currentIndex.value >= 0 && currentIndex.value < sortedBlocks.value.length - 1
     ? sortedBlocks.value[currentIndex.value + 1]
     : null
-)
+);
 
 const parentBlock = computed(() =>
   currentPageBlock.value?.parentPageId
     ? customPage.value?.pages.find(p => p.id === currentPageBlock.value?.parentPageId)
     : null
-)
+);
 
 const formattedJson = computed(() => {
   return form.value.data;
-})
+});
 
 function cancelEditData() {
-  editDataMode.value = false
+  editDataMode.value = false;
 }
 
 function saveJsonData() {
   try {
     // form.value.data = JSON.stringify(jsonEditorValue.value, null, 2)
-    form.value.data = jsonEditorValue.value
-    editDataMode.value = false
+    form.value.data = jsonEditorValue.value;
+    editDataMode.value = false;
   } catch (_) {
-    void _
-    alert('Invalid JSON')
+    void _;
+    alert('Invalid JSON');
   }
 }
 
 function handleUpdate() {
-  if (!currentPageBlock.value) return
+  if (!currentPageBlock.value) return;
   emit('updatePageBlock', customPageId, {
     ...currentPageBlock.value,
     ...form.value,
     parentPageId: form.value.parentPageId || null,
-  } as PageBlock)
+  } as PageBlock);
 }
 
 function buildTree(blocks: PageBlock[]): TreeNode[] {
-  const map = new Map<string, TreeNode>()
-  const roots: TreeNode[] = []
+  const map = new Map<string, TreeNode>();
+  const roots: TreeNode[] = [];
 
   // Initialize nodes
-  blocks.forEach(b => map.set(b.id, { ...b, children: [], visited: false, recursive: false }))
+  blocks.forEach(b => map.set(b.id, { ...b, children: [], visited: false, recursive: false }));
 
   function addChildren(node: TreeNode) {
-    if (node.visited) return
-    node.visited = true
+    if (node.visited) return;
+    node.visited = true;
 
     // path.add(node.id)
 
     blocks.forEach(b => {
-      if (b.parentPageId !== node.id) return
+      if (b.parentPageId !== node.id) return;
 
-      const childNode = map.get(b.id)!
-      if (childNode.visited) node.children.push({ ...childNode, recursive: true })
-      else if (!childNode.recursive) node.children.push(childNode)
+      const childNode = map.get(b.id)!;
+      if (childNode.visited) node.children.push({ ...childNode, recursive: true });
+      else if (!childNode.recursive) node.children.push(childNode);
 
-      addChildren(childNode)
-    })
+      addChildren(childNode);
+    });
   }
 
   // Build tree
   blocks.forEach(b => {
-    const node = map.get(b.id)!
+    const node = map.get(b.id)!;
     if (!node.visited) {
-      addChildren(node)
-      roots.push(node)
+      addChildren(node);
+      roots.push(node);
     }
-  })
+  });
 
-  return roots
+  return roots;
 }
 
-const tree = computed(() => buildTree(customPage.value?.pages ?? []))
+const tree = computed(() => buildTree(customPage.value?.pages ?? []));
 </script>

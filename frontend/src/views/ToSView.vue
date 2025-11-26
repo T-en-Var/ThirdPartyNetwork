@@ -86,7 +86,7 @@ const handleContinue = () => {
     return
   }
 
-  authStore.setModelOpen(true);
-  authStore.setModelMode('signup');
+  authStore.setModalOpen(true);
+  authStore.setModalMode('signup');
 }
 </script>

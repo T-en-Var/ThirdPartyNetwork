@@ -1,6 +1,6 @@
 <template>
   <Teleport to="body">
-    <div v-if="authStore.isModelOpen" class="modal-overlay" @click="closeModal">
+    <div v-if="authStore.isModalOpen" class="modal-overlay" @click="closeModal">
       <div class="auth-modal" @click.stop>
         <div class="form-wrapper">
           <button class="close-button" @click="closeModal">×</button>
@@ -12,7 +12,7 @@
           </div>
 
           <!-- Login Form -->
-          <div class="form-panel" :class="{ 'active': authStore.modelMode == 'login' }">
+          <div class="form-panel" :class="{ 'active': authStore.modalMode == 'login' }">
             <div class="form-content">
               <div class="form-header">
                 <h2>Sign In</h2>
@@ -61,7 +61,7 @@
           </div>
 
           <!-- Sign Up Form -->
-          <div class="form-panel" :class="{ 'active': authStore.modelMode == 'signup' }">
+          <div class="form-panel" :class="{ 'active': authStore.modalMode == 'signup' }">
             <div class="form-content">
               <div class="form-header">
                 <h2>Create Account</h2>
@@ -171,10 +171,10 @@ const modalOpenCallback = () => {
   signupEmail.value = route.query.s_email as string || ''
 }
 
-authStore.setModelOpenCallback(modalOpenCallback);
+authStore.setModalOpenCallback(modalOpenCallback);
 
 const redirectToTos = () => {
-  authStore.setModelOpen(false);
+  authStore.setModalOpen(false);
 
   let uri = route.query.redirect;
   if (route.name !== "Terms of Service") uri = btoa(route.fullPath);
@@ -184,13 +184,13 @@ const redirectToTos = () => {
 
 // Switch between login and signup modes
 const switchMode = (modalValue: "signup" | "login") => {
-  authStore.setModelMode(modalValue);
+  authStore.setModalMode(modalValue);
   error.value = '';
   signupError.value = '';
 };
 
 const closeModal = () => {
-  authStore.setModelOpen(false);
+  authStore.setModalOpen(false);
 
   email.value = '';
   password.value = '';

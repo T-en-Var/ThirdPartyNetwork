@@ -263,19 +263,19 @@ router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
 
   if (to.matched.some(record => record.meta.requiresAuth)) {
-    if (!authStore.isAuthenticated()) {
+    if (!authStore.isAuthenticated) {
       next({
         path: '/403',
         query: { redirect: btoa(to.fullPath) }
       })
-      authStore.setModelOpen(true)
-      authStore.setModelMode("login")
+      authStore.setModalOpen(true)
+      authStore.setModalMode("login")
       return
     }
   }
 
   if (to.matched.some(record => record.meta.requiresAdmin)) {
-    if (!authStore.isAdmin()) {
+    if (!authStore.isAdmin) {
       next({ path: '/404' })
       return
     }

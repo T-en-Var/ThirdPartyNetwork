@@ -151,37 +151,37 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import type { ErrorMessage, Network, CreateNetwork, NetworkFile, NetworkAccessCreate } from '@/types'
-import api from '@/api/api'
-import { useGlobalStore } from '@/stores/global'
-import type { AxiosError } from 'axios'
-import ErrorAlert from '@/components/ErrorAlert.vue'
-import AddFileModal from '@/components/modals/network/AddFileModal.vue'
-import useNetwork from '@/composables/useNetwork'
-import AddAccessModal from '@/components/modals/network/AddAccessModal.vue'
-import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue'
-import CloudinaryFile from '@/components/cdn/CloudinaryFile.vue'
-import ForceLoadModal from '@/components/modals/ForceWaitModal.vue'
+import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import type { ErrorMessage, Network, CreateNetwork, NetworkFile, NetworkAccessCreate } from '@/types';
+import api from '@/api/api';
+import { useGlobalStore } from '@/stores/global';
+import type { AxiosError } from 'axios';
+import ErrorAlert from '@/components/ErrorAlert.vue';
+import AddFileModal from '@/components/modals/network/AddFileModal.vue';
+import useMainNetwork from '@/composables/useMainNetwork';
+import AddAccessModal from '@/components/modals/network/AddAccessModal.vue';
+import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
+import CloudinaryFile from '@/components/cdn/CloudinaryFile.vue';
+import ForceLoadModal from '@/components/modals/ForceWaitModal.vue';
 
-const router = useRouter()
-const global = useGlobalStore()
-const isSubmitting = ref(false)
+const router = useRouter();
+const global = useGlobalStore();
+const isSubmitting = ref(false);
 const error = ref('');
 
 const titleValue = ref('');
 const progessValue = ref(0);
 
-const uploadedFile = ref<NetworkFile | null>(null)
+const uploadedFile = ref<NetworkFile | null>(null);
 const showUploadModal = ref(false);
 const showAddAccessModal = ref(false);
 
-const networkState = useNetwork();
+const networkState = useMainNetwork();
 
 onMounted(async () => {
-  await networkState.fetchNetwork(import.meta.env.VITE_NETWORK_ID)
-})
+  await networkState.fetchMainNetwork();
+});
 
 const form = ref<CreateNetwork>({
   name: '',
@@ -189,7 +189,7 @@ const form = ref<CreateNetwork>({
   isPublic: false,
   fileLink: undefined,
   redirectURI: '',
-})
+});
 
 const fakeNetwork = ref<Network>({ ...form.value, createdOn: new Date(), customPages: [], files: [], id: '', isSystemProtected: false, networkAccesses: [], networkUsers: [], roles: [], });
 
@@ -203,74 +203,74 @@ function addAccessToNetwork(networkAccess: NetworkAccessCreate) {
     networkId: fakeNetwork.value.id,
     access: networkAccess.access!,
     isRequired: networkAccess.isRequired
-  })
-  showAddAccessModal.value = false
+  });
+  showAddAccessModal.value = false;
 }
 
 function removeAccess(index: number) {
-  fakeNetwork.value.networkAccesses.splice(index, 1)
+  fakeNetwork.value.networkAccesses.splice(index, 1);
 }
 
 
 async function handleSubmit() {
-  error.value = ''
-  isSubmitting.value = true
+  error.value = '';
+  isSubmitting.value = true;
   let newNetwork: Network;
-  
-  titleValue.value = 'Uploading network data'
-  progessValue.value = 0
+
+  titleValue.value = 'Uploading network data';
+  progessValue.value = 0;
 
   try {
-    global.startFetching()
+    global.startFetching();
     const networkResponse = await api.post<Network, CreateNetwork>('/networks/', {
       name: form.value.name.trim(),
       description: form.value.description.trim(),
       fileLink: form.value.fileLink,
       redirectURI: form.value.redirectURI,
       isPublic: form.value.isPublic,
-    })
+    });
 
-    newNetwork = networkResponse.data
+    newNetwork = networkResponse.data;
   } catch (err) {
-    console.error('Error creating network:', err)
-    const axiosError = err as AxiosError<ErrorMessage>
+    console.error('Error creating network:', err);
+    const axiosError = err as AxiosError<ErrorMessage>;
     if (axiosError.response?.status === 409) {
-      error.value = `A network with the name "${form.value.name.trim()}" already exists. Please choose a different name.`
+      error.value = `A network with the name "${form.value.name.trim()}" already exists. Please choose a different name.`;
     } else {
-      error.value = axiosError.response?.data?.message || 'Failed to create network. Please try again later.'
+      error.value = axiosError.response?.data?.message || 'Failed to create network. Please try again later.';
     }
-    isSubmitting.value = false
-    return
+    isSubmitting.value = false;
+    return;
   } finally {
-    global.stopFetching()
+    global.stopFetching();
   }
 
-  titleValue.value = 'Uploading network accesses'
-  progessValue.value = 25
+  titleValue.value = 'Uploading network accesses';
+  progessValue.value = 25;
 
   try {
-    global.startFetching()
+    global.startFetching();
 
     await Promise.all([
       ...fakeNetwork.value.networkAccesses.map(networkAccess => {
-        return api.post(`/networks/${newNetwork.id}/accesses/${networkAccess.access.id}`, { isRequired: networkAccess.isRequired })
+        return api.post(`/networks/${newNetwork.id}/accesses/${networkAccess.access.id}`, { isRequired: networkAccess.isRequired });
       })
     ]);
   } catch (err) {
-    console.error('Error adding network accesses:', err)
-    const axiosError = err as AxiosError<ErrorMessage>
-    error.value = axiosError.response?.data?.message || 'Failed to create Network Access requirements. Please try again later, or remove them here and add them later.'
-    isSubmitting.value = false
-    return
+    console.error('Error adding network accesses:', err);
+    const axiosError = err as AxiosError<ErrorMessage>;
+    error.value = axiosError.response?.data?.message || 'Failed to create Network Access requirements. Please try again later, or remove them here and add them later.';
+    isSubmitting.value = false;
+    return;
   } finally {
-    global.stopFetching()
+    global.stopFetching();
   }
 
-  titleValue.value = 'Updating network accesses'
-  progessValue.value = 75
+  titleValue.value = 'Updating network accesses';
+  progessValue.value = 75;
 
   try {
-    global.startFetching()
+    global.startFetching();
 
     await Promise.all([,
       ...fakeNetwork.value.networkAccesses.map(networkAccess =>
@@ -278,37 +278,37 @@ async function handleSubmit() {
       )]
     );
   } catch (err) {
-    console.error('Error accepting Network Access for creator:', err)
-    const axiosError = err as AxiosError<ErrorMessage>
-    error.value = axiosError.response?.data?.message || 'Failed to accept Network Access for your user. Please accept them yourself later. You will be redirected automatically after 5 seconds.'
+    console.error('Error accepting Network Access for creator:', err);
+    const axiosError = err as AxiosError<ErrorMessage>;
+    error.value = axiosError.response?.data?.message || 'Failed to accept Network Access for your user. Please accept them yourself later. You will be redirected automatically after 5 seconds.';
     setTimeout(() => {
-      router.push(`/networks/${newNetwork.id}/manage`)
+      router.push(`/networks/${newNetwork.id}/manage`);
     }, 5000);
-    isSubmitting.value = false
-    return
+    isSubmitting.value = false;
+    return;
   } finally {
-    global.stopFetching()
+    global.stopFetching();
   }
 
-  titleValue.value = 'Redirecting you'
-  progessValue.value = 100
+  titleValue.value = 'Redirecting you';
+  progessValue.value = 100;
 
-  router.push(`/networks/${newNetwork.id}/manage`)
+  router.push(`/networks/${newNetwork.id}/manage`);
 }
 
 function navigateBack() {
-  router.push('/networks')
+  router.push('/networks');
 }
 function openUploadModal() {
-  showUploadModal.value = true
+  showUploadModal.value = true;
 }
 function handleImageUploaded(file: NetworkFile) {
-  form.value.fileLink = { id: file.id }
-  uploadedFile.value = file
-  showUploadModal.value = false
+  form.value.fileLink = { id: file.id };
+  uploadedFile.value = file;
+  showUploadModal.value = false;
 }
 function removeImage() {
-  form.value.fileLink = undefined
-  uploadedFile.value = null
+  form.value.fileLink = undefined;
+  uploadedFile.value = null;
 }
 </script>

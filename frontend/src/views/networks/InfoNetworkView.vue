@@ -340,7 +340,7 @@ async function handleToggle(accessId: string) {
 const canManageNetwork = computed(() => network.value && authStore.claimChecker.canManageNetwork(network.value));
 
 const currentNetworkUser = computed(() => {
-  if (!authStore.isAuthenticated()) return null;
+  if (!authStore.isAuthenticated) return null;
 
   const userProxyId = authStore.getUserProxyId();
   if (!network.value || !userProxyId) return null;

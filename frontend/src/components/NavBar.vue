@@ -7,13 +7,13 @@
       <div class="nav-links">
         <RouterLink to="/" class="nav-link" active-class="active">Home</RouterLink>
         <RouterLink to="/about" class="nav-link" active-class="active">About</RouterLink>
-        <RouterLink v-if="authStore.isAuthenticated()" to="/networks" class="nav-link" active-class="active">Networks
+        <RouterLink v-if="authStore.isAuthenticated" to="/networks" class="nav-link" active-class="active">Networks
         </RouterLink>
       </div>
       <div class="nav-actions">
-        <button v-if="!authStore.isAuthenticated()" class="btn-login" @click="openLoginModal">Log In</button>
-        <button v-if="!authStore.isAuthenticated()" class="btn-signup" @click="openSignupModal">Sign Up</button>
-        <UserProfileDropdown v-if="authStore.isAuthenticated()" />
+        <button v-if="!authStore.isAuthenticated" class="btn-login" @click="openLoginModal">Log In</button>
+        <button v-if="!authStore.isAuthenticated" class="btn-signup" @click="openSignupModal">Sign Up</button>
+        <UserProfileDropdown v-if="authStore.isAuthenticated" />
       </div>
     </nav>
 
@@ -32,13 +32,13 @@ import { useAuthStore } from '@/stores/auth';
 const authStore = useAuthStore();
 
 const openLoginModal = () => {
-  authStore.setModelOpen(true);
-  authStore.setModelMode('login');
+  authStore.setModalOpen(true);
+  authStore.setModalMode('login');
 };
 
 const openSignupModal = () => {
-  authStore.setModelOpen(true);
-  authStore.setModelMode('signup');
+  authStore.setModalOpen(true);
+  authStore.setModalMode('signup');
 };
 </script>
 
