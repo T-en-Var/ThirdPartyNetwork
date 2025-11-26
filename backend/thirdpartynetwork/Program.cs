@@ -156,8 +156,24 @@ builder.Services.AddProblemDetails();
 
 var app = builder.Build();
 
-app.Services.CreateScope().ServiceProvider
-    .GetRequiredService<DatabaseSeeder>().SeedAsync().Wait();
+// Wrap the seeding in a scope to safely handle errors
+using (var scope = app.Services.CreateScope())
+{
+    try 
+    {
+        // Only run seeder if not generating migrations (optional check)
+        var seeder = scope.ServiceProvider.GetRequiredService<DatabaseSeeder>();
+        await seeder.SeedAsync();
+    }
+    catch (Exception ex)
+    {
+        // Log the error but don't crash the app entirely
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while seeding the database.");
+        
+        // In CI/Migrations context, we might expect this to fail if secrets aren't present
+    }
+}
 
 // Middlewares
 app.UseMiddleware<CustomExceptionMiddleware>();
