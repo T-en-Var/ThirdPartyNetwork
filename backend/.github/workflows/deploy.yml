@@ -50,7 +50,7 @@ jobs:
           source: "publish/*,migration.sql"
           target: "/var/www/thirdpartynetwork"
 
-      - name: Apply migrations on server
+      - name: Copy build & migrations to server
         uses: appleboy/ssh-action@v0.1.7
         with:
           host: ${{ secrets.SERVER_IP }}
