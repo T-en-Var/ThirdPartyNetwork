@@ -19,7 +19,7 @@ public sealed class CloudinaryService : ICDNService
             Api =
             {
                 Secure = true,
-                Timeout = 600,  // 10 minutes
+                Timeout = 60000,  // 1 minute
             }
         };
     }
@@ -33,15 +33,22 @@ public sealed class CloudinaryService : ICDNService
 
         var kind = DetermineKind(file);
         var ext = Path.GetExtension(file.FileName)?.TrimStart('.').ToLowerInvariant();
-        
+    
+        folder ??= _opts.DefaultFolder;
+    
+        // Copy to MemoryStream to decouple from the incoming Request Stream
+        await using var memoryStream = new MemoryStream();
+        await file.CopyToAsync(memoryStream);
+        memoryStream.Position = 0; // Reset position to start
+
         var progress = new Progress<double>(p =>
         {
-            Console.WriteLine($"Upload progress: {p:P1}"); // e.g., 0% → 100%
+            // This creates noise in logs
+            // Console.WriteLine($"Upload progress: {p:P1}"); 
         });
 
-        await using var fileStream = file.OpenReadStream();
-        await using var progressStream = new ProgressStream(fileStream, progress);
-        folder ??= _opts.DefaultFolder;
+        // Wrap the memory stream, not the file stream
+        await using var progressStream = new ProgressStream(memoryStream, progress);
         RawUploadResult result;
         
         switch (kind)
