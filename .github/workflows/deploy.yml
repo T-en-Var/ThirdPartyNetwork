@@ -38,7 +38,12 @@ jobs:
           target: "/var/www/thirdpartynetwork"
 
       - name: Generate SQL migrations
-        run: dotnet ef migrations script --idempotent --project thirdpartynetwork/thirdpartynetwork.csproj -c DataContext -o migration.sql
+        run: |
+          # The full command is passed as arguments to 'dotnet run'
+          dotnet run --project thirdpartynetwork/thirdpartynetwork.csproj -- \
+            ef migrations script --idempotent \
+            --context DataContext \
+            --output migration.sql
     
       - name: Copy migrations to server
         uses: appleboy/scp-action@v0.1.7
