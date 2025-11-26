@@ -39,8 +39,11 @@ jobs:
 
       - name: Generate SQL migrations (Alternative)
         run: |
-          cd thirdpartynetwork
-          dotnet ef migrations script --idempotent -c DataContext -o ../migration.sql --startup-project thirdpartynetwork.csproj
+          dotnet run --project thirdpartynetwork/thirdpartynetwork.csproj -- \
+          ef migrations script --idempotent \
+          --context DataContext \
+          --output ../migration.sql \
+          --startup-project thirdpartynetwork/thirdpartynetwork.csproj
     
       - name: Copy migrations to server
         uses: appleboy/scp-action@v0.1.7
