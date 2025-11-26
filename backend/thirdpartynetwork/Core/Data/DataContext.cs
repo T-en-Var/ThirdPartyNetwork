@@ -6,20 +6,20 @@ namespace thirdpartynetwork.Core.Data
 {
     public class DataContext(DbContextOptions<DataContext> options) : DbContext(options)
     {
-        public required DbSet<CustomPage> CustomPages { get; set; }
-        public required DbSet<File> Files { get; set; }
-        public required DbSet<Network> Networks { get; set; }
-        public required DbSet<NetworkAccess> NetworkAccesses { get; set; }
-        public required DbSet<NetworkUser> NetworkUsers { get; set; }
-        public required DbSet<NetworkUserAccess> NetworkUserAccesses { get; set; }
-        public required DbSet<NetworkUserRole> NetworkUserRoles { get; set; }
-        public required DbSet<PageBlock> PageBlocks { get; set; }
-        public required DbSet<Access> Accesses { get; set; }
-        public required DbSet<Role> Roles { get; set; }
-        public required DbSet<RolePermission> RolePermissions { get; set; }
-        public required DbSet<Permission> Permissions { get; set; }
-        public required DbSet<User> Users { get; set; }
-        public required DbSet<UserProxy> UserProxies { get; set; }
+        public DbSet<CustomPage> CustomPages { get; set; }
+        public DbSet<File> Files { get; set; }
+        public DbSet<Network> Networks { get; set; }
+        public DbSet<NetworkAccess> NetworkAccesses { get; set; }
+        public DbSet<NetworkUser> NetworkUsers { get; set; }
+        public DbSet<NetworkUserAccess> NetworkUserAccesses { get; set; }
+        public DbSet<NetworkUserRole> NetworkUserRoles { get; set; }
+        public DbSet<PageBlock> PageBlocks { get; set; }
+        public DbSet<Access> Accesses { get; set; }
+        public DbSet<Role> Roles { get; set; }
+        public DbSet<RolePermission> RolePermissions { get; set; }
+        public DbSet<Permission> Permissions { get; set; }
+        public DbSet<User> Users { get; set; }
+        public DbSet<UserProxy> UserProxies { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
