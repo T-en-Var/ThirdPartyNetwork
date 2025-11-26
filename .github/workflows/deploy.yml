@@ -37,9 +37,22 @@ jobs:
           source: "publish/*"
           target: "/var/www/thirdpartynetwork"
 
-      - name: Generate SQL migrations
-        run: dotnet ef migrations script --idempotent --project thirdpartynetwork/thirdpartynetwork.csproj -c DataContext -o migration.sql
-    
+      - name: Generate SQL migrations (Local Tool)
+        run: |
+          # 1. Create a local tool manifest
+          dotnet new tool-manifest
+          
+          # 2. Install the EF tool locally. 
+          # The flag --version is omitted to let it pick the best match for the SDK, 
+          # but since you are on .NET 9, we allow prereleases if needed.
+          dotnet tool install dotnet-ef
+          
+          # 3. Run the migrations script using the LOCAL tool
+          dotnet tool run dotnet-ef migrations script --idempotent \
+            --project thirdpartynetwork/thirdpartynetwork.csproj \
+            --context DataContext \
+            --output migration.sql
+          
       - name: Copy migrations to server
         uses: appleboy/scp-action@v0.1.7
         with:
