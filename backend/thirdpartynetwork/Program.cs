@@ -31,10 +31,24 @@ builder.Services.AddAuthentication(o =>
     o.DefaultSignInScheme = JwtBearerDefaults.AuthenticationScheme;
 }).AddJwtBearer(o =>
 {
+    var sp = builder.Services.BuildServiceProvider();
+    var httpContextAccessor = sp.GetRequiredService<IHttpContextAccessor>();
+    
     o.TokenValidationParameters = new TokenValidationParameters
     {
         ValidIssuer = config["JwtSettings:Issuer"],
-        ValidAudience = config["JwtSettings:Audience"],
+        AudienceValidator = (audiences, securityToken, validationParameters) =>
+        {
+            var httpContext = httpContextAccessor.HttpContext;
+
+            var defaultAudience = config["JwtSettings:Audience"];
+            var originHeader = httpContext.Request.Headers["Origin"].FirstOrDefault();
+            
+            if (originHeader == defaultAudience) return true;
+            
+            var enumerable = audiences as string[] ?? audiences.ToArray();
+            return enumerable.Contains(originHeader) || enumerable.Contains(defaultAudience);
+        },
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("TOKEN_SECRET")!)),
         ValidateIssuer = true,
         ValidateAudience = true,
@@ -49,7 +63,6 @@ builder.Services.AddAuthentication(o =>
         OnChallenge = context =>
         {
             context.HandleResponse(); // Prevent default
-            Console.WriteLine("Yeah that is here");
             return ErrorResponseWriter.WriteJsonError(context.HttpContext, 401, "Authentication is required to access this resource.");
         }
     };
