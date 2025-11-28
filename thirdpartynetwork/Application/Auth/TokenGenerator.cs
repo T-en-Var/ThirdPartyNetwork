@@ -19,18 +19,22 @@ public class TokenGenerator(IJtiCacheService jtiCacheService, IConfiguration con
         public string Key { get; set; }
         public bool Value { get; set; }
     }
-    
+
     private class NetworkClaim
     {
         public Guid Id { get; set; }
         public List<CustomClaim> Claims { get; set; } = [];
     }
 
-    public TokensDto GenerateTokenPair(NetworkUser networkUser, string? previousJti = null)
+    public TokensDto GenerateTokenPair(
+        NetworkUser networkUser,
+        string? audience = null,
+        Guid? networkId = null,
+        string? previousJti = null)
     {
         var jti = Guid.NewGuid();
 
-        var networkClaims = (from nu in networkUser.UserProxy.NetworkUsers
+        var allNetworkClaims = (from nu in networkUser.UserProxy.NetworkUsers
             let permissionNames = nu.NetworkUserRoles.SelectMany(r => r.Role.RolePermissions)
                 .Select(rp => rp.Permission.Name)
                 .Distinct()
@@ -39,29 +43,49 @@ public class TokenGenerator(IJtiCacheService jtiCacheService, IConfiguration con
                 .ToList()
             select new NetworkClaim { Id = nu.NetworkId, Claims = claimObjects }).ToList();
 
+        var networkClaimsToInclude = networkId.HasValue
+            ? allNetworkClaims.Where(nc => nc.Id == networkId.Value).ToList()
+            : allNetworkClaims;
+
         var userProxy = networkUser.UserProxy.ApplyDefaults();
-        
+
         var tokensDto = new TokensDto()
         {
-            AccessToken = GenerateAccessToken(jti, userProxy.Id, userProxy.Username!, networkUser.AccessIncomplete, networkClaims),
-            RefreshToken = GenerateRefreshToken(jti, userProxy.Id, previousJti)
+            AccessToken = GenerateAccessToken(
+                jti,
+                userProxy.Id,
+                userProxy.Username!,
+                networkUser.AccessIncomplete,
+                networkClaimsToInclude,
+                audience),
+            RefreshToken = GenerateRefreshToken(
+                jti,
+                userProxy.Id,
+                audience,
+                previousJti)
         };
-        
+
         return tokensDto;
     }
 
-    private string GenerateAccessToken(Guid jti, Guid userId, string username, bool accessIncomplete, List<NetworkClaim> networkClaims)
+    private string GenerateAccessToken(
+        Guid jti,
+        Guid userId,
+        string username,
+        bool accessIncomplete,
+        List<NetworkClaim> networkClaims,
+        string? dynamicAudience = null)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.UTF8.GetBytes(TokenSecret);
-        
+
         var networksJson = JsonSerializer.Serialize(
             networkClaims.Select(n => new
             {
                 id = n.Id,
                 claims = n.Claims
             }));
-        
+
         var claims = new List<Claim>
         {
             new(JwtRegisteredClaimNames.Jti, jti.ToString()),
@@ -74,9 +98,9 @@ public class TokenGenerator(IJtiCacheService jtiCacheService, IConfiguration con
         {
             claims.Add(new Claim("AccessIncomplete", "true"));
         }
-        
+
         var issuer = configuration["JwtSettings:Issuer"];
-        var audience = configuration["JwtSettings:Audience"];
+        var audience = dynamicAudience ?? configuration["JwtSettings:Audience"];
 
         var tokenDescriptor = new SecurityTokenDescriptor
         {
@@ -84,7 +108,10 @@ public class TokenGenerator(IJtiCacheService jtiCacheService, IConfiguration con
             Expires = DateTime.UtcNow.Add(AccessTokenLifetime),
             Issuer = issuer,
             Audience = audience,
-            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
+            SigningCredentials = new SigningCredentials(
+                new SymmetricSecurityKey(key),
+                SecurityAlgorithms.HmacSha256Signature
+            ),
         };
 
         var token = tokenHandler.CreateToken(tokenDescriptor);
@@ -93,11 +120,15 @@ public class TokenGenerator(IJtiCacheService jtiCacheService, IConfiguration con
         return jwt;
     }
 
-    private string GenerateRefreshToken(Guid jti, Guid userId, string? previousJti = null)
+    private string GenerateRefreshToken(
+        Guid jti,
+        Guid userId,
+        string? dynamicAudience = null,
+        string? previousJti = null)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.UTF8.GetBytes(TokenSecret);
-        
+
         jtiCacheService.StoreJti(jti.ToString(), previousJti, RefreshTokenLifetime);
 
         var claims = new List<Claim>
@@ -105,12 +136,9 @@ public class TokenGenerator(IJtiCacheService jtiCacheService, IConfiguration con
             new(JwtRegisteredClaimNames.Jti, jti.ToString()),
             new("uid", userId.ToString()),
         };
-        
+
         var issuer = configuration["JwtSettings:Issuer"];
-        var audience = configuration["JwtSettings:Audience"];
-        
-        Console.WriteLine("issuer: " + issuer);
-        Console.WriteLine("audience: " + audience);
+        var audience = dynamicAudience ?? configuration["JwtSettings:Audience"];
 
         var tokenDescriptor = new SecurityTokenDescriptor
         {
@@ -118,12 +146,15 @@ public class TokenGenerator(IJtiCacheService jtiCacheService, IConfiguration con
             Expires = DateTime.UtcNow.Add(RefreshTokenLifetime),
             Issuer = issuer,
             Audience = audience,
-            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
+            SigningCredentials = new SigningCredentials(
+                new SymmetricSecurityKey(key),
+                SecurityAlgorithms.HmacSha256Signature
+            ),
         };
-        
+
         var token = tokenHandler.CreateToken(tokenDescriptor);
         var jwt = tokenHandler.WriteToken(token);
-        
+
         return jwt;
     }
 }
