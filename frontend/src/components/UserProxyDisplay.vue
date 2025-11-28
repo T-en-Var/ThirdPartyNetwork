@@ -58,7 +58,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, defineProps } from 'vue';
+import { ref, computed } from 'vue';
 import type { UserProxy } from '@/types';
 import SecurableField from '@/components/fields/SecurableField.vue'
 import ProfileAvatar from '@/components/ProfileAvatar.vue'
