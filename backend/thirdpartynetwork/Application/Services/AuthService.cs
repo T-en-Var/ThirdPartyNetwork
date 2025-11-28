@@ -20,7 +20,7 @@ public class AuthService(
     {
         var networkUser = networkUserService.GetByIdsPreAuth(networkId, userProxyId);
         if (networkUser == null) throw new UnauthorizedHttpException("Invalid email or password");
-        
+
         return networkUser;
     }
 
@@ -34,28 +34,38 @@ public class AuthService(
 
     private NetworkUser CreateNetworkUser(Guid networkId, CreateUserProxyDto createUserProxy)
     {
-        if (networkUserService.GetByNetworkIdAndEmail(networkId, createUserProxy.Email) != null) throw new ConflictHttpException("Email already used");
+        if (networkUserService.GetByNetworkIdAndEmail(networkId, createUserProxy.Email) != null)
+            throw new ConflictHttpException("Email already used");
         var mainNetwork = networkService.GetMainNetwork();
-        
+
         var userDto = new CreateUserDto();
         var user = userService.Create(userDto);
 
         var userProxy = userProxyService.Create(user.Id, createUserProxy);
-        
+
         var networkUser = networkUserService.Create(networkId, userProxy.Id, new CreateNetworkUserDto());
-        if (mainNetwork.Id != networkId) networkUserService.Create(mainNetwork.Id, userProxy.Id, new CreateNetworkUserDto());
-        
+        if (mainNetwork.Id != networkId)
+            networkUserService.Create(mainNetwork.Id, userProxy.Id, new CreateNetworkUserDto());
+
         return networkUser;
     }
 
-    public AuthorizationCodeDto Login(Guid networkId, LoginDto loginData, string clientId, string codeChallenge)
+    public AuthorizationCodeDto ExternalLogin(Guid networkId, LoginDto loginData, string clientId, string codeChallenge)
     {
         var networkUser = GetNetworkUserByEmail(networkId, loginData.Email);
         if (!passwordHasher.VerifyPassword(loginData.Password, networkUser.UserProxy.Password))
             throw new UnauthorizedHttpException("Invalid email or password");
 
+        var network = networkService.GetById(networkId, true);
+        if (network == null) throw new NotFoundHttpException("Invalid email or password");
+
+        var audience = GetAudienceFromRedirectUri(network.RedirectURI);
+        if (audience == null)
+            throw new BadHttpRequestException(
+                "Could not determine audience from redirect URI. Please contact your administrator.");
+
         var code = Guid.NewGuid().ToString("N");
-        var tokens = tokenGenerator.GenerateTokenPair(networkUser);
+        var tokens = tokenGenerator.GenerateTokenPair(networkUser, audience, networkId);
 
         AuthorizationCodeStore.Store(new AuthorizationCode
         {
@@ -64,34 +74,48 @@ public class AuthService(
             NetworkId = networkId,
             ClientId = clientId,
             CodeChallenge = codeChallenge,
+            Audience = audience,
             ExpiresAt = DateTime.UtcNow.AddMinutes(5)
         });
 
         return new AuthorizationCodeDto { Code = code, AccessToken = tokens.AccessToken };
     }
-    
-    public TokensDto Refresh(Guid networkId, RefreshTokenDto refreshTokenDto)
+
+    public TokensDto Refresh(Guid networkId, RefreshTokenDto refreshTokenDto, bool isExternal = true)
     {
         var isTokenValid = jwtHandler.ValidateToken(refreshTokenDto.RefreshToken);
         if (!isTokenValid) throw new UnauthorizedHttpException("Invalid token 1");
 
         var oldToken = jwtHandler.DecodeToken(refreshTokenDto.RefreshToken);
         var uidClaim = oldToken.Claims.FirstOrDefault(x => x.Type == "uid");
+        var audClaim = oldToken.Claims.FirstOrDefault(x => x.Type == "aud");
         var oldJti = oldToken.Claims.FirstOrDefault(x => x.Type == "jti");
-        
+
         if (uidClaim == null) throw new UnauthorizedHttpException("Invalid token 2");
+        if (isExternal && audClaim == null) throw new UnauthorizedHttpException("Invalid token 2.5");
         if (oldJti == null) throw new UnauthorizedHttpException("Invalid token 3");
-        
+
         var userId = Guid.Parse(uidClaim.Value);
         var networkUser = GetUserById(networkId, userId);
 
-        return tokenGenerator.GenerateTokenPair(networkUser, oldJti.Value);
+        return isExternal 
+            ? tokenGenerator.GenerateTokenPair(networkUser, audClaim?.Value, networkId, oldJti.Value)
+            : tokenGenerator.GenerateTokenPair(networkUser, null, null, oldJti.Value);
     }
 
-    public AuthorizationCodeDto Register(Guid networkId, CreateUserProxyDto createUserProxy, string clientId, string codeChallenge)
+    public AuthorizationCodeDto ExternalRegister(Guid networkId, CreateUserProxyDto createUserProxy, string clientId,
+        string codeChallenge)
     {
         var networkUser = CreateNetworkUser(networkId, createUserProxy);
-        
+
+        var network = networkService.GetById(networkId);
+        if (network == null) throw new NotFoundHttpException("Network not found");
+
+        var audience = GetAudienceFromRedirectUri(network.RedirectURI);
+        if (audience == null)
+            throw new BadHttpRequestException(
+                "Could not determine audience from redirect URI. Please contact your administrator.");
+
         var code = Guid.NewGuid().ToString("N");
         var tokens = tokenGenerator.GenerateTokenPair(networkUser);
 
@@ -102,12 +126,13 @@ public class AuthService(
             NetworkId = networkId,
             ClientId = clientId,
             CodeChallenge = codeChallenge,
+            Audience = audience,
             ExpiresAt = DateTime.UtcNow.AddMinutes(5)
         });
 
         return new AuthorizationCodeDto { Code = code, AccessToken = tokens.AccessToken };
     }
-    
+
     public TokensDto Token(TokenRequestDto dto)
     {
         var authCode = AuthorizationCodeStore.Get(dto.Code);
@@ -120,12 +145,11 @@ public class AuthService(
         if (!PKCEVerifier.VerifyPKCE(dto.CodeVerifier, authCode.CodeChallenge))
             throw new UnauthorizedHttpException("Invalid code verifier");
 
-        // Consume the code (one-time use)
         AuthorizationCodeStore.Remove(dto.Code);
 
         var networkUser = GetUserById(authCode.NetworkId, authCode.UserId);
-        
-        return tokenGenerator.GenerateTokenPair(networkUser);
+
+        return tokenGenerator.GenerateTokenPair(networkUser, authCode.Audience, authCode.NetworkId);
     }
 
     public TokensDto MainNetworkLogin(LoginDto loginDto)
@@ -134,10 +158,22 @@ public class AuthService(
         return LoginGetTokens(mainNetwork.Id, loginDto);
     }
 
+    private TokensDto LoginGetTokens(Guid networkId, LoginDto loginData)
+    {
+        var networkUser = GetNetworkUserByEmail(networkId, loginData.Email);
+        if (networkUser == null) throw new UnauthorizedHttpException("Invalid email or password");
+
+        if (networkUser.UserProxy.Password is null ||
+            !passwordHasher.VerifyPassword(loginData.Password, networkUser.UserProxy.Password))
+            throw new UnauthorizedHttpException("Invalid email or password");
+
+        return tokenGenerator.GenerateTokenPair(networkUser);
+    }
+
     public TokensDto MainNetworkRefresh(RefreshTokenDto refreshTokenDto)
     {
         var mainNetwork = networkService.GetMainNetwork();
-        return Refresh(mainNetwork.Id, refreshTokenDto);
+        return Refresh(mainNetwork.Id, refreshTokenDto, false);
     }
 
     public TokensDto MainNetworkRegister(CreateUserProxyDto createUserProxy)
@@ -152,14 +188,14 @@ public class AuthService(
         return tokenGenerator.GenerateTokenPair(networkUser);
     }
 
-    private TokensDto LoginGetTokens(Guid networkId, LoginDto loginData)
+    private static string? GetAudienceFromRedirectUri(string redirectUri)
     {
-        var networkUser = GetNetworkUserByEmail(networkId, loginData.Email);
-        if (networkUser == null) throw new UnauthorizedHttpException("Invalid email or password");
-
-        if (networkUser.UserProxy.Password is null || !passwordHasher.VerifyPassword(loginData.Password, networkUser.UserProxy.Password))
-            throw new UnauthorizedHttpException("Invalid email or password");
-
-        return tokenGenerator.GenerateTokenPair(networkUser);
+        if (Uri.TryCreate(redirectUri, UriKind.Absolute, out var uri))
+        {
+            // From: "http://localhost:3005/callback", get: "http://localhost:3005"
+            return $"{uri.Scheme}://{uri.Authority}";
+        }
+        
+        return null;
     }
 }
