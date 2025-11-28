@@ -96,12 +96,9 @@ namespace thirdpartynetwork.Application.Services
         public async Task DeleteByIdAsync(Guid networkId, Guid fileId)
         {
             var file = GetById(networkId, fileId);
-            Console.WriteLine("Removing File: " + file?.PublicId + $" ({file?.Name})");
             if (file == null) return;
-            Console.WriteLine("File found");
 
             await cdnService.DeleteAsync($"{networkId}/{file.PublicId}", file.MediaType);
-            Console.WriteLine("Proceeding to remove");
 
             repository.Delete(file);
         }

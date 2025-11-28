@@ -15,12 +15,15 @@ namespace thirdpartynetwork.Application.Services
         IIdentityVerifier identityVerifier) : INetworkService
     {
         private static Network? _cachedMainNetwork;
-        
+
         private ICollection<Network> FilterNetworks(ICollection<Network> networks, bool bypass = false)
         {
-            var currentUser = identityService.GetUserProxy(bypass);
+            if (bypass) return networks;
+
+            var currentUser = identityService.GetUserProxy();
             var isSuper =
                 identityVerifier.IsSuperAdminOrHasSuperPermission(currentUser.Id, Constants.Permissions.ReadNetwork);
+
             return networks
                 .Where(network => network.IsPublic
                                   || isSuper
@@ -53,7 +56,7 @@ namespace thirdpartynetwork.Application.Services
 
             network.NetworkUsers = network.NetworkUsers
                 .Where(x => x.UserProxyId == currentUser.Id).ToList();
- 
+
             return network;
         }
 
@@ -94,7 +97,7 @@ namespace thirdpartynetwork.Application.Services
                     Permission = permissionService.GetByName(Constants.Permissions.Administrator)!
                 }
             ];
-            
+
             userRole.RolePermissions = new List<RolePermission>()
             {
                 new()
@@ -180,7 +183,7 @@ namespace thirdpartynetwork.Application.Services
         {
             var network = GetById(id, true);
             if (network == null) return;
-            
+
             network.ImageFileId = null;
             network.ImageFile = null;
 
@@ -188,7 +191,7 @@ namespace thirdpartynetwork.Application.Services
             {
                 await cdnService.DeleteAsync($"{networkFile.NetworkId}/{networkFile.PublicId}", networkFile.MediaType);
             }
-            
+
             repository.Delete(network);
         }
 

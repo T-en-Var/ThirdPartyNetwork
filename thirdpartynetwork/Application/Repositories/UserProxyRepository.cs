@@ -41,7 +41,6 @@ namespace thirdpartynetwork.Application.Repositories
             var query = GetQueryable();
             var currentUser = identityService.GetUserProxy(true);
 
-            Console.WriteLine("GetById, IsUserOwner: " + identityVerifier.IsUserProxyOwner(currentUser.Id, userProxyId));
             if (identityVerifier.IsUserProxyOwner(currentUser.Id, userProxyId))
             {
                 query = query

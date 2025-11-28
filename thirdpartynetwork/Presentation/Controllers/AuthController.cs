@@ -40,7 +40,7 @@ public class AuthController(IAuthService service) : ControllerBase
     public IActionResult Login([FromRoute] Guid networkId, [FromBody] LoginDto login,
         [FromQuery] string clientId, [FromQuery] string codeChallenge)
     {
-        var tokens = service.Login(networkId, login, clientId, codeChallenge);
+        var tokens = service.ExternalLogin(networkId, login, clientId, codeChallenge);
         return Ok(tokens);
     }
 
@@ -49,7 +49,7 @@ public class AuthController(IAuthService service) : ControllerBase
     [ProducesResponseType(401)]
     public IActionResult Refresh(Guid networkId, [FromBody] RefreshTokenDto refreshToken)
     {
-        var tokens = service.Refresh(networkId, refreshToken);
+        var tokens = service.Refresh(networkId, refreshToken, true);
         return Ok(tokens);
     }
 
@@ -59,7 +59,7 @@ public class AuthController(IAuthService service) : ControllerBase
     public IActionResult Register([FromRoute] Guid networkId, [FromBody] CreateUserProxyDto createUserProxy,
         [FromQuery] string clientId, [FromQuery] string codeChallenge)
     {
-        var code = service.Register(networkId, createUserProxy, clientId, codeChallenge);
+        var code = service.ExternalRegister(networkId, createUserProxy, clientId, codeChallenge);
         return Ok(code);
     }
     

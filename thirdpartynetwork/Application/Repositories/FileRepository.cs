@@ -21,8 +21,6 @@ namespace thirdpartynetwork.Application.Repositories
         {
             if (file.IsSystemProtected) throw new UnauthorizedHttpException("File is system protected");
             
-            Console.WriteLine("Removing File: " + file.PublicId + $" ({file.Name})");
-            
             _context.Remove(file);
             _context.SaveChanges();
         }

@@ -117,8 +117,6 @@ public sealed class CloudinaryService : ICDNService
 
         resourceType = resourceType.ToLowerInvariant();
 
-        Console.WriteLine($"Deleting [{resourceType}]: {publicId}");
-
         var deletionParams = new DeletionParams(publicId)
         {
             Invalidate = true,
@@ -133,13 +131,12 @@ public sealed class CloudinaryService : ICDNService
 
         var result = await _cloudinary.DestroyAsync(deletionParams).ConfigureAwait(false);
 
-        Console.WriteLine($"StatusCode: {result.StatusCode}, Result: {result.Result}");
-
         if (result.Error != null)
             throw new InvalidOperationException($"Cloudinary error: {result.Error.Message}");
 
         if (string.Equals(result.Result, "not found", StringComparison.OrdinalIgnoreCase))
-            throw new FileNotFoundException($"File not found in Cloudinary [{resourceType}]: {publicId}");
+            Console.WriteLine($"File not found in Cloudinary [{resourceType}]: {publicId} - But we don't care.");
+            // throw new FileNotFoundException($"File not found in Cloudinary [{resourceType}]: {publicId}");
     }
 
     
