@@ -192,7 +192,6 @@
                   </tr>
                 </template>
 
-
                 <tr v-if="!filteredFiles.length">
                   <td colspan="7" class="px-6 py-10 text-center text-gray-500">
                     No files found.

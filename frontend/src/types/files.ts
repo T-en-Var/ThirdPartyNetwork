@@ -17,6 +17,8 @@ export interface NetworkFile {
   isSystemProtected: boolean;
 }
 
+export type NetworkFileCreate = Pick<NetworkFile, 'url' | 'format' | 'sizeBytes' | 'mediaType' | 'name' | 'isPublic'>;
+
 export interface NetworkFileLink {
   id: string;
 }

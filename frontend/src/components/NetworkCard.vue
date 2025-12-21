@@ -13,7 +13,7 @@
         <div class="flex justify-between items-center w-full">
           <div class="ml-3">
             <h2 class="text-lg font-semibold text-gray-800">{{ network.name }}</h2>
-            <p class="text-sm text-gray-600">{{ network.networkUsers?.length || 0 }} members</p>
+            <p v-if="network.networkUsers?.length > 0" class="text-sm text-gray-600">{{ network.networkUsers?.length || 0 }} members</p>
           </div>
 
           <div class="flex gap-1">

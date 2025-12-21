@@ -110,18 +110,24 @@
 </template>
 
 <script setup lang="ts">
-import type { CustomPage, Network } from '@/types';
-import { computed, ref } from 'vue';
-
-const props = defineProps<{
-  network: Network;
-}>();
+import useCustomPages from '@/composables/useCustomPages';
+import type { CustomPage } from '@/types';
+import { computed, onMounted, ref } from 'vue';
+import { useRoute } from 'vue-router';
 
 const showFilters = ref<boolean>(false);
 const filterSlug = ref<string>("");
 
+const route = useRoute();
+const customPagesState = useCustomPages();
+
 const filters = ref({
   authors: [] as string[],
+})
+
+onMounted(async () => {
+  const networkId = route.params.networkId as string;
+  customPagesState.fetchCustomPages(networkId);
 })
 
 const clearFilters = () => {
@@ -133,7 +139,7 @@ const clearFilters = () => {
 
 const uniqueAuthors = computed(() => {
   const seen = new Map<string, { username: string; firstName: string; lastName: string }>()
-  props.network.customPages.forEach(p => {
+  customPagesState.customPages.value.forEach(p => {
     const u = p.author.userProxy
     if (u && !seen.has(u.username ?? 'Unknown')) {
       seen.set(u.username ?? 'Unknown', { username: u.username ?? 'Unknown', firstName: u.firstName ?? 'Unknown', lastName: u.lastName ?? 'Unknown' })
@@ -145,7 +151,7 @@ const uniqueAuthors = computed(() => {
 const filteredPages = computed(() => {
   const query = filterSlug.value.trim().toLowerCase()
 
-  return props.network.customPages.filter(page => {
+  return customPagesState.customPages.value.filter(page => {
     const name = page.name.toLowerCase();
     const slug = page.slug.toLowerCase();
     const author = `${page.author?.userProxy?.username ?? ''} ${page.author?.userProxy?.firstName ?? ''} ${page.author?.userProxy?.lastName ?? ''}`.toLowerCase();

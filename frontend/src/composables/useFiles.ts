@@ -2,7 +2,7 @@ import { ref } from 'vue'
 import api from '@/api/api.ts'
 import type { Ref } from 'vue'
 import type { AxiosError, AxiosProgressEvent } from 'axios'
-import type { NetworkFile, ErrorMessage, Network } from '@/types'
+import type { NetworkFile, ErrorMessage } from '@/types'
 import { useGlobalStore } from '@/stores/global'
 
 export default function useFiles() {
@@ -14,14 +14,11 @@ export default function useFiles() {
 
   const globalStore = useGlobalStore()
 
-  const insertFile = (networkFile: NetworkFile, network: Network | null = null) => {
-    if (network) files.value = network?.files;
+  const insertFile = (networkFile: NetworkFile) => {
     const index = files.value.findIndex(f => f.id === networkFile.id)
 
     if (index !== -1) files.value.splice(index, 1, networkFile)
     else files.value.unshift(networkFile)
-
-    if (network) network.files = files.value;
   }
 
   const fetchNetworkFiles = async (networkId: string) => {

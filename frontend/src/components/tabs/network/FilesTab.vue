@@ -207,14 +207,22 @@
 </template>
 
 <script setup lang="ts">
+import useFiles from '@/composables/useFiles';
 import { readableSize } from '@/lib/utils';
-import type { Network, NetworkFile } from '@/types';
-import { computed, ref } from 'vue';
-
-const props = defineProps<{ network: Network }>();
+import type { NetworkFile } from '@/types';
+import { computed, onMounted, ref } from 'vue';
+import { useRoute } from 'vue-router';
 
 const showFilters = ref(false);
 const filterSlug = ref("");
+
+const route = useRoute();
+const filesState = useFiles();
+
+onMounted(async () => {
+  const networkId = route.params.networkId as string;
+  filesState.fetchNetworkFiles(networkId);
+});
 
 const filters = ref({
   visibility: [] as string[],
@@ -252,14 +260,14 @@ function togglePlay(file: NetworkFile) {
 // Extract formats
 const formats = computed(() => {
   const types = new Set<string>();
-  props.network.files.forEach(f => { if (f.format) types.add(f.format.toLowerCase()); });
+  filesState.files.value.forEach(f => { if (f.format) types.add(f.format.toLowerCase()); });
   return Array.from(types).sort();
 });
 
 // Filtered files
 const filteredFiles = computed(() => {
   const query = filterSlug.value.trim().toLowerCase();
-  return props.network.files.filter(file => {
+  return filesState.files.value.filter(file => {
     const name = file.name.toLowerCase();
     const author = `${file.author?.userProxy?.username ?? ''} ${file.author?.userProxy?.firstName ?? ''} ${file.author?.userProxy?.lastName ?? ''}`.toLowerCase();
     const format = file.format?.toLowerCase();
