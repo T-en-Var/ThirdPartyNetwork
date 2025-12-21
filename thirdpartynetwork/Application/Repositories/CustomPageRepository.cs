@@ -29,9 +29,9 @@ namespace thirdpartynetwork.Application.Repositories
             return [.. _context.CustomPages];
         }
 
-        public CustomPage? GetById(Guid networkId, Guid id)
+        public CustomPage? GetById(Guid id)
         {
-            return GetQueryable(networkId).FirstOrDefault(c => c.Id == id);
+            return _context.CustomPages.FirstOrDefault(c => c.Id == id);
         }
 
         public ICollection<CustomPage> GetByNetworkId(Guid networkId)
@@ -48,7 +48,7 @@ namespace thirdpartynetwork.Application.Repositories
 
         public CustomPage Update(Guid networkId, Guid customPageId, UpdateCustomPageDto updateCustomPage)
         {
-            var existing = GetById(networkId, customPageId);
+            var existing = GetById(customPageId);
             if (existing == null) throw new Exception("CustomPage not found");
 
             mapper.Map(updateCustomPage, existing); 

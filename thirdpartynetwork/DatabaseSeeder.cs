@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using thirdpartynetwork.Core;
 using thirdpartynetwork.Core.Models;
 using thirdpartynetwork.Core.Data;
+using thirdpartynetwork.Core.Enum;
 using thirdpartynetwork.Core.Interfaces.Helpers;
 using File = thirdpartynetwork.Core.Models.File;
 using Role = thirdpartynetwork.Core.Models.Role;
@@ -439,10 +440,10 @@ namespace thirdpartynetwork
                     Height = 1024,
                     MediaType = "image",
                     Name = "networkIcon.png",
-                    IsPublic = true,
                     Network = network,
                     Author = adminNetworkUser,
                     IsSystemProtected = true,
+                    AccessLevel = AccessLevel.Public
                 };
 
                 context.Files.Add(networkFile);
@@ -460,10 +461,10 @@ namespace thirdpartynetwork
                     Height = 1024,
                     MediaType = "image",
                     Name = "adminAvatar.png",
-                    IsPublic = true,
                     Network = network,
                     Author = adminNetworkUser,
                     IsSystemProtected = true,
+                    AccessLevel = AccessLevel.Public,
                 };
 
                 await context.SaveChangesAsync();

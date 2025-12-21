@@ -7,7 +7,7 @@ namespace thirdpartynetwork.Core.Interfaces.Repositories
         bool Exists(Guid id);
         ICollection<CustomPage> GetAll();
         ICollection<CustomPage> GetByNetworkId(Guid networkId);
-        CustomPage? GetById(Guid networkId, Guid id);
+        CustomPage? GetById(Guid id);
         CustomPage Create(CustomPage customPage);
         CustomPage Update(Guid networkId, Guid customPageId, UpdateCustomPageDto updateCustomPage);
         void Delete(CustomPage customPage);

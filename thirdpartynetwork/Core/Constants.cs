@@ -69,6 +69,15 @@ public static class Constants
         Permissions.ReadAccess,
         Permissions.ReadPermission,
     ];
+
+    public static readonly string[] ContentPermissions = [
+        Permissions.ReadCustomPage,
+        Permissions.ManageCustomPage,
+        Permissions.ReadPageBlock,
+        Permissions.ManagePageBlock,
+        Permissions.ReadFile,
+        Permissions.ManageFile,
+    ];
     
     public static readonly string[] OwnerPermissions =
     [
