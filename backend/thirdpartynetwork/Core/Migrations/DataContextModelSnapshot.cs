@@ -57,6 +57,9 @@ namespace thirdpartynetwork.Core.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<int>("AccessLevel")
+                        .HasColumnType("integer");
+
                     b.Property<Guid>("AuthorId")
                         .HasColumnType("uuid");
 
@@ -92,6 +95,9 @@ namespace thirdpartynetwork.Core.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<int>("AccessLevel")
+                        .HasColumnType("integer");
+
                     b.Property<Guid>("AuthorId")
                         .HasColumnType("uuid");
 
@@ -108,9 +114,6 @@ namespace thirdpartynetwork.Core.Migrations
                     b.Property<int?>("Height")
                         .HasColumnType("integer");
 
-                    b.Property<bool>("IsPublic")
-                        .HasColumnType("boolean");
-
                     b.Property<bool>("IsSystemProtected")
                         .HasColumnType("boolean");
 
@@ -123,6 +126,9 @@ namespace thirdpartynetwork.Core.Migrations
                         .HasColumnType("text");
 
                     b.Property<Guid>("NetworkId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("NetworkUserId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("PublicId")
@@ -146,6 +152,8 @@ namespace thirdpartynetwork.Core.Migrations
                     b.HasIndex("AuthorId");
 
                     b.HasIndex("NetworkId");
+
+                    b.HasIndex("NetworkUserId");
 
                     b.ToTable("Files");
                 });
@@ -298,6 +306,9 @@ namespace thirdpartynetwork.Core.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<int>("AccessLevel")
+                        .HasColumnType("integer");
+
                     b.Property<Guid>("AuthorId")
                         .HasColumnType("uuid");
 
@@ -310,6 +321,9 @@ namespace thirdpartynetwork.Core.Migrations
                     b.Property<JsonDocument>("Data")
                         .IsRequired()
                         .HasColumnType("jsonb");
+
+                    b.Property<Guid>("NetworkId")
+                        .HasColumnType("uuid");
 
                     b.Property<Guid?>("ParentPageId")
                         .HasColumnType("uuid");
@@ -329,6 +343,8 @@ namespace thirdpartynetwork.Core.Migrations
                     b.HasIndex("AuthorId");
 
                     b.HasIndex("CustomPageId");
+
+                    b.HasIndex("NetworkId");
 
                     b.ToTable("PageBlocks");
                 });
@@ -485,11 +501,11 @@ namespace thirdpartynetwork.Core.Migrations
                     b.HasOne("thirdpartynetwork.Core.Models.NetworkUser", "Author")
                         .WithMany()
                         .HasForeignKey("AuthorId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("thirdpartynetwork.Core.Models.Network", "Network")
-                        .WithMany("CustomPages")
+                        .WithMany()
                         .HasForeignKey("NetworkId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -502,16 +518,20 @@ namespace thirdpartynetwork.Core.Migrations
             modelBuilder.Entity("thirdpartynetwork.Core.Models.File", b =>
                 {
                     b.HasOne("thirdpartynetwork.Core.Models.NetworkUser", "Author")
-                        .WithMany("Files")
+                        .WithMany()
                         .HasForeignKey("AuthorId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("thirdpartynetwork.Core.Models.Network", "Network")
-                        .WithMany("Files")
+                        .WithMany()
                         .HasForeignKey("NetworkId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("thirdpartynetwork.Core.Models.NetworkUser", null)
+                        .WithMany("Files")
+                        .HasForeignKey("NetworkUserId");
 
                     b.Navigation("Author");
 
@@ -609,7 +629,7 @@ namespace thirdpartynetwork.Core.Migrations
                     b.HasOne("thirdpartynetwork.Core.Models.NetworkUser", "Author")
                         .WithMany()
                         .HasForeignKey("AuthorId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("thirdpartynetwork.Core.Models.CustomPage", "CustomPage")
@@ -618,9 +638,17 @@ namespace thirdpartynetwork.Core.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("thirdpartynetwork.Core.Models.Network", "Network")
+                        .WithMany()
+                        .HasForeignKey("NetworkId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Author");
 
                     b.Navigation("CustomPage");
+
+                    b.Navigation("Network");
                 });
 
             modelBuilder.Entity("thirdpartynetwork.Core.Models.Role", b =>
@@ -684,10 +712,6 @@ namespace thirdpartynetwork.Core.Migrations
 
             modelBuilder.Entity("thirdpartynetwork.Core.Models.Network", b =>
                 {
-                    b.Navigation("CustomPages");
-
-                    b.Navigation("Files");
-
                     b.Navigation("NetworkAccesses");
 
                     b.Navigation("NetworkUsers");

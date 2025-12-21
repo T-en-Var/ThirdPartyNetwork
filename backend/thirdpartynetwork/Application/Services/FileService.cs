@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using CloudinaryDotNet.Actions;
+using thirdpartynetwork.Core.Enum;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using thirdpartynetwork.Core.Interfaces.Auth;
 using thirdpartynetwork.Core.Models;
@@ -76,7 +77,7 @@ namespace thirdpartynetwork.Application.Services
                 Network = network,
                 Author = networkUser,
                 Name = file.FileName,
-                IsPublic = false,
+                AccessLevel = AccessLevel.Private
             };
 
             return repository.Create(newFile);

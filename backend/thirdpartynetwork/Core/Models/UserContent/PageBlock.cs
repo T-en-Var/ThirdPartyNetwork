@@ -1,8 +1,9 @@
 using System.Text.Json;
+using thirdpartynetwork.Core.Enum;
 
 namespace thirdpartynetwork.Core.Models;
 
-public class PageBlock : BaseModel
+public class PageBlock : UserContentBaseModel
 {
     public Guid Id { get; set; }
     public Guid? ParentPageId { get; set; }
@@ -11,6 +12,4 @@ public class PageBlock : BaseModel
     public JsonDocument Data { get; set; }
     public Guid CustomPageId { get; set; }
     public CustomPage CustomPage { get; set; }
-    public Guid AuthorId { get; set; }
-    public NetworkUser Author { get; set; }
 }

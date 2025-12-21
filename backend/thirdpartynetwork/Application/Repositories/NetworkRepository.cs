@@ -22,34 +22,6 @@ namespace thirdpartynetwork.Application.Repositories
             var allowRoles = bypass || identityVerifier.IsAllowed(id, currentUser.Id, Constants.Permissions.ReadRole);
             var allowAccess = bypass || identityVerifier.IsAllowed(id, currentUser.Id, Constants.Permissions.ReadAccess);
             var allowPerms = bypass || identityVerifier.IsAllowed(id, currentUser.Id, Constants.Permissions.ReadPermission);
-            var allowFiles = bypass || identityVerifier.IsAllowed(id, currentUser.Id, Constants.Permissions.ReadFile);
-            var allowCustomPages =
-                bypass || identityVerifier.IsAllowed(id, currentUser.Id, Constants.Permissions.ReadPageBlock);
-
-            if (allowCustomPages)
-            {
-                query = query
-                    .Include(x => x.CustomPages)
-                    .ThenInclude(x => x.Pages);
-                
-                if (allowUsers)
-                {
-                    query = query
-                        .Include(x => x.CustomPages)
-                        .ThenInclude(x => x.Author)
-                        .ThenInclude(x => x.UserProxy)
-                        .Include(x => x.CustomPages)
-                        .ThenInclude(x => x.Pages)
-                        .ThenInclude(x => x.Author)
-                        .ThenInclude(x => x.UserProxy);
-                }
-            }
-
-            if (allowFiles)
-            {
-                query = query
-                    .Include(x => x.Files);
-            }
             
             if (allowUsers)
             {

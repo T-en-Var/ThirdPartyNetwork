@@ -26,7 +26,7 @@ namespace thirdpartynetwork.Application.Services
 
         public CustomPage? GetById(Guid networkId, Guid customPageId)
         {
-            var customPage = repository.GetById(networkId, customPageId);
+            var customPage = repository.GetById(customPageId);
             return customPage;
         }
 
