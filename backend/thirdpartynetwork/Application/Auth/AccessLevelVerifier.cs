@@ -1,4 +1,5 @@
 using thirdpartynetwork.Core.Enum;
+using thirdpartynetwork.Core.Interfaces.Auth;
 using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Application.Auth;
@@ -6,9 +7,8 @@ namespace thirdpartynetwork.Application.Auth;
 public class AccessLevelVerifier(
     IFileRepository fileRepository,
     ICustomPageRepository customPageRepository,
-    IPageBlockRepository pageBlockRepository,
-    IdentityVerifier identityVerifier
-)
+    IPageBlockRepository pageBlockRepository
+) : IAccessLevelVerifier
 {
     public bool CheckFileAccess(Guid fileId, UserProxy userProxy, Guid networkId)
     {

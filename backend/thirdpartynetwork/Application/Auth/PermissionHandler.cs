@@ -12,7 +12,7 @@ public class PermissionHandler(
     IUserProxyService userProxyService,
     IIdentityVerifier identityVerifier,
     IIdentityService identityService,
-    AccessLevelVerifier accessLevelVerifier)
+    IAccessLevelVerifier accessLevelVerifier)
     : AuthorizationHandler<PermissionRequirement>
 {
     protected override Task HandleRequirementAsync(
