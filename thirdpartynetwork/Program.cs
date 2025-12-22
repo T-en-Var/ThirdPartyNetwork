@@ -136,6 +136,7 @@ builder.Services.AddSingleton<IJtiCacheService, JtiCacheService>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IIdentityVerifier, IdentityVerifier>();
 builder.Services.AddScoped<IIdentityService, IdentityService>();
+builder.Services.AddScoped<IAccessLevelVerifier, AccessLevelVerifier>();
 
 // Add Services
 builder.Services.AddScoped<IAccessService, AccessService>();
