@@ -7,10 +7,12 @@ export interface CustomPage {
   slug: string;
   networkId: string;
   author: NetworkUser;
-  pages: PageBlock[]
+  pages: PageBlock[];
+  accessLevel: number;
 }
 
 export interface CreateCustomPage {
   name: string;
   slug: string;
+  accessLevel: number;
 }

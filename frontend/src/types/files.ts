@@ -15,6 +15,7 @@ export interface NetworkFile {
   author: NetworkUser;
   networkId: string;
   isSystemProtected: boolean;
+  accessLevel: number;
 }
 
 export type NetworkFileCreate = Pick<NetworkFile, 'url' | 'format' | 'sizeBytes' | 'mediaType' | 'name' | 'isPublic'>;
