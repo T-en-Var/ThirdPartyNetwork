@@ -51,6 +51,44 @@ namespace thirdpartynetwork.Core.Migrations
                     b.ToTable("Accesses");
                 });
 
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.Configuration", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("AccessLevel")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("AuthorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("NetworkId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<JsonDocument>("Value")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuthorId");
+
+                    b.HasIndex("NetworkId");
+
+                    b.ToTable("Configurations");
+                });
+
             modelBuilder.Entity("thirdpartynetwork.Core.Models.CustomPage", b =>
                 {
                     b.Property<Guid>("Id")
@@ -494,6 +532,25 @@ namespace thirdpartynetwork.Core.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("UserProxies");
+                });
+
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.Configuration", b =>
+                {
+                    b.HasOne("thirdpartynetwork.Core.Models.NetworkUser", "Author")
+                        .WithMany()
+                        .HasForeignKey("AuthorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("thirdpartynetwork.Core.Models.Network", "Network")
+                        .WithMany()
+                        .HasForeignKey("NetworkId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Author");
+
+                    b.Navigation("Network");
                 });
 
             modelBuilder.Entity("thirdpartynetwork.Core.Models.CustomPage", b =>

@@ -11,6 +11,11 @@ public class IdentityService(
     IHttpContextAccessor httpContextAccessor,
     DataContext dataContext) : IIdentityService
 {
+    public bool IsAuthenticated()
+    {
+        return _ExtractUserProxyId(true) != Guid.Empty;
+    }
+    
     public UserProxy GetUserProxy(bool omitThrow = false)
     {
         var userProxyId = _ExtractUserProxyId(omitThrow);
@@ -70,7 +75,7 @@ public class IdentityService(
     private Guid _ExtractUserProxyId(bool omitThrow)
     {
         var httpContext = GetHttpContext();
-        var userProxyId = CustomParser.GetGuidFromHttpContextUserClaim(httpContext, "uid");
+        var userProxyId = httpContext.GetGuidFromHttpContextUserClaim("uid");
 
         if (!omitThrow && userProxyId == Guid.Empty) throw new UnauthorizedHttpException();
         return userProxyId;

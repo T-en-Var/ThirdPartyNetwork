@@ -3,12 +3,25 @@ using Microsoft.EntityFrameworkCore;
 using thirdpartynetwork.Core.Data;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using Configuration = thirdpartynetwork.Core.Models.Configuration;
+using thirdpartynetwork.Application.Dtos.UserContent.Configuration;
 
 namespace thirdpartynetwork.Application.Repositories
 {
     public class ConfigurationRepository(DataContext context, IMapper mapper) : BaseRepository(context), IConfigurationRepository
     {
         private readonly DataContext _context = context;
+        
+        private IQueryable<Configuration> GetQueryable(bool bypass = false)
+        {
+            var query = _context.Configurations
+                .Include(x => x.Author)
+                .ThenInclude(x => x.UserProxy)
+                .AsQueryable();
+            // var currentUser = identityService.GetUserProxy(true);
+            
+            return query;
+        }
+
 
         public Configuration Create(Configuration configuration)
         {
@@ -19,8 +32,6 @@ namespace thirdpartynetwork.Application.Repositories
 
         public void Delete(Configuration configuration)
         {
-            if (configuration.IsSystemProtected) throw new UnauthorizedHttpException("Configuration is system protected");
-
             _context.Remove(configuration);
             _context.SaveChanges();
         }
@@ -32,25 +43,23 @@ namespace thirdpartynetwork.Application.Repositories
 
         public ICollection<Configuration> GetAll()
         {
-            return _context.Configurations.Include(c => c.Author).ToList();
+            return GetQueryable().Include(c => c.Author).ToList();
         }
 
         public Configuration? GetById(Guid id)
         {
-            return _context.Configurations.Find(id);
+            return GetQueryable().FirstOrDefault(x => x.Id == id);
         }
 
         public ICollection<Configuration> GetByNetworkId(Guid networkId)
         {
-            return _context.Configurations.Where(c => c.Network.Id == networkId).Include(c => c.Author).ToList();
+            return GetQueryable().Where(c => c.Network.Id == networkId).Include(c => c.Author).ToList();
         }
 
         public Configuration Update(Guid configurationId, UpdateConfigurationDto updateConfiguration)
         {
             var existing = GetById(configurationId);
             if (existing == null) throw new Exception("Configuration not found");
-
-            if (existing.IsSystemProtected) throw new UnauthorizedHttpException("Configuration is system protected");
 
             mapper.Map(updateConfiguration, existing);
 

@@ -1,4 +1,5 @@
 using thirdpartynetwork.Core.Models;
+using thirdpartynetwork.Application.Dtos.UserContent.Configuration;
 
 namespace thirdpartynetwork.Core.Interfaces.Services
 {

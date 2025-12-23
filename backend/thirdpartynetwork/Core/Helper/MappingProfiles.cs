@@ -1,6 +1,7 @@
 ﻿using System.Runtime.InteropServices.JavaScript;
 using AutoMapper;
 using thirdpartynetwork.Core.Models;
+using thirdpartynetwork.Application.Dtos.UserContent.Configuration;
 using File = thirdpartynetwork.Core.Models.File;
 
 namespace thirdpartynetwork.Core.Helper
@@ -96,6 +97,10 @@ namespace thirdpartynetwork.Core.Helper
             CreateMap<PageBlock, PageBlockDto>();
             CreateMap<CreatePageBlockDto, PageBlock>();
             CreateMap<UpdatePageBlockDto, PageBlock>();
+
+            CreateMap<Configuration, ConfigurationDto>();
+            CreateMap<CreateConfigurationDto, Configuration>();
+            CreateMap<UpdateConfigurationDto, Configuration>();
         }
         
         private static T? MapFieldIfAccessGranted<T>(
