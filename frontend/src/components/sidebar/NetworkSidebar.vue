@@ -50,8 +50,14 @@ const navItems: ComputedRef<NavCategory[]> = computed(() => [
       {
         page: 'custom-pages',
         label: 'Custom Pages',
-        subItems: historyStore.customPages.map(cp => ({ page: cp.id, label: cp.name })),
+        subItems: historyStore.customPages.map(cp => ({ page: cp.id, label: cp.name })).slice().reverse(),
         getURI: (sub: SubItem) => `custom-pages/${sub.page}/edit`,
+      },
+      {
+        page: 'configurations',
+        label: 'Configurations',
+        subItems: historyStore.configurations.map(cp => ({ page: cp.id, label: cp.key })).slice().reverse(),
+        getURI: (sub: SubItem) => `configurations/${sub.page}/edit`,
       },
     ],
   },

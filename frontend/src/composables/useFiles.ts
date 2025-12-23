@@ -78,7 +78,7 @@ export default function useFiles() {
     }
   }
 
-  const uploadFile = async (networkId: string, fileToUpload: File) => {
+  const uploadFile = async (networkId: string, fileToUpload: File, accessLevel: number = 0) => {
     loading.value = true
     progress.value = 0
     error.value = null
@@ -86,6 +86,7 @@ export default function useFiles() {
 
     const formData = new FormData()
     formData.append('file', fileToUpload)
+    formData.append('accessLevel', accessLevel.toString())
 
     const config = {
       headers: {

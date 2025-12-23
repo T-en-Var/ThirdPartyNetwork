@@ -62,6 +62,9 @@
             Drag & drop a file here or click to select
           </div>
         </div>
+
+        <!-- Access Level -->
+        <AccessLevelPicker v-model="selectedAccessLevel" />
       </div>
 
       <!-- Existing Tab -->
@@ -114,6 +117,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
 import ModalContainer from '@/components/modals/ModalContainer.vue';
+import AccessLevelPicker from '@/components/fields/AccessLevelPicker.vue';
 import useFiles from '@/composables/useFiles';
 import { mapMediaType, readableSize } from '@/lib/utils';
 import type { UserProxy, Network, NetworkFile } from '@/types';
@@ -150,6 +154,7 @@ const { uploadFile, file, loading, error, progress } = useFiles();
 
 const fileInput = ref<HTMLInputElement | null>(null);
 const selectedFile = ref<File | null>(null);
+const selectedAccessLevel = ref<number>(0);
 
 const allNetworks = computed(() => {
   if (props.networks) return props.networks;
@@ -224,7 +229,7 @@ async function handleUpload() {
 
   if (activeTab.value === 'upload') {
     if (!selectedFile.value || !selectedNetwork.value) return;
-    await uploadFile(selectedNetwork.value.id, selectedFile.value);
+    await uploadFile(selectedNetwork.value.id, selectedFile.value, selectedAccessLevel.value);
 
     selectedFile.value = null;
   }

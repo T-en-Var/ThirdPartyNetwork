@@ -1,4 +1,4 @@
-import type { CustomPage, PageBlock, UserProxy } from '@/types';
+import type { Configuration, CustomPage, PageBlock, UserProxy } from '@/types';
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 
@@ -12,6 +12,10 @@ export const useHistoryStore = defineStore('history', () => {
     return theList;
   }
 
+  const configurations = ref<Configuration[]>([]);
+  const configurationHistoryMax = 3;
+  const configurationVisit = (config: Configuration) => configurations.value = genericHistory(configurations.value, config, configurationHistoryMax);
+
   const customPages = ref<CustomPage[]>([]);
   const customPageHistoryMax = 3;
   const customPageVisit = (page: CustomPage) => customPages.value = genericHistory(customPages.value, page, customPageHistoryMax);
@@ -22,11 +26,7 @@ export const useHistoryStore = defineStore('history', () => {
 
   const userProxies = ref<UserProxy[]>([]);
   const userProxiesHistoryMax = 3;
-  const userProxyVisit = (userProxy: UserProxy) => {
-    console.log("call", userProxy, userProxies.value)
-    userProxies.value = genericHistory(userProxies.value, userProxy, userProxiesHistoryMax);
-    console.log(userProxies.value)
-  }
+  const userProxyVisit = (userProxy: UserProxy) => userProxies.value = genericHistory(userProxies.value, userProxy, userProxiesHistoryMax);
 
   return {
     customPageVisit,
@@ -35,5 +35,8 @@ export const useHistoryStore = defineStore('history', () => {
     pageBlocks,
     userProxies,
     userProxyVisit,
+    configurations,
+    configurationHistoryMax,
+    configurationVisit,
   };
 });

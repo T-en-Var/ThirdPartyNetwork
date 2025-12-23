@@ -167,6 +167,24 @@ const router = createRouter({
           },
         },
         {
+          path: 'configurations',
+          name: 'manage-network-configurations',
+          component: () => import('@/components/tabs/network/ConfigurationsTab.vue'),
+          meta: {
+            requiresAuth: true,
+            title: 'Configurations'
+          },
+        },
+        {
+          path: 'configurations/:configurationId/edit',
+          name: 'manage-network-edit-configuration',
+          component: () => import('@/components/tabs/network/EditConfigurationTab.vue'),
+          meta: {
+            requiresAuth: true,
+            title: 'Edit Configuration'
+          },
+        },
+        {
           path: 'custom-pages/:customPageId/edit',
           name: 'manage-network-edit-custom-page',
           component: () => import('@/components/tabs/network/EditCustomPageTab.vue'),

@@ -18,6 +18,10 @@
         @edit-file="openEditFileModal" @remove-file="confirmRemoveFile"
         @toggle-file-visibility="confirmToggleFileVisibility"
         @open-create-custom-page-modal="showCreateCustomPageModal = true"
+        @open-create-configuration-modal="showCreateConfigurationModal = true"
+        @edit-configuration="handleEditConfiguration"
+        @update-configuration="handleUpdateConfiguration"
+        @remove-configuration="handleRemoveConfiguration"
         @edit-custom-page="handleEditCustomPage"
         @remove-custom-page="handleRemoveCustomPage"
         @update-custom-page="handleUpdateCustomPage"
@@ -68,6 +72,11 @@
           :is-submitting="isSubmitting" @create-custom-page="handleCreateCustomPage"
           @close="showCreateCustomPageModal = false" />
 
+        <AddConfigurationModal v-if="showCreateConfigurationModal"
+          :is-submitting="isSubmitting"
+          @create-configuration="handleCreateConfiguration"
+          @close="showCreateConfigurationModal = false" />
+
         <AddPageBlockModal
           v-if="showCreatePageBlockModal && createPageBlockCustomPage"
           :custom-page="createPageBlockCustomPage" :is-submitting="isSubmitting"
@@ -97,7 +106,7 @@ import AddFileModal from '@/components/modals/network/AddFileModal.vue';
 import EditFileModal from '@/components/modals/network/EditFileModal.vue';
 import ConfirmationModal from '@/components/modals/ConfirmationModal.vue';
 
-import type { NetworkUser, Role, NetworkAccess, NetworkFile, CreateRole, UpdateRole, CustomPage, CreateCustomPage, PageBlock, CreatePageBlock, NetworkAccessCreate, Network, NetworkUpdate } from '@/types';
+import type { NetworkUser, Role, NetworkAccess, NetworkFile, CreateRole, UpdateRole, CustomPage, CreateCustomPage, PageBlock, CreatePageBlock, NetworkAccessCreate, Network, NetworkUpdate, CreateConfiguration } from '@/types';
 import type { RoleForm, ManageUserForm, EditFileForm } from '@/types/forms';
 
 import api from '@/api/api';
@@ -105,6 +114,8 @@ import useFiles from '@/composables/useFiles';
 import AddCustomPageModal from '@/components/modals/network/AddCustomPageModal.vue';
 import AddPageBlockModal from '@/components/modals/network/AddPageBlockModal.vue';
 import useCustomPages from '@/composables/useCustomPages';
+import AddConfigurationModal from '@/components/modals/network/AddConfigurationModal.vue';
+import useConfigurations from '@/composables/useConfigurations';
 
 const router = useRouter();
 const route = useRoute();
@@ -114,6 +125,7 @@ const permissionsState = usePermissions();
 const networkState = useNetwork();
 const fileState = useFiles();
 const customPagesState = useCustomPages();
+const configurationsState = useConfigurations();
 
 const showAddUserModal = ref(false);
 const showManageUserModal = ref(false);
@@ -124,6 +136,7 @@ const showConfirmationModal = ref(false);
 const showAddFileModal = ref(false);
 const showEditFileModal = ref(false);
 const showCreateCustomPageModal = ref(false);
+const showCreateConfigurationModal = ref(false);
 const showCreatePageBlockModal = ref(false);
 const createPageBlockCustomPage = ref<CustomPage | null>(null);
 
@@ -489,6 +502,54 @@ async function handleCreateCustomPage(customPageData: CreateCustomPage) {
     isSubmitting.value = false;
     globalStore.stopFetching();
   }
+}
+
+async function handleCreateConfiguration(payload: { key: string; value: object; accessLevel: number; }) {
+  isSubmitting.value = true;
+  globalStore.startFetching();
+  try {
+    await api.post(`/networks/${networkState.network.value!.id}/configurations`, payload);
+    configurationsState.fetchNetworkConfigurations(networkState.network.value!.id);
+    showCreateConfigurationModal.value = false;
+    router.go(0);
+  } catch (err) {
+    console.error('Error creating configuration:', err);
+  } finally {
+    isSubmitting.value = false;
+    globalStore.stopFetching();
+  }
+}
+
+function handleEditConfiguration(cfg: { id: string; }) {
+  router.push(`/networks/${networkState.network.value?.id}/manage/configurations/${cfg.id}/edit`);
+}
+
+async function handleUpdateConfiguration(cfgId: string, cfg: CreateConfiguration) {
+  await configurationsState.updateConfiguration(networkState.network.value!.id, cfgId, cfg);
+  router.go(0);
+}
+
+function handleRemoveConfiguration(cfg: { id: string; key?: string; }) {
+  confirmationTitle.value = 'Remove Configuration';
+  confirmationMessage.value = `Are you sure you want to remove configuration ${cfg.key ?? ''}?`;
+  confirmButtonText.value = 'Remove';
+  confirmButtonColor.value = 'red';
+
+  confirmationAction.value = async () => {
+    globalStore.startFetching();
+    isSubmitting.value = true;
+    try {
+      await api.delete(`/networks/${networkState.network.value!.id}/configurations/${cfg.id}/`);
+      await configurationsState.fetchNetworkConfigurations(networkState.network.value!.id);
+      router.push(`/networks/${networkState.network.value?.id}/manage/configurations`);
+    } catch (err) {
+      console.error('Error removing configuration:', err);
+    } finally {
+      isSubmitting.value = false;
+      globalStore.stopFetching();
+    }
+  };
+  showConfirmationModal.value = true;
 }
 
 function handleEditCustomPage(customPage: CustomPage) {

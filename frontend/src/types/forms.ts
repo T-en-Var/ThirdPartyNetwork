@@ -20,4 +20,5 @@ export type NetworkForm = {
 export type EditFileForm = {
   name: string; 
   isPublic: boolean;
+  accessLevel?: number;
 }
