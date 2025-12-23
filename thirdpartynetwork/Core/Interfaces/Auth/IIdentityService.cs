@@ -5,6 +5,7 @@ namespace thirdpartynetwork.Core.Interfaces.Auth;
 
 public interface IIdentityService
 {
+    bool IsAuthenticated();
     UserProxy GetUserProxy(bool omitThrow = false);
     ClaimsPrincipal? GetClaimsPrincipal();
 }

@@ -45,6 +45,7 @@ public static class Constants
         public const string IsUserOwner = "IsUserOwner";
         public const string IsNetworkUserOwner = "IsNetworkUserOwner";
         public const string IsUserProxyOwner = "IsUserProxyOwner";
+        
         public const string ReadUser = "Read User";
         public const string ManageUser = "Manage User";
 
@@ -56,6 +57,9 @@ public static class Constants
 
         public const string ReadFile = "Read File";
         public const string ManageFile = "Manage File";
+        
+        public const string ReadConfiguration = "Read Configuration";
+        public const string ManageConfiguration = "Manage Configuration";
 
         // public const string KickUser = "Kick User";
         // public const string KickUserAdmin = "Kick User Admin";
@@ -72,11 +76,13 @@ public static class Constants
 
     public static readonly string[] ContentPermissions = [
         Permissions.ReadCustomPage,
-        Permissions.ManageCustomPage,
+        // Permissions.ManageCustomPage,
         Permissions.ReadPageBlock,
-        Permissions.ManagePageBlock,
+        // Permissions.ManagePageBlock,
         Permissions.ReadFile,
-        Permissions.ManageFile,
+        // Permissions.ManageFile,
+        Permissions.ReadConfiguration,
+        // Permissions.ManageConfiguration,
     ];
     
     public static readonly string[] OwnerPermissions =
