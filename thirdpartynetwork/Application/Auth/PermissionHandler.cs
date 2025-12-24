@@ -133,22 +133,19 @@ public class PermissionHandler(
         if (identityVerifier.IsSuperAdminOrHasSuperPermission(userProxy.Id, permission))
             return true;
 
-        userProxy = userProxyService.GetById(userProxy.Id);
-        if (userProxy == null) throw new UnauthorizedHttpException("User does not exist (???)");
-
         return permission switch
         {
             Constants.Permissions.ReadFile =>
-                accessLevelVerifier.CheckFileAccess(compareId, userProxy, networkId),
+                accessLevelVerifier.CheckFileAccess(compareId, networkId, permission),
 
             Constants.Permissions.ReadCustomPage =>
-                accessLevelVerifier.CheckCustomPageAccess(compareId, userProxy, networkId),
+                accessLevelVerifier.CheckCustomPageAccess(compareId, networkId, permission),
 
             Constants.Permissions.ReadPageBlock =>
-                accessLevelVerifier.CheckPageBlockAccess(compareId, userProxy, networkId),
+                accessLevelVerifier.CheckPageBlockAccess(compareId, networkId, permission),
 
             Constants.Permissions.ReadConfiguration =>
-                accessLevelVerifier.CheckConfigurationAccess(compareId, userProxy, networkId),
+                accessLevelVerifier.CheckConfigurationAccess(compareId, networkId, permission),
 
             _ => throw new NotImplementedException("Unknown permission")
         };

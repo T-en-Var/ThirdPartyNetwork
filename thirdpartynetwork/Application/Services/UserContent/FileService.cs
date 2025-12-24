@@ -16,12 +16,6 @@ namespace thirdpartynetwork.Application.Services
         ICDNService cdnService,
         IMapper mapper) : IFileService
     {
-        public ICollection<File> GetAll()
-        {
-            var file = repository.GetAll();
-            return file;
-        }
-
         public ICollection<File> GetByNetworkId(Guid networkId)
         {
             var file = repository.GetByNetworkId(networkId);

@@ -13,11 +13,6 @@ public class ConfigurationService(
     INetworkUserService networkUserService,
     IMapper mapper) : IConfigurationService
 {
-    public ICollection<Configuration> GetAll()
-    {
-        return repository.GetAll();
-    }
-
     public ICollection<Configuration> GetByNetworkId(Guid networkId)
     {
         return repository.GetByNetworkId(networkId);

@@ -5,7 +5,6 @@ namespace thirdpartynetwork.Core.Interfaces.Services
 {
     public interface IFileService : IBaseService
     {
-        ICollection<File> GetAll();
         ICollection<File> GetByNetworkId(Guid networkId);
         File? GetById(Guid networkId, Guid fileId);
         // File Create(Guid networkId, CreateFileDto createFile);

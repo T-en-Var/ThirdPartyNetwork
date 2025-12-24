@@ -1,37 +1,34 @@
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using thirdpartynetwork.Application.Repositories.UserContent;
+using thirdpartynetwork.Core;
 using thirdpartynetwork.Core.Data;
+using thirdpartynetwork.Core.Interfaces.Auth;
 using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Application.Repositories
 {
-    public class PageBlockRepository(DataContext context, IMapper mapper) : BaseRepository(context), IPageBlockRepository
+    public class PageBlockRepository(
+        DataContext context,
+        IMapper mapper,
+        IAccessLevelVerifier verifier
+    ) : UserContentBaseRepository<PageBlock>(context, verifier), IPageBlockRepository
     {
         private readonly DataContext _context = context;
+
+        protected override IQueryable<PageBlock> GetQueryable()
+        {
+            return _context.PageBlocks.AsQueryable();
+        }
 
         public bool Exists(Guid id)
         {
             return _context.PageBlocks.Any(c => c.Id == id);
         }
 
-        public ICollection<PageBlock> GetAll()
+        public ICollection<PageBlock> GetByCustomPageId(Guid networkId, Guid customPageId)
         {
-            return [.. _context.PageBlocks];
-        }
-
-        public ICollection<PageBlock> GetByCustomPageId(Guid customPageId)
-        {
-            return [.. _context.PageBlocks.Where(p => p.CustomPageId == customPageId)];
-        }
-
-        public ICollection<PageBlock> GetByParentPageId(Guid parentPageId)
-        {
-            return [.. _context.PageBlocks.Where(p => p.ParentPageId == parentPageId)];
-        }
-
-        public ICollection<PageBlock> GetByParentPageBlockId(Guid parentPageId)
-        {
-            return [.. _context.PageBlocks.Where(p => p.ParentPageId == parentPageId)];
+            return GetAccessibleQueryable(networkId, Constants.Permissions.ReadPageBlock).Where(p => p.CustomPageId == customPageId).ToList();
         }
 
         public PageBlock? GetById(Guid id)
