@@ -14,7 +14,7 @@ public class PageBlockController(IPageBlockService service, IMapper mapper) : Co
     [ProducesResponseType(200, Type = typeof(IEnumerable<PageBlockDto>))]
     public IActionResult GetCustomPagePageBlocks(Guid networkId, Guid customPageId)
     {
-        var pageBlock = service.GetByCustomPageId(customPageId);
+        var pageBlock = service.GetByCustomPageId(networkId, customPageId);
         return Ok(mapper.Map<IEnumerable<PageBlockDto>>(pageBlock));
     }
 

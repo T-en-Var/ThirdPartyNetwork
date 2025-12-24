@@ -4,24 +4,24 @@ using thirdpartynetwork.Core.Data;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using Configuration = thirdpartynetwork.Core.Models.Configuration;
 using thirdpartynetwork.Application.Dtos.UserContent.Configuration;
+using thirdpartynetwork.Application.Repositories.UserContent;
+using thirdpartynetwork.Core;
+using thirdpartynetwork.Core.Interfaces.Auth;
 
 namespace thirdpartynetwork.Application.Repositories
 {
-    public class ConfigurationRepository(DataContext context, IMapper mapper) : BaseRepository(context), IConfigurationRepository
+    public class ConfigurationRepository(
+        DataContext context, 
+        IMapper mapper, 
+        IAccessLevelVerifier verifier
+    ) : UserContentBaseRepository<Configuration>(context, verifier), IConfigurationRepository
     {
         private readonly DataContext _context = context;
-        
-        private IQueryable<Configuration> GetQueryable(bool bypass = false)
-        {
-            var query = _context.Configurations
-                .Include(x => x.Author)
-                .ThenInclude(x => x.UserProxy)
-                .AsQueryable();
-            // var currentUser = identityService.GetUserProxy(true);
-            
-            return query;
-        }
 
+        protected override IQueryable<Configuration> GetQueryable()
+        {
+            return _context.Configurations.AsQueryable();
+        }
 
         public Configuration Create(Configuration configuration)
         {
@@ -41,11 +41,6 @@ namespace thirdpartynetwork.Application.Repositories
             return _context.Configurations.Any(c => c.Id == id);
         }
 
-        public ICollection<Configuration> GetAll()
-        {
-            return GetQueryable().Include(c => c.Author).ToList();
-        }
-
         public Configuration? GetById(Guid id)
         {
             return GetQueryable().FirstOrDefault(x => x.Id == id);
@@ -53,7 +48,7 @@ namespace thirdpartynetwork.Application.Repositories
 
         public ICollection<Configuration> GetByNetworkId(Guid networkId)
         {
-            return GetQueryable().Where(c => c.Network.Id == networkId).Include(c => c.Author).ToList();
+            return GetAccessibleQueryable(networkId, Constants.Permissions.ReadConfiguration).Where(c => c.Network.Id == networkId).ToList();
         }
 
         public Configuration Update(Guid configurationId, UpdateConfigurationDto updateConfiguration)

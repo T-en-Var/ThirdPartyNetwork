@@ -12,12 +12,6 @@ namespace thirdpartynetwork.Application.Services
         INetworkUserService networkUserService,
         IMapper mapper) : ICustomPageService
     {
-        public ICollection<CustomPage> GetAll()
-        {
-            var customPage = repository.GetAll();
-            return customPage;
-        }
-
         public ICollection<CustomPage> GetByNetworkId(Guid networkId)
         {
             var customPage = repository.GetByNetworkId(networkId);

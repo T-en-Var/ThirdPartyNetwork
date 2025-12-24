@@ -13,21 +13,9 @@ namespace thirdpartynetwork.Application.Services
         INetworkUserService networkUserService,
         IMapper mapper) : IPageBlockService
     {
-        public ICollection<PageBlock> GetAll()
+        public ICollection<PageBlock> GetByCustomPageId(Guid networkId, Guid customPageId)
         {
-            var pageBlock = repository.GetAll();
-            return pageBlock;
-        }
-
-        public ICollection<PageBlock> GetByCustomPageId(Guid customPageId)
-        {
-            var pageBlock = repository.GetByCustomPageId(customPageId);
-            return pageBlock;
-        }
-
-        public ICollection<PageBlock> GetByParentPageId(Guid parentPageId)
-        {
-            var pageBlock = repository.GetByParentPageId(parentPageId);
+            var pageBlock = repository.GetByCustomPageId(networkId, customPageId);
             return pageBlock;
         }
 

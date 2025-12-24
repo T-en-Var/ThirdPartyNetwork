@@ -1,14 +1,27 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using thirdpartynetwork.Application.Repositories.UserContent;
+using thirdpartynetwork.Core;
 using thirdpartynetwork.Core.Data;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
+using thirdpartynetwork.Core.Interfaces.Auth;
+using thirdpartynetwork.Core.Models;
 using File = thirdpartynetwork.Core.Models.File;
 
 namespace thirdpartynetwork.Application.Repositories
 {
-    public class FileRepository(DataContext context, IMapper mapper) : BaseRepository(context), IFileRepository
+    public class FileRepository(
+        DataContext context,
+        IMapper mapper,
+        IAccessLevelVerifier verifier
+    ) : UserContentBaseRepository<File>(context, verifier), IFileRepository
     {
         private readonly DataContext _context = context;
+
+        protected override IQueryable<File> GetQueryable()
+        {
+            return _context.Files.AsQueryable();
+        }
 
         public File Create(File file)
         {
@@ -30,11 +43,6 @@ namespace thirdpartynetwork.Application.Repositories
             return _context.Files.Any(c => c.Id == id);
         }
 
-        public ICollection<File> GetAll()
-        {
-            return [.. _context.Files];
-        }
-
         public File? GetById(Guid id)
         {
             return _context.Files.Find(id);
@@ -42,7 +50,7 @@ namespace thirdpartynetwork.Application.Repositories
 
         public ICollection<File> GetByNetworkId(Guid networkId)
         {
-            return [.. _context.Files.Where(c => c.Network.Id == networkId).Include(f => f.Author)];
+            return GetAccessibleQueryable(networkId, Constants.Permissions.ReadFile).Where(c => c.NetworkId == networkId).ToList();
         }
 
         public File Update(Guid fileId, UpdateFileDto updateFile)

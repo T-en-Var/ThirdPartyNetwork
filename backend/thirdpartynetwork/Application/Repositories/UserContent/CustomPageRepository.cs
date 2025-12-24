@@ -1,32 +1,29 @@
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using thirdpartynetwork.Application.Repositories.UserContent;
+using thirdpartynetwork.Core;
 using thirdpartynetwork.Core.Data;
+using thirdpartynetwork.Core.Interfaces.Auth;
 using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Application.Repositories
 {
-    public class CustomPageRepository(DataContext context, IMapper mapper) : BaseRepository(context), ICustomPageRepository
+    public class CustomPageRepository(
+        DataContext context,
+        IMapper mapper,
+        IAccessLevelVerifier verifier
+    ) : UserContentBaseRepository<CustomPage>(context, verifier), ICustomPageRepository
     {
         private readonly DataContext _context = context;
 
-        private IQueryable<CustomPage> GetQueryable(Guid networkId, bool bypass = false)
+        protected override IQueryable<CustomPage> GetQueryable()
         {
-            var query = _context.CustomPages
-                .Include(x => x.Pages)
-                .AsQueryable();
-            // var currentUser = identityService.GetUserProxy(true);
-            
-            return query;
+            return _context.CustomPages.Include(x => x.Pages).AsQueryable();
         }
 
         public bool Exists(Guid id)
         {
             return _context.CustomPages.Any(c => c.Id == id);
-        }
-
-        public ICollection<CustomPage> GetAll()
-        {
-            return [.. _context.CustomPages];
         }
 
         public CustomPage? GetById(Guid id)
@@ -36,7 +33,7 @@ namespace thirdpartynetwork.Application.Repositories
 
         public ICollection<CustomPage> GetByNetworkId(Guid networkId)
         {
-            return [.. _context.CustomPages.Where(c => c.Network.Id == networkId)];
+            return GetAccessibleQueryable(networkId, Constants.Permissions.ReadCustomPage).Where(c => c.Network.Id == networkId).ToList();
         }
 
         public CustomPage Create(CustomPage customPage)
@@ -51,7 +48,7 @@ namespace thirdpartynetwork.Application.Repositories
             var existing = GetById(customPageId);
             if (existing == null) throw new Exception("CustomPage not found");
 
-            mapper.Map(updateCustomPage, existing); 
+            mapper.Map(updateCustomPage, existing);
 
             SaveAndUpdate(existing);
             return existing;

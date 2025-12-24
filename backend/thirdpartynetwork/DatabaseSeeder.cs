@@ -1,5 +1,4 @@
-﻿using CloudinaryDotNet.Actions;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using thirdpartynetwork.Core;
 using thirdpartynetwork.Core.Models;
 using thirdpartynetwork.Core.Data;
@@ -282,7 +281,9 @@ namespace thirdpartynetwork
                     new() { Name = Constants.Permissions.ReadPageBlock, Description = "", IsSystemProtected = true },
                     new() { Name = Constants.Permissions.ManagePageBlock, Description = "", IsSystemProtected = true },
                     new() { Name = Constants.Permissions.ReadFile, Description = "", IsSystemProtected = true },
-                    new() { Name = Constants.Permissions.ManageFile, Description = "", IsSystemProtected = true }
+                    new() { Name = Constants.Permissions.ManageFile, Description = "", IsSystemProtected = true },
+                    new() { Name = Constants.Permissions.ReadConfiguration, Description = "", IsSystemProtected = true },
+                    new() { Name = Constants.Permissions.ManageConfiguration, Description = "", IsSystemProtected = true },
                 };
 
                 var accesses = new List<Access>

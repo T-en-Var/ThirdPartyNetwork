@@ -5,7 +5,6 @@ namespace thirdpartynetwork.Core.Interfaces.Services
 {
     public interface IConfigurationService : IBaseService
     {
-        ICollection<Configuration> GetAll();
         ICollection<Configuration> GetByNetworkId(Guid networkId);
         Configuration? GetById(Guid networkId, Guid configurationId);
         Configuration Create(Guid networkId, CreateConfigurationDto createConfiguration);

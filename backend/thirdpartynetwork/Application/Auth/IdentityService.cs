@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
 using thirdpartynetwork.Core.Data;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using thirdpartynetwork.Core.Helper;
@@ -69,6 +70,7 @@ public class IdentityService(
     private UserProxy? _GetUserProxy(Guid userProxyId)
     {
         return dataContext.UserProxies
+            .Include(up => up.NetworkUsers)
             .FirstOrDefault(up => up.Id == userProxyId);
     }
 
