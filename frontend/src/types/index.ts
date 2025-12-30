@@ -1,5 +1,6 @@
 export * from './access.ts'
 export * from './api.ts'
+export * from './blog.ts'
 export * from './customPage.ts'
 export * from './configuration.ts'
 export * from './forms.ts'
