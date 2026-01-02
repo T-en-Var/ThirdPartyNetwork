@@ -167,6 +167,24 @@ const router = createRouter({
           },
         },
         {
+          path: 'blogs',
+          name: 'manage-network-blogs',
+          component: () => import('@/components/tabs/network/BlogsTab.vue'),
+          meta: {
+            requiresAuth: true,
+            title: 'Blogs'
+          },
+        },
+        {
+          path: 'blogs/:blogId/edit',
+          name: 'manage-network-edit-blog',
+          component: () => import('@/components/tabs/network/EditBlogTab.vue'),
+          meta: {
+            requiresAuth: true,
+            title: 'Edit Blog'
+          },
+        },
+        {
           path: 'configurations',
           name: 'manage-network-configurations',
           component: () => import('@/components/tabs/network/ConfigurationsTab.vue'),

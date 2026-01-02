@@ -18,7 +18,10 @@
         @edit-file="openEditFileModal" @remove-file="confirmRemoveFile"
         @toggle-file-visibility="confirmToggleFileVisibility"
         @open-create-custom-page-modal="showCreateCustomPageModal = true"
+        @open-create-blog-modal="showCreateBlogModal = true"
         @open-create-configuration-modal="showCreateConfigurationModal = true"
+        @edit-blog="handleEditBlog"
+        @remove-blog="handleRemoveBlog"
         @edit-configuration="handleEditConfiguration"
         @update-configuration="handleUpdateConfiguration"
         @remove-configuration="handleRemoveConfiguration"
@@ -72,6 +75,10 @@
           :is-submitting="isSubmitting" @create-custom-page="handleCreateCustomPage"
           @close="showCreateCustomPageModal = false" />
 
+        <AddBlogModal v-if="showCreateBlogModal"
+          :is-submitting="isSubmitting" :network-id="networkState.network.value!.id" @create-blog="handleCreateBlog"
+          @close="showCreateBlogModal = false" />
+
         <AddConfigurationModal v-if="showCreateConfigurationModal"
           :is-submitting="isSubmitting"
           @create-configuration="handleCreateConfiguration"
@@ -106,12 +113,13 @@ import AddFileModal from '@/components/modals/network/AddFileModal.vue';
 import EditFileModal from '@/components/modals/network/EditFileModal.vue';
 import ConfirmationModal from '@/components/modals/ConfirmationModal.vue';
 
-import type { NetworkUser, Role, NetworkAccess, NetworkFile, CreateRole, UpdateRole, CustomPage, CreateCustomPage, PageBlock, CreatePageBlock, NetworkAccessCreate, Network, NetworkUpdate, CreateConfiguration } from '@/types';
+import type { NetworkUser, Role, NetworkAccess, NetworkFile, CreateRole, UpdateRole, CustomPage, CreateCustomPage, PageBlock, CreatePageBlock, NetworkAccessCreate, Network, NetworkUpdate, CreateConfiguration, Blog, CreateBlog } from '@/types';
 import type { RoleForm, ManageUserForm, EditFileForm } from '@/types/forms';
 
 import api from '@/api/api';
 import useFiles from '@/composables/useFiles';
 import AddCustomPageModal from '@/components/modals/network/AddCustomPageModal.vue';
+import AddBlogModal from '@/components/modals/network/AddBlogModal.vue';
 import AddPageBlockModal from '@/components/modals/network/AddPageBlockModal.vue';
 import useCustomPages from '@/composables/useCustomPages';
 import AddConfigurationModal from '@/components/modals/network/AddConfigurationModal.vue';
@@ -137,6 +145,7 @@ const showAddFileModal = ref(false);
 const showEditFileModal = ref(false);
 const showCreateCustomPageModal = ref(false);
 const showCreateConfigurationModal = ref(false);
+const showCreateBlogModal = ref(false);
 const showCreatePageBlockModal = ref(false);
 const createPageBlockCustomPage = ref<CustomPage | null>(null);
 
@@ -502,6 +511,51 @@ async function handleCreateCustomPage(customPageData: CreateCustomPage) {
     isSubmitting.value = false;
     globalStore.stopFetching();
   }
+}
+
+async function handleCreateBlog(blogCreate: CreateBlog) {
+  isSubmitting.value = true;
+  globalStore.startFetching();
+  try {
+    const response = await api.post<Blog, CreateBlog>(`/networks/${networkState.network.value!.id}/blogs/`, blogCreate);
+    // assume response.data contains created blog with id
+    const created = response.data;
+    showCreateBlogModal.value = false;
+    // navigate to edit page
+    router.push(`/networks/${networkState.network.value!.id}/manage/blogs/${created.id}/edit`);
+  } catch (err) {
+    console.error('Error creating blog:', err);
+  } finally {
+    isSubmitting.value = false;
+    globalStore.stopFetching();
+  }
+}
+
+function handleEditBlog(blog: Blog) {
+  router.push(`/networks/${networkState.network.value!.id}/manage/blogs/${blog.id}/edit`);
+}
+
+function handleRemoveBlog(blog: Blog) {
+  confirmationTitle.value = 'Remove Blog';
+  confirmationMessage.value = `Are you sure you want to remove ${blog.title} from this network?`;
+  confirmButtonText.value = 'Remove';
+  confirmButtonColor.value = 'red';
+
+  confirmationAction.value = async () => {
+    globalStore.startFetching();
+    isSubmitting.value = true;
+    try {
+      await api.delete(`/networks/${networkState.network.value!.id}/blogs/${blog.id}/`);
+      // refresh page or state
+      router.go(0);
+    } catch (err) {
+      console.error('Error removing blog:', err);
+    } finally {
+      isSubmitting.value = false;
+      globalStore.stopFetching();
+    }
+  };
+  showConfirmationModal.value = true;
 }
 
 async function handleCreateConfiguration(payload: { key: string; value: object; accessLevel: number; }) {

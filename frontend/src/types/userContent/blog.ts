@@ -1,25 +1,20 @@
 import type { NetworkFile } from "./files";
-import type { NetworkUser } from "./networkUser";
+import type { UserContentBase, UserContentCreateBase } from "./userContentBase";
 
-export interface Blog {
+export interface Blog extends UserContentBase {
   id: string;
   title: string;
   slug: string;
   summary: string;
   body: object;
-  networkId: string;
-  author: NetworkUser;
   coverImage?: NetworkFile;
-  authorId: string;
-  accessLevel: number;
   publishedAt?: Date;
 }
 
-export interface CreateBlog {
+export interface CreateBlog extends UserContentCreateBase {
   title: string;
   summary: string;
   body: object;
   publishedAt?: Date;
   coverImageId?: string;
-  accessLevel: number;
 }

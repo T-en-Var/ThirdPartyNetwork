@@ -1,4 +1,4 @@
-import type { NetworkFile } from "./files";
+import type { NetworkFile } from "./userContent/files";
 import type { Network } from "./network";
 import type { NetworkUserAccess } from "./networkUserAccess";
 import type { NetworkUserRole } from "./networkUserRole";

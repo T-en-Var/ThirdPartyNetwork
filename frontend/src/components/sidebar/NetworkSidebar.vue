@@ -59,6 +59,12 @@ const navItems: ComputedRef<NavCategory[]> = computed(() => [
         subItems: historyStore.configurations.map(cp => ({ page: cp.id, label: cp.key })).slice().reverse(),
         getURI: (sub: SubItem) => `configurations/${sub.page}/edit`,
       },
+      {
+        page: 'blogs',
+        label: 'Blogs',
+        subItems: historyStore.blogs.map(b => ({ page: b.id, label: b.title })).slice().reverse(),
+        getURI: (sub: SubItem) => `blogs/${sub.page}/edit`,
+      },
     ],
   },
 ]);

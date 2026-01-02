@@ -1,7 +1,7 @@
 import type { NetworkAccess } from "./networkAccess";
 import type { Role } from "./role";
 import type { NetworkUser } from "./networkUser";
-import type { NetworkFile, NetworkFileLink } from "./files";
+import type { NetworkFile, NetworkFileLink } from "./userContent/files";
 
 export interface Network {
   id: string,

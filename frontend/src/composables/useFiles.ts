@@ -41,7 +41,7 @@ export default function useFiles() {
     }
   }
 
-  const fetchUserFiles = async (userId: string) => {
+  const fetchUserFiles = async (userId: string, userProxyId: string) => {
     loading.value = true
 
     if (files.value.length > 0) {
@@ -51,7 +51,7 @@ export default function useFiles() {
 
     globalStore.startFetching()
     try {
-      const response = await api.get<NetworkFile[]>(`/users/${userId}/files/`)
+      const response = await api.get<NetworkFile[]>(`/users/${userId}/proxies/${userProxyId}/files/`)
       files.value = response.data
     } catch (err) {
       error.value = (err as AxiosError<ErrorMessage>).response?.data.message || 'Failed to fetch files.'
