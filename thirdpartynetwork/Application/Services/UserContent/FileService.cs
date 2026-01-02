@@ -14,8 +14,10 @@ namespace thirdpartynetwork.Application.Services
         IIdentityService identityService,
         INetworkUserService networkUserService,
         ICDNService cdnService,
-        IMapper mapper) : IFileService
+        IMapper mapper) : UserContentBaseService<File>(repository, networkUserService), IFileService
     {
+        private readonly INetworkUserService _networkUserService = networkUserService;
+
         public ICollection<File> GetByNetworkId(Guid networkId)
         {
             var file = repository.GetByNetworkId(networkId);
@@ -34,7 +36,7 @@ namespace thirdpartynetwork.Application.Services
             if (network == null) throw new NotFoundHttpException("Network not found");
 
             var userProxy = identityService.GetUserProxy();
-            var networkUser = networkUserService.GetByIds(networkId, userProxy.Id);
+            var networkUser = _networkUserService.GetByIds(networkId, userProxy.Id);
             if (networkUser == null) throw new NotFoundHttpException("NetworkUser not found");
 
             var file = mapper.Map<File>(createFile);
@@ -50,7 +52,7 @@ namespace thirdpartynetwork.Application.Services
             var network = networkService.GetById(networkId) ?? throw new NotFoundHttpException("Network not found");
 
             var userProxy = identityService.GetUserProxy();
-            var networkUser = networkUserService.GetByIds(networkId, userProxy.Id) ?? throw new NotFoundHttpException("NetworkUser not found");
+            var networkUser = _networkUserService.GetByIds(networkId, userProxy.Id) ?? throw new NotFoundHttpException("NetworkUser not found");
 
             var publicId = Guid.NewGuid();
 

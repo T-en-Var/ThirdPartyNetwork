@@ -15,6 +15,7 @@ namespace thirdpartynetwork.Application.Repositories
     ) : UserContentBaseRepository<CustomPage>(context, verifier), ICustomPageRepository
     {
         private readonly DataContext _context = context;
+        protected override string ReadPermissionName => Constants.Permissions.ReadCustomPage;
 
         protected override IQueryable<CustomPage> GetQueryable()
         {
@@ -33,7 +34,7 @@ namespace thirdpartynetwork.Application.Repositories
 
         public ICollection<CustomPage> GetByNetworkId(Guid networkId)
         {
-            return GetAccessibleQueryable(networkId, Constants.Permissions.ReadCustomPage).Where(c => c.Network.Id == networkId).ToList();
+            return GetAccessibleQueryable(networkId).Where(c => c.Network.Id == networkId).ToList();
         }
 
         public CustomPage Create(CustomPage customPage)

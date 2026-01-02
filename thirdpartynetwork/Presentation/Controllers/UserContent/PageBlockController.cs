@@ -27,11 +27,11 @@ public class PageBlockController(IPageBlockService service, IMapper mapper) : Co
         var pageBlock = service.GetById(networkId, pageBlockId);
         return pageBlock != null ? Ok(mapper.Map<PageBlockDto>(pageBlock)) : NotFound();
     }
-    
+
     [HttpPost]
     [RequirePermission(Constants.Permissions.ManagePageBlock)]
     [ProducesResponseType(201, Type = typeof(PageBlockDto))]
-    public IActionResult CreatePageBlock(Guid networkId, Guid customPageId, CreatePageBlockDto pageBlock)
+    public IActionResult CreatePageBlock(Guid networkId, Guid customPageId, [FromBody] CreatePageBlockDto pageBlock)
     {
         var uploadedPageBlock = service.Create(networkId, customPageId, pageBlock);
         return Ok(mapper.Map<PageBlockDto>(uploadedPageBlock));
@@ -41,7 +41,8 @@ public class PageBlockController(IPageBlockService service, IMapper mapper) : Co
     [RequirePermission(Constants.Permissions.ManagePageBlock)]
     [ProducesResponseType(200, Type = typeof(PageBlockDto))]
     [ProducesResponseType(404)]
-    public IActionResult UpdatePageBlock(Guid networkId, Guid customPageId, Guid pageBlockId, UpdatePageBlockDto updatePageBlock)
+    public IActionResult UpdatePageBlock(Guid networkId, Guid customPageId, Guid pageBlockId,
+        [FromBody] UpdatePageBlockDto updatePageBlock)
     {
         var pageBlock = service.Update(networkId, customPageId, pageBlockId, updatePageBlock);
         return Ok(mapper.Map<PageBlockDto>(pageBlock));

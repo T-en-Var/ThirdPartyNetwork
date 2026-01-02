@@ -15,6 +15,7 @@ namespace thirdpartynetwork.Application.Repositories
     ) : UserContentBaseRepository<PageBlock>(context, verifier), IPageBlockRepository
     {
         private readonly DataContext _context = context;
+        protected override string ReadPermissionName => Constants.Permissions.ReadPageBlock;
 
         protected override IQueryable<PageBlock> GetQueryable()
         {
@@ -28,7 +29,7 @@ namespace thirdpartynetwork.Application.Repositories
 
         public ICollection<PageBlock> GetByCustomPageId(Guid networkId, Guid customPageId)
         {
-            return GetAccessibleQueryable(networkId, Constants.Permissions.ReadPageBlock).Where(p => p.CustomPageId == customPageId).ToList();
+            return GetAccessibleQueryable(networkId).Where(p => p.CustomPageId == customPageId).ToList();
         }
 
         public PageBlock? GetById(Guid id)

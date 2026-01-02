@@ -107,14 +107,24 @@ public class PermissionHandler(
 
     private bool HandleContentRequirement(string permission)
     {
-        var compareString = permission switch
+        string compareString;
+        if (Constants.SlugContentPermissions.Contains(permission))
         {
-            Constants.Permissions.ReadFile => "fileId",
-            Constants.Permissions.ReadCustomPage => "customPageId",
-            Constants.Permissions.ReadPageBlock => "pageBlockId",
-            Constants.Permissions.ReadConfiguration => "configurationId",
-            _ => throw new Exception("Unknown permission")
-        };
+            // Currently, ONLY blog has this.
+            // Se we play it easy
+            compareString = "slug";
+        }
+        else
+        {
+            compareString = permission switch
+            {
+                Constants.Permissions.ReadFile => "fileId",
+                Constants.Permissions.ReadCustomPage => "customPageId",
+                Constants.Permissions.ReadPageBlock => "pageBlockId",
+                Constants.Permissions.ReadConfiguration => "configurationId",
+                _ => throw new Exception("Unknown permission")
+            };
+        }
 
         var httpContext = httpContextAccessor.HttpContext;
         if (httpContext == null) throw new UnauthorizedHttpException();
@@ -126,7 +136,15 @@ public class PermissionHandler(
         if (!httpContext.HasGuidInHttpContextUrl(compareString)) 
             return true;
 
-        var compareId = httpContext.GetGuidFromHttpContextUrl(compareString);
+        var compareValue = httpContext.GetStringFromHttpContextUrl(compareString);
+
+        if (compareValue == null)
+        {
+            // This now assumes we call a route where we get a list of results, not singular.
+            // That is handled by the repository as we check per resource.
+            return true;
+        }
+        
         var networkId = httpContext.GetGuidFromHttpContextUrl("networkId");
         var userProxy = identityService.GetUserProxy();
 
@@ -136,16 +154,19 @@ public class PermissionHandler(
         return permission switch
         {
             Constants.Permissions.ReadFile =>
-                accessLevelVerifier.CheckFileAccess(compareId, networkId, permission),
+                accessLevelVerifier.CheckFileAccess(compareValue, networkId, permission),
 
             Constants.Permissions.ReadCustomPage =>
-                accessLevelVerifier.CheckCustomPageAccess(compareId, networkId, permission),
+                accessLevelVerifier.CheckCustomPageAccess(compareValue, networkId, permission),
 
             Constants.Permissions.ReadPageBlock =>
-                accessLevelVerifier.CheckPageBlockAccess(compareId, networkId, permission),
+                accessLevelVerifier.CheckPageBlockAccess(compareValue, networkId, permission),
 
             Constants.Permissions.ReadConfiguration =>
-                accessLevelVerifier.CheckConfigurationAccess(compareId, networkId, permission),
+                accessLevelVerifier.CheckConfigurationAccess(compareValue, networkId, permission),
+            
+            Constants.Permissions.ReadBlog => 
+                accessLevelVerifier.CheckBlogAccess(compareValue, networkId, permission),
 
             _ => throw new NotImplementedException("Unknown permission")
         };
@@ -163,9 +184,9 @@ public class PermissionHandler(
             Constants.Permissions.IsUserOwner => identityVerifier.IsUserOwner(currentUser.Id,
                 httpContext.GetGuidFromHttpContextUrl("userId")),
             Constants.Permissions.IsNetworkUserOwner => identityVerifier.IsNetworkUserOwner(currentUser.Id,
-                CustomParser.GetGuidFromHttpContextUrl(httpContext, "networkUserId")),
+                httpContext.GetGuidFromHttpContextUrl("networkUserId")),
             Constants.Permissions.IsUserProxyOwner => identityVerifier.IsUserProxyOwner(currentUser.Id,
-                CustomParser.GetGuidFromHttpContextUrl(httpContext, "userProxyId")),
+                httpContext.GetGuidFromHttpContextUrl("userProxyId")),
             _ => false
         };
     }

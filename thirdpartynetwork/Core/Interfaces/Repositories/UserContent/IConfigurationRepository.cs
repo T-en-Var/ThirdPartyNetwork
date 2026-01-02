@@ -2,7 +2,7 @@ using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Core.Interfaces.Repositories
 {
-    public interface IConfigurationRepository : IBaseRepository
+    public interface IConfigurationRepository : IUserContentBaseRepository<Configuration>
     {
         bool Exists(Guid id);
         ICollection<Configuration> GetByNetworkId(Guid networkId);

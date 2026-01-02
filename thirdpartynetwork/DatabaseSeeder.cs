@@ -284,6 +284,8 @@ namespace thirdpartynetwork
                     new() { Name = Constants.Permissions.ManageFile, Description = "", IsSystemProtected = true },
                     new() { Name = Constants.Permissions.ReadConfiguration, Description = "", IsSystemProtected = true },
                     new() { Name = Constants.Permissions.ManageConfiguration, Description = "", IsSystemProtected = true },
+                    new() { Name = Constants.Permissions.ReadBlog, Description = "", IsSystemProtected = true },
+                    new() { Name = Constants.Permissions.ManageBlog, Description = "", IsSystemProtected = true },
                 };
 
                 var accesses = new List<Access>

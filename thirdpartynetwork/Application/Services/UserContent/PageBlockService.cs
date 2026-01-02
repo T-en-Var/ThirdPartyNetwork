@@ -11,8 +11,10 @@ namespace thirdpartynetwork.Application.Services
         ICustomPageService customPageService,
         IIdentityService identityService,
         INetworkUserService networkUserService,
-        IMapper mapper) : IPageBlockService
+        IMapper mapper) : UserContentBaseService<PageBlock>(repository, networkUserService), IPageBlockService
     {
+        private readonly INetworkUserService _networkUserService = networkUserService;
+
         public ICollection<PageBlock> GetByCustomPageId(Guid networkId, Guid customPageId)
         {
             var pageBlock = repository.GetByCustomPageId(networkId, customPageId);
@@ -34,7 +36,7 @@ namespace thirdpartynetwork.Application.Services
             if (customPage == null) throw new NotFoundHttpException("CustomPage not found");
 
             var userProxy = identityService.GetUserProxy();
-            var networkUser = networkUserService.GetByIds(networkId, userProxy.Id);
+            var networkUser = _networkUserService.GetByIds(networkId, userProxy.Id);
             if (networkUser == null) throw new NotFoundHttpException("NetworkUser not found");
 
             var pageBlock = mapper.Map<PageBlock>(createPageBlock);

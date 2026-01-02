@@ -1,7 +1,9 @@
 ﻿using System.Runtime.InteropServices.JavaScript;
+using System.Text.Json;
 using AutoMapper;
 using thirdpartynetwork.Core.Models;
 using thirdpartynetwork.Application.Dtos.UserContent.Configuration;
+using thirdpartynetwork.Application.Dtos.UserContent.Blog;
 using File = thirdpartynetwork.Core.Models.File;
 
 namespace thirdpartynetwork.Core.Helper
@@ -13,18 +15,18 @@ namespace thirdpartynetwork.Core.Helper
             CreateMap<Network, NetworkDto>();
             CreateMap<CreateNetworkDto, Network>();
             CreateMap<UpdateNetworkDto, Network>();
-            
+
             CreateMap<NetworkAccess, NetworkAccessDto>()
                 .ForMember(n => n.Access, opt => opt.MapFrom(n => n.Access))
                 .ForMember(n => n.Network, opt => opt.MapFrom(n => n.Network));
             CreateMap<CreateNetworkAccessDto, NetworkAccess>();
             CreateMap<UpdateNetworkAccessDto, NetworkAccess>();
-            
+
             CreateMap<NetworkUser, NetworkUserDto>()
                 .ForMember(n => n.UserProxy, opt => opt.MapFrom(u => u.UserProxy));
             CreateMap<CreateNetworkUserDto, NetworkUser>();
             CreateMap<UpdateNetworkUserDto, NetworkUser>();
-            
+
             CreateMap<NetworkUserAccess, NetworkUserAccessDto>()
                 .ForMember(dest => dest.Access, opt => opt.MapFrom(src => src.Access))
                 .ForMember(dest => dest.NetworkUser, opt => opt.MapFrom(src => src.NetworkUser));
@@ -80,29 +82,52 @@ namespace thirdpartynetwork.Core.Helper
                         MapFieldIfAccessGranted(src, context, Constants.Access.AccessUsername, s => s.Username)))
                 .ForMember(dest => dest.ImageFile, opt =>
                     opt.MapFrom((src, dest, destMember, context) =>
-                        MapFieldIfAccessGranted(src, context, Constants.Access.AccessProfilePicture, s => s.ImageFile)));
+                        MapFieldIfAccessGranted(src, context, Constants.Access.AccessProfilePicture,
+                            s => s.ImageFile)));
             CreateMap<CreateUserProxyDto, UserProxy>();
             CreateMap<UpdateUserProxyDto, UserProxy>();
             CreateMap<AddUserProxyDto, UserProxy>();
 
             CreateMap<File, FileDto>();
-                // .ForMember(dest => dest.Author.Network, opt => opt.Ignore());
+            // .ForMember(dest => dest.Author.Network, opt => opt.Ignore());
             CreateMap<CreateFileDto, File>();
             CreateMap<UpdateFileDto, File>();
-            
+
             CreateMap<CustomPage, CustomPageDto>();
             CreateMap<CreateCustomPageDto, CustomPage>();
             CreateMap<UpdateCustomPageDto, CustomPage>();
-            
-            CreateMap<PageBlock, PageBlockDto>();
-            CreateMap<CreatePageBlockDto, PageBlock>();
-            CreateMap<UpdatePageBlockDto, PageBlock>();
+
+            CreateMap<PageBlock, PageBlockDto>()
+                .ForMember(dest => dest.Data, opt => opt.MapFrom(src =>
+                    src.Data.RootElement.Clone()
+                ));
+            CreateMap<CreatePageBlockDto, PageBlock>()
+                .ForMember(dest => dest.Data, opt => opt.MapFrom(src =>
+                    JsonDocument.Parse(src.Data.GetRawText(), default)
+                ));
+            CreateMap<UpdatePageBlockDto, PageBlock>()
+                .ForMember(dest => dest.Data, opt => opt.MapFrom(src =>
+                    JsonDocument.Parse(src.Data.GetRawText(), default)
+                ));
+
+            CreateMap<Blog, BlogDto>()
+                .ForMember(dest => dest.Body, opt => opt.MapFrom(src =>
+                    src.Body.RootElement.Clone()
+                ));
+            CreateMap<CreateBlogDto, Blog>()
+                .ForMember(dest => dest.Body, opt => opt.MapFrom(src =>
+                    JsonDocument.Parse(src.Body.GetRawText(), default)
+                ));
+            CreateMap<UpdateBlogDto, Blog>()
+                .ForMember(dest => dest.Body, opt => opt.MapFrom(src =>
+                    JsonDocument.Parse(src.Body.GetRawText(), default)
+                ));
 
             CreateMap<Configuration, ConfigurationDto>();
             CreateMap<CreateConfigurationDto, Configuration>();
             CreateMap<UpdateConfigurationDto, Configuration>();
         }
-        
+
         private static T? MapFieldIfAccessGranted<T>(
             UserProxy src,
             ResolutionContext context,

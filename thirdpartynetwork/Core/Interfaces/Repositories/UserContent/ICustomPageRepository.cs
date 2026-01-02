@@ -2,7 +2,7 @@ using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Core.Interfaces.Repositories
 {
-    public interface ICustomPageRepository : IBaseRepository
+    public interface ICustomPageRepository : IUserContentBaseRepository<CustomPage>
     {
         bool Exists(Guid id);
         ICollection<CustomPage> GetByNetworkId(Guid networkId);

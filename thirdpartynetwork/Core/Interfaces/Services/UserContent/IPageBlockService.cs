@@ -2,7 +2,7 @@ using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Core.Interfaces.Services
 {
-    public interface IPageBlockService : IBaseService
+    public interface IPageBlockService : IUserContentBaseService<PageBlock>
     {
         ICollection<PageBlock> GetByCustomPageId(Guid networkId, Guid customPageId);
         PageBlock? GetById(Guid networkId, Guid pageBlockId);

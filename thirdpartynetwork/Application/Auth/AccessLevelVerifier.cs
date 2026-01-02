@@ -12,33 +12,45 @@ public class AccessLevelVerifier(
     IIdentityVerifier identityVerifier
 ) : IAccessLevelVerifier
 {
-    public bool CheckFileAccess(Guid fileId, Guid networkId, string permissionName)
+    public bool CheckFileAccess(string fileId, Guid networkId, string permissionName)
     {
-        var file = dataContext.Files.FirstOrDefault(x => x.Id == fileId);
-        return file != null && CheckAccess(file, networkId, permissionName);
+        var file = dataContext.Files.FirstOrDefault(x => x.Id == ValueToGuid(fileId));
+        return CheckAccess(file, networkId, permissionName);
     }
 
-    public bool CheckCustomPageAccess(Guid customPageId, Guid networkId, string permissionName)
+    public bool CheckCustomPageAccess(string customPageId, Guid networkId, string permissionName)
     {
-        var customPage = dataContext.CustomPages.FirstOrDefault(x => x.Id == customPageId);
-        return customPage != null && CheckAccess(customPage, networkId, permissionName);
+        var customPage = dataContext.CustomPages.FirstOrDefault(x => x.Id == ValueToGuid(customPageId));
+        return CheckAccess(customPage, networkId, permissionName);
     }
 
-    public bool CheckPageBlockAccess(Guid pageBlockId, Guid networkId, string permissionName)
+    public bool CheckPageBlockAccess(string pageBlockId, Guid networkId, string permissionName)
     {
-        var pageBlock = dataContext.PageBlocks.FirstOrDefault(x => x.Id == pageBlockId);
+        var pageBlock = dataContext.PageBlocks.FirstOrDefault(x => x.Id == ValueToGuid(pageBlockId));
         // Check parent for permissions
-        return pageBlock != null && CheckCustomPageAccess(pageBlock.CustomPageId, networkId, permissionName);
+        return pageBlock != null && CheckCustomPageAccess(pageBlock.CustomPageId.ToString(), networkId, permissionName);
     }
 
-    public bool CheckConfigurationAccess(Guid configurationId, Guid networkId, string permissionName)
+    public bool CheckConfigurationAccess(string configurationId, Guid networkId, string permissionName)
     {
-        var configuration = dataContext.Configurations.FirstOrDefault(x => x.Id == configurationId);
-        return configuration != null && CheckAccess(configuration, networkId, permissionName);
+        var configuration = dataContext.Configurations.FirstOrDefault(x => x.Id == ValueToGuid(configurationId));
+        return CheckAccess(configuration, networkId, permissionName);
     }
 
-    public bool CheckAccess(UserContentBaseModel model, Guid networkId, string permissionName)
+    public bool CheckBlogAccess(string blogCompareValue, Guid networkId, string permissionName)
     {
+        var blogId = ValueToGuid(blogCompareValue);
+        var blog = blogId != Guid.Empty
+            ? dataContext.Blogs.FirstOrDefault(x => x.Id == blogId)
+            : dataContext.Blogs.FirstOrDefault(x => x.Slug == blogCompareValue);
+
+        return CheckAccess(blog, networkId, permissionName);
+    }
+
+    public bool CheckAccess(UserContentBaseModel? model, Guid networkId, string permissionName)
+    {
+        if (model == null) return false;
+        
         if (model.AccessLevel == AccessLevel.Public) return true;
 
         // If resource is not public, you must be authenticated
@@ -81,7 +93,6 @@ public class AccessLevelVerifier(
 
         // Check if it's a real, authenticated user
         var isRealUser = userProxy?.User != null;
-        Console.WriteLine($"User: {userProxy?.Username ?? "no name"}");
 
         if (isRealUser)
         {
@@ -90,20 +101,17 @@ public class AccessLevelVerifier(
             // 1. Check Network Membership
             if (userProxy.NetworkUsers != null)
             {
-                Console.WriteLine($"userProxy.NetworkUsers: {userProxy!.NetworkUsers.Count}");
                 isMemberOfRequestedNetwork = userProxy.NetworkUsers
                     .Any(nu => nu.NetworkId == requestedNetworkId);
             }
-            
+
 
             // 2. Check Permissions (The "Super Admin" / Override Check)
             // We calculate this once in C#. If true, it effectively bypasses 
             // the checks for Private/Network in the SQL later.
             hasPermission = identityVerifier.IsAllowed(requestedNetworkId, currentUserId.Value, permissionName);
         }
-        Console.WriteLine($"isMemberOfRequestedNetwork: {isMemberOfRequestedNetwork}");
-        Console.WriteLine($"hasPermission: {hasPermission}");
-
+        
         // --- STEP 2: BUILD EXPRESSION (SQL Side) ---
         // EF Core converts this Lambda into SQL.
         // Boolean variables (like hasPermission) are passed as parameters (0 or 1).
@@ -127,5 +135,10 @@ public class AccessLevelVerifier(
             || (model.AccessLevel == AccessLevel.Private
                 && currentUserId.HasValue
                 && model.AuthorId == currentUserId.Value);
+    }
+
+    private static Guid ValueToGuid(string value)
+    {
+        return Guid.TryParse(value, out var result) ? result : Guid.Empty;
     }
 }

@@ -27,11 +27,11 @@ public class CustomPageController(ICustomPageService service, IMapper mapper) : 
         var customPage = service.GetById(networkId, customPageId);
         return customPage != null ? Ok(mapper.Map<CustomPageDto>(customPage)) : NotFound();
     }
-    
+
     [HttpPost]
     [RequirePermission(Constants.Permissions.ManageCustomPage)]
     [ProducesResponseType(201, Type = typeof(CustomPageDto))]
-    public IActionResult CreateCustomPage(Guid networkId, CreateCustomPageDto customPage)
+    public IActionResult CreateCustomPage(Guid networkId, [FromBody] CreateCustomPageDto customPage)
     {
         var uploadedCustomPage = service.Create(networkId, customPage);
         return Ok(mapper.Map<CustomPageDto>(uploadedCustomPage));
@@ -41,7 +41,8 @@ public class CustomPageController(ICustomPageService service, IMapper mapper) : 
     [RequirePermission(Constants.Permissions.ManageCustomPage)]
     [ProducesResponseType(200, Type = typeof(CustomPageDto))]
     [ProducesResponseType(404)]
-    public IActionResult UpdateCustomPage(Guid networkId, Guid customPageId, UpdateCustomPageDto updateCustomPage)
+    public IActionResult UpdateCustomPage(Guid networkId, Guid customPageId,
+        [FromBody] UpdateCustomPageDto updateCustomPage)
     {
         var customPage = service.Update(networkId, customPageId, updateCustomPage);
         return Ok(mapper.Map<CustomPageDto>(customPage));

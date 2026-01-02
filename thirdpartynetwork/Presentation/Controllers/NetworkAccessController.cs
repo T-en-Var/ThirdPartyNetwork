@@ -32,7 +32,7 @@ public class NetworkAccessController(INetworkAccessService service, IMapper mapp
     [HttpPost("{accessId:guid}")]
     [RequirePermission(Constants.Permissions.ManageAccess)]
     [ProducesResponseType(201, Type = typeof(NetworkAccessDto))]
-    public IActionResult CreateNetworkAccess(Guid networkId, Guid accessId, CreateNetworkAccessDto createNetworkAccess)
+    public IActionResult CreateNetworkAccess(Guid networkId, Guid accessId, [FromBody] CreateNetworkAccessDto createNetworkAccess)
     {
         var networkAccess = service.Create(networkId, accessId, createNetworkAccess);
         return Ok(mapper.Map<NetworkAccessDto>(networkAccess, opts => opts.Items["networkId"] = networkId));
@@ -43,7 +43,7 @@ public class NetworkAccessController(INetworkAccessService service, IMapper mapp
     [ProducesResponseType(200, Type = typeof(NetworkAccessDto))]
     [ProducesResponseType(404)]
     public IActionResult UpdateNetworkAccess(Guid networkId, Guid accessId,
-        UpdateNetworkAccessDto updateNetworkAccess)
+        [FromBody] UpdateNetworkAccessDto updateNetworkAccess)
     {
         var networkAccess = service.Update(networkId, accessId, updateNetworkAccess);
         return Ok(mapper.Map<NetworkAccessDto>(networkAccess, opts => opts.Items["networkId"] = networkId));

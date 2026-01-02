@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using thirdpartynetwork.Application.Auth.Requirements;
 using thirdpartynetwork.Core;
@@ -8,7 +7,11 @@ namespace thirdpartynetwork.Presentation.Controllers;
 
 [Route("users/{userId:guid}/proxies")]
 [ApiController]
-public class UserProxyController(IUserProxyService service, IUserProxyManagerService managerService, IMapper mapper, INetworkUserService networkUserService) : ControllerBase
+public class UserProxyController(
+    IUserProxyService service,
+    IUserProxyManagerService managerService,
+    IMapper mapper,
+    INetworkUserService networkUserService) : ControllerBase
 {
     [HttpGet]
     [RequirePermission(Constants.Permissions.ReadUser)]
@@ -28,7 +31,7 @@ public class UserProxyController(IUserProxyService service, IUserProxyManagerSer
         var userProxy = service.GetByIds(userId, userProxyId);
         return userProxy != null ? Ok(mapper.Map<UserProxyDto>(userProxy)) : NotFound();
     }
-    
+
     [HttpPost]
     [RequirePermission(Constants.Permissions.IsUserOwner)]
     [ProducesResponseType(201, Type = typeof(UserProxyDto))]
@@ -65,10 +68,7 @@ public class UserProxyController(IUserProxyService service, IUserProxyManagerSer
     {
         var networks = networkUserService.GetNetworksByUserProxyId(userProxyId);
         var networkDtos = networks
-            .Select(network => mapper.Map<NetworkDto>(network, opts =>
-            {
-                opts.Items["networkId"] = network.Id;
-            }))
+            .Select(network => mapper.Map<NetworkDto>(network, opts => { opts.Items["networkId"] = network.Id; }))
             .ToList();
         return StatusCode(200, networkDtos);
     }

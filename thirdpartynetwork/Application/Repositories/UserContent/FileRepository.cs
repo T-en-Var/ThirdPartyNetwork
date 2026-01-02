@@ -1,11 +1,9 @@
 ﻿using AutoMapper;
-using Microsoft.EntityFrameworkCore;
 using thirdpartynetwork.Application.Repositories.UserContent;
 using thirdpartynetwork.Core;
 using thirdpartynetwork.Core.Data;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using thirdpartynetwork.Core.Interfaces.Auth;
-using thirdpartynetwork.Core.Models;
 using File = thirdpartynetwork.Core.Models.File;
 
 namespace thirdpartynetwork.Application.Repositories
@@ -17,6 +15,7 @@ namespace thirdpartynetwork.Application.Repositories
     ) : UserContentBaseRepository<File>(context, verifier), IFileRepository
     {
         private readonly DataContext _context = context;
+        protected override string ReadPermissionName => Constants.Permissions.ReadFile;
 
         protected override IQueryable<File> GetQueryable()
         {
@@ -50,7 +49,7 @@ namespace thirdpartynetwork.Application.Repositories
 
         public ICollection<File> GetByNetworkId(Guid networkId)
         {
-            return GetAccessibleQueryable(networkId, Constants.Permissions.ReadFile).Where(c => c.NetworkId == networkId).ToList();
+            return GetAccessibleQueryable(networkId).Where(c => c.NetworkId == networkId).ToList();
         }
 
         public File Update(Guid fileId, UpdateFileDto updateFile)

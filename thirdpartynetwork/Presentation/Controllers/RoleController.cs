@@ -31,7 +31,7 @@ public class RoleController(IRoleService service, IMapper mapper) : Controller
     [HttpPost]
     [RequirePermission(Constants.Permissions.ManageRole)]
     [ProducesResponseType(201, Type = typeof(RoleDto))]
-    public IActionResult CreateRole(Guid networkId, CreateRoleDto createRole)
+    public IActionResult CreateRole(Guid networkId, [FromBody] CreateRoleDto createRole)
     {
         var role = service.Create(networkId, createRole);
         return Ok(mapper.Map<RoleDto>(role));
@@ -41,7 +41,7 @@ public class RoleController(IRoleService service, IMapper mapper) : Controller
     [RequirePermission(Constants.Permissions.ManageRole)]
     [ProducesResponseType(200, Type = typeof(RoleDto))]
     [ProducesResponseType(404)]
-    public IActionResult UpdateRole(Guid networkId, Guid roleId, UpdateRoleDto updateRole)
+    public IActionResult UpdateRole(Guid networkId, Guid roleId, [FromBody] UpdateRoleDto updateRole)
     {
         var role = service.Update(networkId, roleId, updateRole);
         return Ok(mapper.Map<RoleDto>(role));
