@@ -32,17 +32,19 @@ public class ConfigurationController(IConfigurationService service, IMapper mapp
     [HttpPost]
     [RequirePermission(Constants.Permissions.ManageConfiguration)]
     [ProducesResponseType(201, Type = typeof(ConfigurationDto))]
-    public IActionResult CreateConfiguration(Guid networkId, CreateConfigurationDto configuration)
+    public IActionResult CreateConfiguration(Guid networkId, [FromBody] CreateConfigurationDto configuration)
     {
         var created = service.Create(networkId, configuration);
-        return CreatedAtAction(nameof(GetConfiguration), new { networkId = networkId, configurationId = created.Id }, mapper.Map<ConfigurationDto>(created));
+        return CreatedAtAction(nameof(GetConfiguration), new { networkId = networkId, configurationId = created.Id },
+            mapper.Map<ConfigurationDto>(created));
     }
 
     [HttpPut("{configurationId:guid}")]
     [RequirePermission(Constants.Permissions.ManageConfiguration)]
     [ProducesResponseType(200, Type = typeof(ConfigurationDto))]
     [ProducesResponseType(404)]
-    public IActionResult UpdateConfiguration(Guid networkId, Guid configurationId, UpdateConfigurationDto updateConfiguration)
+    public IActionResult UpdateConfiguration(Guid networkId, Guid configurationId,
+        [FromBody] UpdateConfigurationDto updateConfiguration)
     {
         var updated = service.Update(networkId, configurationId, updateConfiguration);
         return Ok(mapper.Map<ConfigurationDto>(updated));

@@ -14,6 +14,18 @@ public static class CustomParser
         return guid == Guid.Empty ? Guid.Empty : guid;
     }
     
+    public static string? GetStringFromHttpContextUrl(this HttpContext httpContext, string key)
+    {
+        if (string.IsNullOrEmpty(key)) return null;
+
+        if (httpContext?.Request?.RouteValues.TryGetValue(key, out var value) == true)
+        {
+            return value?.ToString();
+        }
+
+        return null;
+    }
+    
     public static bool HasGuidInHttpContextUrl(this HttpContext httpContext, string guidName)
     {
         object? guidValue = null;

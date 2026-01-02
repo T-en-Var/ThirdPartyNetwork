@@ -17,6 +17,7 @@ namespace thirdpartynetwork.Application.Repositories
     ) : UserContentBaseRepository<Configuration>(context, verifier), IConfigurationRepository
     {
         private readonly DataContext _context = context;
+        protected override string ReadPermissionName => Constants.Permissions.ReadConfiguration;
 
         protected override IQueryable<Configuration> GetQueryable()
         {
@@ -48,7 +49,7 @@ namespace thirdpartynetwork.Application.Repositories
 
         public ICollection<Configuration> GetByNetworkId(Guid networkId)
         {
-            return GetAccessibleQueryable(networkId, Constants.Permissions.ReadConfiguration).Where(c => c.Network.Id == networkId).ToList();
+            return GetAccessibleQueryable(networkId).Where(c => c.Network.Id == networkId).ToList();
         }
 
         public Configuration Update(Guid configurationId, UpdateConfigurationDto updateConfiguration)

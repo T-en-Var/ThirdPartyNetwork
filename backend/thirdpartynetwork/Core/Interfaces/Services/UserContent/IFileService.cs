@@ -3,7 +3,7 @@ using File = thirdpartynetwork.Core.Models.File;
 
 namespace thirdpartynetwork.Core.Interfaces.Services
 {
-    public interface IFileService : IBaseService
+    public interface IFileService : IUserContentBaseService<File>
     {
         ICollection<File> GetByNetworkId(Guid networkId);
         File? GetById(Guid networkId, Guid fileId);

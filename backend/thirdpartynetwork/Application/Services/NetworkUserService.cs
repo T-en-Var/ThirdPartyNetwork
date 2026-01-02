@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using thirdpartynetwork.Core.Models;
+using File = thirdpartynetwork.Core.Models.File;
 
 namespace thirdpartynetwork.Application.Services
 {
@@ -48,17 +50,42 @@ namespace thirdpartynetwork.Application.Services
         {
             if (userProxyService.GetById(userProxyId) == null) throw new NotFoundHttpException("UserProxy not Found");
 
-            var networks = repository.GetByUserProxyId(userProxyId)
+            var networks = repository.GetByUserProxyId(userProxyId, q => q
+                    .Include(n => n.Network)
+                    .ThenInclude(x => x.NetworkUsers)
+                    .ThenInclude(x => x.UserProxy))
                 .Select(nu => nu.Network)
                 .ToList();
 
             return networks;
         }
 
+        public ICollection<File> GetFilesByUserProxyId(Guid userProxyId)
+        {
+            if (userProxyService.GetById(userProxyId) == null) throw new NotFoundHttpException("UserProxy not Found");
+
+            var x = repository.GetByUserProxyId(userProxyId, q => q
+                .Include(nu => nu.Files));
+            
+            Console.WriteLine(x.First().Files.Count);
+
+            var files = repository.GetByUserProxyId(userProxyId, q => q
+                    .Include(nu => nu.Files))
+                .SelectMany(nu => nu.Files)
+                .ToList();
+
+            return files;
+        }
+
         public NetworkUser? GetById(Guid networkId, Guid id)
         {
             var networkUser = repository.GetById(networkId, id);
             return networkUser;
+        } 
+        
+        public NetworkUser? GetJustById(Guid id)
+        {
+            return repository.GetJustById(id);
         }
 
         public NetworkUser? GetByNetworkIdAndEmail(Guid networkId, string email)
@@ -71,21 +98,24 @@ namespace thirdpartynetwork.Application.Services
         {
             var network = networkService.GetById(networkId, bypass: true);
             if (network == null) throw new NotFoundHttpException("Network not Found");
-            
+
             var userProxy = userProxyService.GetById(userProxyId);
             if (userProxy == null) throw new NotFoundHttpException("UserProxy not Found");
 
             var isNotDefaultFlag = userProxy.Email == null;
             userProxy = userProxy.ApplyDefaults();
-            
+
             if (GetByIds(networkId, userProxyId) != null) throw new ConflictHttpException("Email is already in use.");
-            if (GetByNetworkIdAndEmail(networkId, userProxy.Email) != null) throw new ConflictHttpException("User with this email already exists" +
-                (isNotDefaultFlag ? ". (You email was imported from your default proxy)" : ""));
+            if (GetByNetworkIdAndEmail(networkId, userProxy.Email) != null)
+                throw new ConflictHttpException("User with this email already exists" +
+                                                (isNotDefaultFlag
+                                                    ? ". (You email was imported from your default proxy)"
+                                                    : ""));
 
             var networkUser = mapper.Map<NetworkUser>(createNetworkUser);
             networkUser.NetworkId = networkId;
             networkUser.UserProxyId = userProxyId;
-            
+
             foreach (var networkAccess in network.NetworkAccesses)
             {
                 networkUser.NetworkUserAccesses.Add(new NetworkUserAccess()
@@ -97,11 +127,11 @@ namespace thirdpartynetwork.Application.Services
                     NetworkUser = default!,
                 });
             }
-            
+
             foreach (var role in network.Roles)
             {
                 if (!role.IsDefault) continue;
-                
+
                 networkUser.NetworkUserRoles.Add(new NetworkUserRole()
                 {
                     RoleId = role.Id,
@@ -110,7 +140,7 @@ namespace thirdpartynetwork.Application.Services
                     NetworkUser = default!,
                 });
             }
-            
+
             networkUser = repository.Create(networkUser);
             return networkUser;
         }
@@ -136,7 +166,8 @@ namespace thirdpartynetwork.Application.Services
         public void DeleteById(Guid networkId, Guid id)
         {
             var network = networkService.GetById(networkId);
-            if (network is { IsSystemProtected: true }) throw new UnauthorizedHttpException("Network is system protected");
+            if (network is { IsSystemProtected: true })
+                throw new UnauthorizedHttpException("Network is system protected");
 
             var networkUser = repository.GetById(networkId, id);
             if (networkUser != null) repository.Delete(networkUser);

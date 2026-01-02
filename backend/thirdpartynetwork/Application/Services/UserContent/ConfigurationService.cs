@@ -11,8 +11,10 @@ public class ConfigurationService(
     INetworkService networkService,
     IIdentityService identityService,
     INetworkUserService networkUserService,
-    IMapper mapper) : IConfigurationService
+    IMapper mapper) : UserContentBaseService<Configuration>(repository, networkUserService), IConfigurationService
 {
+    private readonly INetworkUserService _networkUserService = networkUserService;
+
     public ICollection<Configuration> GetByNetworkId(Guid networkId)
     {
         return repository.GetByNetworkId(networkId);
@@ -29,7 +31,7 @@ public class ConfigurationService(
         if (network == null) throw new NotFoundHttpException("Network not found");
 
         var userProxy = identityService.GetUserProxy();
-        var networkUser = networkUserService.GetByIds(networkId, userProxy.Id);
+        var networkUser = _networkUserService.GetByIds(networkId, userProxy.Id);
         if (networkUser == null) throw new NotFoundHttpException("NetworkUser not found");
 
         var configuration = mapper.Map<Configuration>(createConfiguration);

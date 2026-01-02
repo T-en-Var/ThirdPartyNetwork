@@ -27,7 +27,7 @@ public class FileController(IFileService service, IMapper mapper) : ControllerBa
         var file = service.GetById(networkId, fileId);
         return file != null ? Ok(mapper.Map<FileDto>(file)) : NotFound();
     }
-    
+
     [HttpPost]
     [RequirePermission(Constants.Permissions.ManageFile)]
     [ProducesResponseType(201, Type = typeof(FileDto))]
@@ -44,7 +44,7 @@ public class FileController(IFileService service, IMapper mapper) : ControllerBa
     [RequirePermission(Constants.Permissions.ManageFile)]
     [ProducesResponseType(200, Type = typeof(FileDto))]
     [ProducesResponseType(404)]
-    public IActionResult UpdateFile(Guid networkId, Guid fileId, UpdateFileDto updateFile)
+    public IActionResult UpdateFile(Guid networkId, Guid fileId, [FromBody] UpdateFileDto updateFile)
     {
         var file = service.Update(networkId, fileId, updateFile);
         return Ok(mapper.Map<FileDto>(file));

@@ -15,6 +15,7 @@ namespace thirdpartynetwork.Core.Data
         public DbSet<NetworkUserRole> NetworkUserRoles { get; set; }
         public DbSet<PageBlock> PageBlocks { get; set; }
         public DbSet<Configuration> Configurations { get; set; }
+        public DbSet<Blog> Blogs { get; set; }
         public DbSet<Access> Accesses { get; set; }
         public DbSet<Role> Roles { get; set; }
         public DbSet<RolePermission> RolePermissions { get; set; }
@@ -105,9 +106,11 @@ namespace thirdpartynetwork.Core.Data
             AuthorToMany<CustomPage>();
             AuthorToMany<PageBlock>();
             AuthorToMany<Configuration>();
+            AuthorToMany<Blog>();
             AuthorToMany<File>();
 
             NetworkToMany<CustomPage>();
+            NetworkToMany<Blog>();
             NetworkToMany<Configuration>();
             
             // FILES
@@ -139,6 +142,10 @@ namespace thirdpartynetwork.Core.Data
 
             modelBuilder.Entity<Configuration>()
                 .Property(c => c.Value)
+                .HasColumnType("jsonb");
+
+            modelBuilder.Entity<Blog>()
+                .Property(b => b.Body)
                 .HasColumnType("jsonb");
 
             base.OnModelCreating(modelBuilder);

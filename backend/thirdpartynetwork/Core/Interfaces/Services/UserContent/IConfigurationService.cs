@@ -3,7 +3,7 @@ using thirdpartynetwork.Application.Dtos.UserContent.Configuration;
 
 namespace thirdpartynetwork.Core.Interfaces.Services
 {
-    public interface IConfigurationService : IBaseService
+    public interface IConfigurationService : IUserContentBaseService<Configuration>
     {
         ICollection<Configuration> GetByNetworkId(Guid networkId);
         Configuration? GetById(Guid networkId, Guid configurationId);

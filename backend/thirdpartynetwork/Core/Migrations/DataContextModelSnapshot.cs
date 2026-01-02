@@ -51,6 +51,60 @@ namespace thirdpartynetwork.Core.Migrations
                     b.ToTable("Accesses");
                 });
 
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.Blog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("AccessLevel")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("AuthorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<JsonDocument>("Body")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<Guid?>("CoverImageId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("NetworkId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("PublishedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Summary")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuthorId");
+
+                    b.HasIndex("CoverImageId");
+
+                    b.HasIndex("NetworkId");
+
+                    b.ToTable("Blogs");
+                });
+
             modelBuilder.Entity("thirdpartynetwork.Core.Models.Configuration", b =>
                 {
                     b.Property<Guid>("Id")
@@ -532,6 +586,31 @@ namespace thirdpartynetwork.Core.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("UserProxies");
+                });
+
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.Blog", b =>
+                {
+                    b.HasOne("thirdpartynetwork.Core.Models.NetworkUser", "Author")
+                        .WithMany()
+                        .HasForeignKey("AuthorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("thirdpartynetwork.Core.Models.File", "CoverImage")
+                        .WithMany()
+                        .HasForeignKey("CoverImageId");
+
+                    b.HasOne("thirdpartynetwork.Core.Models.Network", "Network")
+                        .WithMany()
+                        .HasForeignKey("NetworkId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Author");
+
+                    b.Navigation("CoverImage");
+
+                    b.Navigation("Network");
                 });
 
             modelBuilder.Entity("thirdpartynetwork.Core.Models.Configuration", b =>

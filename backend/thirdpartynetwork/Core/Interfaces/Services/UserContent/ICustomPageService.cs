@@ -2,7 +2,7 @@ using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Core.Interfaces.Services
 {
-    public interface ICustomPageService : IBaseService
+    public interface ICustomPageService : IUserContentBaseService<CustomPage>
     {
         ICollection<CustomPage> GetByNetworkId(Guid networkId);
         CustomPage? GetById(Guid networkId, Guid customPageId);

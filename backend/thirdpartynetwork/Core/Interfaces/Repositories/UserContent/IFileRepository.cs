@@ -2,7 +2,7 @@
 
 namespace thirdpartynetwork.Core.Interfaces.Repositories
 {
-    public interface IFileRepository : IBaseRepository
+    public interface IFileRepository : IUserContentBaseRepository<File>
     {
         bool Exists(Guid id);
         ICollection<File> GetByNetworkId(Guid networkId);
