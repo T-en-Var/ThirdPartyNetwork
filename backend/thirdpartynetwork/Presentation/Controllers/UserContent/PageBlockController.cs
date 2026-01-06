@@ -9,15 +9,6 @@ namespace thirdpartynetwork.Presentation.Controllers;
 [ApiController]
 public class PageBlockController(IPageBlockService service, IMapper mapper) : ControllerBase
 {
-    [HttpGet]
-    [RequirePermission(Constants.Permissions.ReadPageBlock)]
-    [ProducesResponseType(200, Type = typeof(IEnumerable<PageBlockDto>))]
-    public IActionResult GetCustomPagePageBlocks(Guid networkId, Guid customPageId)
-    {
-        var pageBlock = service.GetByCustomPageId(networkId, customPageId);
-        return Ok(mapper.Map<IEnumerable<PageBlockDto>>(pageBlock));
-    }
-
     [HttpGet("{pageBlockId:guid}")]
     [RequirePermission(Constants.Permissions.ReadPageBlock)]
     [ProducesResponseType(200, Type = typeof(PageBlockDto))]
