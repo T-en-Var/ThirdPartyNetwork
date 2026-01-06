@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 using thirdpartynetwork.Core.Models;
 using File = thirdpartynetwork.Core.Models.File;
 
@@ -156,6 +157,38 @@ namespace thirdpartynetwork.Core.Data
                 .HasColumnType("jsonb");
 
             base.OnModelCreating(modelBuilder);
+            
+            if (this.Database.ProviderName == "Microsoft.EntityFrameworkCore.InMemory")
+            {
+                modelBuilder.Entity<Blog>()
+                    .Property(b => b.Body)
+                    .HasConversion(
+                        // Serialize: Convert JsonDocument to String for storage
+                        doc => doc.RootElement.ToString(),
+                        // Deserialize: Convert String back to JsonDocument when reading
+                        jsonString => JsonDocument.Parse(jsonString, default)
+                    );
+                
+                
+                modelBuilder.Entity<PageBlock>()
+                    .Property(pb => pb.Data)
+                    .HasConversion(
+                        // Serialize: Convert JsonDocument to String for storage
+                        doc => doc.RootElement.ToString(),
+                        // Deserialize: Convert String back to JsonDocument when reading
+                        jsonString => JsonDocument.Parse(jsonString, default)
+                    );
+
+                modelBuilder.Entity<Configuration>()
+                    .Property(c => c.Value)
+                    .HasConversion(
+                        // Serialize: Convert JsonDocument to String for storage
+                        doc => doc.RootElement.ToString(),
+                        // Deserialize: Convert String back to JsonDocument when reading
+                        jsonString => JsonDocument.Parse(jsonString, default)
+                    );
+            }
+            
             return;
 
             void AuthorToMany<T>() where T : UserContentBaseModel
