@@ -1,4 +1,5 @@
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using thirdpartynetwork.Core.Data;
 using thirdpartynetwork.Application.Dtos.UserContent.Blog;
 using thirdpartynetwork.Application.Repositories.UserContent;
@@ -19,7 +20,7 @@ namespace thirdpartynetwork.Application.Repositories
 
         protected override IQueryable<Blog> GetQueryable()
         {
-            return _context.Blogs.AsQueryable();
+            return _context.Blogs.Include(x => x.CoverImage).AsQueryable();
         }
 
         public Blog? GetByNetworkIdAndSlug(Guid networkId, string slug)

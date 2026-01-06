@@ -29,7 +29,7 @@ namespace thirdpartynetwork.Application.Repositories
 
         public CustomPage? GetById(Guid id)
         {
-            return _context.CustomPages.FirstOrDefault(c => c.Id == id);
+            return GetQueryable().FirstOrDefault(c => c.Id == id);
         }
 
         public ICollection<CustomPage> GetByNetworkId(Guid networkId)

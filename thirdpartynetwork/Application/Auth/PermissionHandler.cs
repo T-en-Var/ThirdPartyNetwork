@@ -146,11 +146,11 @@ public class PermissionHandler(
         }
         
         var networkId = httpContext.GetGuidFromHttpContextUrl("networkId");
-        var userProxy = identityService.GetUserProxy();
+        var userProxy = identityService.GetUserProxy(true);
 
         if (identityVerifier.IsSuperAdminOrHasSuperPermission(userProxy.Id, permission))
             return true;
-
+        
         return permission switch
         {
             Constants.Permissions.ReadFile =>

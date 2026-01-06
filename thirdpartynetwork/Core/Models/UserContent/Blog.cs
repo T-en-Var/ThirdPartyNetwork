@@ -9,6 +9,7 @@ public class Blog : UserContentBaseModel
     public required string Slug { get; set; }
     public required string Summary { get; set; }
     public File? CoverImage { get; set; }
+    public Guid? CoverImageId { get; set; }
     public required JsonDocument Body { get; set; }
     public DateTime? PublishedAt { get; set; }
 }

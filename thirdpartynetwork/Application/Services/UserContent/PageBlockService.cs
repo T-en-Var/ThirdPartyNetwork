@@ -40,6 +40,7 @@ namespace thirdpartynetwork.Application.Services
             if (networkUser == null) throw new NotFoundHttpException("NetworkUser not found");
 
             var pageBlock = mapper.Map<PageBlock>(createPageBlock);
+            pageBlock.NetworkId = networkId;
             pageBlock.CustomPage = customPage;
             pageBlock.Author = networkUser;
 

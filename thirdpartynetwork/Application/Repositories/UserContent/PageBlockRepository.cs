@@ -1,5 +1,4 @@
 using AutoMapper;
-using Microsoft.EntityFrameworkCore;
 using thirdpartynetwork.Application.Repositories.UserContent;
 using thirdpartynetwork.Core;
 using thirdpartynetwork.Core.Data;
@@ -29,7 +28,7 @@ namespace thirdpartynetwork.Application.Repositories
 
         public ICollection<PageBlock> GetByCustomPageId(Guid networkId, Guid customPageId)
         {
-            return GetAccessibleQueryable(networkId).Where(p => p.CustomPageId == customPageId).ToList();
+            return GetQueryable().Where(p => p.CustomPageId == customPageId).ToList();
         }
 
         public PageBlock? GetById(Guid id)

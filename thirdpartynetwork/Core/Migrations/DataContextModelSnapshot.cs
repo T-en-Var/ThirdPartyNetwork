@@ -598,7 +598,8 @@ namespace thirdpartynetwork.Core.Migrations
 
                     b.HasOne("thirdpartynetwork.Core.Models.File", "CoverImage")
                         .WithMany()
-                        .HasForeignKey("CoverImageId");
+                        .HasForeignKey("CoverImageId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("thirdpartynetwork.Core.Models.Network", "Network")
                         .WithMany()

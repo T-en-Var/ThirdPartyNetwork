@@ -135,6 +135,13 @@ namespace thirdpartynetwork.Core.Data
                 .WithMany()
                 .HasForeignKey(f => f.ImageFileId)
                 .IsRequired(false);
+            
+            modelBuilder.Entity<Blog>()
+                .HasOne(n => n.CoverImage)
+                .WithMany()
+                .HasForeignKey(f => f.CoverImageId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
 
             modelBuilder.Entity<PageBlock>()
                 .Property(pb => pb.Data)
