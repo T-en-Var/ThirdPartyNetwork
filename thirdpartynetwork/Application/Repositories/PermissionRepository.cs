@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using thirdpartynetwork.Core.Data;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using thirdpartynetwork.Core.Models;
@@ -10,7 +11,9 @@ public class PermissionRepository(DataContext context) : BaseRepository(context)
 
     private IQueryable<Permission> GetQueryable()
     {
-        var query = _context.Permissions.AsQueryable();
+        var query = _context.Permissions
+            .AsNoTracking()
+            .AsQueryable();
         
         // I'll skip this for now.
         

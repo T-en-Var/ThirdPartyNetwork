@@ -14,6 +14,7 @@ namespace thirdpartynetwork.Application.Repositories
         private IQueryable<Network> GetQueryable(Guid id, bool bypass = false)
         {
             var query = _context.Networks
+                .AsNoTracking()
                 .Include(x => x.ImageFile)
                 .Include(x => x.NetworkUsers)
                 .Include(x => x.Roles)

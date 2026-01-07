@@ -12,6 +12,7 @@ namespace thirdpartynetwork.Application.Repositories
         {
             return _context.Users
                 .Include(u => u.UserProxies)
+                .AsNoTracking()
                 .AsQueryable();
         }
 

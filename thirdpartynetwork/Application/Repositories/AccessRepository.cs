@@ -1,4 +1,5 @@
-﻿using thirdpartynetwork.Core.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using thirdpartynetwork.Core.Data;
 using thirdpartynetwork.Core.Exceptions;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using thirdpartynetwork.Core.Models;
@@ -11,7 +12,9 @@ namespace thirdpartynetwork.Application.Repositories
 
         private IQueryable<Access> GetQueryable()
         {
-            var query = _context.Accesses.AsQueryable();
+            var query = _context.Accesses
+                .AsNoTracking()
+                .AsQueryable();
             
             // I'll skip this for now.
             

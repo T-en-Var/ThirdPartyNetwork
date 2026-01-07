@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using thirdpartynetwork.Application.Repositories.UserContent;
 using thirdpartynetwork.Core;
 using thirdpartynetwork.Core.Data;
@@ -19,7 +20,9 @@ namespace thirdpartynetwork.Application.Repositories
 
         protected override IQueryable<File> GetQueryable()
         {
-            return _context.Files.AsQueryable();
+            return _context.Files
+                .AsNoTracking()
+                .AsQueryable();
         }
 
         public File Create(File file)

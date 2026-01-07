@@ -14,6 +14,7 @@ namespace thirdpartynetwork.Application.Repositories
         private IQueryable<Role> GetQueryable(Guid networkId)
         {
             var query = _context.Roles
+                .AsNoTracking()
                 .Where(r => r.NetworkId == networkId)
                 .AsQueryable();
             var currentUser = identityService.GetUserProxy(true);
