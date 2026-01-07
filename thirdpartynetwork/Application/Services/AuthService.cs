@@ -26,9 +26,11 @@ public class AuthService(
 
     private NetworkUser GetNetworkUserByEmail(Guid networkId, string email)
     {
+        Console.WriteLine("Step 3");
         var networkUser = networkUserService.GetByNetworkIdAndEmail(networkId, email);
         if (networkUser == null) throw new UnauthorizedHttpException("Invalid email or password");
 
+        Console.WriteLine("Step 3.2");
         return networkUser;
     }
 
@@ -154,19 +156,24 @@ public class AuthService(
 
     public TokensDto MainNetworkLogin(LoginDto loginDto)
     {
+        Console.WriteLine("Step 1");
         var mainNetwork = networkService.GetMainNetwork();
+        Console.WriteLine("Step 1.2");
+
         return LoginGetTokens(mainNetwork.Id, loginDto);
     }
 
     private TokensDto LoginGetTokens(Guid networkId, LoginDto loginData)
     {
         var networkUser = GetNetworkUserByEmail(networkId, loginData.Email);
+        Console.WriteLine("Step 2");
         if (networkUser == null) throw new UnauthorizedHttpException("Invalid email or password");
 
         if (networkUser.UserProxy.Password is null ||
             !passwordHasher.VerifyPassword(loginData.Password, networkUser.UserProxy.Password))
             throw new UnauthorizedHttpException("Invalid email or password");
 
+        Console.WriteLine("Step 2.2");
         return tokenGenerator.GenerateTokenPair(networkUser);
     }
 
