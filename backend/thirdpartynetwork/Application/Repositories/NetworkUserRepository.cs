@@ -31,7 +31,13 @@ namespace thirdpartynetwork.Application.Repositories
 
             if (identityVerifier.IsAllowed(networkId, currentUser.Id, Constants.Permissions.ReadUser))
                 query = query
-                    .Include(x => x.UserProxy);
+                    .Include(x => x.UserProxy)
+                    .ThenInclude(x => x.ImageFile);
+
+            if (identityVerifier.IsAllowed(networkId, currentUser.Id, Constants.Permissions.ReadRole))
+                query = query
+                    .Include(x => x.NetworkUserRoles)
+                    .ThenInclude(x => x.Role);
 
             return query;
         }
@@ -117,7 +123,7 @@ namespace thirdpartynetwork.Application.Repositories
 
         public NetworkUser? GetByIdsPreAuth(Guid networkId, Guid userProxyId)
         {
-            return PreAuthIncludes(context.NetworkUsers)
+            return PreAuthIncludes(_context.NetworkUsers)
                 .FirstOrDefault(u => u.NetworkId == networkId && u.UserProxyId == userProxyId);
         }
 
