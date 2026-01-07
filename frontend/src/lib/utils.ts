@@ -37,9 +37,10 @@ export const mapMediaType: Record<string, string> = {
     "image/jpeg, image/jpg, image/png, image/gif, image/webp, image/avif, image/svg+xml, image/tiff, image/bmp, image/x-icon, image/vnd.microsoft.icon",
   video:
     "video/mp4, video/webm, video/ogg, video/avi, video/mov, video/mpeg, video/3gpp, video/3gpp2, video/quicktime, video/x-msvideo",
+  audio:
+    "audio/mpeg, audio/mp3, audio/wav, audio/ogg, audio/flac, audio/aac, audio/x-m4a",
   raw:
     // “raw” covers things that are not image/video (docs, archives, etc.)
     "application/pdf, application/zip, application/gzip, application/x-rar-compressed, application/msword, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-powerpoint, application/vnd.openxmlformats-officedocument.presentationml.presentation, text/plain, application/json, application/xml, application/vnd.adobe.photoshop",
   _: ""
 };
-

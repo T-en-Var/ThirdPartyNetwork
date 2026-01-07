@@ -1,4 +1,5 @@
 import animate from 'tailwindcss-animate'
+import typography from '@tailwindcss/typography'
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
@@ -89,5 +90,5 @@ module.exports = {
       },
     },
   },
-  plugins: [animate],
+  plugins: [animate, typography],
 }

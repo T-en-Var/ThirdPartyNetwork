@@ -18,6 +18,7 @@
               class="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-600 focus:ring focus:ring-blue-100 disabled:bg-gray-100 disabled:text-gray-500 transition-all" />
           </div>
         </div>
+        <AccessLevelPicker v-model="form.accessLevel" />
         <div class="flex justify-end">
           <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
             Update
@@ -90,6 +91,7 @@
 <script setup lang="ts">
 import useCustomPage from '@/composables/useCustomPage';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
+import AccessLevelPicker from '@/components/fields/AccessLevelPicker.vue';
 import type { CreateCustomPage, CustomPage, Network, PageBlock } from '@/types';
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -113,7 +115,7 @@ const { customPage, loading, error, fetchCustomPage } = useCustomPage();
 const customPageId = route.params.customPageId as string;
 const networkId = route.params.networkId as string;
 
-const form = ref<CreateCustomPage>({ name: '', slug: '' })
+const form = ref<CreateCustomPage>({ name: '', slug: '', accessLevel: 0 })
 const viewMode = ref<'flat' | 'grouped'>('flat')
 
 const activeTabClasses = 'px-3 py-1 bg-blue-600 text-white rounded-md text-sm cursor-default'
@@ -125,6 +127,7 @@ onMounted(async () => {
   if (!customPage.value) throw new Error("CustomPage not found");
   form.value.name = customPage.value.name;
   form.value.slug = customPage.value.slug;
+  form.value.accessLevel = customPage.value.accessLevel ?? 0;
 
   historyStore.customPageVisit(customPage.value)
 })

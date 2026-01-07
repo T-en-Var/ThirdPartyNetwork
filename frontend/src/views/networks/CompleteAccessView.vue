@@ -11,7 +11,8 @@
     </div>
 
     <div v-else>
-      <div class="mb-8 bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+      <div
+        class="mb-8 bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
         @click="handleNetworkDetails" aria-label="View network details">
         <div class="p-4 flex items-center">
           <div class="mr-4">
@@ -21,7 +22,8 @@
             <div class="flex justify-between items-center">
               <div>
                 <h2 class="text-xl font-semibold text-gray-800">{{ network.name }}</h2>
-                <p class="text-sm text-gray-600">{{ network.networkUsers?.length || 0 }} members</p>
+                <p v-if="network.networkUsers?.length > 0" class="text-sm text-gray-600">{{ network.networkUsers?.length
+                  || 0 }} members</p>
               </div>
               <span v-if="network.isSystemProtected"
                 class="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
@@ -52,7 +54,8 @@
     <template #footer>
       <form @submit.prevent="handleUpdateAccesses">
         <div class="flex justify-end space-x-3">
-          <button type="button" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition"
+          <button type="button"
+            class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition"
             @click="navigateBack">
             Back
           </button>
@@ -60,7 +63,8 @@
             :class="`px-4 py-2 text-white rounded-md transition ${canSubmit && !isSubmitting ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400 cursor-not-allowed'}`"
             :disabled="!canSubmit || isSubmitting" aria-label="Confirm and update data access settings">
             <span v-if="isSubmitting" class="flex items-center">
-              <span class="inline-block h-4 w-4 border-2 border-current border-r-transparent rounded-full animate-spin mr-2"
+              <span
+                class="inline-block h-4 w-4 border-2 border-current border-r-transparent rounded-full animate-spin mr-2"
                 aria-hidden="true"></span>
               Updating...
             </span>
@@ -82,12 +86,12 @@ import type { AxiosError } from 'axios';
 // Reusable Components
 import ContentLayout from '@/components/ContentLayout.vue';
 import NetworkAccessList from '@/components/NetworkAccessList.vue';
-import LoadingSpinner from '@/components/LoadingSpinner.vue'; // Reused spinner
-import NetworkLogo from '@/components/NetworkLogo.vue'; // Reused logo
+import LoadingSpinner from '@/components/LoadingSpinner.vue';
+import NetworkLogo from '@/components/NetworkLogo.vue';
 
 // Existing Components
 import ErrorAlert from '@/components/ErrorAlert.vue';
-import UserProxyDisplay from '@/components/UserProxyDisplay.vue'
+import UserProxyDisplay from '@/components/UserProxyDisplay.vue';
 import api from '@/api/api';
 import useNetworkDetails from '@/composables/useNetworkDetails';
 
@@ -124,8 +128,8 @@ const canSubmit = computed(() => {
   const currentAccesses = accessListRef.value?.userAccesses.value || userAccesses.value;
   const accessesRecord = currentAccesses as Record<string, UserAccessState>;
   const requiredAccesses = network.value.networkAccesses.filter(na => na.isRequired);
-  
-  return requiredAccesses.every(na => accessesRecord[na.accessId]?.value); 
+
+  return requiredAccesses.every(na => accessesRecord[na.accessId]?.value);
 });
 
 
@@ -133,7 +137,8 @@ const canSubmit = computed(() => {
 
 onMounted(async () => {
   temporaryAccessToken = localStorage.getItem('temporaryAccessToken') || '';
-  
+  console.log('Temporary Access Token:', temporaryAccessToken);
+
   // Redirect to login if no temporary token is present
   if (!temporaryAccessToken) {
     router.push(`/networks/${networkId.value}/login?redirectUri=${route.query.redirectUri}`);
@@ -142,25 +147,25 @@ onMounted(async () => {
   }
 
   await fetchNetworkDetails(networkId.value);
-  
+
   if (network.value) {
     try {
       const userResponse = await api.get<UserProxy>(`/me`, {
         headers: { "Authorization": `Bearer ${temporaryAccessToken}` }
       });
-  
+
       if (userResponse.status !== 200) {
         throw new Error("Failed to fetch user data.");
       }
-  
+
       currentUser.value = userResponse.data;
-  
+
       const networkUser = currentUser.value.networkUsers.find(nu => nu.networkId === networkId.value);
       if (!networkUser) {
         throw new Error("User not linked to this network.");
       }
       currentNetworkUser.value = networkUser;
-  
+
       // Initialize the access state based on current accepted status
       const initialAccessState: Record<string, UserAccessState> = {};
       for (const na of network.value.networkAccesses) {
@@ -174,7 +179,7 @@ onMounted(async () => {
       submitError.value = "Authentication error. Please log in again.";
     }
   }
-  
+
   pageLoading.value = false;
 });
 
@@ -211,8 +216,8 @@ async function handleUpdateAccesses() {
 
     for (const access of network.value.networkAccesses) {
       const isCurrentlyAccepted = currentNetworkUser.value.networkUserAccesses.find(n => n.accessId === access.accessId)?.isAccepted || false;
-      
-      const shouldBeAccepted = finalAccessState[access.accessId]?.value ?? false; 
+
+      const shouldBeAccepted = finalAccessState[access.accessId]?.value ?? false;
 
       if (shouldBeAccepted && !isCurrentlyAccepted) {
         acceptedAccesses.push(access.accessId);
@@ -233,6 +238,16 @@ async function handleUpdateAccesses() {
         })
       )
     ]);
+
+    if (acceptedAccesses.length === 0 && rejectedAccesses.length === 0) {
+      const accessId = network.value.networkAccesses[0]?.accessId;
+      const isAccepted = currentNetworkUser.value.networkUserAccesses.find(n => n.accessId === accessId)?.isAccepted || false;
+
+      await api.put(`/networks/${networkId.value}/users/${currentNetworkUser.value?.id}/accesses/${accessId}/`,
+        { isAccepted: isAccepted },
+        { headers: { "Authorization": `Bearer ${temporaryAccessToken}` } }
+      );
+    }
 
     const redirectUrl = atob(route.query.redirectUri as string);
     localStorage.removeItem('temporaryAccessToken');
@@ -256,8 +271,8 @@ function navigateBack() {
 }
 
 function switchAccount() {
-  const url = btoa(route.fullPath)
-  router.push(`/account?redirect=${url}`)
+  const url = btoa(route.fullPath);
+  router.push(`/account?redirect=${url}`);
 }
 
 function handleNetworkDetails() {

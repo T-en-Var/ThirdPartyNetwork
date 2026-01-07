@@ -62,6 +62,9 @@
             Drag & drop a file here or click to select
           </div>
         </div>
+
+        <!-- Access Level -->
+        <AccessLevelPicker v-model="selectedAccessLevel" />
       </div>
 
       <!-- Existing Tab -->
@@ -70,7 +73,7 @@
           Choose one of your images
         </label>
         <div class="grid grid-cols-3 gap-3 max-h-64 overflow-y-auto p-2">
-          <label v-for="f in existingFiles" :key="f.id"
+          <label v-for="f in files" :key="f.id"
             class="relative cursor-pointer rounded-lg border transition hover:shadow-sm" :class="selectedExistingFile?.id === f.id
               ? 'border-indigo-500 ring-2 ring-indigo-500'
               : 'border-gray-300'">
@@ -87,7 +90,7 @@
             </div>
           </label>
         </div>
-        <p v-if="!existingFiles.length" class="text-sm text-gray-500">No images available.</p>
+        <p v-if="!files.length" class="text-sm text-gray-500">No images available.</p>
       </div>
 
       <!-- Action Buttons -->
@@ -114,12 +117,15 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
 import ModalContainer from '@/components/modals/ModalContainer.vue';
+import AccessLevelPicker from '@/components/fields/AccessLevelPicker.vue';
 import useFiles from '@/composables/useFiles';
 import { mapMediaType, readableSize } from '@/lib/utils';
 import type { UserProxy, Network, NetworkFile } from '@/types';
 import { useAuthStore } from '@/stores/auth';
 import CloudinaryFile from '@/components/cdn/CloudinaryFile.vue';
 import ForceLoadModal from '../ForceWaitModal.vue';
+
+const { uploadFile, fetchUserFiles, file, files, loading, error, progress } = useFiles();
 
 const props = withDefaults(defineProps<{
   network?: Network;
@@ -144,12 +150,16 @@ onMounted(async () => {
     selectedNetwork.value = props.network;
   }
   userProxy.value = await authStore.getUserProxy();
-});
 
-const { uploadFile, file, loading, error, progress } = useFiles();
+  if (userProxy.value) {
+    await fetchUserFiles(userProxy.value.user.id, userProxy.value.id)
+  }
+
+});
 
 const fileInput = ref<HTMLInputElement | null>(null);
 const selectedFile = ref<File | null>(null);
+const selectedAccessLevel = ref<number>(0);
 
 const allNetworks = computed(() => {
   if (props.networks) return props.networks;
@@ -186,20 +196,6 @@ function handleFileChange(e: Event) {
   }
 }
 
-const existingFiles = computed<NetworkFile[]>(() => {
-  if ((!props.network && !props.networks) || !userProxy.value) return [];
-  const allProxies = [userProxy.value, ...(userProxy.value?.user.userProxies.filter(u => u != null) ?? [])];
-
-  const files: NetworkFile[] = [];
-  allProxies.forEach(up => {
-    up.networkUsers.forEach(nu => {
-      nu.files?.forEach(f => {
-        if (!props.mediaType || f.mediaType === props.mediaType) files.push(f);
-      });
-    });
-  });
-  return files;
-});
 const selectedExistingFile = ref<NetworkFile | null>(null);
 
 const submitDisabled = computed(() => {
@@ -224,7 +220,7 @@ async function handleUpload() {
 
   if (activeTab.value === 'upload') {
     if (!selectedFile.value || !selectedNetwork.value) return;
-    await uploadFile(selectedNetwork.value.id, selectedFile.value);
+    await uploadFile(selectedNetwork.value.id, selectedFile.value, selectedAccessLevel.value);
 
     selectedFile.value = null;
   }

@@ -167,6 +167,42 @@ const router = createRouter({
           },
         },
         {
+          path: 'blogs',
+          name: 'manage-network-blogs',
+          component: () => import('@/components/tabs/network/BlogsTab.vue'),
+          meta: {
+            requiresAuth: true,
+            title: 'Blogs'
+          },
+        },
+        {
+          path: 'blogs/:blogId/edit',
+          name: 'manage-network-edit-blog',
+          component: () => import('@/components/tabs/network/EditBlogTab.vue'),
+          meta: {
+            requiresAuth: true,
+            title: 'Edit Blog'
+          },
+        },
+        {
+          path: 'configurations',
+          name: 'manage-network-configurations',
+          component: () => import('@/components/tabs/network/ConfigurationsTab.vue'),
+          meta: {
+            requiresAuth: true,
+            title: 'Configurations'
+          },
+        },
+        {
+          path: 'configurations/:configurationId/edit',
+          name: 'manage-network-edit-configuration',
+          component: () => import('@/components/tabs/network/EditConfigurationTab.vue'),
+          meta: {
+            requiresAuth: true,
+            title: 'Edit Configuration'
+          },
+        },
+        {
           path: 'custom-pages/:customPageId/edit',
           name: 'manage-network-edit-custom-page',
           component: () => import('@/components/tabs/network/EditCustomPageTab.vue'),

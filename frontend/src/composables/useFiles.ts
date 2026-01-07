@@ -2,7 +2,7 @@ import { ref } from 'vue'
 import api from '@/api/api.ts'
 import type { Ref } from 'vue'
 import type { AxiosError, AxiosProgressEvent } from 'axios'
-import type { NetworkFile, ErrorMessage, Network } from '@/types'
+import type { NetworkFile, ErrorMessage } from '@/types'
 import { useGlobalStore } from '@/stores/global'
 
 export default function useFiles() {
@@ -14,14 +14,11 @@ export default function useFiles() {
 
   const globalStore = useGlobalStore()
 
-  const insertFile = (networkFile: NetworkFile, network: Network | null = null) => {
-    if (network) files.value = network?.files;
+  const insertFile = (networkFile: NetworkFile) => {
     const index = files.value.findIndex(f => f.id === networkFile.id)
 
     if (index !== -1) files.value.splice(index, 1, networkFile)
     else files.value.unshift(networkFile)
-
-    if (network) network.files = files.value;
   }
 
   const fetchNetworkFiles = async (networkId: string) => {
@@ -44,7 +41,7 @@ export default function useFiles() {
     }
   }
 
-  const fetchUserFiles = async (userId: string) => {
+  const fetchUserFiles = async (userId: string, userProxyId: string) => {
     loading.value = true
 
     if (files.value.length > 0) {
@@ -54,7 +51,7 @@ export default function useFiles() {
 
     globalStore.startFetching()
     try {
-      const response = await api.get<NetworkFile[]>(`/users/${userId}/files/`)
+      const response = await api.get<NetworkFile[]>(`/users/${userId}/proxies/${userProxyId}/files/`)
       files.value = response.data
     } catch (err) {
       error.value = (err as AxiosError<ErrorMessage>).response?.data.message || 'Failed to fetch files.'
@@ -81,7 +78,7 @@ export default function useFiles() {
     }
   }
 
-  const uploadFile = async (networkId: string, fileToUpload: File) => {
+  const uploadFile = async (networkId: string, fileToUpload: File, accessLevel: number = 0) => {
     loading.value = true
     progress.value = 0
     error.value = null
@@ -89,6 +86,7 @@ export default function useFiles() {
 
     const formData = new FormData()
     formData.append('file', fileToUpload)
+    formData.append('accessLevel', accessLevel.toString())
 
     const config = {
       headers: {

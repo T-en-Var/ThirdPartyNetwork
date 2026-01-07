@@ -1,4 +1,4 @@
-import type { NetworkFile, NetworkFileLink } from "./files";
+import type { NetworkFile, NetworkFileLink } from "./userContent/files";
 import type { NetworkUser } from "./networkUser";
 import type { User } from "./user";
 

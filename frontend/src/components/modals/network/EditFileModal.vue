@@ -21,6 +21,9 @@
         </label>
       </div>
 
+      <!-- Access Level -->
+      <AccessLevelPicker v-model="form.accessLevel" />
+
       <!-- Actions -->
       <div class="flex justify-between pt-4 border-t border-gray-200">
         <div>
@@ -52,6 +55,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import ModalContainer from '@/components/modals/ModalContainer.vue';
+import AccessLevelPicker from '@/components/fields/AccessLevelPicker.vue';
 import CloudinaryFile from '@/components/cdn/CloudinaryFile.vue';
 import type { EditFileForm, NetworkFile } from '@/types';
 
@@ -68,13 +72,15 @@ const emit = defineEmits<{
 
 const form = ref({
   name: props.file.name,
-  isPublic: props.file.isPublic
+  isPublic: props.file.isPublic,
+  accessLevel: props.file.accessLevel ?? 0
 });
 
 // Update form if props.file changes
 watch(() => props.file, (newFile) => {
   form.value.name = newFile.name;
   form.value.isPublic = newFile.isPublic;
+  form.value.accessLevel = newFile.accessLevel ?? 0;
 });
 
 function handleSubmit() {
@@ -82,7 +88,8 @@ function handleSubmit() {
     props.file.id,
     {
       name: form.value.name,
-      isPublic: form.value.isPublic
+      isPublic: form.value.isPublic,
+      accessLevel: form.value.accessLevel
     });
 }
 </script>

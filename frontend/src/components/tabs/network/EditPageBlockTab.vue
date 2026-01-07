@@ -48,7 +48,7 @@
             </div>
 
             <div v-else class="relative">
-              <JsonEditorVue v-model="jsonEditorValue" class="h-64 border rounded-md" />
+              <JsonEditorVue v-model="jsonEditorValue" :stringified="false" class="h-64 border rounded-md" />
               <div class="flex justify-end mt-2 space-x-2">
                 <button type="button" class="px-3 py-1 bg-gray-200 text-gray-700 rounded-md text-sm hover:bg-gray-300"
                   @click="cancelEditData">

@@ -1,13 +1,12 @@
-import type { NetworkUser } from "./networkUser";
+import type { UserContentBase } from "./userContentBase";
 
-export interface PageBlock {
+export interface PageBlock extends UserContentBase {
   id: string;
   parentPageId?: string;
   text: string;
   position: number;
   data: object;
   customPageId: string;
-  author: NetworkUser;
 }
 
 export interface CreatePageBlock {

@@ -22,6 +22,9 @@
         <p class="mt-1 text-xs text-gray-500">Information which should make it easier to look up.</p>
       </div>
 
+      <!-- Access Level -->
+      <AccessLevelPicker v-model="form.accessLevel" />
+
       <!-- Actions -->
       <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
         <button type="button"
@@ -43,6 +46,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import ModalContainer from '@/components/modals/ModalContainer.vue';
+import AccessLevelPicker from '@/components/fields/AccessLevelPicker.vue';
 import type { CreateCustomPage } from '@/types';
 
 withDefaults(
@@ -60,6 +64,7 @@ const emit = defineEmits<{
 const form = ref({
   name: '',
   slug: '',
+  accessLevel: 0,
 });
 
 function handleSubmit() {

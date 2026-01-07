@@ -1,6 +1,6 @@
-import type { NetworkUser } from "./networkUser";
+import type { UserContentBase, UserContentCreateBase } from "./userContentBase";
 
-export interface NetworkFile {
+export interface NetworkFile extends UserContentBase {
   id: string;
   url: string;
   format: string;
@@ -12,10 +12,10 @@ export interface NetworkFile {
   name: string;
   createdAt: Date;
   isPublic: boolean;
-  author: NetworkUser;
-  networkId: string;
   isSystemProtected: boolean;
 }
+
+export type NetworkFileCreate = Pick<NetworkFile, 'url' | 'format' | 'sizeBytes' | 'mediaType' | 'name' | 'isPublic'> & UserContentCreateBase;
 
 export interface NetworkFileLink {
   id: string;

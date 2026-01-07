@@ -211,10 +211,16 @@
                         <div class="text-sm text-gray-600">{{ access.access.description }}</div>
                       </div>
                     </div>
-                    <button @click="handleToggle(access.accessId)"
-                      class="px-4 py-2 mr-3 text-sm border rounded-md bg-gray-100 text-gray-800 border-gray-200">
-                      Toggle
-                    </button>
+                    <div class="flex items-center">
+                      <button v-if="!access.isRequired || !currentNetworkUser?.networkUserAccesses.find(x => x.accessId == access.accessId)?.isAccepted" @click="handleToggle(access.accessId)"
+                        class="px-4 py-2 mr-3 text-sm border rounded-md bg-gray-100 text-gray-800 border-gray-200">
+                        Toggle
+                      </button>
+                      <span v-if="access.isRequired"
+                        class="px-4 py-2 mr-3 text-sm border rounded-md bg-gray-100 text-gray-500 border-gray-200">
+                        Required
+                      </span>
+                    </div>
                   </li>
                 </ul>
               </details>
@@ -283,10 +289,10 @@ const confirmationAction = ref(() => { });
 
 function handleLeaveNetwork() {
   showConfirmationModal.value = true;
-  confirmationTitle.value = 'Confirm Leave Network'
-  confirmationMessage.value = 'Are you sure you want to leave this network?'
-  confirmButtonText.value = 'Leave'
-  confirmButtonColor.value = 'red'
+  confirmationTitle.value = 'Confirm Leave Network';
+  confirmationMessage.value = 'Are you sure you want to leave this network?';
+  confirmButtonText.value = 'Leave';
+  confirmButtonColor.value = 'red';
 
   confirmationAction.value = async () => {
     isSubmitting.value = true;
@@ -297,26 +303,26 @@ function handleLeaveNetwork() {
 
       if (networkUserId == null) throw new Error("No NetworkUserId");
 
-      await api.delete(`/networks/${networkId}/users/${networkUserId}`)
+      await api.delete(`/networks/${networkId}/users/${networkUserId}`);
       router.push('/networks');
     } finally {
       isSubmitting.value = false;
       showConfirmationModal.value = false;
     }
-  }
+  };
 }
 
 async function handleToggle(accessId: string) {
   const access = currentNetworkUser.value?.networkUserAccesses.find(x => x.accessId == accessId);
   const networkAccess = network.value?.networkAccesses.find(x => x.accessId == accessId);
 
-  if (!access) return alert("Access not found.")
+  if (!access) return alert("Access not found.");
 
   showConfirmationModal.value = true;
-  confirmationTitle.value = 'Confirm Access Toggle'
-  confirmationMessage.value = `Are you sure you want to ${access.isAccepted ? 'REVOKE' : 'PERMIT'} access to '${networkAccess?.access.name}' to this network?`
-  confirmButtonText.value = 'Confirm'
-  confirmButtonColor.value = 'green'
+  confirmationTitle.value = 'Confirm Access Toggle';
+  confirmationMessage.value = `Are you sure you want to ${access.isAccepted ? 'REVOKE' : 'PERMIT'} access to '${networkAccess?.access.name}' to this network?`;
+  confirmButtonText.value = 'Confirm';
+  confirmButtonColor.value = 'green';
 
   confirmationAction.value = async () => {
     isSubmitting.value = true;
@@ -325,15 +331,16 @@ async function handleToggle(accessId: string) {
       const networkId = route.params.networkId as string;
       const networkUserId = network.value?.networkUsers.find(nu => nu.userProxyId == userProxyId)?.id;
 
-      if (networkUserId == null) throw new Error("No NetworkUserId");
+      await api.put(`/networks/${networkId}/users/${networkUserId}/accesses/${accessId}`, {
+        isAccepted: !access.isAccepted
+      });
 
-      await api.delete(`/networks/${networkId}/users/${networkUserId}`)
-      router.push('/networks');
+      access.isAccepted = !access.isAccepted;
     } finally {
       isSubmitting.value = false;
       showConfirmationModal.value = false;
     }
-  }
+  };
 }
 
 // Check if user has permission to manage the network
