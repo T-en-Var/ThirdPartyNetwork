@@ -2,11 +2,11 @@
   <div
     @click="toggleVisibility"
     class="cursor-pointer"
-    :class="{ 'font-medium': !sensitive || isVisible }"
+    :class="{ 'font-medium': !sensitive || isVisible, 'flex justify-start items-center': true }"
   >
     <template v-if="sensitive && !isVisible">
-      <span class="inline-block bg-gray-200 blur-sm select-none">••••••••</span>
-      <span class="text-xs text-blue-600 ml-2">(Click to view)</span>
+      <span class="inline-block blur-sm select-none">••••••••</span>
+      <span class="text-xs text-blue-600 ml-2">({{ buttonText }})</span>
     </template>
     <template v-else>
       <span  class="break-all">{{ value || 'Not provided' }}</span>
@@ -26,6 +26,10 @@ defineProps({
   sensitive: {
     type: Boolean,
     default: false,
+  },
+  buttonText: {
+    type: String,
+    default: 'Click to view',
   },
 });
 
