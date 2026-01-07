@@ -16,7 +16,9 @@ namespace thirdpartynetwork.Application.Repositories
         private IQueryable<NetworkUser> GetQueryable(Guid networkId)
         {
             var query = _context.NetworkUsers
-                .AsNoTracking()
+                // .AsNoTracking()  // Assume it doesnt break anything
+                                    // because the issue arises as
+                                    // UserProxy -> NetworkUsers is loaded into memory
                 .AsQueryable();
 
             var currentUser = identityService.GetUserProxy(true);
@@ -35,7 +37,7 @@ namespace thirdpartynetwork.Application.Repositories
                 query = query
                     .Include(x => x.NetworkUserRoles)
                     .ThenInclude(x => x.Role);
-
+            
             return query;
         }
 
@@ -127,7 +129,9 @@ namespace thirdpartynetwork.Application.Repositories
         public NetworkUser? GetByNetworkIdAndEmail(Guid networkId, string email)
         {
             // Used for login, so always requires UserProxy
+            Console.WriteLine("Step 4, Getting queryable");
             var query = GetQueryable(networkId);
+            Console.WriteLine("Step 4.2");
             return PreAuthIncludes(query)
                 .FirstOrDefault(u => u.NetworkId == networkId && u.UserProxy.Email == email);
         }
