@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
 using thirdpartynetwork.Core.Data;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using thirdpartynetwork.Core.Helper;
@@ -11,6 +12,11 @@ public class IdentityService(
     IHttpContextAccessor httpContextAccessor,
     DataContext dataContext) : IIdentityService
 {
+    public bool IsAuthenticated()
+    {
+        return _ExtractUserProxyId(true) != Guid.Empty;
+    }
+    
     public UserProxy GetUserProxy(bool omitThrow = false)
     {
         var userProxyId = _ExtractUserProxyId(omitThrow);
@@ -64,13 +70,14 @@ public class IdentityService(
     private UserProxy? _GetUserProxy(Guid userProxyId)
     {
         return dataContext.UserProxies
+            .Include(up => up.NetworkUsers)
             .FirstOrDefault(up => up.Id == userProxyId);
     }
 
     private Guid _ExtractUserProxyId(bool omitThrow)
     {
         var httpContext = GetHttpContext();
-        var userProxyId = CustomParser.GetGuidFromHttpContextUserClaim(httpContext, "uid");
+        var userProxyId = httpContext.GetGuidFromHttpContextUserClaim("uid");
 
         if (!omitThrow && userProxyId == Guid.Empty) throw new UnauthorizedHttpException();
         return userProxyId;

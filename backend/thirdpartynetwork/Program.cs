@@ -117,6 +117,8 @@ builder.Services.AddSingleton<ICDNService, CloudinaryService>();
 builder.Services.AddScoped<IAccessRepository, AccessRepository>();
 builder.Services.AddScoped<ICustomPageRepository, CustomPageRepository>();
 builder.Services.AddScoped<IFileRepository, FileRepository>();
+builder.Services.AddScoped<IConfigurationRepository, ConfigurationRepository>();
+builder.Services.AddScoped<IBlogRepository, BlogRepository>();
 builder.Services.AddScoped<INetworkAccessRepository, NetworkAccessRepository>();
 builder.Services.AddScoped<INetworkRepository, NetworkRepository>();
 builder.Services.AddScoped<INetworkUserAccessRepository, NetworkUserAccessRepository>();
@@ -136,12 +138,15 @@ builder.Services.AddSingleton<IJtiCacheService, JtiCacheService>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IIdentityVerifier, IdentityVerifier>();
 builder.Services.AddScoped<IIdentityService, IdentityService>();
+builder.Services.AddScoped<IAccessLevelVerifier, AccessLevelVerifier>();
 
 // Add Services
 builder.Services.AddScoped<IAccessService, AccessService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICustomPageService, CustomPageService>();
 builder.Services.AddScoped<IFileService, FileService>();
+builder.Services.AddScoped<IConfigurationService, ConfigurationService>();
+builder.Services.AddScoped<IBlogService, BlogService>();
 builder.Services.AddScoped<IMeService, MeService>();
 builder.Services.AddScoped<INetworkAccessService, NetworkAccessService>();
 builder.Services.AddScoped<INetworkService, NetworkService>();

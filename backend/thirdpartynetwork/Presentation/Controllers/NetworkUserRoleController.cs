@@ -18,7 +18,8 @@ public class NetworkUserRoleController(INetworkUserRoleService service, IMapper 
     public IActionResult GetNetworkUserRoles(Guid networkId, Guid networkUserId)
     {
         var networkUserRoles = service.GetByNetworkUserId(networkId, networkUserId);
-        return Ok(mapper.Map<IEnumerable<NetworkUserRoleDto>>(networkUserRoles, opts => opts.Items["networkId"] = networkId));
+        return Ok(mapper.Map<IEnumerable<NetworkUserRoleDto>>(networkUserRoles,
+            opts => opts.Items["networkId"] = networkId));
     }
 
     [HttpGet("{roleId:guid}")]
@@ -29,15 +30,17 @@ public class NetworkUserRoleController(INetworkUserRoleService service, IMapper 
     public IActionResult GetNetworkUserRole(Guid networkId, Guid networkUserId, Guid roleId)
     {
         var networkUserRole = service.GetByIds(networkId, networkUserId, roleId);
-        return networkUserRole != null ? Ok(mapper.Map<NetworkUserRoleDto>(networkUserRole, opts => opts.Items["networkId"] = networkId)) : NotFound();
+        return networkUserRole != null
+            ? Ok(mapper.Map<NetworkUserRoleDto>(networkUserRole, opts => opts.Items["networkId"] = networkId))
+            : NotFound();
     }
 
     [HttpPost("{roleId:guid}")]
     [RequirePermission(Constants.Permissions.ManageRole)]
     [RequirePermission(Constants.Permissions.ManageUser)]
     [ProducesResponseType(200, Type = typeof(NetworkUserRoleDto))]
-    public IActionResult CreateNetworkUserRole(Guid networkId, Guid networkUserId, Guid roleId, 
-        CreateNetworkUserRoleDto createNetworkUserRole)
+    public IActionResult CreateNetworkUserRole(Guid networkId, Guid networkUserId, Guid roleId,
+        [FromBody] CreateNetworkUserRoleDto createNetworkUserRole)
     {
         var networkUserRole = service.Create(networkId, networkUserId, roleId, createNetworkUserRole);
         return Ok(mapper.Map<NetworkUserRoleDto>(networkUserRole, opts => opts.Items["networkId"] = networkId));
@@ -49,7 +52,7 @@ public class NetworkUserRoleController(INetworkUserRoleService service, IMapper 
     [ProducesResponseType(200, Type = typeof(NetworkUserRoleDto))]
     [ProducesResponseType(404)]
     public IActionResult UpdateNetworkUserRole(Guid networkId, Guid networkUserId, Guid roleId,
-        UpdateNetworkUserRoleDto updateNetworkUserRole)
+        [FromBody] UpdateNetworkUserRoleDto updateNetworkUserRole)
     {
         var networkUserRole = service.Update(networkId, networkUserId, roleId, updateNetworkUserRole);
         return Ok(mapper.Map<NetworkUserRoleDto>(networkUserRole, opts => opts.Items["networkId"] = networkId));

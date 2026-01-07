@@ -12,7 +12,9 @@ namespace thirdpartynetwork.Application.Services
         IMapper mapper,
         IIdentityService identityService,
         ICDNService cdnService,
-        IIdentityVerifier identityVerifier) : INetworkService
+        IIdentityVerifier identityVerifier,
+        IFileRepository fileRepository // im sorry
+        ) : INetworkService
     {
         private static Network? _cachedMainNetwork;
 
@@ -187,7 +189,9 @@ namespace thirdpartynetwork.Application.Services
             network.ImageFileId = null;
             network.ImageFile = null;
 
-            foreach (var networkFile in network.Files)
+            var files = fileRepository.GetByNetworkId(network.Id);
+
+            foreach (var networkFile in files)
             {
                 await cdnService.DeleteAsync($"{networkFile.NetworkId}/{networkFile.PublicId}", networkFile.MediaType);
             }
