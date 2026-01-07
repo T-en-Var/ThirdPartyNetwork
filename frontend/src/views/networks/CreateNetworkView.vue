@@ -164,6 +164,7 @@ import AddAccessModal from '@/components/modals/network/AddAccessModal.vue';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import CloudinaryFile from '@/components/cdn/CloudinaryFile.vue';
 import ForceLoadModal from '@/components/modals/ForceWaitModal.vue';
+import { useAuthStore } from '@/stores/auth';
 
 const router = useRouter();
 const global = useGlobalStore();
@@ -178,6 +179,7 @@ const showUploadModal = ref(false);
 const showAddAccessModal = ref(false);
 
 const networkState = useMainNetwork();
+const authStore = useAuthStore();
 
 onMounted(async () => {
   await networkState.fetchMainNetwork();
@@ -191,7 +193,7 @@ const form = ref<CreateNetwork>({
   redirectURI: '',
 });
 
-const fakeNetwork = ref<Network>({ ...form.value, createdOn: new Date(), customPages: [], files: [], id: '', isSystemProtected: false, networkAccesses: [], networkUsers: [], roles: [], });
+const fakeNetwork = ref<Network>({ ...form.value, createdOn: new Date(), id: '', isSystemProtected: false, networkAccesses: [], networkUsers: [], roles: [], });
 
 
 function addAccessToNetwork(networkAccess: NetworkAccessCreate) {
@@ -292,6 +294,8 @@ async function handleSubmit() {
 
   titleValue.value = 'Redirecting you';
   progessValue.value = 100;
+
+  await authStore.refreshTokens();
 
   router.push(`/networks/${newNetwork.id}/manage`);
 }

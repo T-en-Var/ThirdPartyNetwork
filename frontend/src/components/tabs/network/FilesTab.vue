@@ -38,12 +38,17 @@
         <!-- Sidebar Filters -->
         <aside v-if="showFilters"
           class="flex flex-row flex-wrap xl:flex-col items-start gap-4 w-full xl:w-64 xl:min-w-64 bg-white border rounded-lg p-4 shadow-sm">
+          
           <div>
-            <h3 class="font-semibold text-gray-700">Visibility</h3>
-            <div v-for="opt in ['public', 'private']" :key="opt" class="flex items-center gap-2">
-              <input type="checkbox" :id="`vis-${opt}`" v-model="filters.visibility" :value="opt"
+            <h3 class="font-semibold text-gray-700">Access Level</h3>
+            <div v-for="level in ACCESS_LEVELS" :key="level.value"
+              class="flex items-center gap-2">
+              <input type="checkbox" :id="`access-${level.value}`"
+                v-model="filters.accessLevels" :value="level.value"
                 class="accent-blue-600" />
-              <label :for="`vis-${opt}`" class="text-sm text-gray-800 capitalize">{{ opt }}</label>
+              <label :for="`access-${level.value}`" class="text-sm text-gray-800">
+                {{ level.label }}
+              </label>
             </div>
           </div>
 
@@ -64,6 +69,14 @@
               <span>-</span>
               <input type="number" v-model.number="filters.maxSize" min="0"
                 class="w-full border px-2 py-1 rounded text-sm" placeholder="Max" />
+            </div>
+          </div>
+
+          <div>
+            <h3 class="font-semibold text-gray-700">Visibility</h3>
+            <div v-for="level in ACCESS_LEVELS" :key="level.value" class="flex items-center gap-2">
+              <input type="checkbox" :id="`access-${level.value}`" v-model="filters.accessLevels" :value="level.value" class="accent-blue-600" />
+              <label :for="`access-${level.value}`" class="text-sm text-gray-800">{{ level.label }}</label>
             </div>
           </div>
 
@@ -100,9 +113,9 @@
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Extension
                   </th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Size</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Creator
-                  </th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Visibility
+                  </th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Author
                   </th>
                   <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions
                   </th>
@@ -156,12 +169,7 @@
                       {{ file.author.userProxy.firstName }} {{ file.author.userProxy.lastName }}
                       <span class="text-gray-400">({{ file.author.userProxy.username }})</span>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                      <span :class="file.isPublic ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
-                        class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium">
-                        {{ file.isPublic ? 'Public' : 'Private' }}
-                      </span>
-                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ getAccessLevel(file.accessLevel).label }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div class="flex items-center justify-end gap-3 h-full">
                         <button @click="$emit('editFile', file)" class="text-blue-600 hover:text-blue-900 mr-3">
@@ -212,6 +220,7 @@ import { readableSize } from '@/lib/utils';
 import type { NetworkFile } from '@/types';
 import { computed, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
+import { ACCESS_LEVELS, getAccessLevel } from '@/lib/accessLevels';
 
 const showFilters = ref(false);
 const filterSlug = ref("");
@@ -229,10 +238,11 @@ const filters = ref({
   formats: [] as string[],
   minSize: 0,
   maxSize: 0,
+  accessLevels: [] as number[],
 });
 
 const clearFilters = () => {
-  filters.value = { visibility: [], formats: [], minSize: 0, maxSize: 0 };
+  filters.value = { visibility: [], formats: [], minSize: 0, maxSize: 0, accessLevels: [] };
   filterSlug.value = "";
 };
 

@@ -95,7 +95,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, type Ref } from 'vue';
+import { ref, reactive, onMounted, onUnmounted, watch, type Ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import useNetwork from '@/composables/useNetwork';
 import usePermissions from '@/composables/usePermissions';
@@ -167,11 +167,38 @@ const manageRoleForm = reactive<RoleForm>({
   isDefault: false,
 });
 
+const originalFavicon = ref<string | null>(null);
+
 onMounted(async () => {
+  const link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
+  if (link) {
+    originalFavicon.value = link.href;
+  }
+
   const networkId = route.params.networkId as string;
   await networkState.fetchNetwork(networkId);
 });
 
+onUnmounted(() => {
+  if (originalFavicon.value) {
+    const link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
+    if (link) {
+      link.href = originalFavicon.value;
+    }
+  }
+});
+
+watch(() => networkState.network.value?.imageFile?.url, (newUrl) => {
+  if (newUrl) {
+    let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
+    if (!link) {
+      link = document.createElement('link');
+      link.rel = 'icon';
+      document.head.appendChild(link);
+    }
+    link.href = newUrl;
+  }
+});
 
 // Methods
 function openManageUserModal(user: NetworkUser) {
