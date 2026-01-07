@@ -18,7 +18,9 @@ namespace thirdpartynetwork.Application.Repositories
             var query = _context.UserProxies.AsQueryable();
 
             query = query
-                .AsNoTracking()
+                // .AsNoTracking()  // Assume it doesnt break anything
+                                    // because the issue arises as
+                                    // UserProxy -> NetworkUsers is loaded into memory
                 .Include(x => x.User)
                 .ThenInclude(x => x.UserProxies)
                 .Include(x => x.NetworkUsers)
@@ -39,8 +41,11 @@ namespace thirdpartynetwork.Application.Repositories
 
         public UserProxy? GetById(Guid userProxyId)
         {
+            Console.WriteLine("Get Me 4");
             var query = GetQueryable();
+            Console.WriteLine("Get Me 5");
             var currentUser = identityService.GetUserProxy(true);
+            Console.WriteLine("Get Me 6");
 
             if (identityVerifier.IsUserProxyOwner(currentUser.Id, userProxyId))
             {
