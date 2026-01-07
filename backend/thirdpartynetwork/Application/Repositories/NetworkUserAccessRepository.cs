@@ -13,6 +13,7 @@ namespace thirdpartynetwork.Application.Repositories
         private IQueryable<NetworkUserAccess> GetQueryable()
         {
             var query = _context.NetworkUserAccesses
+                .AsNoTracking()
                 .Include(n => n.NetworkUser)
                 .Include(n => n.Access)
                 .AsQueryable();

@@ -16,14 +16,11 @@ namespace thirdpartynetwork.Application.Repositories
         private IQueryable<NetworkUser> GetQueryable(Guid networkId)
         {
             var query = _context.NetworkUsers
+                .AsNoTracking()
                 .AsQueryable();
 
             var currentUser = identityService.GetUserProxy(true);
-
-            if (identityVerifier.IsAllowed(networkId, currentUser.Id, Constants.Permissions.ReadNetwork))
-                query = query
-                    .Include(x => x.Network);
-
+            
             if (identityVerifier.IsAllowed(networkId, currentUser.Id, Constants.Permissions.ReadAccess))
                 query = query
                     .Include(x => x.NetworkUserAccesses)

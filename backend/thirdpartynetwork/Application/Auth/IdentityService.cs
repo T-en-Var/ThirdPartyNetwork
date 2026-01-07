@@ -71,6 +71,7 @@ public class IdentityService(
     {
         return dataContext.UserProxies
             .Include(up => up.NetworkUsers)
+            .AsNoTracking()
             .FirstOrDefault(up => up.Id == userProxyId);
     }
 

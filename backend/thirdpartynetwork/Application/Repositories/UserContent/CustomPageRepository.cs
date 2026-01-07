@@ -19,7 +19,10 @@ namespace thirdpartynetwork.Application.Repositories
 
         protected override IQueryable<CustomPage> GetQueryable()
         {
-            return _context.CustomPages.Include(x => x.Pages).AsQueryable();
+            return _context.CustomPages
+                .AsNoTracking()
+                .Include(x => x.Pages)
+                .AsQueryable();
         }
 
         public bool Exists(Guid id)

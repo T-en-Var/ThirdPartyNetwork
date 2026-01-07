@@ -1,4 +1,5 @@
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using thirdpartynetwork.Application.Repositories.UserContent;
 using thirdpartynetwork.Core;
 using thirdpartynetwork.Core.Data;
@@ -18,7 +19,9 @@ namespace thirdpartynetwork.Application.Repositories
 
         protected override IQueryable<PageBlock> GetQueryable()
         {
-            return _context.PageBlocks.AsQueryable();
+            return _context.PageBlocks
+                .AsNoTracking()
+                .AsQueryable();
         }
 
         public bool Exists(Guid id)

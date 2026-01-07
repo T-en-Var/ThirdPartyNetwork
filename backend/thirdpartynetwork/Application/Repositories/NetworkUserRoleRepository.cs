@@ -1,9 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using thirdpartynetwork.Core;
 using thirdpartynetwork.Core.Data;
-using thirdpartynetwork.Core.Exceptions;
-using thirdpartynetwork.Core.Exceptions.HttpExceptions;
-using thirdpartynetwork.Core.Interfaces.Auth;
 using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Application.Repositories
@@ -14,7 +10,9 @@ namespace thirdpartynetwork.Application.Repositories
 
         private IQueryable<NetworkUserRole> GetQueryable(Guid networkId)
         {
-            var query = _context.NetworkUserRoles.AsQueryable();
+            var query = _context.NetworkUserRoles
+                .AsNoTracking()
+                .AsQueryable();
             
             query = query
                 .Include(x => x.Role)

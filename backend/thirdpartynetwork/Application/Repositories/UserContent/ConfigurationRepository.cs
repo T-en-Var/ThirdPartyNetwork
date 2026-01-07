@@ -21,7 +21,9 @@ namespace thirdpartynetwork.Application.Repositories
 
         protected override IQueryable<Configuration> GetQueryable()
         {
-            return _context.Configurations.AsQueryable();
+            return _context.Configurations
+                .AsNoTracking()
+                .AsQueryable();
         }
 
         public Configuration Create(Configuration configuration)
