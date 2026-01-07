@@ -18,6 +18,7 @@ namespace thirdpartynetwork.Application.Repositories
             var query = _context.UserProxies.AsQueryable();
 
             query = query
+                .AsNoTracking()
                 .Include(x => x.User)
                 .ThenInclude(x => x.UserProxies)
                 .Include(x => x.NetworkUsers)
