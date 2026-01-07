@@ -26,14 +26,6 @@ namespace thirdpartynetwork.Core.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<UserProxy>()
-                .Navigation(up => up.User)
-                .AutoInclude();
-
-            modelBuilder.Entity<User>()
-                .Navigation(u => u.UserProxies)
-                .AutoInclude();
-            
             modelBuilder.Entity<NetworkAccess>()
                 .HasKey(np => new { np.NetworkId, np.AccessId });
             modelBuilder.Entity<NetworkAccess>()

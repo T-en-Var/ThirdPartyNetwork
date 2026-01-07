@@ -13,6 +13,7 @@ public class RolePermissionRepository(DataContext context) : BaseRepository(cont
         var query = _context.RolePermissions.AsQueryable();
 
         query = query
+            .AsNoTracking()
             .Include(r => r.Permission)
             .Include(rp => rp.Role);
         

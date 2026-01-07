@@ -20,7 +20,10 @@ namespace thirdpartynetwork.Application.Repositories
 
         protected override IQueryable<Blog> GetQueryable()
         {
-            return _context.Blogs.Include(x => x.CoverImage).AsQueryable();
+            return _context.Blogs
+                .AsNoTracking()
+                .Include(x => x.CoverImage)
+                .AsQueryable();
         }
 
         public Blog? GetByNetworkIdAndSlug(Guid networkId, string slug)
