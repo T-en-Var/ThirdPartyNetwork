@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 using thirdpartynetwork.Core.Models;
 using File = thirdpartynetwork.Core.Models.File;
 
@@ -14,6 +15,8 @@ namespace thirdpartynetwork.Core.Data
         public DbSet<NetworkUserAccess> NetworkUserAccesses { get; set; }
         public DbSet<NetworkUserRole> NetworkUserRoles { get; set; }
         public DbSet<PageBlock> PageBlocks { get; set; }
+        public DbSet<Configuration> Configurations { get; set; }
+        public DbSet<Blog> Blogs { get; set; }
         public DbSet<Access> Accesses { get; set; }
         public DbSet<Role> Roles { get; set; }
         public DbSet<RolePermission> RolePermissions { get; set; }
@@ -91,12 +94,33 @@ namespace thirdpartynetwork.Core.Data
                 .WithOne(r => r.Network)
                 .HasForeignKey(r => r.NetworkId);
             
+            // * ----------------------- *
+            //         UserContent
+            // * ----------------------- *
+            
+            modelBuilder.Entity<CustomPage>()
+                .HasMany(cp => cp.Pages)
+                .WithOne(pb => pb.CustomPage)
+                .HasForeignKey(pb => pb.CustomPageId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            AuthorToMany<CustomPage>();
+            AuthorToMany<PageBlock>();
+            AuthorToMany<Configuration>();
+            AuthorToMany<Blog>();
+            AuthorToMany<File>();
+
+            NetworkToMany<CustomPage>();
+            NetworkToMany<Blog>();
+            NetworkToMany<Configuration>();
+            
+            // FILES
             // One-to-many: Network -> Files
             modelBuilder.Entity<File>()
                 .HasOne(f => f.Network)
-                .WithMany(n => n.Files)
+                .WithMany()
                 .HasForeignKey(f => f.NetworkId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
 
             // One-to-one: Network -> ImageFile
             modelBuilder.Entity<Network>()
@@ -104,8 +128,8 @@ namespace thirdpartynetwork.Core.Data
                 .WithMany()
                 .HasForeignKey(f => f.ImageFileId)
                 .IsRequired(false)
-                .OnDelete(DeleteBehavior.SetNull);;
-
+                .OnDelete(DeleteBehavior.SetNull);
+            
             // One-to-one: UserProxy -> ImageFile
             modelBuilder.Entity<UserProxy>()
                 .HasOne(n => n.ImageFile)
@@ -113,35 +137,77 @@ namespace thirdpartynetwork.Core.Data
                 .HasForeignKey(f => f.ImageFileId)
                 .IsRequired(false);
             
-            modelBuilder.Entity<CustomPage>()
-                .HasMany(cp => cp.Pages)
-                .WithOne(pb => pb.CustomPage)
-                .HasForeignKey(pb => pb.CustomPageId)
-                .OnDelete(DeleteBehavior.Cascade);
-            
-            modelBuilder.Entity<CustomPage>()
-                .HasOne(f => f.Network)
-                .WithMany(n => n.CustomPages)
-                .HasForeignKey(f => f.NetworkId)
-                .OnDelete(DeleteBehavior.Cascade);
-            
-            modelBuilder.Entity<CustomPage>()
-                .HasOne(cp => cp.Author)
+            modelBuilder.Entity<Blog>()
+                .HasOne(n => n.CoverImage)
                 .WithMany()
-                .HasForeignKey(cp => cp.AuthorId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .HasForeignKey(f => f.CoverImageId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
 
             modelBuilder.Entity<PageBlock>()
                 .Property(pb => pb.Data)
                 .HasColumnType("jsonb");
-            
-            modelBuilder.Entity<PageBlock>()
-                .HasOne(pb => pb.Author)
-                .WithMany()
-                .HasForeignKey(pb => pb.AuthorId)
-                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Configuration>()
+                .Property(c => c.Value)
+                .HasColumnType("jsonb");
+
+            modelBuilder.Entity<Blog>()
+                .Property(b => b.Body)
+                .HasColumnType("jsonb");
 
             base.OnModelCreating(modelBuilder);
+            
+            if (this.Database.ProviderName == "Microsoft.EntityFrameworkCore.InMemory")
+            {
+                modelBuilder.Entity<Blog>()
+                    .Property(b => b.Body)
+                    .HasConversion(
+                        // Serialize: Convert JsonDocument to String for storage
+                        doc => doc.RootElement.ToString(),
+                        // Deserialize: Convert String back to JsonDocument when reading
+                        jsonString => JsonDocument.Parse(jsonString, default)
+                    );
+                
+                
+                modelBuilder.Entity<PageBlock>()
+                    .Property(pb => pb.Data)
+                    .HasConversion(
+                        // Serialize: Convert JsonDocument to String for storage
+                        doc => doc.RootElement.ToString(),
+                        // Deserialize: Convert String back to JsonDocument when reading
+                        jsonString => JsonDocument.Parse(jsonString, default)
+                    );
+
+                modelBuilder.Entity<Configuration>()
+                    .Property(c => c.Value)
+                    .HasConversion(
+                        // Serialize: Convert JsonDocument to String for storage
+                        doc => doc.RootElement.ToString(),
+                        // Deserialize: Convert String back to JsonDocument when reading
+                        jsonString => JsonDocument.Parse(jsonString, default)
+                    );
+            }
+            
+            return;
+
+            void AuthorToMany<T>() where T : UserContentBaseModel
+            {
+                modelBuilder.Entity<T>()
+                    .HasOne(m => m.Author)
+                    .WithMany()
+                    .HasForeignKey(m => m.AuthorId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            }
+            
+            void NetworkToMany<T>() where T : UserContentBaseModel
+            {
+                modelBuilder.Entity<T>()
+                    .HasOne(m => m.Network)
+                    .WithMany()
+                    .HasForeignKey(m => m.NetworkId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            }
         }
     }
 }

@@ -56,6 +56,8 @@ namespace thirdpartynetwork.Application.Services
             HandleNetworkAccessUpdate(networkId);
 
             var networkAccess = mapper.Map<NetworkAccess>(createNetworkAccess);
+            Console.WriteLine($"IsRequired createNetworkAccess: {createNetworkAccess.IsRequired}");
+            Console.WriteLine($"IsRequired: {networkAccess.IsRequired}");
 
             networkAccess.NetworkId = networkId;
             networkAccess.AccessId = accessId;

@@ -37,7 +37,7 @@ public class RolePermissionController(IRolePermissionService service, IMapper ma
     [ProducesResponseType(201, Type = typeof(RolePermissionDto))]
     [ProducesResponseType(404)]
     public IActionResult CreateRolePermission(Guid networkId, Guid roleId, Guid permissionId,
-        CreateRolePermissionDto createRolePermission)
+        [FromBody] CreateRolePermissionDto createRolePermission)
     {
         var rolePermission = service.Create(networkId, roleId, permissionId, createRolePermission);
         return Ok(mapper.Map<RolePermissionDto>(rolePermission));
@@ -48,7 +48,8 @@ public class RolePermissionController(IRolePermissionService service, IMapper ma
     [RequirePermission(Constants.Permissions.ManagePermission)]
     [ProducesResponseType(200, Type = typeof(RolePermissionDto))]
     [ProducesResponseType(404)]
-    public IActionResult UpdateRolePermission(Guid networkId, Guid roleId, Guid permissionId, UpdateRolePermissionDto updateRolePermission)
+    public IActionResult UpdateRolePermission(Guid networkId, Guid roleId, Guid permissionId,
+        [FromBody] UpdateRolePermissionDto updateRolePermission)
     {
         var rolePermission = service.Update(networkId, roleId, permissionId, updateRolePermission);
         return Ok(mapper.Map<RolePermissionDto>(rolePermission));

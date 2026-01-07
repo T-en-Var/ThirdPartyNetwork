@@ -1,8 +1,8 @@
-﻿using CloudinaryDotNet.Actions;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using thirdpartynetwork.Core;
 using thirdpartynetwork.Core.Models;
 using thirdpartynetwork.Core.Data;
+using thirdpartynetwork.Core.Enum;
 using thirdpartynetwork.Core.Interfaces.Helpers;
 using File = thirdpartynetwork.Core.Models.File;
 using Role = thirdpartynetwork.Core.Models.Role;
@@ -281,7 +281,11 @@ namespace thirdpartynetwork
                     new() { Name = Constants.Permissions.ReadPageBlock, Description = "", IsSystemProtected = true },
                     new() { Name = Constants.Permissions.ManagePageBlock, Description = "", IsSystemProtected = true },
                     new() { Name = Constants.Permissions.ReadFile, Description = "", IsSystemProtected = true },
-                    new() { Name = Constants.Permissions.ManageFile, Description = "", IsSystemProtected = true }
+                    new() { Name = Constants.Permissions.ManageFile, Description = "", IsSystemProtected = true },
+                    new() { Name = Constants.Permissions.ReadConfiguration, Description = "", IsSystemProtected = true },
+                    new() { Name = Constants.Permissions.ManageConfiguration, Description = "", IsSystemProtected = true },
+                    new() { Name = Constants.Permissions.ReadBlog, Description = "", IsSystemProtected = true },
+                    new() { Name = Constants.Permissions.ManageBlog, Description = "", IsSystemProtected = true },
                 };
 
                 var accesses = new List<Access>
@@ -439,10 +443,10 @@ namespace thirdpartynetwork
                     Height = 1024,
                     MediaType = "image",
                     Name = "networkIcon.png",
-                    IsPublic = true,
                     Network = network,
                     Author = adminNetworkUser,
                     IsSystemProtected = true,
+                    AccessLevel = AccessLevel.Public
                 };
 
                 context.Files.Add(networkFile);
@@ -460,10 +464,10 @@ namespace thirdpartynetwork
                     Height = 1024,
                     MediaType = "image",
                     Name = "adminAvatar.png",
-                    IsPublic = true,
                     Network = network,
                     Author = adminNetworkUser,
                     IsSystemProtected = true,
+                    AccessLevel = AccessLevel.Public,
                 };
 
                 await context.SaveChangesAsync();

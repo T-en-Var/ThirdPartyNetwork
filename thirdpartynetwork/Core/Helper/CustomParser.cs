@@ -2,7 +2,7 @@ namespace thirdpartynetwork.Core.Helper;
 
 public static class CustomParser
 {
-    public static Guid GetGuidFromHttpContextUrl(HttpContext httpContext, string guidName)
+    public static Guid GetGuidFromHttpContextUrl(this HttpContext httpContext, string guidName)
     {
         object? guidValue = null;
         var guid = Guid.Empty;
@@ -14,7 +14,29 @@ public static class CustomParser
         return guid == Guid.Empty ? Guid.Empty : guid;
     }
     
-    public static Guid GetGuidFromHttpContextUserClaim(HttpContext httpContext, string guidName)
+    public static string? GetStringFromHttpContextUrl(this HttpContext httpContext, string key)
+    {
+        if (string.IsNullOrEmpty(key)) return null;
+
+        if (httpContext?.Request?.RouteValues.TryGetValue(key, out var value) == true)
+        {
+            return value?.ToString();
+        }
+
+        return null;
+    }
+    
+    public static bool HasGuidInHttpContextUrl(this HttpContext httpContext, string guidName)
+    {
+        object? guidValue = null;
+
+        var hasId = httpContext?.Request.RouteValues.TryGetValue(guidName, out guidValue) == true;
+        var isValidGuid = guidValue is string idString && Guid.TryParse(idString, out _);
+
+        return hasId && isValidGuid;
+    }
+    
+    public static Guid GetGuidFromHttpContextUserClaim(this HttpContext httpContext, string guidName)
     {
         var appUser = httpContext.User;
         

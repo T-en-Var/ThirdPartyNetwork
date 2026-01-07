@@ -27,13 +27,16 @@ public class NetworkUserController(INetworkUserService service, IMapper mapper) 
     public IActionResult GetNetworkUser(Guid networkId, Guid networkUserId)
     {
         var networkUser = service.GetById(networkId, networkUserId);
-        return networkUser != null ? Ok(mapper.Map<NetworkUserDto>(networkUser, opts => opts.Items["networkId"] = networkId)) : NotFound();
+        return networkUser != null
+            ? Ok(mapper.Map<NetworkUserDto>(networkUser, opts => opts.Items["networkId"] = networkId))
+            : NotFound();
     }
 
     [HttpPost("{userProxyId:guid}")]
     [RequirePermission(Constants.Permissions.ManageUser, Constants.Permissions.IsUserProxyOwner)]
     [ProducesResponseType(201, Type = typeof(NetworkUser))]
-    public IActionResult CreateNetworkUser(Guid networkId, Guid userProxyId, CreateNetworkUserDto networkUser)
+    public IActionResult CreateNetworkUser(Guid networkId, Guid userProxyId,
+        [FromBody] CreateNetworkUserDto networkUser)
     {
         var user = service.Create(networkId, userProxyId, networkUser);
         return Ok(mapper.Map<NetworkUserDto>(user, opts => opts.Items["networkId"] = networkId));
@@ -43,7 +46,8 @@ public class NetworkUserController(INetworkUserService service, IMapper mapper) 
     [RequirePermission(Constants.Permissions.ManageUser, Constants.Permissions.IsNetworkUserOwner)]
     [ProducesResponseType(200, Type = typeof(NetworkUserDto))]
     [ProducesResponseType(404)]
-    public IActionResult UpdateNetworkUser(Guid networkId, Guid networkUserId, UpdateNetworkUserDto updateNetworkUser)
+    public IActionResult UpdateNetworkUser(Guid networkId, Guid networkUserId,
+        [FromBody] UpdateNetworkUserDto updateNetworkUser)
     {
         var networkUser = service.Update(networkId, networkUserId, updateNetworkUser);
         return Ok(mapper.Map<NetworkUserDto>(networkUser, opts => opts.Items["networkId"] = networkId));

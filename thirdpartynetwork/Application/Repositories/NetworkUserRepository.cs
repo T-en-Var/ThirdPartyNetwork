@@ -60,15 +60,23 @@ namespace thirdpartynetwork.Application.Repositories
             ];
         }
 
-        public ICollection<NetworkUser> GetByUserProxyId(Guid id)
+        public ICollection<NetworkUser> GetByUserProxyId(
+            Guid userProxyId,
+            Func<IQueryable<NetworkUser>, IQueryable<NetworkUser>>? queryConfig = null)
         {
+            // Start with the base query
+            var query = _context.NetworkUsers.Include(x => x.Files).AsQueryable();
+
+            // Apply the includes if provided
+            if (queryConfig != null)
+            {
+                query = queryConfig(query);
+            }
+
+            // Apply the filter and execute
             return
             [
-                .. _context.NetworkUsers
-                    .Include(n => n.Network)
-                    .ThenInclude(x => x.NetworkUsers)
-                    .ThenInclude(x => x.UserProxy)
-                    .Where(nu => nu.UserProxyId == id)
+                .. query.Where(nu => nu.UserProxyId == userProxyId)
             ];
         }
 
@@ -76,6 +84,11 @@ namespace thirdpartynetwork.Application.Repositories
         {
             return GetQueryable(networkId)
                 .FirstOrDefault(u => u.Id == id);
+        }
+
+        public NetworkUser? GetJustById(Guid id)
+        {
+            return _context.NetworkUsers.FirstOrDefault(u => u.Id == id);
         }
 
         public NetworkUser? GetByIds(Guid networkId, Guid userProxyId)

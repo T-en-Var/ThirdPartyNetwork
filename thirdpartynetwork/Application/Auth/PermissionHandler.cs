@@ -11,7 +11,8 @@ public class PermissionHandler(
     IHttpContextAccessor httpContextAccessor,
     IUserProxyService userProxyService,
     IIdentityVerifier identityVerifier,
-    IIdentityService identityService)
+    IIdentityService identityService,
+    IAccessLevelVerifier accessLevelVerifier)
     : AuthorizationHandler<PermissionRequirement>
 {
     protected override Task HandleRequirementAsync(
@@ -19,6 +20,8 @@ public class PermissionHandler(
     {
         Console.WriteLine("[PermissionHandler] Start.");
         PreChecks();
+
+        var isAuthenticated = identityService.IsAuthenticated();
 
         foreach (var permission in requirement.Permissions)
         {
@@ -28,15 +31,11 @@ public class PermissionHandler(
                 break;
             }
 
-            var isAllowed = Constants.OwnerPermissions.Contains(permission)
-                ? HandleOwnerRequirement(permission)
-                : Constants.GeneralPermissions.Contains(permission)
-                    ? HandleGeneralRequirement(permission)
-                    : HandleRequirement(permission);
-
+            var isAllowed = CheckPermission(permission, isAuthenticated);
+            
             Console.WriteLine(isAllowed
-                ? $"[PermissionHandler] Passed"
-                : $"[PermissionHandler] Refused");
+                ? "[PermissionHandler] Passed"
+                : "[PermissionHandler] Refused");
 
             if (!isAllowed) continue;
 
@@ -48,7 +47,35 @@ public class PermissionHandler(
         Console.WriteLine("[PermissionHandler] Complete.");
         return Task.CompletedTask;
     }
+    
+    private bool CheckPermission(string permission, bool isAuthenticated)
+    {
+        // Phase 1: If not logged in, they ONLY pass if the resource is publicly accessible enough.
+        if (!isAuthenticated)
+        {
+            return Constants.ContentPermissions.Contains(permission) 
+                   && HandleContentRequirement(permission);
+        }
 
+        // Phase 2: specific Context Checks (Resource Owner or Content)
+        if (Constants.OwnerPermissions.Contains(permission))
+        {
+            if (HandleOwnerRequirement(permission)) return true;
+        }
+        else if (Constants.ContentPermissions.Contains(permission))
+        {
+            if (HandleContentRequirement(permission)) return true;
+        }
+
+        // Phase 3: Default role checking
+        if (Constants.GeneralPermissions.Contains(permission))
+        {
+            return HandleGeneralRequirement(permission);
+        }
+
+        return HandleRequirement(permission);
+    }
+    
     private bool HandleRequirement(string permission)
     {
         var httpContext = httpContextAccessor.HttpContext;
@@ -58,7 +85,7 @@ public class PermissionHandler(
         if (identityVerifier.IsSuperAdminOrHasSuperPermission(userProxy.Id, permission))
             return true;
 
-        var networkId = CustomParser.GetGuidFromHttpContextUrl(httpContext, "networkId");
+        var networkId = httpContext.GetGuidFromHttpContextUrl("networkId");
         return networkId != Guid.Empty &&
                identityVerifier.IsNetworkAdminOrHasPermission(networkId, userProxy.Id, permission);
     }
@@ -78,6 +105,73 @@ public class PermissionHandler(
             .Any(u => identityVerifier.IsNetworkAdminOrHasPermission(u.NetworkId, userProxy.Id, permission));
     }
 
+    private bool HandleContentRequirement(string permission)
+    {
+        string compareString;
+        if (Constants.SlugContentPermissions.Contains(permission))
+        {
+            // Currently, ONLY blog has this.
+            // Se we play it easy
+            compareString = "slug";
+        }
+        else
+        {
+            compareString = permission switch
+            {
+                Constants.Permissions.ReadFile => "fileId",
+                Constants.Permissions.ReadCustomPage => "customPageId",
+                Constants.Permissions.ReadPageBlock => "pageBlockId",
+                Constants.Permissions.ReadConfiguration => "configurationId",
+                _ => throw new Exception("Unknown permission")
+            };
+        }
+
+        var httpContext = httpContextAccessor.HttpContext;
+        if (httpContext == null) throw new UnauthorizedHttpException();
+
+        Console.WriteLine($"[PermissionHandler] Checking content permission: {compareString}");
+
+        // In case the request is for getting a list of resources, but not a specific resource.
+        // Then we pass the filtering to the service layer to filter per resource.
+        if (!httpContext.HasGuidInHttpContextUrl(compareString)) 
+            return true;
+
+        var compareValue = httpContext.GetStringFromHttpContextUrl(compareString);
+
+        if (compareValue == null)
+        {
+            // This now assumes we call a route where we get a list of results, not singular.
+            // That is handled by the repository as we check per resource.
+            return true;
+        }
+        
+        var networkId = httpContext.GetGuidFromHttpContextUrl("networkId");
+        var userProxy = identityService.GetUserProxy(true);
+
+        if (identityVerifier.IsSuperAdminOrHasSuperPermission(userProxy.Id, permission))
+            return true;
+        
+        return permission switch
+        {
+            Constants.Permissions.ReadFile =>
+                accessLevelVerifier.CheckFileAccess(compareValue, networkId, permission),
+
+            Constants.Permissions.ReadCustomPage =>
+                accessLevelVerifier.CheckCustomPageAccess(compareValue, networkId, permission),
+
+            Constants.Permissions.ReadPageBlock =>
+                accessLevelVerifier.CheckPageBlockAccess(compareValue, networkId, permission),
+
+            Constants.Permissions.ReadConfiguration =>
+                accessLevelVerifier.CheckConfigurationAccess(compareValue, networkId, permission),
+            
+            Constants.Permissions.ReadBlog => 
+                accessLevelVerifier.CheckBlogAccess(compareValue, networkId, permission),
+
+            _ => throw new NotImplementedException("Unknown permission")
+        };
+    }
+
     private bool HandleOwnerRequirement(string permission)
     {
         var httpContext = httpContextAccessor.HttpContext;
@@ -88,11 +182,11 @@ public class PermissionHandler(
         return permission switch
         {
             Constants.Permissions.IsUserOwner => identityVerifier.IsUserOwner(currentUser.Id,
-                CustomParser.GetGuidFromHttpContextUrl(httpContext, "userId")),
+                httpContext.GetGuidFromHttpContextUrl("userId")),
             Constants.Permissions.IsNetworkUserOwner => identityVerifier.IsNetworkUserOwner(currentUser.Id,
-                CustomParser.GetGuidFromHttpContextUrl(httpContext, "networkUserId")),
+                httpContext.GetGuidFromHttpContextUrl("networkUserId")),
             Constants.Permissions.IsUserProxyOwner => identityVerifier.IsUserProxyOwner(currentUser.Id,
-                CustomParser.GetGuidFromHttpContextUrl(httpContext, "userProxyId")),
+                httpContext.GetGuidFromHttpContextUrl("userProxyId")),
             _ => false
         };
     }
@@ -101,7 +195,7 @@ public class PermissionHandler(
     {
         var httpContext = httpContextAccessor.HttpContext;
         if (httpContext == null) throw new UnauthorizedHttpException();
-        
+
         foreach (var claim in httpContext.User.Claims)
         {
             if (claim is { Type: "AccessIncomplete", Value: "true" })
@@ -113,9 +207,9 @@ public class PermissionHandler(
                     routeData.Values.ContainsKey("networkId") &&
                     routeData.Values.ContainsKey("networkUserId") &&
                     routeData.Values.ContainsKey("accessId");
-                
+
                 // The route `/me` is not checked as it never invokes the PermissionHandler, so automatically passes
-                
+
                 if (!isAccessUpdateRoute)
                 {
                     throw new UnauthorizedHttpException(UnauthorizedHttpException.BaseMessage, "ACCESS_INCOMPLETE");

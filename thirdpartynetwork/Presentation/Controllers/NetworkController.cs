@@ -17,10 +17,7 @@ public class NetworkController(INetworkService service, IMapper mapper) : Contro
     {
         var networks = service.GetAll();
         var networkDtos = networks
-            .Select(network => mapper.Map<NetworkDto>(network, opts =>
-            {
-                opts.Items["networkId"] = network.Id;
-            }))
+            .Select(network => mapper.Map<NetworkDto>(network, opts => { opts.Items["networkId"] = network.Id; }))
             .ToList();
         return StatusCode(200, networkDtos);
     }
@@ -32,7 +29,9 @@ public class NetworkController(INetworkService service, IMapper mapper) : Contro
     public IActionResult GetNetworkById(Guid networkId)
     {
         var network = service.GetById(networkId);
-        return network != null ? Ok(mapper.Map<NetworkDto>(network, opts => opts.Items["networkId"] = networkId)) : NotFound();
+        return network != null
+            ? Ok(mapper.Map<NetworkDto>(network, opts => opts.Items["networkId"] = networkId))
+            : NotFound();
     }
 
     [HttpGet("{networkId:guid}/details")]
@@ -41,7 +40,9 @@ public class NetworkController(INetworkService service, IMapper mapper) : Contro
     public IActionResult GetNetworkDetailsById(Guid networkId)
     {
         var network = service.GetDetailsById(networkId);
-        return network != null ? Ok(mapper.Map<NetworkDto>(network, opts => opts.Items["networkId"] = networkId)) : NotFound();
+        return network != null
+            ? Ok(mapper.Map<NetworkDto>(network, opts => opts.Items["networkId"] = networkId))
+            : NotFound();
     }
 
     [HttpPost]
@@ -57,7 +58,7 @@ public class NetworkController(INetworkService service, IMapper mapper) : Contro
     [RequirePermission(Constants.Permissions.ManageNetwork)]
     [ProducesResponseType(200, Type = typeof(NetworkDto))]
     [ProducesResponseType(404)]
-    public IActionResult Update(Guid networkId, UpdateNetworkDto networkUpdate)
+    public IActionResult Update(Guid networkId, [FromBody] UpdateNetworkDto networkUpdate)
     {
         var network = service.Update(networkId, networkUpdate);
         return StatusCode(200, mapper.Map<NetworkDto>(network, opts => opts.Items["networkId"] = networkId));
