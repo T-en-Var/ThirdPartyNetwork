@@ -131,9 +131,7 @@ namespace thirdpartynetwork.Application.Repositories
         public NetworkUser? GetByNetworkIdAndEmail(Guid networkId, string email)
         {
             // Used for login, so always requires UserProxy
-            Console.WriteLine("Step 4, Getting queryable");
             var query = GetQueryable(networkId);
-            Console.WriteLine("Step 4.2");
             return PreAuthIncludes(query)
                 .FirstOrDefault(u => u.NetworkId == networkId && u.UserProxy.Email == email);
         }
