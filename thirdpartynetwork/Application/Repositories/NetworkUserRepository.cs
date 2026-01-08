@@ -53,6 +53,7 @@ namespace thirdpartynetwork.Application.Repositories
                 .. _context.NetworkUsers
                     .Include(n => n.Network)
                     .Include(n => n.UserProxy)
+                    .AsNoTracking()
             ];
         }
 
@@ -61,6 +62,7 @@ namespace thirdpartynetwork.Application.Repositories
             return
             [
                 .. GetQueryable(networkId)
+                    .AsNoTracking()
                     .Where(nu => nu.NetworkId == networkId)
             ];
         }
@@ -70,7 +72,7 @@ namespace thirdpartynetwork.Application.Repositories
             Func<IQueryable<NetworkUser>, IQueryable<NetworkUser>>? queryConfig = null)
         {
             // Start with the base query
-            var query = _context.NetworkUsers.Include(x => x.Files).AsQueryable();
+            var query = _context.NetworkUsers.Include(x => x.Files).AsNoTracking().AsQueryable();
 
             // Apply the includes if provided
             if (queryConfig != null)
