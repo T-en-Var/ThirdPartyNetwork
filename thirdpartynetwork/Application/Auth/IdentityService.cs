@@ -21,6 +21,8 @@ public class IdentityService(
     {
         var userProxyId = _ExtractUserProxyId(omitThrow);
         
+        Console.WriteLine($"userProxyId: {userProxyId}");
+        
         var httpContext = GetHttpContext();
         var cacheKey = $"UserProxy_{userProxyId}";
         
@@ -32,6 +34,8 @@ public class IdentityService(
         var userProxy = _GetUserProxy(userProxyId);
         if (userProxy == null)
         {
+        
+            Console.WriteLine($"not found");
             if (!omitThrow) throw new UnauthorizedHttpException();
             
             userProxy = new UserProxy
