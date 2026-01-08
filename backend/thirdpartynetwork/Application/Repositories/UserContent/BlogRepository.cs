@@ -21,7 +21,6 @@ namespace thirdpartynetwork.Application.Repositories
         protected override IQueryable<Blog> GetQueryable()
         {
             return _context.Blogs
-                .AsNoTracking()
                 .Include(x => x.CoverImage)
                 .AsQueryable();
         }
@@ -56,7 +55,9 @@ namespace thirdpartynetwork.Application.Repositories
 
         public ICollection<Blog> GetByNetworkId(Guid networkId)
         {
-            return GetAccessibleQueryable(networkId).Where(b => b.Network.Id == networkId).ToList();
+            return GetAccessibleQueryable(networkId)
+                .AsNoTracking()
+                .Where(b => b.Network.Id == networkId).ToList();
         }
 
         public Blog Update(Guid blogId, UpdateBlogDto updateBlog)
