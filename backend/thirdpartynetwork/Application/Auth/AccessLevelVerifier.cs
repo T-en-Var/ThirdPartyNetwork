@@ -112,6 +112,11 @@ public class AccessLevelVerifier(
             hasPermission = identityVerifier.IsAllowed(requestedNetworkId, currentUserId.Value, permissionName);
         }
         
+        Console.WriteLine($"hasPermission: {hasPermission}");
+        Console.WriteLine($"isRealUser: {isRealUser}");
+        Console.WriteLine($"userProxy.Id: {userProxy?.Id}");
+        Console.WriteLine($"isMemberOfRequestedNetwork: {isMemberOfRequestedNetwork}");
+        
         // --- STEP 2: BUILD EXPRESSION (SQL Side) ---
         // EF Core converts this Lambda into SQL.
         // Boolean variables (like hasPermission) are passed as parameters (0 or 1).

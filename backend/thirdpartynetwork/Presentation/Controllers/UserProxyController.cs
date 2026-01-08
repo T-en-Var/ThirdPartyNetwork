@@ -16,9 +16,9 @@ public class UserProxyController(
     [HttpGet]
     [RequirePermission(Constants.Permissions.ReadUser)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<UserProxyDto>))]
-    public IActionResult GetProxies(Guid userId)
+    public async Task<IActionResult> GetProxiesAsync(Guid userId)
     {
-        var userProxies = service.GetByUserId(userId);
+        var userProxies = await service.GetByUserIdAsync(userId);
         return Ok(mapper.Map<IEnumerable<UserProxyDto>>(userProxies));
     }
 
