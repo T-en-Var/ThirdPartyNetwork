@@ -41,7 +41,7 @@ namespace thirdpartynetwork.Application.Services
 
             var pageBlock = mapper.Map<PageBlock>(createPageBlock);
             pageBlock.NetworkId = networkId;
-            pageBlock.CustomPage = customPage;
+            pageBlock.CustomPageId = customPageId;
             pageBlock.Author = networkUser;
 
             pageBlock = repository.Create(pageBlock);
