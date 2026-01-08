@@ -22,7 +22,6 @@ namespace thirdpartynetwork.Application.Repositories
         protected override IQueryable<Configuration> GetQueryable()
         {
             return _context.Configurations
-                .AsNoTracking()
                 .AsQueryable();
         }
 
@@ -51,7 +50,9 @@ namespace thirdpartynetwork.Application.Repositories
 
         public ICollection<Configuration> GetByNetworkId(Guid networkId)
         {
-            return GetAccessibleQueryable(networkId).Where(c => c.Network.Id == networkId).ToList();
+            return GetAccessibleQueryable(networkId)
+                .AsNoTracking()
+                .Where(c => c.Network.Id == networkId).ToList();
         }
 
         public Configuration Update(Guid configurationId, UpdateConfigurationDto updateConfiguration)

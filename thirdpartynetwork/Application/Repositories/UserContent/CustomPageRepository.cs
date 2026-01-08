@@ -20,7 +20,6 @@ namespace thirdpartynetwork.Application.Repositories
         protected override IQueryable<CustomPage> GetQueryable()
         {
             return _context.CustomPages
-                .AsNoTracking()
                 .Include(x => x.Pages)
                 .AsQueryable();
         }
@@ -37,7 +36,8 @@ namespace thirdpartynetwork.Application.Repositories
 
         public ICollection<CustomPage> GetByNetworkId(Guid networkId)
         {
-            return GetAccessibleQueryable(networkId).Where(c => c.Network.Id == networkId).ToList();
+            return GetAccessibleQueryable(networkId)
+                .AsNoTracking().Where(c => c.Network.Id == networkId).ToList();
         }
 
         public CustomPage Create(CustomPage customPage)
