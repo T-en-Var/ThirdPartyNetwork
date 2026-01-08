@@ -21,7 +21,6 @@ namespace thirdpartynetwork.Application.Repositories
         protected override IQueryable<File> GetQueryable()
         {
             return _context.Files
-                .AsNoTracking()
                 .AsQueryable();
         }
 
@@ -52,7 +51,9 @@ namespace thirdpartynetwork.Application.Repositories
 
         public ICollection<File> GetByNetworkId(Guid networkId)
         {
-            return GetAccessibleQueryable(networkId).Where(c => c.NetworkId == networkId).ToList();
+            return GetAccessibleQueryable(networkId)
+                .AsNoTracking()
+                .Where(c => c.NetworkId == networkId).ToList();
         }
 
         public File Update(Guid fileId, UpdateFileDto updateFile)

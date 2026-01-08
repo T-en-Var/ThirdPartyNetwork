@@ -20,7 +20,6 @@ namespace thirdpartynetwork.Application.Repositories
         protected override IQueryable<PageBlock> GetQueryable()
         {
             return _context.PageBlocks
-                .AsNoTracking()
                 .AsQueryable();
         }
 
@@ -31,7 +30,9 @@ namespace thirdpartynetwork.Application.Repositories
 
         public ICollection<PageBlock> GetByCustomPageId(Guid networkId, Guid customPageId)
         {
-            return GetQueryable().Where(p => p.CustomPageId == customPageId).ToList();
+            return GetQueryable()
+                .AsNoTracking()
+                .Where(p => p.CustomPageId == customPageId).ToList();
         }
 
         public PageBlock? GetById(Guid id)
