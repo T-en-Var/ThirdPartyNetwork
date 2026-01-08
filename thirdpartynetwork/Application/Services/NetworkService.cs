@@ -167,14 +167,10 @@ namespace thirdpartynetwork.Application.Services
 
         public Network Update(Guid id, UpdateNetworkDto updateNetworkDto)
         {
-            Console.WriteLine("HEllo");
             if (!repository.Exists(id)) throw new NotFoundHttpException();
             
-            Console.WriteLine($"URL: {updateNetworkDto.RedirectURI}");
-
             var network = mapper.Map<Network>(updateNetworkDto);
             network.Id = id;
-            Console.WriteLine($"URL: {network.RedirectURI}");
 
             if (updateNetworkDto.FileLink != null)
             {

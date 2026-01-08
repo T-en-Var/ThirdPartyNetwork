@@ -66,23 +66,11 @@ namespace thirdpartynetwork.Application.Repositories
             return query;
         }
 
-        private IQueryable<Network> GetQueryableReduced(Guid id)
+        private IQueryable<Network> GetQueryableReduced()
         {
-            var query = _context.Networks.AsQueryable();
-            var currentUser = identityService.GetUserProxy(true);
-
-            var allowUsers = identityVerifier.IsAllowed(id, currentUser.Id, Constants.Permissions.ReadUser);
-            var allowAccess = identityVerifier.IsAllowed(id, currentUser.Id, Constants.Permissions.ReadAccess);
-            
-            if (allowUsers)
-                query = query
-                    .Include(x => x.NetworkUsers)
-                    .ThenInclude(x => x.UserProxy);
-            
-            if (allowAccess)
-                query = query
-                    .Include(x => x.NetworkAccesses)
-                    .ThenInclude(x => x.Access);
+            var query = _context.Networks
+                .Include(x => x.NetworkUsers)
+                .AsQueryable();
             
             return query;
         }
@@ -94,8 +82,7 @@ namespace thirdpartynetwork.Application.Repositories
 
         public ICollection<Network> GetAll()
         {
-            var mainNetwork = GetMainNetwork();
-            return [.. GetQueryableReduced(mainNetwork.Id)];
+            return [.. GetQueryableReduced()];
         }
 
         public Network? GetById(Guid id, bool bypass = false)
@@ -109,7 +96,7 @@ namespace thirdpartynetwork.Application.Repositories
                 .Include(x => x.NetworkAccesses)
                 .ThenInclude(x => x.Access)
                 .Include(x => x.NetworkUsers)
-                .ThenInclude(n => n.NetworkUserAccesses)
+                // .ThenInclude(n => n.NetworkUserAccesses)
                 .Include(n => n.ImageFile)
                 .AsNoTracking()
                 .FirstOrDefault(n => n.Id == id);
