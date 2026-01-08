@@ -12,7 +12,6 @@ namespace thirdpartynetwork.Application.Repositories
         {
             return _context.Users
                 .Include(u => u.UserProxies)
-                .AsNoTracking()
                 .AsQueryable();
         }
 
@@ -23,7 +22,7 @@ namespace thirdpartynetwork.Application.Repositories
 
         public ICollection<User> GetAll()
         {
-            return [.. GetQueryable()];
+            return [.. GetQueryable().AsNoTracking()];
         }
 
         public User? GetById(Guid id)

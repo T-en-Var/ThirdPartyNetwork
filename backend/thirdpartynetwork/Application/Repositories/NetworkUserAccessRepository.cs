@@ -13,7 +13,6 @@ namespace thirdpartynetwork.Application.Repositories
         private IQueryable<NetworkUserAccess> GetQueryable()
         {
             var query = _context.NetworkUserAccesses
-                .AsNoTracking()
                 .Include(n => n.NetworkUser)
                 .Include(n => n.Access)
                 .AsQueryable();
@@ -29,7 +28,7 @@ namespace thirdpartynetwork.Application.Repositories
 
         public ICollection<NetworkUserAccess> GetAll()
         {
-            return [.. GetQueryable()];
+            return [.. GetQueryable().AsNoTracking()];
         }
 
         public void Populate(Guid networkId, Guid accessId)
@@ -70,12 +69,14 @@ namespace thirdpartynetwork.Application.Repositories
         public ICollection<NetworkUserAccess> GetByNetworkUserId(Guid id)
         {
             return [.. GetQueryable()
+                .AsNoTracking()
                 .Where(nup => nup.NetworkUserId == id)];
         }
 
         public ICollection<NetworkUserAccess> GetByAccessId(Guid accessId)
         {
             return [.. GetQueryable()
+                .AsNoTracking()
                 .Where(nup => nup.AccessId == accessId)];
         }
 

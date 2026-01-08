@@ -13,7 +13,6 @@ namespace thirdpartynetwork.Application.Repositories
         private IQueryable<Access> GetQueryable()
         {
             var query = _context.Accesses
-                .AsNoTracking()
                 .AsQueryable();
             
             // I'll skip this for now.
@@ -28,7 +27,7 @@ namespace thirdpartynetwork.Application.Repositories
 
         public ICollection<Access> GetAll()
         {
-            return [.. GetQueryable()];
+            return [.. GetQueryable().AsNoTracking()];
         }
 
         public Access? GetById(Guid id)

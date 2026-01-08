@@ -11,13 +11,12 @@ namespace thirdpartynetwork.Application.Repositories
         private IQueryable<NetworkUserRole> GetQueryable(Guid networkId)
         {
             var query = _context.NetworkUserRoles
-                .AsNoTracking()
                 .AsQueryable();
-            
+
             query = query
                 .Include(x => x.Role)
                 .Include(x => x.NetworkUser);
-            
+
             return query;
         }
 
@@ -29,9 +28,13 @@ namespace thirdpartynetwork.Application.Repositories
 
         public ICollection<NetworkUserRole> GetAll()
         {
-            return [.. _context.NetworkUserRoles
-                .Include(n => n.NetworkUser)
-                .Include(n => n.Role)];
+            return
+            [
+                .. _context.NetworkUserRoles
+                    .Include(n => n.NetworkUser)
+                    .Include(n => n.Role)
+                    .AsNoTracking()
+            ];
         }
 
         public NetworkUserRole? GetByIds(Guid networkId, Guid networkUserId, Guid roleId)
@@ -48,14 +51,22 @@ namespace thirdpartynetwork.Application.Repositories
 
         public ICollection<NetworkUserRole> GetByNetworkUserId(Guid networkId, Guid id)
         {
-            return [.. GetQueryable(networkId)
-                .Where(nur => nur.NetworkUserId == id)];
+            return
+            [
+                .. GetQueryable(networkId)
+                    .AsNoTracking()
+                    .Where(nur => nur.NetworkUserId == id)
+            ];
         }
 
         public ICollection<NetworkUserRole> GetByRoleId(Guid networkId, Guid id)
         {
-            return [.. GetQueryable(networkId)
-                .Where(nur => nur.RoleId == id)];
+            return
+            [
+                .. GetQueryable(networkId)
+                    .AsNoTracking()
+                    .Where(nur => nur.RoleId == id)
+            ];
         }
 
         public NetworkUserRole Create(NetworkUserRole networkUserRole)

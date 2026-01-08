@@ -13,7 +13,6 @@ public class RolePermissionRepository(DataContext context) : BaseRepository(cont
         var query = _context.RolePermissions.AsQueryable();
 
         query = query
-            .AsNoTracking()
             .Include(r => r.Permission)
             .Include(rp => rp.Role);
         
@@ -27,20 +26,23 @@ public class RolePermissionRepository(DataContext context) : BaseRepository(cont
 
     public ICollection<RolePermission> GetAll()
     {
-        return _context.RolePermissions
+        return GetQueryable()
+            .AsNoTracking()
             .ToList();
     }
 
     public ICollection<RolePermission> GetByRoleId(Guid roleId)
     {
-        return _context.RolePermissions
+        return GetQueryable()
+            .AsNoTracking()
             .Where(r => r.RoleId == roleId)
             .ToList();
     }
 
     public ICollection<RolePermission> GetByPermissionId(Guid permissionId)
     {
-        return _context.RolePermissions
+        return GetQueryable()
+            .AsNoTracking()
             .Where(r => r.PermissionId == permissionId)
             .ToList();
     }
