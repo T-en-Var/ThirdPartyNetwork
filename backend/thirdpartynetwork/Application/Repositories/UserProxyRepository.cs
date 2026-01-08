@@ -36,7 +36,7 @@ namespace thirdpartynetwork.Application.Repositories
 
         public ICollection<UserProxy> GetAll()
         {
-            return [.. GetQueryable()];
+            return [.. GetQueryable().AsNoTracking()];
         }
 
         public UserProxy? GetById(Guid userProxyId)
@@ -94,6 +94,7 @@ namespace thirdpartynetwork.Application.Repositories
             return
             [
                 .. GetQueryable()
+                    .AsNoTracking()
                     .Where(up => up.User.Id == userId)
             ];
         }

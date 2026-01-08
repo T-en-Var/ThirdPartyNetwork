@@ -28,6 +28,7 @@ public class PermissionRepository(DataContext context) : BaseRepository(context)
     public ICollection<Permission> GetAll()
     {
         return _context.Permissions
+            .AsNoTracking()
             .ToList();
     }
 
