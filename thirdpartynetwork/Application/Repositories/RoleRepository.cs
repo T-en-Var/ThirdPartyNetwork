@@ -14,7 +14,6 @@ namespace thirdpartynetwork.Application.Repositories
         private IQueryable<Role> GetQueryable(Guid networkId)
         {
             var query = _context.Roles
-                .AsNoTracking()
                 .Where(r => r.NetworkId == networkId)
                 .AsQueryable();
             var currentUser = identityService.GetUserProxy(true);
@@ -41,12 +40,12 @@ namespace thirdpartynetwork.Application.Repositories
 
         public ICollection<Role> GetAll()
         {
-            return [.. _context.Roles];
+            return [.. _context.Roles.AsNoTracking()];
         }
 
         public ICollection<Role> GetByNetworkId(Guid networkId)
         {
-            return [.. GetQueryable(networkId)];
+            return [.. GetQueryable(networkId).AsNoTracking()];
         }
 
         public Role? GetById(Guid networkId, Guid id)
