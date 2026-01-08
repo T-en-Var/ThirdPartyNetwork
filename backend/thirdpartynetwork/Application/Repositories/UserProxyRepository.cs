@@ -41,11 +41,8 @@ namespace thirdpartynetwork.Application.Repositories
 
         public UserProxy? GetById(Guid userProxyId)
         {
-            Console.WriteLine("Get Me 4");
             var query = GetQueryable();
-            Console.WriteLine("Get Me 5");
             var currentUser = identityService.GetUserProxy(true);
-            Console.WriteLine("Get Me 6");
 
             if (identityVerifier.IsUserProxyOwner(currentUser.Id, userProxyId))
             {

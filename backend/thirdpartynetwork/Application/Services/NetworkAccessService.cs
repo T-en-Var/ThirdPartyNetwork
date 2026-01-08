@@ -49,15 +49,13 @@ namespace thirdpartynetwork.Application.Services
         {
             if (networkService.GetById(networkId) == null) throw new NotFoundHttpException("Network not found.");
             if (accessService.GetById(accessId) == null) throw new NotFoundHttpException("Access not found.");
-            Console.WriteLine($"NetworkId: {networkId}, AccessId: {accessId}");
+
             if (repository.Exists(networkId, accessId))
                 throw new ConflictHttpException("NetworkAccess already exists.");
 
             HandleNetworkAccessUpdate(networkId);
 
             var networkAccess = mapper.Map<NetworkAccess>(createNetworkAccess);
-            Console.WriteLine($"IsRequired createNetworkAccess: {createNetworkAccess.IsRequired}");
-            Console.WriteLine($"IsRequired: {networkAccess.IsRequired}");
 
             networkAccess.NetworkId = networkId;
             networkAccess.AccessId = accessId;
