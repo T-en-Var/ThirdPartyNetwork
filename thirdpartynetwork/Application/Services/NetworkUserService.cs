@@ -67,8 +67,6 @@ namespace thirdpartynetwork.Application.Services
             var x = repository.GetByUserProxyId(userProxyId, q => q
                 .Include(nu => nu.Files));
             
-            Console.WriteLine(x.First().Files.Count);
-
             var files = repository.GetByUserProxyId(userProxyId, q => q
                     .Include(nu => nu.Files))
                 .SelectMany(nu => nu.Files)

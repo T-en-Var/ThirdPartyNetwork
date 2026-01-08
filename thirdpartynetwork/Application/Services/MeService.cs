@@ -10,7 +10,6 @@ namespace thirdpartynetwork.Application.Services
     {
         public UserProxy? GetMe()
         {
-            Console.WriteLine("Get Me 1");
             var appUser = identityService.GetClaimsPrincipal();
             if (appUser == null) throw new UnauthorizedHttpException("No HttpContext User");
 
@@ -19,7 +18,6 @@ namespace thirdpartynetwork.Application.Services
 
             var userProxyId = Guid.Parse(uidClaim.Value);
             
-            Console.WriteLine("Get Me 2");
             var userProxy = userProxyService.GetById(userProxyId);
             return userProxy;
         }
