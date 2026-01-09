@@ -1,14 +1,14 @@
-﻿using thirdpartynetwork.Core.Models;
+﻿﻿using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Core.Interfaces.Repositories
 {
     public interface IUserRepository : IBaseRepository
     {
-        bool Exists(Guid id);
-        ICollection<User> GetAll();
-        User? GetById(Guid id);
-        User Create(User user);
-        User Update(User user);
-        void Delete(User user);
+        Task<bool> ExistsAsync(Guid id);
+        Task<ICollection<User>> GetAllAsync();
+        Task<User?> GetByIdAsync(Guid id);
+        Task<User> CreateAsync(User user);
+        Task<User> UpdateAsync(User user);
+        Task DeleteAsync(User user);
     }
 }

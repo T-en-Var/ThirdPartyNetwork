@@ -1,19 +1,19 @@
-﻿using thirdpartynetwork.Core.Models;
+﻿﻿using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Core.Interfaces.Repositories
 {
     public interface INetworkUserAccessRepository : IBaseRepository
     {
-        bool Exists(Guid networkUserId, Guid accessId);
-        ICollection<NetworkUserAccess> GetAll();
-        ICollection<NetworkUserAccess> GetByNetworkUserId(Guid id);
-        ICollection<NetworkUserAccess> GetByAccessId(Guid id);
-        void Populate(Guid networkId, Guid accessId);
-        void Depopulate(Guid networkId, Guid accessId);
-        NetworkUserAccess? GetByIds(Guid networkUserId, Guid permissionId);
-        NetworkUserAccess Create(NetworkUserAccess networkUserPermission);
-        NetworkUserAccess Update(NetworkUserAccess networkUserPermission);
-        void MarkAccessComplete(Guid networkUserId);
-        void Delete(NetworkUserAccess networkUserPermission);
+        Task<bool> ExistsAsync(Guid networkUserId, Guid accessId);
+        Task<ICollection<NetworkUserAccess>> GetAllAsync();
+        Task<ICollection<NetworkUserAccess>> GetByNetworkUserIdAsync(Guid id);
+        Task<ICollection<NetworkUserAccess>> GetByAccessIdAsync(Guid id);
+        Task PopulateAsync(Guid networkId, Guid accessId);
+        Task DepopulateAsync(Guid networkId, Guid accessId);
+        Task<NetworkUserAccess?> GetByIdsAsync(Guid networkUserId, Guid permissionId);
+        Task<NetworkUserAccess> CreateAsync(NetworkUserAccess networkUserPermission);
+        Task<NetworkUserAccess> UpdateAsync(NetworkUserAccess networkUserPermission);
+        Task MarkAccessCompleteAsync(Guid networkUserId);
+        Task DeleteAsync(NetworkUserAccess networkUserPermission);
     }
 }

@@ -5,6 +5,6 @@ namespace thirdpartynetwork.Core.Interfaces.Repositories;
 public interface IUserContentBaseRepository<T> : IBaseRepository 
     where T : UserContentBaseModel
 {
-    ICollection<T> GetByAuthorId(Guid networkId, Guid networkUserId, bool bypass = false);
-    ICollection<T> GetByUserProxyId(Guid userProxyId);
+    Task<ICollection<T>> GetByAuthorIdAsync(Guid networkId, Guid networkUserId, bool bypass = false);
+    Task<ICollection<T>> GetByUserProxyIdAsync(Guid userProxyId);
 }

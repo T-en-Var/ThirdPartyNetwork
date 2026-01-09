@@ -12,9 +12,9 @@ public class MeController(IMeService service, IMapper mapper) : ControllerBase
     [ProducesResponseType(200, Type = typeof(UserProxyDto))]
     [ProducesResponseType(401)]
     [Authorize]
-    public IActionResult MainNetworkRegister()
+    public async Task<IActionResult> MainNetworkRegister()
     {
-        var userProxy = service.GetMe();
+        var userProxy = await service.GetMeAsync();
         return Ok(mapper.Map<UserProxyDto>(userProxy));
     }
 }

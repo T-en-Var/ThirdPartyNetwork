@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+﻿﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using thirdpartynetwork.Core.Models;
@@ -12,99 +12,101 @@ namespace thirdpartynetwork.Application.Services
         IUserProxyService userProxyService,
         IMapper mapper) : INetworkUserService
     {
-        public ICollection<NetworkUser> GetAll()
+        public async Task<ICollection<NetworkUser>> GetAllAsync()
         {
-            var networkUsers = repository.GetAll();
+            var networkUsers = await repository.GetAllAsync();
             return networkUsers;
         }
 
-        public NetworkUser? GetByIds(Guid networkId, Guid userProxyId)
+        public async Task<NetworkUser?> GetByIdsAsync(Guid networkId, Guid userProxyId)
         {
-            var networkUser = repository.GetByIds(networkId, userProxyId);
+            var networkUser = await repository.GetByIdsAsync(networkId, userProxyId);
             return networkUser;
         }
 
-        public NetworkUser? GetByIdsPreAuth(Guid networkId, Guid userProxyId)
+        public async Task<NetworkUser?> GetByIdsPreAuthAsync(Guid networkId, Guid userProxyId)
         {
-            var networkUser = repository.GetByIdsPreAuth(networkId, userProxyId);
+            var networkUser = await repository.GetByIdsPreAuthAsync(networkId, userProxyId);
             return networkUser;
         }
 
-        public ICollection<NetworkUser> GetByNetworkId(Guid networkId)
+        public async Task<ICollection<NetworkUser>> GetByNetworkIdAsync(Guid networkId)
         {
-            if (networkService.GetById(networkId) == null) throw new NotFoundHttpException("Network not Found");
+            if (await networkService.GetByIdAsync(networkId) == null) throw new NotFoundHttpException("Network not Found");
 
-            var networkUsers = repository.GetByNetworkId(networkId);
+            var networkUsers = await repository.GetByNetworkIdAsync(networkId);
             return networkUsers;
         }
 
-        public ICollection<NetworkUser> GetByUserProxyId(Guid userProxyId)
+        public async Task<ICollection<NetworkUser>> GetByUserProxyIdAsync(Guid userProxyId)
         {
-            if (userProxyService.GetById(userProxyId) == null) throw new NotFoundHttpException("UserProxy not Found");
+            if (await userProxyService.GetByIdAsync(userProxyId) == null) throw new NotFoundHttpException("UserProxy not Found");
 
-            var networkUsers = repository.GetByUserProxyId(userProxyId);
+            var networkUsers = await repository.GetByUserProxyIdAsync(userProxyId);
             return networkUsers;
         }
 
-        public ICollection<Network> GetNetworksByUserProxyId(Guid userProxyId)
+        public async Task<ICollection<Network>> GetNetworksByUserProxyIdAsync(Guid userProxyId)
         {
-            if (userProxyService.GetById(userProxyId) == null) throw new NotFoundHttpException("UserProxy not Found");
+            if (await userProxyService.GetByIdAsync(userProxyId) == null) throw new NotFoundHttpException("UserProxy not Found");
 
-            var networks = repository.GetByUserProxyId(userProxyId, q => q
+            var networkUsers = await repository.GetByUserProxyIdAsync(userProxyId, q => q
                     .Include(n => n.Network)
                     .ThenInclude(x => x.NetworkUsers)
-                    .ThenInclude(x => x.UserProxy))
-                .Select(nu => nu.Network)
-                .ToList();
+                    .ThenInclude(x => x.UserProxy));
+            
+            var networks = networkUsers.Select(nu => nu.Network).ToList();
 
             return networks;
         }
 
-        public ICollection<File> GetFilesByUserProxyId(Guid userProxyId)
+        public async Task<ICollection<File>> GetFilesByUserProxyIdAsync(Guid userProxyId)
         {
-            if (userProxyService.GetById(userProxyId) == null) throw new NotFoundHttpException("UserProxy not Found");
+            if (await userProxyService.GetByIdAsync(userProxyId) == null) throw new NotFoundHttpException("UserProxy not Found");
 
-            var x = repository.GetByUserProxyId(userProxyId, q => q
+            // var x = await repository.GetByUserProxyIdAsync(userProxyId, q => q
+            //     .Include(nu => nu.Files));
+
+            var networkUsers = await repository.GetByUserProxyIdAsync(userProxyId, q => q
                 .Include(nu => nu.Files));
             
-            var files = repository.GetByUserProxyId(userProxyId, q => q
-                    .Include(nu => nu.Files))
+            var files = networkUsers
                 .SelectMany(nu => nu.Files)
                 .ToList();
 
             return files;
         }
 
-        public NetworkUser? GetById(Guid networkId, Guid id)
+        public async Task<NetworkUser?> GetByIdAsync(Guid networkId, Guid id)
         {
-            var networkUser = repository.GetById(networkId, id);
+            var networkUser = await repository.GetByIdAsync(networkId, id);
             return networkUser;
         } 
         
-        public NetworkUser? GetJustById(Guid id)
+        public async Task<NetworkUser?> GetJustByIdAsync(Guid id)
         {
-            return repository.GetJustById(id);
+            return await repository.GetJustByIdAsync(id);
         }
 
-        public NetworkUser? GetByNetworkIdAndEmail(Guid networkId, string email)
+        public async Task<NetworkUser?> GetByNetworkIdAndEmailAsync(Guid networkId, string email)
         {
-            var networkUser = repository.GetByNetworkIdAndEmail(networkId, email);
+            var networkUser = await repository.GetByNetworkIdAndEmailAsync(networkId, email);
             return networkUser;
         }
 
-        public NetworkUser Create(Guid networkId, Guid userProxyId, CreateNetworkUserDto createNetworkUser)
+        public async Task<NetworkUser> CreateAsync(Guid networkId, Guid userProxyId, CreateNetworkUserDto createNetworkUser)
         {
-            var network = networkService.GetById(networkId, bypass: true);
+            var network = await networkService.GetByIdAsync(networkId, bypass: true);
             if (network == null) throw new NotFoundHttpException("Network not Found");
 
-            var userProxy = userProxyService.GetById(userProxyId);
+            var userProxy = await userProxyService.GetByIdAsync(userProxyId);
             if (userProxy == null) throw new NotFoundHttpException("UserProxy not Found");
 
             var isNotDefaultFlag = userProxy.Email == null;
             userProxy = userProxy.ApplyDefaults();
 
-            if (GetByIds(networkId, userProxyId) != null) throw new ConflictHttpException("Email is already in use.");
-            if (GetByNetworkIdAndEmail(networkId, userProxy.Email) != null)
+            if (await GetByIdsAsync(networkId, userProxyId) != null) throw new ConflictHttpException("Email is already in use.");
+            if (await GetByNetworkIdAndEmailAsync(networkId, userProxy.Email) != null)
                 throw new ConflictHttpException("User with this email already exists" +
                                                 (isNotDefaultFlag
                                                     ? ". (You email was imported from your default proxy)"
@@ -139,36 +141,36 @@ namespace thirdpartynetwork.Application.Services
                 });
             }
 
-            networkUser = repository.Create(networkUser);
+            networkUser = await repository.CreateAsync(networkUser);
             return networkUser;
         }
 
-        public NetworkUser Update(Guid networkId, Guid networkUserId, UpdateNetworkUserDto updateNetworkUser)
+        public async Task<NetworkUser> UpdateAsync(Guid networkId, Guid networkUserId, UpdateNetworkUserDto updateNetworkUser)
         {
-            if (networkService.GetById(networkId) == null) throw new NotFoundHttpException("Network not Found");
-            if (!repository.Exists(networkUserId)) throw new NotFoundHttpException();
+            if (await networkService.GetByIdAsync(networkId) == null) throw new NotFoundHttpException("Network not Found");
+            if (!await repository.ExistsAsync(networkUserId)) throw new NotFoundHttpException();
 
             var networkUser = mapper.Map<NetworkUser>(updateNetworkUser);
             networkUser.Id = networkUserId;
             networkUser.NetworkId = networkId;
 
-            networkUser = repository.Update(networkId, networkUser);
+            networkUser = await repository.UpdateAsync(networkId, networkUser);
             return networkUser;
         }
 
-        public void NetworkAccessUpdate(Guid networkId)
+        public async Task NetworkAccessUpdateAsync(Guid networkId)
         {
-            repository.NetworkAccessUpdate(networkId);
+            await repository.NetworkAccessUpdateAsync(networkId);
         }
 
-        public void DeleteById(Guid networkId, Guid id)
+        public async Task DeleteByIdAsync(Guid networkId, Guid id)
         {
-            var network = networkService.GetById(networkId);
+            var network = await networkService.GetByIdAsync(networkId);
             if (network is { IsSystemProtected: true })
                 throw new UnauthorizedHttpException("Network is system protected");
 
-            var networkUser = repository.GetById(networkId, id);
-            if (networkUser != null) repository.Delete(networkUser);
+            var networkUser = await repository.GetByIdAsync(networkId, id);
+            if (networkUser != null) await repository.DeleteAsync(networkUser);
         }
     }
 }

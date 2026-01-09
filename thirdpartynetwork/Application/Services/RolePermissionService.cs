@@ -6,63 +6,63 @@ namespace thirdpartynetwork.Application.Services;
 
 public class RolePermissionService(IRolePermissionRepository repository, IRoleService roleService, IPermissionService permissionService, IMapper mapper) : IRolePermissionService
 {
-    public ICollection<RolePermission> GetAll()
+    public async Task<ICollection<RolePermission>> GetAllAsync()
     {
-        var permissions = repository.GetAll();
+        var permissions = await repository.GetAllAsync();
         return permissions;
     }
 
-    public ICollection<RolePermission> GetByRoleId(Guid networkId, Guid roleId)
+    public async Task<ICollection<RolePermission>> GetByRoleIdAsync(Guid networkId, Guid roleId)
     {
-        var permissions = repository.GetByRoleId(roleId);
+        var permissions = await repository.GetByRoleIdAsync(roleId);
         return permissions;
     }
 
-    public ICollection<RolePermission> GetByPermissionId(Guid permissionId)
+    public async Task<ICollection<RolePermission>> GetByPermissionIdAsync(Guid permissionId)
     {
-        var permissions = repository.GetByPermissionId(permissionId);
+        var permissions = await repository.GetByPermissionIdAsync(permissionId);
         return permissions;
     }
 
-    public RolePermission? GetByIds(Guid networkId, Guid roleId, Guid permissionId)
+    public async Task<RolePermission?> GetByIdsAsync(Guid networkId, Guid roleId, Guid permissionId)
     {
-        var permission = repository.GetByIds(roleId, permissionId);
+        var permission = await repository.GetByIdsAsync(roleId, permissionId);
         return permission;
     }
 
-    public RolePermission Create(Guid networkId, Guid roleId, Guid permissionId, CreateRolePermissionDto createRolePermission)
+    public async Task<RolePermission> CreateAsync(Guid networkId, Guid roleId, Guid permissionId, CreateRolePermissionDto createRolePermission)
     {
-        if (roleService.GetById(networkId, roleId) == null) throw new NotFoundHttpException("Role not found.");
-        if (permissionService.GetById(permissionId) == null) throw new NotFoundHttpException("Permission not found.");
+        if (await roleService.GetByIdAsync(networkId, roleId) == null) throw new NotFoundHttpException("Role not found.");
+        if (await permissionService.GetByIdAsync(permissionId) == null) throw new NotFoundHttpException("Permission not found.");
         
-        if (repository.Exists(roleId, permissionId)) throw new ConflictHttpException("Already exists.");
+        if (await repository.ExistsAsync(roleId, permissionId)) throw new ConflictHttpException("Already exists.");
         
         var rolePermission = mapper.Map<RolePermission>(createRolePermission);
         rolePermission.RoleId = roleId;
         rolePermission.PermissionId = permissionId;
         
-        rolePermission = repository.Create(rolePermission);
+        rolePermission = await repository.CreateAsync(rolePermission);
         return rolePermission;
     }
 
-    public RolePermission Update(Guid networkId, Guid roleId, Guid permissionId, UpdateRolePermissionDto updateRolePermission)
+    public async Task<RolePermission> UpdateAsync(Guid networkId, Guid roleId, Guid permissionId, UpdateRolePermissionDto updateRolePermission)
     {
-        if (roleService.GetById(networkId, roleId) == null) throw new NotFoundHttpException("Role not found.");
-        if (permissionService.GetById(permissionId) == null) throw new NotFoundHttpException("Permission not found.");
+        if (await roleService.GetByIdAsync(networkId, roleId) == null) throw new NotFoundHttpException("Role not found.");
+        if (await permissionService.GetByIdAsync(permissionId) == null) throw new NotFoundHttpException("Permission not found.");
         
-        if (!repository.Exists(roleId, permissionId)) throw new NotFoundHttpException();
+        if (!await repository.ExistsAsync(roleId, permissionId)) throw new NotFoundHttpException();
         
         var rolePermission = mapper.Map<RolePermission>(updateRolePermission);
         rolePermission.RoleId = roleId;
         rolePermission.PermissionId = permissionId;
         
-        rolePermission = repository.Update(rolePermission);
+        rolePermission = await repository.UpdateAsync(rolePermission);
         return rolePermission;
     }
 
-    public void DeleteByIds(Guid networkId, Guid roleId, Guid permissionId)
+    public async Task DeleteByIdsAsync(Guid networkId, Guid roleId, Guid permissionId)
     {
-        var rolePermission = repository.GetByIds(roleId, permissionId);
-        if (rolePermission != null) repository.Delete(rolePermission);
+        var rolePermission = await repository.GetByIdsAsync(roleId, permissionId);
+        if (rolePermission != null) await repository.DeleteAsync(rolePermission);
     }
 }

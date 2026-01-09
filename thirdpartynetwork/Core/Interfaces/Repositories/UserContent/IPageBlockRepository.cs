@@ -4,11 +4,11 @@ namespace thirdpartynetwork.Core.Interfaces.Repositories
 {
     public interface IPageBlockRepository : IUserContentBaseRepository<PageBlock>
     {
-        bool Exists(Guid id);
-        ICollection<PageBlock> GetByCustomPageId(Guid networkId, Guid customPageId);
-        PageBlock? GetById(Guid id);
-        PageBlock Create(PageBlock pageBlock);
-        PageBlock Update(Guid pageBlockId, UpdatePageBlockDto updatePageBlock);
-        void Delete(PageBlock pageBlock);
+        Task<bool> ExistsAsync(Guid id);
+        Task<ICollection<PageBlock>> GetByCustomPageIdAsync(Guid networkId, Guid customPageId);
+        Task<PageBlock?> GetByIdAsync(Guid id);
+        Task<PageBlock> CreateAsync(PageBlock pageBlock);
+        Task<PageBlock> UpdateAsync(Guid pageBlockId, UpdatePageBlockDto updatePageBlock);
+        Task DeleteAsync(PageBlock pageBlock);
     }
 }

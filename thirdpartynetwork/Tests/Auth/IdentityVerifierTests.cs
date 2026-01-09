@@ -1,4 +1,3 @@
-using System;
 using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
 using thirdpartynetwork.Application.Auth;
@@ -22,9 +21,9 @@ public class IdentityVerifierTests
     }
 
     [Test]
-    public void IsSuperAdmin_Detected_FromMainNetwork_AdminPermission()
+    public async Task IsSuperAdmin_Detected_FromMainNetwork_AdminPermission()
     {
-        using var ctx = new DataContext(_options);
+        await using var ctx = new DataContext(_options);
 
         var main = new Network
         {
@@ -57,17 +56,17 @@ public class IdentityVerifierTests
         ctx.UserProxies.Add(proxy);
         ctx.NetworkUsers.Add(nu);
         ctx.NetworkUserRoles.Add(nur);
-        ctx.SaveChanges();
+        await ctx.SaveChangesAsync();
 
         var verifier = new IdentityVerifier(ctx);
 
-        Assert.That(verifier.IsSuperAdmin(proxy.Id), Is.True);
+        Assert.That(await verifier.IsSuperAdminAsync(proxy.Id), Is.True);
     }
 
     [Test]
-    public void HasPermission_FindsPermission_InSpecificNetwork()
+    public async Task HasPermission_FindsPermission_InSpecificNetwork()
     {
-        using var ctx = new DataContext(_options);
+        await using var ctx = new DataContext(_options);
 
         var net = new Network
         {
@@ -101,10 +100,10 @@ public class IdentityVerifierTests
         ctx.UserProxies.Add(proxy);
         ctx.NetworkUsers.Add(nu);
         ctx.NetworkUserRoles.Add(nur);
-        ctx.SaveChanges();
+        await ctx.SaveChangesAsync();
 
         var verifier = new IdentityVerifier(ctx);
 
-        Assert.That(verifier.HasPermission(net.Id, proxy.Id, "perm:x"), Is.True);
+        Assert.That(await verifier.HasPermissionAsync(net.Id, proxy.Id, "perm:x"), Is.True);
     }
 }

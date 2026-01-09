@@ -19,61 +19,61 @@ public class RolePermissionRepository(DataContext context) : BaseRepository(cont
         return query;
     }
     
-    public bool Exists(Guid roleId, Guid permissionId)
+    public async Task<bool> ExistsAsync(Guid roleId, Guid permissionId)
     {
-        return _context.RolePermissions.Any(r => r.RoleId == roleId && r.PermissionId == permissionId);
+        return await _context.RolePermissions.AnyAsync(r => r.RoleId == roleId && r.PermissionId == permissionId);
     }
 
-    public ICollection<RolePermission> GetAll()
+    public async Task<ICollection<RolePermission>> GetAllAsync()
     {
-        return GetQueryable()
+        return await GetQueryable()
             .AsNoTracking()
-            .ToList();
+            .ToListAsync();
     }
 
-    public ICollection<RolePermission> GetByRoleId(Guid roleId)
+    public async Task<ICollection<RolePermission>> GetByRoleIdAsync(Guid roleId)
     {
-        return GetQueryable()
+        return await GetQueryable()
             .AsNoTracking()
             .Where(r => r.RoleId == roleId)
-            .ToList();
+            .ToListAsync();
     }
 
-    public ICollection<RolePermission> GetByPermissionId(Guid permissionId)
+    public async Task<ICollection<RolePermission>> GetByPermissionIdAsync(Guid permissionId)
     {
-        return GetQueryable()
+        return await GetQueryable()
             .AsNoTracking()
             .Where(r => r.PermissionId == permissionId)
-            .ToList();
+            .ToListAsync();
     }
 
-    public RolePermission? GetByIds(Guid roleId, Guid permissionId)
+    public async Task<RolePermission?> GetByIdsAsync(Guid roleId, Guid permissionId)
     {
-        return _context.RolePermissions
-            .FirstOrDefault(r => r.RoleId == roleId && r.PermissionId == permissionId);
+        return await _context.RolePermissions
+            .FirstOrDefaultAsync(r => r.RoleId == roleId && r.PermissionId == permissionId);
     }
 
-    public RolePermission Create(RolePermission rolePermission)
+    public async Task<RolePermission> CreateAsync(RolePermission rolePermission)
     {
-        _context.RolePermissions.Add(rolePermission);
-        SaveAndUpdate(rolePermission);
+        await _context.RolePermissions.AddAsync(rolePermission);
+        await SaveAndUpdateAsync(rolePermission);
         return rolePermission;
     }
 
-    public RolePermission Update(RolePermission rolePermission)
+    public async Task<RolePermission> UpdateAsync(RolePermission rolePermission)
     {
-        var existing = GetByIds(rolePermission.RoleId, rolePermission.PermissionId);
+        var existing = await GetByIdsAsync(rolePermission.RoleId, rolePermission.PermissionId);
         if (existing == null) throw new Exception("RolePermission not found");
             
         _context.Entry(existing).CurrentValues.SetValues(rolePermission);
 
-        SaveAndUpdate(existing);
+        await SaveAndUpdateAsync(existing);
         return existing;
     }
 
-    public void Delete(RolePermission rolePermission)
+    public async Task DeleteAsync(RolePermission rolePermission)
     {
         _context.Remove(rolePermission);
-        _context.SaveChanges();
+        await _context.SaveChangesAsync();
     }
 }

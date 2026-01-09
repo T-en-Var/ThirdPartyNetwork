@@ -1,15 +1,15 @@
-﻿using thirdpartynetwork.Application.Dtos.Role;
+﻿﻿using thirdpartynetwork.Application.Dtos.Role;
 using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Core.Interfaces.Services
 {
     public interface IRoleService : IBaseService
     {
-        ICollection<Role> GetAll();
-        ICollection<Role> GetByNetworkId(Guid networkId);
-        Role? GetById(Guid networkId, Guid roleId);
-        Role Create(Guid networkId, CreateRoleDto createRole);
-        Role Update(Guid networkId, Guid roleId, UpdateRoleDto role);
-        void DeleteById(Guid networkId, Guid roleId);
+        Task<ICollection<Role>> GetAllAsync();
+        Task<ICollection<Role>> GetByNetworkIdAsync(Guid networkId);
+        Task<Role?> GetByIdAsync(Guid networkId, Guid roleId);
+        Task<Role> CreateAsync(Guid networkId, CreateRoleDto createRole);
+        Task<Role> UpdateAsync(Guid networkId, Guid roleId, UpdateRoleDto role);
+        Task DeleteByIdAsync(Guid networkId, Guid roleId);
     }
 }

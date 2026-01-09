@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+﻿﻿using AutoMapper;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using thirdpartynetwork.Core.Models;
 
@@ -12,95 +12,95 @@ namespace thirdpartynetwork.Application.Services
         IAccessService accessService, 
         IMapper mapper) : INetworkUserAccessService
     {
-        public ICollection<NetworkUserAccess> GetAll()
+        public async Task<ICollection<NetworkUserAccess>> GetAllAsync()
         {
-            var networkUserAccesses = repository.GetAll();
+            var networkUserAccesses = await repository.GetAllAsync();
             return networkUserAccesses;
         }
 
-        public ICollection<NetworkUserAccess> GetByNetworkId(Guid networkId, Guid networkUserId)
+        public async Task<ICollection<NetworkUserAccess>> GetByNetworkIdAsync(Guid networkId, Guid networkUserId)
         {
-            if (networkService.GetById(networkId) == null) throw new NotFoundHttpException("Network not found");
-            if (networkUserService.GetById(networkId, networkUserId) == null) throw new NotFoundHttpException("NetworkUser not found");
+            if (await networkService.GetByIdAsync(networkId) == null) throw new NotFoundHttpException("Network not found");
+            if (await networkUserService.GetByIdAsync(networkId, networkUserId) == null) throw new NotFoundHttpException("NetworkUser not found");
             
-            var networkUserAccesses = repository.GetByNetworkUserId(networkUserId);
+            var networkUserAccesses = await repository.GetByNetworkUserIdAsync(networkUserId);
             return networkUserAccesses;
         }
 
-        public ICollection<NetworkUserAccess> GetByAccessId(Guid accessId)
+        public async Task<ICollection<NetworkUserAccess>> GetByAccessIdAsync(Guid accessId)
         {
-            if (accessService.GetById(accessId) == null) throw new NotFoundHttpException("Access not found");
+            if (await accessService.GetByIdAsync(accessId) == null) throw new NotFoundHttpException("Access not found");
             
-            var networkUserAccesses = repository.GetByAccessId(accessId);
+            var networkUserAccesses = await repository.GetByAccessIdAsync(accessId);
             return networkUserAccesses;
         }
 
-        public void Populate(Guid networkId, Guid accessId)
+        public async Task PopulateAsync(Guid networkId, Guid accessId)
         {
-            repository.Populate(networkId, accessId);
+            await repository.PopulateAsync(networkId, accessId);
         }
 
-        public void Depopulate(Guid networkId, Guid accessId)
+        public async Task DepopulateAsync(Guid networkId, Guid accessId)
         {
-            repository.Depopulate(networkId, accessId);
+            await repository.DepopulateAsync(networkId, accessId);
         }
 
-        public NetworkUserAccess? GetByIds(Guid networkId, Guid networkUserId, Guid accessId)
+        public async Task<NetworkUserAccess?> GetByIdsAsync(Guid networkId, Guid networkUserId, Guid accessId)
         {
-            if (networkService.GetById(networkId) == null) throw new NotFoundHttpException("Network not found");
-            if (networkUserService.GetById(networkId, networkUserId) == null) throw new NotFoundHttpException("NetworkUser not found");
-            if (accessService.GetById(accessId) == null) throw new NotFoundHttpException("Access not found");
+            if (await networkService.GetByIdAsync(networkId) == null) throw new NotFoundHttpException("Network not found");
+            if (await networkUserService.GetByIdAsync(networkId, networkUserId) == null) throw new NotFoundHttpException("NetworkUser not found");
+            if (await accessService.GetByIdAsync(accessId) == null) throw new NotFoundHttpException("Access not found");
             
-            var networkUserPermission = repository.GetByIds(networkUserId, accessId);
+            var networkUserPermission = await repository.GetByIdsAsync(networkUserId, accessId);
             return networkUserPermission;
         }
 
-        public NetworkUserAccess Create(Guid networkId, Guid networkUserId, Guid accessId, CreateNetworkUserAccessDto createNetworkUserPermission)
+        public async Task<NetworkUserAccess> CreateAsync(Guid networkId, Guid networkUserId, Guid accessId, CreateNetworkUserAccessDto createNetworkUserPermission)
         {
-            if (networkService.GetById(networkId) == null) throw new NotFoundHttpException("Network not found");
-            if (networkUserService.GetById(networkId, networkUserId) == null) throw new NotFoundHttpException("NetworkUser not found");
-            if (accessService.GetById(accessId) == null) throw new NotFoundHttpException("Access not found");
+            if (await networkService.GetByIdAsync(networkId) == null) throw new NotFoundHttpException("Network not found");
+            if (await networkUserService.GetByIdAsync(networkId, networkUserId) == null) throw new NotFoundHttpException("NetworkUser not found");
+            if (await accessService.GetByIdAsync(accessId) == null) throw new NotFoundHttpException("Access not found");
             
-            if (repository.Exists(networkUserId, accessId)) throw new ConflictHttpException();
+            if (await repository.ExistsAsync(networkUserId, accessId)) throw new ConflictHttpException();
             
             var networkUserAccess = mapper.Map<NetworkUserAccess>(createNetworkUserPermission);
             networkUserAccess.NetworkUserId = networkUserId;
             networkUserAccess.AccessId = accessId;
             
-            networkUserAccess = repository.Create(networkUserAccess);
+            networkUserAccess = await repository.CreateAsync(networkUserAccess);
 
-            MarkAccessComplete(networkUserId);
+            await MarkAccessCompleteAsync(networkUserId);
             
             return networkUserAccess;
         }
 
-        public NetworkUserAccess Update(Guid networkId, Guid networkUserId, Guid accessId, UpdateNetworkUserAccessDto updateNetworkUserAccess)
+        public async Task<NetworkUserAccess> UpdateAsync(Guid networkId, Guid networkUserId, Guid accessId, UpdateNetworkUserAccessDto updateNetworkUserAccess)
         {
-            if (!repository.Exists(networkUserId, accessId)) throw new NotFoundHttpException();
+            if (!await repository.ExistsAsync(networkUserId, accessId)) throw new NotFoundHttpException();
             
-            var networkAccess = networkAccessRepository.GetByIds(networkId, accessId);
+            var networkAccess = await networkAccessRepository.GetByIdsAsync(networkId, accessId);
             if (networkAccess!.IsRequired && !updateNetworkUserAccess.IsAccepted) throw new BadHttpRequestException("Access is required by this network.");
 
             var networkUserAccess = mapper.Map<NetworkUserAccess>(updateNetworkUserAccess);
             networkUserAccess.NetworkUserId = networkUserId;
             networkUserAccess.AccessId = accessId;
             
-            networkUserAccess = repository.Update(networkUserAccess);
+            networkUserAccess = await repository.UpdateAsync(networkUserAccess);
             
-            MarkAccessComplete(networkUserId);
+            await MarkAccessCompleteAsync(networkUserId);
             
             return networkUserAccess;
         }
 
-        private void MarkAccessComplete(Guid networkUserId)
+        private async Task MarkAccessCompleteAsync(Guid networkUserId)
         {
-            repository.MarkAccessComplete(networkUserId);
+            await repository.MarkAccessCompleteAsync(networkUserId);
         }
 
-        public void DeleteByIds(Guid networkId, Guid networkUserId, Guid permissionId)
+        public async Task DeleteByIdsAsync(Guid networkId, Guid networkUserId, Guid permissionId)
         {
-            var networkUserPermission = GetByIds(networkId, networkUserId, permissionId);
-            if (networkUserPermission != null) repository.Delete(networkUserPermission);
+            var networkUserPermission = await GetByIdsAsync(networkId, networkUserId, permissionId);
+            if (networkUserPermission != null) await repository.DeleteAsync(networkUserPermission);
         }
     }
 }

@@ -15,28 +15,28 @@ namespace thirdpartynetwork.Application.Services
     {
         private readonly INetworkUserService _networkUserService = networkUserService;
 
-        public ICollection<PageBlock> GetByCustomPageId(Guid networkId, Guid customPageId)
+        public async Task<ICollection<PageBlock>> GetByCustomPageIdAsync(Guid networkId, Guid customPageId)
         {
-            var pageBlock = repository.GetByCustomPageId(networkId, customPageId);
+            var pageBlock = await repository.GetByCustomPageIdAsync(networkId, customPageId);
             return pageBlock;
         }
 
-        public PageBlock? GetById(Guid networkId, Guid pageBlockId)
+        public async Task<PageBlock?> GetByIdAsync(Guid networkId, Guid pageBlockId)
         {
-            var pageBlock = repository.GetById(pageBlockId);
+            var pageBlock = await repository.GetByIdAsync(pageBlockId);
             return pageBlock;
         }
 
-        public PageBlock Create(Guid networkId, Guid customPageId, CreatePageBlockDto createPageBlock)
+        public async Task<PageBlock> CreateAsync(Guid networkId, Guid customPageId, CreatePageBlockDto createPageBlock)
         {
-            var network = networkService.GetById(networkId);
+            var network = await networkService.GetByIdAsync(networkId);
             if (network == null) throw new NotFoundHttpException("Network not found");
             
-            var customPage = customPageService.GetById(networkId, customPageId);
+            var customPage = await customPageService.GetByIdAsync(networkId, customPageId);
             if (customPage == null) throw new NotFoundHttpException("CustomPage not found");
 
-            var userProxy = identityService.GetUserProxy();
-            var networkUser = _networkUserService.GetByIds(networkId, userProxy.Id);
+            var userProxy = await identityService.GetUserProxyAsync();
+            var networkUser = await _networkUserService.GetByIdsAsync(networkId, userProxy.Id);
             if (networkUser == null) throw new NotFoundHttpException("NetworkUser not found");
 
             var pageBlock = mapper.Map<PageBlock>(createPageBlock);
@@ -44,25 +44,25 @@ namespace thirdpartynetwork.Application.Services
             pageBlock.CustomPageId = customPageId;
             pageBlock.Author = networkUser;
 
-            pageBlock = repository.Create(pageBlock);
+            pageBlock = await repository.CreateAsync(pageBlock);
             return pageBlock;
         }
 
-        public PageBlock Update(Guid networkId, Guid customPageId, Guid pageBlockId, UpdatePageBlockDto updatePageBlock)
+        public async Task<PageBlock> UpdateAsync(Guid networkId, Guid customPageId, Guid pageBlockId, UpdatePageBlockDto updatePageBlock)
         {
-            if (!repository.Exists(pageBlockId)) throw new NotFoundHttpException();
+            if (!await repository.ExistsAsync(pageBlockId)) throw new NotFoundHttpException();
 
-            var network = networkService.GetById(networkId);
+            var network = await networkService.GetByIdAsync(networkId);
             if (network == null) throw new NotFoundHttpException("Network not found");
 
-            var pageBlock = repository.Update(pageBlockId, updatePageBlock);
+            var pageBlock = await repository.UpdateAsync(pageBlockId, updatePageBlock);
             return pageBlock;
         }
 
-        public void DeleteById(Guid networkId, Guid customPageId, Guid pageBlockId)
+        public async Task DeleteByIdAsync(Guid networkId, Guid customPageId, Guid pageBlockId)
         {
-            var pageBlock = GetById(networkId, pageBlockId);
-            if (pageBlock != null) repository.Delete(pageBlock);
+            var pageBlock = await GetByIdAsync(networkId, pageBlockId);
+            if (pageBlock != null) await repository.DeleteAsync(pageBlock);
         }
     }
 }

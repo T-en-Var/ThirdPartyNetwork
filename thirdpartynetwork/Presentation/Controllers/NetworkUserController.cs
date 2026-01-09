@@ -14,9 +14,9 @@ public class NetworkUserController(INetworkUserService service, IMapper mapper) 
     [HttpGet]
     [RequirePermission(Constants.Permissions.ReadUser, Constants.Permissions.IsNetworkUserOwner)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<NetworkUserDto>))]
-    public IActionResult GetNetworkUsers(Guid networkId)
+    public async Task<IActionResult> GetNetworkUsers(Guid networkId)
     {
-        var networkUsers = service.GetByNetworkId(networkId);
+        var networkUsers = await service.GetByNetworkIdAsync(networkId);
         return Ok(mapper.Map<IEnumerable<NetworkUserDto>>(networkUsers, opts => opts.Items["networkId"] = networkId));
     }
 
@@ -24,9 +24,9 @@ public class NetworkUserController(INetworkUserService service, IMapper mapper) 
     [RequirePermission(Constants.Permissions.ManageUser, Constants.Permissions.IsNetworkUserOwner)]
     [ProducesResponseType(200, Type = typeof(NetworkUserDto))]
     [ProducesResponseType(404)]
-    public IActionResult GetNetworkUser(Guid networkId, Guid networkUserId)
+    public async Task<IActionResult> GetNetworkUser(Guid networkId, Guid networkUserId)
     {
-        var networkUser = service.GetById(networkId, networkUserId);
+        var networkUser = await service.GetByIdAsync(networkId, networkUserId);
         return networkUser != null
             ? Ok(mapper.Map<NetworkUserDto>(networkUser, opts => opts.Items["networkId"] = networkId))
             : NotFound();
@@ -35,10 +35,10 @@ public class NetworkUserController(INetworkUserService service, IMapper mapper) 
     [HttpPost("{userProxyId:guid}")]
     [RequirePermission(Constants.Permissions.ManageUser, Constants.Permissions.IsUserProxyOwner)]
     [ProducesResponseType(201, Type = typeof(NetworkUser))]
-    public IActionResult CreateNetworkUser(Guid networkId, Guid userProxyId,
+    public async Task<IActionResult> CreateNetworkUser(Guid networkId, Guid userProxyId,
         [FromBody] CreateNetworkUserDto networkUser)
     {
-        var user = service.Create(networkId, userProxyId, networkUser);
+        var user = await service.CreateAsync(networkId, userProxyId, networkUser);
         return Ok(mapper.Map<NetworkUserDto>(user, opts => opts.Items["networkId"] = networkId));
     }
 
@@ -46,19 +46,19 @@ public class NetworkUserController(INetworkUserService service, IMapper mapper) 
     [RequirePermission(Constants.Permissions.ManageUser, Constants.Permissions.IsNetworkUserOwner)]
     [ProducesResponseType(200, Type = typeof(NetworkUserDto))]
     [ProducesResponseType(404)]
-    public IActionResult UpdateNetworkUser(Guid networkId, Guid networkUserId,
+    public async Task<IActionResult> UpdateNetworkUser(Guid networkId, Guid networkUserId,
         [FromBody] UpdateNetworkUserDto updateNetworkUser)
     {
-        var networkUser = service.Update(networkId, networkUserId, updateNetworkUser);
+        var networkUser = await service.UpdateAsync(networkId, networkUserId, updateNetworkUser);
         return Ok(mapper.Map<NetworkUserDto>(networkUser, opts => opts.Items["networkId"] = networkId));
     }
 
     [HttpDelete("{networkUserId:guid}")]
     [RequirePermission(Constants.Permissions.ManageUser, Constants.Permissions.IsNetworkUserOwner)]
     [ProducesResponseType(204)]
-    public IActionResult DeleteNetworkUser(Guid networkId, Guid networkUserId)
+    public async Task<IActionResult> DeleteNetworkUser(Guid networkId, Guid networkUserId)
     {
-        service.DeleteById(networkId, networkUserId);
+        await service.DeleteByIdAsync(networkId, networkUserId);
         return NoContent();
     }
 }

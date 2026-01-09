@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+﻿﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using thirdpartynetwork.Application.Auth.Requirements;
@@ -13,9 +13,9 @@ public class MainNetworkController(INetworkService service, IMapper mapper) : Co
     [HttpGet]
     // [Authorize]
     [ProducesResponseType(200, Type = typeof(IEnumerable<NetworkDto>))]
-    public IActionResult GetMainNetwork()
+    public async Task<IActionResult> GetMainNetwork()
     {
-        var network = service.GetMainNetwork();
+        var network = await service.GetMainNetworkAsync();
         return Ok(mapper.Map<NetworkDto>(network, opts => opts.Items["networkId"] = network.Id));
     }
 }

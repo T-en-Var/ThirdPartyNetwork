@@ -17,51 +17,53 @@ namespace thirdpartynetwork.Application.Repositories
         private readonly DataContext _context = context;
         protected override string ReadPermissionName => Constants.Permissions.ReadPageBlock;
 
-        protected override IQueryable<PageBlock> GetQueryable()
+        protected override Task<IQueryable<PageBlock>> GetQueryableAsync()
         {
-            return _context.PageBlocks
+            var query = _context.PageBlocks
                 .AsQueryable();
+            
+            return Task.FromResult(query);
         }
 
-        public bool Exists(Guid id)
+        public async Task<bool> ExistsAsync(Guid id)
         {
-            return _context.PageBlocks.Any(c => c.Id == id);
+            return await _context.PageBlocks.AnyAsync(c => c.Id == id);
         }
 
-        public ICollection<PageBlock> GetByCustomPageId(Guid networkId, Guid customPageId)
+        public async Task<ICollection<PageBlock>> GetByCustomPageIdAsync(Guid networkId, Guid customPageId)
         {
-            return GetQueryable()
+            return await (await GetQueryableAsync())
                 .AsNoTracking()
-                .Where(p => p.CustomPageId == customPageId).ToList();
+                .Where(p => p.CustomPageId == customPageId).ToListAsync();
         }
 
-        public PageBlock? GetById(Guid id)
+        public async Task<PageBlock?> GetByIdAsync(Guid id)
         {
-            return _context.PageBlocks.Find(id);
+            return await _context.PageBlocks.FindAsync(id);
         }
 
-        public PageBlock Create(PageBlock pageBlock)
+        public async Task<PageBlock> CreateAsync(PageBlock pageBlock)
         {
-            _context.PageBlocks.Add(pageBlock);
-            SaveAndUpdate(pageBlock);
+            await _context.PageBlocks.AddAsync(pageBlock);
+            await SaveAndUpdateAsync(pageBlock);
             return pageBlock;
         }
 
-        public PageBlock Update(Guid pageBlockId, UpdatePageBlockDto updatePageBlock)
+        public async Task<PageBlock> UpdateAsync(Guid pageBlockId, UpdatePageBlockDto updatePageBlock)
         {
-            var existing = GetById(pageBlockId);
+            var existing = await GetByIdAsync(pageBlockId);
             if (existing == null) throw new Exception("PageBlock not found");
 
             mapper.Map(updatePageBlock, existing); 
 
-            SaveAndUpdate(existing);
+            await SaveAndUpdateAsync(existing);
             return existing;
         }
 
-        public void Delete(PageBlock pageBlock)
+        public async Task DeleteAsync(PageBlock pageBlock)
         {
             _context.Remove(pageBlock);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
     }
 }

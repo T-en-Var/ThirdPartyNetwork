@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿﻿using Microsoft.EntityFrameworkCore;
 using thirdpartynetwork.Core;
 using thirdpartynetwork.Core.Data;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
@@ -11,19 +11,20 @@ namespace thirdpartynetwork.Application.Repositories
     {
         private readonly DataContext _context = context;
 
-        private IQueryable<Role> GetQueryable(Guid networkId)
+        private async Task<IQueryable<Role>> GetQueryableAsync(Guid networkId)
         {
             var query = _context.Roles
                 .Where(r => r.NetworkId == networkId)
                 .AsQueryable();
-            var currentUser = identityService.GetUserProxy(true);
             
-            if (identityVerifier.IsAllowed(networkId, currentUser.Id, Constants.Permissions.ReadPermission))
+            var currentUser = await identityService.GetUserProxyAsync(true);
+            
+            if (await identityVerifier.IsAllowedAsync(networkId, currentUser.Id, Constants.Permissions.ReadPermission))
                 query = query
                     .Include(x => x.RolePermissions)
                     .ThenInclude(x => x.Permission);
             
-            if (identityVerifier.IsAllowed(networkId, currentUser.Id, Constants.Permissions.ReadUser))
+            if (await identityVerifier.IsAllowedAsync(networkId, currentUser.Id, Constants.Permissions.ReadUser))
                 query = query
                     .Include(x => x.NetworkUserRoles)
                     .ThenInclude(x => x.NetworkUser)
@@ -33,52 +34,52 @@ namespace thirdpartynetwork.Application.Repositories
             return query;
         }
 
-        public bool Exists(Guid id)
+        public async Task<bool> ExistsAsync(Guid id)
         {
-            return _context.Roles.Any(r => r.Id == id);
+            return await _context.Roles.AnyAsync(r => r.Id == id);
         }
 
-        public ICollection<Role> GetAll()
+        public async Task<ICollection<Role>> GetAllAsync()
         {
-            return [.. _context.Roles.AsNoTracking()];
+            return await _context.Roles.AsNoTracking().ToListAsync();
         }
 
-        public ICollection<Role> GetByNetworkId(Guid networkId)
+        public async Task<ICollection<Role>> GetByNetworkIdAsync(Guid networkId)
         {
-            return [.. GetQueryable(networkId).AsNoTracking()];
+            return await (await GetQueryableAsync(networkId)).AsNoTracking().ToListAsync();
         }
 
-        public Role? GetById(Guid networkId, Guid id)
+        public async Task<Role?> GetByIdAsync(Guid networkId, Guid id)
         {
-            return GetQueryable(networkId).FirstOrDefault(r => r.Id == id);
+            return await (await GetQueryableAsync(networkId)).FirstOrDefaultAsync(r => r.Id == id);
         }
 
-        public Role Create(Role role)
+        public async Task<Role> CreateAsync(Role role)
         {
-            _context.Roles.Add(role);
-            SaveAndUpdate(role);
+            await _context.Roles.AddAsync(role);
+            await SaveAndUpdateAsync(role);
             return role;
         }
 
-        public Role Update(Guid networkId, Role role)
+        public async Task<Role> UpdateAsync(Guid networkId, Role role)
         {
-            var existing = GetById(networkId, role.Id);
+            var existing = await GetByIdAsync(networkId, role.Id);
             if (existing == null) throw new Exception("Role not found");
             
             if (existing.IsSystemProtected) throw new UnauthorizedHttpException("Role is system protected");
 
             _context.Entry(existing).CurrentValues.SetValues(role);
 
-            SaveAndUpdate(existing);
+            await SaveAndUpdateAsync(existing);
             return existing;
         }
 
-        public void Delete(Role role)
+        public async Task DeleteAsync(Role role)
         {
             if (role.IsSystemProtected) throw new UnauthorizedHttpException("Role is system protected");
 
             _context.Remove(role);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
     }
 }

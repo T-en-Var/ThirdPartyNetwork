@@ -15,48 +15,48 @@ public class ConfigurationService(
 {
     private readonly INetworkUserService _networkUserService = networkUserService;
 
-    public ICollection<Configuration> GetByNetworkId(Guid networkId)
+    public async Task<ICollection<Configuration>> GetByNetworkIdAsync(Guid networkId)
     {
-        return repository.GetByNetworkId(networkId);
+        return await repository.GetByNetworkIdAsync(networkId);
     }
 
-    public Configuration? GetById(Guid networkId, Guid configurationId)
+    public async Task<Configuration?> GetByIdAsync(Guid networkId, Guid configurationId)
     {
-        return repository.GetById(configurationId);
+        return await repository.GetByIdAsync(configurationId);
     }
 
-    public Configuration Create(Guid networkId, CreateConfigurationDto createConfiguration)
+    public async Task<Configuration> CreateAsync(Guid networkId, CreateConfigurationDto createConfiguration)
     {
-        var network = networkService.GetById(networkId);
+        var network = await networkService.GetByIdAsync(networkId);
         if (network == null) throw new NotFoundHttpException("Network not found");
 
-        var userProxy = identityService.GetUserProxy();
-        var networkUser = _networkUserService.GetByIds(networkId, userProxy.Id);
+        var userProxy = await identityService.GetUserProxyAsync();
+        var networkUser = await _networkUserService.GetByIdsAsync(networkId, userProxy.Id);
         if (networkUser == null) throw new NotFoundHttpException("NetworkUser not found");
 
         var configuration = mapper.Map<Configuration>(createConfiguration);
         configuration.Network = network;
         configuration.Author = networkUser;
 
-        return repository.Create(configuration);
+        return await repository.CreateAsync(configuration);
     }
 
-    public Configuration Update(Guid networkId, Guid configurationId, UpdateConfigurationDto updateConfiguration)
+    public async Task<Configuration> UpdateAsync(Guid networkId, Guid configurationId, UpdateConfigurationDto updateConfiguration)
     {
-        if (!repository.Exists(configurationId)) throw new NotFoundHttpException();
+        if (!await repository.ExistsAsync(configurationId)) throw new NotFoundHttpException();
 
-        var network = networkService.GetById(networkId);
+        var network = await networkService.GetByIdAsync(networkId);
         if (network == null) throw new NotFoundHttpException("Network not found");
 
-        var configuration = repository.Update(configurationId, updateConfiguration);
+        var configuration = await repository.UpdateAsync(configurationId, updateConfiguration);
         return configuration;
     }
 
-    public void DeleteById(Guid networkId, Guid configurationId)
+    public async Task DeleteByIdAsync(Guid networkId, Guid configurationId)
     {
-        var configuration = GetById(networkId, configurationId);
+        var configuration = await GetByIdAsync(networkId, configurationId);
         if (configuration == null) return;
 
-        repository.Delete(configuration);
+        await repository.DeleteAsync(configuration);
     }
 }

@@ -18,36 +18,36 @@ public class UserProxyContentController(
     [HttpGet("blogs")]
     [RequirePermission(Constants.Permissions.ReadUser)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<BlogDto>))]
-    public IActionResult GetBlogs(Guid userProxyId)
+    public async Task<IActionResult> GetBlogs(Guid userProxyId)
     {
-        var blogs = blogService.GetByUserProxyId(userProxyId);
+        var blogs = await blogService.GetByUserProxyIdAsync(userProxyId);
         return Ok(mapper.Map<IEnumerable<BlogDto>>(blogs));
     }
     
     [HttpGet("configurations")]
     [RequirePermission(Constants.Permissions.ReadConfiguration)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<ConfigurationDto>))]
-    public IActionResult GetConfigurations(Guid userProxyId)
+    public async Task<IActionResult> GetConfigurations(Guid userProxyId)
     {
-        var configurations = configurationService.GetByUserProxyId(userProxyId);
+        var configurations = await configurationService.GetByUserProxyIdAsync(userProxyId);
         return Ok(mapper.Map<IEnumerable<ConfigurationDto>>(configurations));
     }
     
     [HttpGet("customPages")]
     [RequirePermission(Constants.Permissions.ReadConfiguration)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<CustomPageDto>))]
-    public IActionResult GetCustomPages(Guid userProxyId)
+    public async Task<IActionResult> GetCustomPages(Guid userProxyId)
     {
-        var customPages = customPageService.GetByUserProxyId(userProxyId);
+        var customPages = await customPageService.GetByUserProxyIdAsync(userProxyId);
         return Ok(mapper.Map<IEnumerable<CustomPageDto>>(customPages));
     }
     
     [HttpGet("files")]
     [RequirePermission(Constants.Permissions.ReadConfiguration)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<FileDto>))]
-    public IActionResult GetFiles(Guid userProxyId)
+    public async Task<IActionResult> GetFiles(Guid userProxyId)
     {
-        var files = fileService.GetByUserProxyId(userProxyId);
+        var files = await fileService.GetByUserProxyIdAsync(userProxyId);
         return Ok(mapper.Map<IEnumerable<FileDto>>(files));
     }
 }

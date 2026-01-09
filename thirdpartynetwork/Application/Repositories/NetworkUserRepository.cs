@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using thirdpartynetwork.Core;
 using thirdpartynetwork.Core.Data;
 using thirdpartynetwork.Core.Interfaces.Auth;
@@ -13,7 +14,7 @@ namespace thirdpartynetwork.Application.Repositories
     {
         private readonly DataContext _context = context;
 
-        private IQueryable<NetworkUser> GetQueryable(Guid networkId)
+        private async Task<IQueryable<NetworkUser>> GetQueryableAsync(Guid networkId)
         {
             var query = _context.NetworkUsers
                 // .AsNoTracking()  // Assume it doesnt break anything
@@ -21,19 +22,19 @@ namespace thirdpartynetwork.Application.Repositories
                                     // UserProxy -> NetworkUsers is loaded into memory
                 .AsQueryable();
 
-            var currentUser = identityService.GetUserProxy(true);
+            var currentUser = await identityService.GetUserProxyAsync(true);
             
-            if (identityVerifier.IsAllowed(networkId, currentUser.Id, Constants.Permissions.ReadAccess))
+            if (await identityVerifier.IsAllowedAsync(networkId, currentUser.Id, Constants.Permissions.ReadAccess))
                 query = query
                     .Include(x => x.NetworkUserAccesses)
                     .ThenInclude(x => x.Access);
 
-            if (identityVerifier.IsAllowed(networkId, currentUser.Id, Constants.Permissions.ReadUser))
+            if (await identityVerifier.IsAllowedAsync(networkId, currentUser.Id, Constants.Permissions.ReadUser))
                 query = query
                     .Include(x => x.UserProxy)
                     .ThenInclude(x => x.ImageFile);
 
-            if (identityVerifier.IsAllowed(networkId, currentUser.Id, Constants.Permissions.ReadRole))
+            if (await identityVerifier.IsAllowedAsync(networkId, currentUser.Id, Constants.Permissions.ReadRole))
                 query = query
                     .Include(x => x.NetworkUserRoles)
                     .ThenInclude(x => x.Role);
@@ -41,33 +42,29 @@ namespace thirdpartynetwork.Application.Repositories
             return query;
         }
 
-        public bool Exists(Guid id)
+        public async Task<bool> ExistsAsync(Guid id)
         {
-            return _context.NetworkUsers.Any(nu => nu.Id == id);
+            return await _context.NetworkUsers.AnyAsync(nu => nu.Id == id);
         }
 
-        public ICollection<NetworkUser> GetAll()
+        public async Task<ICollection<NetworkUser>> GetAllAsync()
         {
-            return
-            [
-                .. _context.NetworkUsers
+            return await _context.NetworkUsers
                     .Include(n => n.Network)
                     .Include(n => n.UserProxy)
                     .AsNoTracking()
-            ];
+                    .ToListAsync();
         }
 
-        public ICollection<NetworkUser> GetByNetworkId(Guid networkId)
+        public async Task<ICollection<NetworkUser>> GetByNetworkIdAsync(Guid networkId)
         {
-            return
-            [
-                .. GetQueryable(networkId)
+            return await (await GetQueryableAsync(networkId))
                     .AsNoTracking()
                     .Where(nu => nu.NetworkId == networkId)
-            ];
+                    .ToListAsync();
         }
 
-        public ICollection<NetworkUser> GetByUserProxyId(
+        public async Task<ICollection<NetworkUser>> GetByUserProxyIdAsync(
             Guid userProxyId,
             Func<IQueryable<NetworkUser>, IQueryable<NetworkUser>>? queryConfig = null)
         {
@@ -81,33 +78,30 @@ namespace thirdpartynetwork.Application.Repositories
             }
 
             // Apply the filter and execute
-            return
-            [
-                .. query.Where(nu => nu.UserProxyId == userProxyId)
-            ];
+            return await query.Where(nu => nu.UserProxyId == userProxyId).ToListAsync();
         }
 
-        public NetworkUser? GetById(Guid networkId, Guid id)
+        public async Task<NetworkUser?> GetByIdAsync(Guid networkId, Guid id)
         {
-            return GetQueryable(networkId)
-                .FirstOrDefault(u => u.Id == id);
+            return await (await GetQueryableAsync(networkId))
+                .FirstOrDefaultAsync(u => u.Id == id);
         }
 
-        public NetworkUser? GetJustById(Guid id)
+        public async Task<NetworkUser?> GetJustByIdAsync(Guid id)
         {
-            return _context.NetworkUsers.FirstOrDefault(u => u.Id == id);
+            return await _context.NetworkUsers.FirstOrDefaultAsync(u => u.Id == id);
         }
 
-        public NetworkUser? GetByIds(Guid networkId, Guid userProxyId)
+        public async Task<NetworkUser?> GetByIdsAsync(Guid networkId, Guid userProxyId)
         {
-            return GetQueryable(networkId)
-                .FirstOrDefault(u => u.NetworkId == networkId && u.UserProxyId == userProxyId);
+            return await (await GetQueryableAsync(networkId))
+                .FirstOrDefaultAsync(u => u.NetworkId == networkId && u.UserProxyId == userProxyId);
         }
 
-        public NetworkUser? GetByIdsNoInclude(Guid networkId, Guid userProxyId)
+        public async Task<NetworkUser?> GetByIdsNoIncludeAsync(Guid networkId, Guid userProxyId)
         {
-            return _context.NetworkUsers
-                .FirstOrDefault(u => u.NetworkId == networkId && u.UserProxyId == userProxyId);
+            return await _context.NetworkUsers
+                .FirstOrDefaultAsync(u => u.NetworkId == networkId && u.UserProxyId == userProxyId);
         }
 
         private IQueryable<NetworkUser> PreAuthIncludes(IQueryable<NetworkUser> query)
@@ -122,49 +116,49 @@ namespace thirdpartynetwork.Application.Repositories
                 .AsQueryable();
         }
 
-        public NetworkUser? GetByIdsPreAuth(Guid networkId, Guid userProxyId)
+        public async Task<NetworkUser?> GetByIdsPreAuthAsync(Guid networkId, Guid userProxyId)
         {
-            return PreAuthIncludes(_context.NetworkUsers)
-                .FirstOrDefault(u => u.NetworkId == networkId && u.UserProxyId == userProxyId);
+            return await PreAuthIncludes(_context.NetworkUsers)
+                .FirstOrDefaultAsync(u => u.NetworkId == networkId && u.UserProxyId == userProxyId);
         }
 
-        public NetworkUser? GetByNetworkIdAndEmail(Guid networkId, string email)
+        public async Task<NetworkUser?> GetByNetworkIdAndEmailAsync(Guid networkId, string email)
         {
             // Used for login, so always requires UserProxy
-            var query = GetQueryable(networkId);
-            return PreAuthIncludes(query)
-                .FirstOrDefault(u => u.NetworkId == networkId && u.UserProxy.Email == email);
+            var query = await GetQueryableAsync(networkId);
+            return await PreAuthIncludes(query)
+                .FirstOrDefaultAsync(u => u.NetworkId == networkId && u.UserProxy.Email == email);
         }
 
-        public NetworkUser Create(NetworkUser networkUser)
+        public async Task<NetworkUser> CreateAsync(NetworkUser networkUser)
         {
-            _context.NetworkUsers.Add(networkUser);
-            SaveAndUpdate(networkUser);
+            await _context.NetworkUsers.AddAsync(networkUser);
+            await SaveAndUpdateAsync(networkUser);
             return networkUser;
         }
 
-        public NetworkUser Update(Guid networkId, NetworkUser networkUser)
+        public async Task<NetworkUser> UpdateAsync(Guid networkId, NetworkUser networkUser)
         {
-            var existing = GetById(networkId, networkUser.Id);
+            var existing = await GetByIdAsync(networkId, networkUser.Id);
             if (existing == null) throw new Exception("NetworkUser not found");
 
             _context.Entry(existing).CurrentValues.SetValues(networkUser);
 
-            SaveAndUpdate(existing);
+            await SaveAndUpdateAsync(existing);
             return existing;
         }
 
-        public void NetworkAccessUpdate(Guid networkId)
+        public async Task NetworkAccessUpdateAsync(Guid networkId)
         {
-            _context.NetworkUsers
+            await _context.NetworkUsers
                 .Where(u => u.NetworkId == networkId)
-                .ExecuteUpdate(u => u.SetProperty(nu => nu.AccessIncomplete, true));
+                .ExecuteUpdateAsync(u => u.SetProperty(nu => nu.AccessIncomplete, true));
         }
 
-        public void Delete(NetworkUser networkUser)
+        public async Task DeleteAsync(NetworkUser networkUser)
         {
             _context.Remove(networkUser);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
     }
 }

@@ -15,7 +15,7 @@ public class PermissionHandler(
     IAccessLevelVerifier accessLevelVerifier)
     : AuthorizationHandler<PermissionRequirement>
 {
-    protected override Task HandleRequirementAsync(
+    protected override async Task HandleRequirementAsync(
         AuthorizationHandlerContext context, PermissionRequirement requirement)
     {
         Console.WriteLine("[PermissionHandler] Start.");
@@ -31,7 +31,7 @@ public class PermissionHandler(
                 break;
             }
 
-            var isAllowed = CheckPermission(permission, isAuthenticated);
+            var isAllowed = await CheckPermissionAsync(permission, isAuthenticated);
             
             Console.WriteLine(isAllowed
                 ? "[PermissionHandler] Passed"
@@ -45,67 +45,69 @@ public class PermissionHandler(
         }
 
         Console.WriteLine("[PermissionHandler] Complete.");
-        return Task.CompletedTask;
     }
     
-    private bool CheckPermission(string permission, bool isAuthenticated)
+    private async Task<bool> CheckPermissionAsync(string permission, bool isAuthenticated)
     {
         // Phase 1: If not logged in, they ONLY pass if the resource is publicly accessible enough.
         if (!isAuthenticated)
         {
             return Constants.ContentPermissions.Contains(permission) 
-                   && HandleContentRequirement(permission);
+                   && await HandleContentRequirementAsync(permission);
         }
 
         // Phase 2: specific Context Checks (Resource Owner or Content)
         if (Constants.OwnerPermissions.Contains(permission))
         {
-            if (HandleOwnerRequirement(permission)) return true;
+            if (await HandleOwnerRequirementAsync(permission)) return true;
         }
         else if (Constants.ContentPermissions.Contains(permission))
         {
-            if (HandleContentRequirement(permission)) return true;
+            if (await HandleContentRequirementAsync(permission)) return true;
         }
 
         // Phase 3: Default role checking
         if (Constants.GeneralPermissions.Contains(permission))
         {
-            return HandleGeneralRequirement(permission);
+            return await HandleGeneralRequirementAsync(permission);
         }
 
-        return HandleRequirement(permission);
+        return await HandleRequirementAsync(permission);
     }
     
-    private bool HandleRequirement(string permission)
+    private async Task<bool> HandleRequirementAsync(string permission)
     {
         var httpContext = httpContextAccessor.HttpContext;
         if (httpContext == null) throw new UnauthorizedHttpException();
-        var userProxy = identityService.GetUserProxy();
+        var userProxy = await identityService.GetUserProxyAsync();
 
-        if (identityVerifier.IsSuperAdminOrHasSuperPermission(userProxy.Id, permission))
+        if (await identityVerifier.IsSuperAdminOrHasSuperPermissionAsync(userProxy.Id, permission))
             return true;
 
         var networkId = httpContext.GetGuidFromHttpContextUrl("networkId");
         return networkId != Guid.Empty &&
-               identityVerifier.IsNetworkAdminOrHasPermission(networkId, userProxy.Id, permission);
+               await identityVerifier.IsNetworkAdminOrHasPermissionAsync(networkId, userProxy.Id, permission);
     }
 
-    private bool HandleGeneralRequirement(string permission)
+    private async Task<bool> HandleGeneralRequirementAsync(string permission)
     {
-        var userProxy = identityService.GetUserProxy();
+        var userProxy = await identityService.GetUserProxyAsync();
 
-        if (identityVerifier.IsSuperAdminOrHasSuperPermission(userProxy.Id, permission))
+        if (await identityVerifier.IsSuperAdminOrHasSuperPermissionAsync(userProxy.Id, permission))
             return true;
 
-        userProxy = userProxyService.GetById(userProxy.Id);
+        userProxy = await userProxyService.GetByIdAsync(userProxy.Id);
         if (userProxy == null) throw new UnauthorizedHttpException("User does not exist (???)");
 
-        return userProxy
-            .NetworkUsers
-            .Any(u => identityVerifier.IsNetworkAdminOrHasPermission(u.NetworkId, userProxy.Id, permission));
+        foreach (var u in userProxy.NetworkUsers)
+        {
+            if (await identityVerifier.IsNetworkAdminOrHasPermissionAsync(u.NetworkId, userProxy.Id, permission))
+                return true;
+        }
+        return false;
     }
 
-    private bool HandleContentRequirement(string permission)
+    private async Task<bool> HandleContentRequirementAsync(string permission)
     {
         string compareString;
         if (Constants.SlugContentPermissions.Contains(permission))
@@ -146,46 +148,46 @@ public class PermissionHandler(
         }
         
         var networkId = httpContext.GetGuidFromHttpContextUrl("networkId");
-        var userProxy = identityService.GetUserProxy(true);
+        var userProxy = await identityService.GetUserProxyAsync(true);
 
-        if (identityVerifier.IsSuperAdminOrHasSuperPermission(userProxy.Id, permission))
+        if (await identityVerifier.IsSuperAdminOrHasSuperPermissionAsync(userProxy.Id, permission))
             return true;
         
         return permission switch
         {
             Constants.Permissions.ReadFile =>
-                accessLevelVerifier.CheckFileAccess(compareValue, networkId, permission),
+                await accessLevelVerifier.CheckFileAccessAsync(compareValue, networkId, permission),
 
             Constants.Permissions.ReadCustomPage =>
-                accessLevelVerifier.CheckCustomPageAccess(compareValue, networkId, permission),
+                await accessLevelVerifier.CheckCustomPageAccessAsync(compareValue, networkId, permission),
 
             Constants.Permissions.ReadPageBlock =>
-                accessLevelVerifier.CheckPageBlockAccess(compareValue, networkId, permission),
+                await accessLevelVerifier.CheckPageBlockAccessAsync(compareValue, networkId, permission),
 
             Constants.Permissions.ReadConfiguration =>
-                accessLevelVerifier.CheckConfigurationAccess(compareValue, networkId, permission),
+                await accessLevelVerifier.CheckConfigurationAccessAsync(compareValue, networkId, permission),
             
             Constants.Permissions.ReadBlog => 
-                accessLevelVerifier.CheckBlogAccess(compareValue, networkId, permission),
+                await accessLevelVerifier.CheckBlogAccessAsync(compareValue, networkId, permission),
 
             _ => throw new NotImplementedException("Unknown permission")
         };
     }
 
-    private bool HandleOwnerRequirement(string permission)
+    private async Task<bool> HandleOwnerRequirementAsync(string permission)
     {
         var httpContext = httpContextAccessor.HttpContext;
         if (httpContext == null) throw new UnauthorizedHttpException();
 
-        var currentUser = identityService.GetUserProxy();
+        var currentUser = await identityService.GetUserProxyAsync();
 
         return permission switch
         {
-            Constants.Permissions.IsUserOwner => identityVerifier.IsUserOwner(currentUser.Id,
+            Constants.Permissions.IsUserOwner => await identityVerifier.IsUserOwnerAsync(currentUser.Id,
                 httpContext.GetGuidFromHttpContextUrl("userId")),
-            Constants.Permissions.IsNetworkUserOwner => identityVerifier.IsNetworkUserOwner(currentUser.Id,
+            Constants.Permissions.IsNetworkUserOwner => await identityVerifier.IsNetworkUserOwnerAsync(currentUser.Id,
                 httpContext.GetGuidFromHttpContextUrl("networkUserId")),
-            Constants.Permissions.IsUserProxyOwner => identityVerifier.IsUserProxyOwner(currentUser.Id,
+            Constants.Permissions.IsUserProxyOwner => await identityVerifier.IsUserProxyOwnerAsync(currentUser.Id,
                 httpContext.GetGuidFromHttpContextUrl("userProxyId")),
             _ => false
         };

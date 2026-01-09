@@ -14,9 +14,9 @@ public class RolePermissionController(IRolePermissionService service, IMapper ma
     [RequirePermission(Constants.Permissions.ReadRole)]
     [RequirePermission(Constants.Permissions.ReadPermission)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<RolePermissionDto>))]
-    public IActionResult GetRolePermissions(Guid networkId, Guid roleId)
+    public async Task<IActionResult> GetRolePermissions(Guid networkId, Guid roleId)
     {
-        var rolePermissions = service.GetByRoleId(networkId, roleId);
+        var rolePermissions = await service.GetByRoleIdAsync(networkId, roleId);
         return Ok(mapper.Map<IEnumerable<RolePermissionDto>>(rolePermissions));
     }
 
@@ -25,9 +25,9 @@ public class RolePermissionController(IRolePermissionService service, IMapper ma
     [RequirePermission(Constants.Permissions.ReadPermission)]
     [ProducesResponseType(200, Type = typeof(RolePermissionDto))]
     [ProducesResponseType(404)]
-    public IActionResult GetRolePermission(Guid networkId, Guid roleId, Guid permissionId)
+    public async Task<IActionResult> GetRolePermission(Guid networkId, Guid roleId, Guid permissionId)
     {
-        var rolePermission = service.GetByIds(networkId, roleId, permissionId);
+        var rolePermission = await service.GetByIdsAsync(networkId, roleId, permissionId);
         return rolePermission != null ? Ok(mapper.Map<RolePermissionDto>(rolePermission)) : NotFound();
     }
 
@@ -36,10 +36,10 @@ public class RolePermissionController(IRolePermissionService service, IMapper ma
     [RequirePermission(Constants.Permissions.ManagePermission)]
     [ProducesResponseType(201, Type = typeof(RolePermissionDto))]
     [ProducesResponseType(404)]
-    public IActionResult CreateRolePermission(Guid networkId, Guid roleId, Guid permissionId,
+    public async Task<IActionResult> CreateRolePermission(Guid networkId, Guid roleId, Guid permissionId,
         [FromBody] CreateRolePermissionDto createRolePermission)
     {
-        var rolePermission = service.Create(networkId, roleId, permissionId, createRolePermission);
+        var rolePermission = await service.CreateAsync(networkId, roleId, permissionId, createRolePermission);
         return Ok(mapper.Map<RolePermissionDto>(rolePermission));
     }
 
@@ -48,10 +48,10 @@ public class RolePermissionController(IRolePermissionService service, IMapper ma
     [RequirePermission(Constants.Permissions.ManagePermission)]
     [ProducesResponseType(200, Type = typeof(RolePermissionDto))]
     [ProducesResponseType(404)]
-    public IActionResult UpdateRolePermission(Guid networkId, Guid roleId, Guid permissionId,
+    public async Task<IActionResult> UpdateRolePermission(Guid networkId, Guid roleId, Guid permissionId,
         [FromBody] UpdateRolePermissionDto updateRolePermission)
     {
-        var rolePermission = service.Update(networkId, roleId, permissionId, updateRolePermission);
+        var rolePermission = await service.UpdateAsync(networkId, roleId, permissionId, updateRolePermission);
         return Ok(mapper.Map<RolePermissionDto>(rolePermission));
     }
 
@@ -59,9 +59,9 @@ public class RolePermissionController(IRolePermissionService service, IMapper ma
     [RequirePermission(Constants.Permissions.ManageRole)]
     [RequirePermission(Constants.Permissions.ManagePermission)]
     [ProducesResponseType(204)]
-    public IActionResult DeleteRolePermission(Guid networkId, Guid roleId, Guid permissionId)
+    public async Task<IActionResult> DeleteRolePermission(Guid networkId, Guid roleId, Guid permissionId)
     {
-        service.DeleteByIds(networkId, roleId, permissionId);
+        await service.DeleteByIdsAsync(networkId, roleId, permissionId);
         return NoContent();
     }
 }

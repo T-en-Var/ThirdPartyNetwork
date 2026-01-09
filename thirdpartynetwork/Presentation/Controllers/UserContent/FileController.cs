@@ -12,9 +12,9 @@ public class FileController(IFileService service, IMapper mapper) : ControllerBa
     [HttpGet]
     [RequirePermission(Constants.Permissions.ReadFile)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<FileDto>))]
-    public IActionResult GetNetworkFile(Guid networkId)
+    public async Task<IActionResult> GetNetworkFile(Guid networkId)
     {
-        var file = service.GetByNetworkId(networkId);
+        var file = await service.GetByNetworkIdAsync(networkId);
         return Ok(mapper.Map<IEnumerable<FileDto>>(file));
     }
 
@@ -22,9 +22,9 @@ public class FileController(IFileService service, IMapper mapper) : ControllerBa
     [RequirePermission(Constants.Permissions.ManageFile)]
     [ProducesResponseType(200, Type = typeof(FileDto))]
     [ProducesResponseType(404)]
-    public IActionResult GetFile(Guid networkId, Guid fileId)
+    public async Task<IActionResult> GetFile(Guid networkId, Guid fileId)
     {
-        var file = service.GetById(networkId, fileId);
+        var file = await service.GetByIdAsync(networkId, fileId);
         return file != null ? Ok(mapper.Map<FileDto>(file)) : NotFound();
     }
 
@@ -44,9 +44,9 @@ public class FileController(IFileService service, IMapper mapper) : ControllerBa
     [RequirePermission(Constants.Permissions.ManageFile)]
     [ProducesResponseType(200, Type = typeof(FileDto))]
     [ProducesResponseType(404)]
-    public IActionResult UpdateFile(Guid networkId, Guid fileId, [FromBody] UpdateFileDto updateFile)
+    public async Task<IActionResult> UpdateFile(Guid networkId, Guid fileId, [FromBody] UpdateFileDto updateFile)
     {
-        var file = service.Update(networkId, fileId, updateFile);
+        var file = await service.UpdateAsync(networkId, fileId, updateFile);
         return Ok(mapper.Map<FileDto>(file));
     }
 

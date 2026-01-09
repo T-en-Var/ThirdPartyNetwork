@@ -6,56 +6,56 @@ namespace thirdpartynetwork.Application.Services
 {
     public class RoleService(IRoleRepository repository, INetworkService networkService, IMapper mapper) : IRoleService
     {
-        public ICollection<Role> GetAll()
+        public async Task<ICollection<Role>> GetAllAsync()
         {
-            var roles = repository.GetAll();
+            var roles = await repository.GetAllAsync();
             return roles;
         }
-        public ICollection<Role> GetByNetworkId(Guid networkId)
+        public async Task<ICollection<Role>> GetByNetworkIdAsync(Guid networkId)
         {
-            if (networkService.GetById(networkId) == null) throw new NotFoundHttpException("Network not found");
+            if (await networkService.GetByIdAsync(networkId) == null) throw new NotFoundHttpException("Network not found");
             
-            var roles = repository.GetByNetworkId(networkId);
+            var roles = await repository.GetByNetworkIdAsync(networkId);
             return roles;
         }
 
-        public Role? GetById(Guid networkId, Guid roleId)
+        public async Task<Role?> GetByIdAsync(Guid networkId, Guid roleId)
         {
-            if (networkService.GetById(networkId) == null) throw new NotFoundHttpException("Network not found");
+            if (await networkService.GetByIdAsync(networkId) == null) throw new NotFoundHttpException("Network not found");
             
-            var role = repository.GetById(networkId, roleId);
+            var role = await repository.GetByIdAsync(networkId, roleId);
             return role;
         }
 
-        public Role Create(Guid networkId, CreateRoleDto createRole)
+        public async Task<Role> CreateAsync(Guid networkId, CreateRoleDto createRole)
         {
-            if (networkService.GetById(networkId) == null) throw new NotFoundHttpException("Network not found");
+            if (await networkService.GetByIdAsync(networkId) == null) throw new NotFoundHttpException("Network not found");
             
             var role = mapper.Map<Role>(createRole);
             role.NetworkId = networkId;
             
-            role = repository.Create(role);
+            role = await repository.CreateAsync(role);
             return role;
         }
 
-        public Role Update(Guid networkId, Guid roleId, UpdateRoleDto updateRole)
+        public async Task<Role> UpdateAsync(Guid networkId, Guid roleId, UpdateRoleDto updateRole)
         {
-            if (networkService.GetById(networkId) == null) throw new NotFoundHttpException("Network not found");
+            if (await networkService.GetByIdAsync(networkId) == null) throw new NotFoundHttpException("Network not found");
             
-            if (!repository.Exists(roleId)) throw new NotFoundHttpException();
+            if (!await repository.ExistsAsync(roleId)) throw new NotFoundHttpException();
             
             var role = mapper.Map<Role>(updateRole);
             role.Id = roleId;
             role.NetworkId = networkId;
             
-            role = repository.Update(networkId, role);
+            role = await repository.UpdateAsync(networkId, role);
             return role;
         }
 
-        public void DeleteById(Guid networkId, Guid roleId)
+        public async Task DeleteByIdAsync(Guid networkId, Guid roleId)
         {
-            var role = GetById(networkId, roleId);
-            if (role != null) repository.Delete(role);
+            var role = await GetByIdAsync(networkId, roleId);
+            if (role != null) await repository.DeleteAsync(role);
         }
     }
 }
