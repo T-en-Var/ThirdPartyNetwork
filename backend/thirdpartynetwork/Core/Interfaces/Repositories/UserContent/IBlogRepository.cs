@@ -5,12 +5,12 @@ namespace thirdpartynetwork.Core.Interfaces.Repositories
 {
     public interface IBlogRepository : IUserContentBaseRepository<Blog>
     {
-        bool Exists(Guid id);
-        ICollection<Blog> GetByNetworkId(Guid networkId);
-        Blog? GetById(Guid id);
-        Blog? GetByNetworkIdAndSlug(Guid networkId, string slug);
-        Blog Create(Blog blog);
-        Blog Update(Guid blogId, UpdateBlogDto updateBlog);
-        void Delete(Blog blog);
+        Task<bool> ExistsAsync(Guid id);
+        Task<ICollection<Blog>> GetByNetworkIdAsync(Guid networkId);
+        Task<Blog?> GetByIdAsync(Guid id);
+        Task<Blog?> GetByNetworkIdAndSlugAsync(Guid networkId, string slug);
+        Task<Blog> CreateAsync(Blog blog);
+        Task<Blog> UpdateAsync(Guid blogId, UpdateBlogDto updateBlog);
+        Task DeleteAsync(Blog blog);
     }
 }

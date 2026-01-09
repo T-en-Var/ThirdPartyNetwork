@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+﻿﻿using AutoMapper;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using thirdpartynetwork.Core.Interfaces.Auth;
 using thirdpartynetwork.Core.Interfaces.Helpers;
@@ -8,7 +8,7 @@ namespace thirdpartynetwork.Application.Services
 {
     public class MeService(IUserProxyService userProxyService, IIdentityService identityService) : IMeService
     {
-        public UserProxy? GetMe()
+        public async Task<UserProxy?> GetMeAsync()
         {
             var appUser = identityService.GetClaimsPrincipal();
             if (appUser == null) throw new UnauthorizedHttpException("No HttpContext User");
@@ -18,7 +18,7 @@ namespace thirdpartynetwork.Application.Services
 
             var userProxyId = Guid.Parse(uidClaim.Value);
             
-            var userProxy = userProxyService.GetById(userProxyId);
+            var userProxy = await userProxyService.GetByIdAsync(userProxyId);
             return userProxy;
         }
     }

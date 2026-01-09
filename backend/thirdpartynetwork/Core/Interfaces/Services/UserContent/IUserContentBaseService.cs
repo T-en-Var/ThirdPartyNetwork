@@ -4,6 +4,6 @@ namespace thirdpartynetwork.Core.Interfaces.Services;
 
 public interface IUserContentBaseService<T> : IBaseService where T : UserContentBaseModel
 {
-    public ICollection<T> GetByAuthorId(Guid networkUserId);
-    public ICollection<T> GetByUserProxyId(Guid userProxyId);
+    public Task<ICollection<T>> GetByAuthorIdAsync(Guid networkUserId);
+    public Task<ICollection<T>> GetByUserProxyIdAsync(Guid userProxyId);
 }

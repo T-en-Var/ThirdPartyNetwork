@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+﻿﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using thirdpartynetwork.Application.Auth.Requirements;
@@ -13,9 +13,9 @@ public class NetworkController(INetworkService service, IMapper mapper) : Contro
     [HttpGet]
     [Authorize]
     [ProducesResponseType(200, Type = typeof(IEnumerable<NetworkDto>))]
-    public IActionResult GetNetworks()
+    public async Task<IActionResult> GetNetworks()
     {
-        var networks = service.GetAll();
+        var networks = await service.GetAllAsync();
         var networkDtos = networks
             .Select(network => mapper.Map<NetworkDto>(network, opts => { opts.Items["networkId"] = network.Id; }))
             .ToList();
@@ -26,9 +26,9 @@ public class NetworkController(INetworkService service, IMapper mapper) : Contro
     [RequirePermission(Constants.Permissions.ReadNetwork)]
     [ProducesResponseType(200, Type = typeof(NetworkDto))]
     [ProducesResponseType(404)]
-    public IActionResult GetNetworkById(Guid networkId)
+    public async Task<IActionResult> GetNetworkById(Guid networkId)
     {
-        var network = service.GetById(networkId);
+        var network = await service.GetByIdAsync(networkId);
         return network != null
             ? Ok(mapper.Map<NetworkDto>(network, opts => opts.Items["networkId"] = networkId))
             : NotFound();
@@ -37,9 +37,9 @@ public class NetworkController(INetworkService service, IMapper mapper) : Contro
     [HttpGet("{networkId:guid}/details")]
     [ProducesResponseType(200, Type = typeof(NetworkDto))]
     [ProducesResponseType(404)]
-    public IActionResult GetNetworkDetailsById(Guid networkId)
+    public async Task<IActionResult> GetNetworkDetailsById(Guid networkId)
     {
-        var network = service.GetDetailsById(networkId);
+        var network = await service.GetDetailsByIdAsync(networkId);
         return network != null
             ? Ok(mapper.Map<NetworkDto>(network, opts => opts.Items["networkId"] = networkId))
             : NotFound();
@@ -48,9 +48,9 @@ public class NetworkController(INetworkService service, IMapper mapper) : Contro
     [HttpPost]
     [Authorize]
     [ProducesResponseType(201, Type = typeof(NetworkDto))]
-    public IActionResult CreateNetwork([FromBody] CreateNetworkDto networkCreate)
+    public async Task<IActionResult> CreateNetwork([FromBody] CreateNetworkDto networkCreate)
     {
-        var network = service.Create(networkCreate);
+        var network = await service.CreateAsync(networkCreate);
         return StatusCode(201, mapper.Map<NetworkDto>(network, opts => opts.Items["networkId"] = network.Id));
     }
 
@@ -58,9 +58,9 @@ public class NetworkController(INetworkService service, IMapper mapper) : Contro
     [RequirePermission(Constants.Permissions.ManageNetwork)]
     [ProducesResponseType(200, Type = typeof(NetworkDto))]
     [ProducesResponseType(404)]
-    public IActionResult Update(Guid networkId, [FromBody] UpdateNetworkDto networkUpdate)
+    public async Task<IActionResult> Update(Guid networkId, [FromBody] UpdateNetworkDto networkUpdate)
     {
-        var network = service.Update(networkId, networkUpdate);
+        var network = await service.UpdateAsync(networkId, networkUpdate);
         return StatusCode(200, mapper.Map<NetworkDto>(network, opts => opts.Items["networkId"] = networkId));
     }
 
@@ -69,7 +69,7 @@ public class NetworkController(INetworkService service, IMapper mapper) : Contro
     [ProducesResponseType(204)]
     public async Task<IActionResult> Delete(Guid networkId)
     {
-        await service.DeleteById(networkId);
+        await service.DeleteByIdAsync(networkId);
         return NoContent();
     }
 }

@@ -12,27 +12,27 @@ public class PermissionController(IPermissionService service, IMapper mapper) : 
     [HttpGet]
     [RequirePermission(Constants.Permissions.ReadPermission)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<PermissionDto>))]
-    public IActionResult GetPermissions()
+    public async Task<IActionResult> GetPermissions()
     {
-        var permissions = service.GetAll();
+        var permissions = await service.GetAllAsync();
         return Ok(mapper.Map<IEnumerable<PermissionDto>>(permissions));
     }
 
     [HttpGet("{permissionId:guid}")]
     [RequirePermission(Constants.Permissions.ReadPermission)]
     [ProducesResponseType(200, Type = typeof(PermissionDto))]
-    public IActionResult GetPermission(Guid permissionId)
+    public async Task<IActionResult> GetPermission(Guid permissionId)
     {
-        var permission = service.GetById(permissionId);
+        var permission = await service.GetByIdAsync(permissionId);
         return permission != null ? Ok(mapper.Map<PermissionDto>(permission)) : NotFound();
     }
 
     [HttpPost]
     [RequirePermission(Constants.Permissions.SystemManaged)]
     [ProducesResponseType(201, Type = typeof(PermissionDto))]
-    public IActionResult CreatePermission([FromBody] CreatePermissionDto createPermission)
+    public async Task<IActionResult> CreatePermission([FromBody] CreatePermissionDto createPermission)
     {
-        var permission = service.Create(createPermission);
+        var permission = await service.CreateAsync(createPermission);
         return Ok(mapper.Map<PermissionDto>(permission));
     }
 
@@ -40,18 +40,18 @@ public class PermissionController(IPermissionService service, IMapper mapper) : 
     [RequirePermission(Constants.Permissions.ManagePermission)]
     [ProducesResponseType(200, Type = typeof(PermissionDto))]
     [ProducesResponseType(404)]
-    public IActionResult UpdatePermission(Guid permissionId, [FromBody] UpdatePermissionDto updatePermission)
+    public async Task<IActionResult> UpdatePermission(Guid permissionId, [FromBody] UpdatePermissionDto updatePermission)
     {
-        var permission = service.Update(permissionId, updatePermission);
+        var permission = await service.UpdateAsync(permissionId, updatePermission);
         return Ok(mapper.Map<PermissionDto>(permission));
     }
 
     [HttpDelete("{permissionId:guid}")]
     [RequirePermission(Constants.Permissions.SystemManaged)]
     [ProducesResponseType(204)]
-    public IActionResult DeletePermission(Guid permissionId)
+    public async Task<IActionResult> DeletePermission(Guid permissionId)
     {
-        service.DeleteById(permissionId);
+        await service.DeleteByIdAsync(permissionId);
         return NoContent();
     }
 }

@@ -5,13 +5,13 @@ namespace thirdpartynetwork.Core.Interfaces.Services
 {
     public interface INetworkService : IBaseService
     {
-        ICollection<Network> GetAll();
-        Network? GetById(Guid networkId, bool bypass = false);
-        Network? GetDetailsById(Guid networkId);
-        Network Create(CreateNetworkDto createNetworkDto);
-        Network Update(Guid id, UpdateNetworkDto updateNetworkDto);
-        Task DeleteById(Guid id);
-        Network GetMainNetwork();
+        Task<ICollection<Network>> GetAllAsync();
+        Task<Network?> GetByIdAsync(Guid networkId, bool bypass = false);
+        Task<Network?> GetDetailsByIdAsync(Guid networkId);
+        Task<Network> CreateAsync(CreateNetworkDto createNetworkDto);
+        Task<Network> UpdateAsync(Guid id, UpdateNetworkDto updateNetworkDto);
+        Task DeleteByIdAsync(Guid id);
+        Task<Network> GetMainNetworkAsync();
         IQueryable<Network> GetMainNetworkQueryable();
         IQueryable<Network> GetByIdQueryable(Guid networkId);
     }

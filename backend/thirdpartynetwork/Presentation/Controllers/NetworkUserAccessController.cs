@@ -14,9 +14,9 @@ public class NetworkUserAccessController(INetworkUserAccessService service, IMap
     [RequirePermission(Constants.Permissions.ReadAccess)]
     [RequirePermission(Constants.Permissions.ReadUser)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<NetworkUserAccessDto>))]
-    public IActionResult GetNetworkUserAccesses(Guid networkId, Guid networkUserId)
+    public async Task<IActionResult> GetNetworkUserAccesses(Guid networkId, Guid networkUserId)
     {
-        var networkUserAccesses = service.GetByNetworkId(networkId, networkUserId);
+        var networkUserAccesses = await service.GetByNetworkIdAsync(networkId, networkUserId);
         return Ok(mapper.Map<IEnumerable<NetworkUserAccessDto>>(networkUserAccesses,
             opts => opts.Items["networkId"] = networkId));
     }
@@ -26,9 +26,9 @@ public class NetworkUserAccessController(INetworkUserAccessService service, IMap
     [RequirePermission(Constants.Permissions.ReadUser)]
     [ProducesResponseType(200, Type = typeof(NetworkUserAccessDto))]
     [ProducesResponseType(404)]
-    public IActionResult GetNetworkUserPermission(Guid networkId, Guid networkUserId, Guid accessId)
+    public async Task<IActionResult> GetNetworkUserPermission(Guid networkId, Guid networkUserId, Guid accessId)
     {
-        var networkUserPermission = service.GetByIds(networkId, networkUserId, accessId);
+        var networkUserPermission = await service.GetByIdsAsync(networkId, networkUserId, accessId);
         return networkUserPermission != null
             ? Ok(mapper.Map<NetworkUserAccessDto>(networkUserPermission, opts => opts.Items["networkId"] = networkId))
             : NotFound();
@@ -49,10 +49,10 @@ public class NetworkUserAccessController(INetworkUserAccessService service, IMap
     [RequirePermission(Constants.Permissions.IsNetworkUserOwner, Constants.Permissions.SystemManaged)]
     [ProducesResponseType(200, Type = typeof(NetworkUserAccessDto))]
     [ProducesResponseType(404)]
-    public IActionResult UpdateNetworkUserPermission(Guid networkId, Guid networkUserId, Guid accessId,
+    public async Task<IActionResult> UpdateNetworkUserPermission(Guid networkId, Guid networkUserId, Guid accessId,
         [FromBody] UpdateNetworkUserAccessDto updateNetworkUserPermission)
     {
-        var networkUserPermission = service.Update(networkId, networkUserId, accessId, updateNetworkUserPermission);
+        var networkUserPermission = await service.UpdateAsync(networkId, networkUserId, accessId, updateNetworkUserPermission);
         return Ok(mapper.Map<NetworkUserAccessDto>(networkUserPermission, opts => opts.Items["networkId"] = networkId));
     }
 

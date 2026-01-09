@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿﻿using Microsoft.EntityFrameworkCore;
 using thirdpartynetwork.Core;
 using thirdpartynetwork.Core.Models;
 using thirdpartynetwork.Core.Data;
@@ -7,7 +7,7 @@ using thirdpartynetwork.Core.Interfaces.Auth;
 
 namespace thirdpartynetwork.Application.Repositories
 {
-    public class NetworkRepository(DataContext context, IIdentityService identityService, IIdentityVerifier identityVerifier) : BaseRepository(context), INetworkRepository
+    public class NetworkRepository(DataContext context) : BaseRepository(context), INetworkRepository
     {
         private readonly DataContext _context = context;
 
@@ -75,46 +75,46 @@ namespace thirdpartynetwork.Application.Repositories
             return query;
         }
 
-        public bool Exists(Guid id)
+        public async Task<bool> ExistsAsync(Guid id)
         {
-            return _context.Networks.Any(n => n.Id == id);
+            return await _context.Networks.AnyAsync(n => n.Id == id);
         }
 
-        public ICollection<Network> GetAll()
+        public async Task<ICollection<Network>> GetAllAsync()
         {
-            return [.. GetQueryableReduced()];
+            return await GetQueryableReduced().ToListAsync();
         }
 
-        public Network? GetById(Guid id, bool bypass = false)
+        public async Task<Network?> GetByIdAsync(Guid id, bool bypass = false)
         {
-            return GetQueryable(id, bypass).FirstOrDefault(x => x.Id == id);
+            return await GetQueryable(id, bypass).FirstOrDefaultAsync(x => x.Id == id);
         }
 
-        public Network? GetDetailsById(Guid id)
+        public async Task<Network?> GetDetailsByIdAsync(Guid id)
         {
-            var network = _context.Networks
+            var network = await _context.Networks
                 .Include(x => x.NetworkAccesses)
                 .ThenInclude(x => x.Access)
                 .Include(x => x.NetworkUsers)
                 // .ThenInclude(n => n.NetworkUserAccesses)
                 .Include(n => n.ImageFile)
                 .AsNoTracking()
-                .FirstOrDefault(n => n.Id == id);
+                .FirstOrDefaultAsync(n => n.Id == id);
             return network;
         }
 
-        public Network GetMainNetwork()
+        public async Task<Network> GetMainNetworkAsync()
         {
-            var mainNetwork = _context.Networks.FirstOrDefault(n => n.Name == Constants.Networks.Main);
+            var mainNetwork = await _context.Networks.FirstOrDefaultAsync(n => n.Name == Constants.Networks.Main);
             if (mainNetwork == null) throw new Exception("Main network not found, that is NOT good.");
             
             return mainNetwork;
         }
 
-        public Network? GetByName(string name)
+        public async Task<Network?> GetByNameAsync(string name)
         {
-            var mainNetwork = GetMainNetwork();
-            return GetQueryable(mainNetwork.Id).FirstOrDefault(n => n.Name == name);
+            var mainNetwork = await GetMainNetworkAsync();
+            return await GetQueryable(mainNetwork.Id).FirstOrDefaultAsync(n => n.Name == name);
         }
 
         public IQueryable<Network> GetByNameQueryable(string name)
@@ -129,32 +129,32 @@ namespace thirdpartynetwork.Application.Repositories
                 .Where(n => n.Id == id);
         }
 
-        public Network Create(Network network)
+        public async Task<Network> CreateAsync(Network network)
         {
-            _context.Networks.Add(network);
-            SaveAndUpdate(network);
+            await _context.Networks.AddAsync(network);
+            await SaveAndUpdateAsync(network);
             return network;
         }
 
-        public Network Update(Network network)
+        public async Task<Network> UpdateAsync(Network network)
         {
-            var existing = GetById(network.Id);
+            var existing = await GetByIdAsync(network.Id);
             if (existing == null) throw new Exception("Network not found");
 
             if (existing.IsSystemProtected) throw new UnauthorizedHttpException("Network is system protected");
 
             _context.Entry(existing).CurrentValues.SetValues(network);
 
-            SaveAndUpdate(existing);
+            await SaveAndUpdateAsync(existing);
             return existing;
         }
 
-        public void Delete(Network network)
+        public async Task DeleteAsync(Network network)
         {
             if (network.IsSystemProtected) throw new UnauthorizedHttpException("Network is system protected");
             
             _context.Remove(network);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
     }
 }

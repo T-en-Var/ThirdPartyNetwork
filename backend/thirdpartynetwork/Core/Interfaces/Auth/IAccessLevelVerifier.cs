@@ -5,11 +5,11 @@ namespace thirdpartynetwork.Core.Interfaces.Auth;
 
 public interface IAccessLevelVerifier
 {
-    bool CheckFileAccess(string fileId, Guid networkId, string permissionName);
-    bool CheckCustomPageAccess(string customPageId, Guid networkId, string permissionName);
-    bool CheckPageBlockAccess(string pageBlockId, Guid networkId, string permissionName);
-    bool CheckConfigurationAccess(string configurationId, Guid networkId, string permissionName);
-    bool CheckBlogAccess(string blogId, Guid networkId, string permissionName);
-    bool CheckAccess(UserContentBaseModel model, Guid networkId, string permissionName);
-    Expression<Func<T, bool>> GetAccessPredicate<T>(Guid networkId, string permissionName) where T : UserContentBaseModel;
+    Task<bool> CheckFileAccessAsync(string fileId, Guid networkId, string permissionName);
+    Task<bool> CheckCustomPageAccessAsync(string customPageId, Guid networkId, string permissionName);
+    Task<bool> CheckPageBlockAccessAsync(string pageBlockId, Guid networkId, string permissionName);
+    Task<bool> CheckConfigurationAccessAsync(string configurationId, Guid networkId, string permissionName);
+    Task<bool> CheckBlogAccessAsync(string blogId, Guid networkId, string permissionName);
+    Task<bool> CheckAccessAsync(UserContentBaseModel model, Guid networkId, string permissionName);
+    Task<Expression<Func<T, bool>>> GetAccessPredicateAsync<T>(Guid networkId, string permissionName) where T : UserContentBaseModel;
 }

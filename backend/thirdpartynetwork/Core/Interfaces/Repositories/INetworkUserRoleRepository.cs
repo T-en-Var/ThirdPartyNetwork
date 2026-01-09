@@ -1,17 +1,17 @@
-﻿using thirdpartynetwork.Core.Models;
+﻿﻿using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Core.Interfaces.Repositories
 {
     public interface INetworkUserRoleRepository : IBaseRepository
     {
-        bool Exists(Guid networkId, Guid networkUserId, Guid roleId);
-        ICollection<NetworkUserRole> GetAll();
-        ICollection<NetworkUserRole> GetByNetworkUserId(Guid networkId, Guid id);
-        ICollection<NetworkUserRole> GetByRoleId(Guid networkId, Guid id);
-        NetworkUserRole? GetByIds(Guid networkId, Guid networkUserId, Guid roleId);
-        NetworkUserRole? GetByIdAndName(Guid networkId, Guid networkUserId, string roleName);
-        NetworkUserRole Create(NetworkUserRole networkUserRole);
-        NetworkUserRole Update(Guid networkId, NetworkUserRole networkUserRole);
-        void Delete(NetworkUserRole networkUserRole);
+        Task<bool> ExistsAsync(Guid networkId, Guid networkUserId, Guid roleId);
+        Task<ICollection<NetworkUserRole>> GetAllAsync();
+        Task<ICollection<NetworkUserRole>> GetByNetworkUserIdAsync(Guid networkId, Guid id);
+        Task<ICollection<NetworkUserRole>> GetByRoleIdAsync(Guid networkId, Guid id);
+        Task<NetworkUserRole?> GetByIdsAsync(Guid networkId, Guid networkUserId, Guid roleId);
+        Task<NetworkUserRole?> GetByIdAndNameAsync(Guid networkId, Guid networkUserId, string roleName);
+        Task<NetworkUserRole> CreateAsync(NetworkUserRole networkUserRole);
+        Task<NetworkUserRole> UpdateAsync(Guid networkId, NetworkUserRole networkUserRole);
+        Task DeleteAsync(NetworkUserRole networkUserRole);
     }
 }

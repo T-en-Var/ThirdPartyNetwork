@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+﻿﻿using AutoMapper;
 using CloudinaryDotNet.Actions;
 using thirdpartynetwork.Core.Enum;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
@@ -18,41 +18,41 @@ namespace thirdpartynetwork.Application.Services
     {
         private readonly INetworkUserService _networkUserService = networkUserService;
 
-        public ICollection<File> GetByNetworkId(Guid networkId)
+        public async Task<ICollection<File>> GetByNetworkIdAsync(Guid networkId)
         {
-            var file = repository.GetByNetworkId(networkId);
+            var file = await repository.GetByNetworkIdAsync(networkId);
             return file;
         }
 
-        public File? GetById(Guid networkId, Guid fileId)
+        public async Task<File?> GetByIdAsync(Guid networkId, Guid fileId)
         {
-            var file = repository.GetById(fileId);
+            var file = await repository.GetByIdAsync(fileId);
             return file;
         }
 
-        public File Create(Guid networkId, CreateFileDto createFile)
+        public async Task<File> CreateAsync(Guid networkId, CreateFileDto createFile)
         {
-            var network = networkService.GetById(networkId);
+            var network = await networkService.GetByIdAsync(networkId);
             if (network == null) throw new NotFoundHttpException("Network not found");
 
-            var userProxy = identityService.GetUserProxy();
-            var networkUser = _networkUserService.GetByIds(networkId, userProxy.Id);
+            var userProxy = await identityService.GetUserProxyAsync();
+            var networkUser = await _networkUserService.GetByIdsAsync(networkId, userProxy.Id);
             if (networkUser == null) throw new NotFoundHttpException("NetworkUser not found");
 
             var file = mapper.Map<File>(createFile);
             file.Network = network;
             file.Author = networkUser;
 
-            file = repository.Create(file);
+            file = await repository.CreateAsync(file);
             return file;
         }
 
         public async Task<File> UploadFileAsync(Guid networkId, IFormFile file)
         {
-            var network = networkService.GetById(networkId) ?? throw new NotFoundHttpException("Network not found");
+            var network = await networkService.GetByIdAsync(networkId) ?? throw new NotFoundHttpException("Network not found");
 
-            var userProxy = identityService.GetUserProxy();
-            var networkUser = _networkUserService.GetByIds(networkId, userProxy.Id) ?? throw new NotFoundHttpException("NetworkUser not found");
+            var userProxy = await identityService.GetUserProxyAsync();
+            var networkUser = await _networkUserService.GetByIdsAsync(networkId, userProxy.Id) ?? throw new NotFoundHttpException("NetworkUser not found");
 
             var publicId = Guid.NewGuid();
 
@@ -76,28 +76,28 @@ namespace thirdpartynetwork.Application.Services
                 AccessLevel = AccessLevel.Private
             };
 
-            return repository.Create(newFile);
+            return await repository.CreateAsync(newFile);
         }
 
-        public File Update(Guid networkId, Guid fileId, UpdateFileDto updateFile)
+        public async Task<File> UpdateAsync(Guid networkId, Guid fileId, UpdateFileDto updateFile)
         {
-            if (!repository.Exists(fileId)) throw new NotFoundHttpException();
+            if (!await repository.ExistsAsync(fileId)) throw new NotFoundHttpException();
 
-            var network = networkService.GetById(networkId);
+            var network = await networkService.GetByIdAsync(networkId);
             if (network == null) throw new NotFoundHttpException("Network not found");
 
-            var file = repository.Update(fileId, updateFile);
+            var file = await repository.UpdateAsync(fileId, updateFile);
             return file;
         }
 
         public async Task DeleteByIdAsync(Guid networkId, Guid fileId)
         {
-            var file = GetById(networkId, fileId);
+            var file = await GetByIdAsync(networkId, fileId);
             if (file == null) return;
 
             await cdnService.DeleteAsync($"{networkId}/{file.PublicId}", file.MediaType);
 
-            repository.Delete(file);
+            await repository.DeleteAsync(file);
         }
     }
 }

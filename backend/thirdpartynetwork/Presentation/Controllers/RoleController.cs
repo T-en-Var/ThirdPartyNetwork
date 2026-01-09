@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+﻿﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using thirdpartynetwork.Application.Auth.Requirements;
 using thirdpartynetwork.Core;
@@ -12,9 +12,9 @@ public class RoleController(IRoleService service, IMapper mapper) : Controller
     [HttpGet]
     [RequirePermission(Constants.Permissions.ReadRole)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<RoleDto>))]
-    public IActionResult GetRoles(Guid networkId)
+    public async Task<IActionResult> GetRoles(Guid networkId)
     {
-        var roles = service.GetByNetworkId(networkId);
+        var roles = await service.GetByNetworkIdAsync(networkId);
         return Ok(mapper.Map<IEnumerable<RoleDto>>(roles));
     }
 
@@ -22,18 +22,18 @@ public class RoleController(IRoleService service, IMapper mapper) : Controller
     [RequirePermission(Constants.Permissions.ReadRole)]
     [ProducesResponseType(200, Type = typeof(RoleDto))]
     [ProducesResponseType(404)]
-    public IActionResult GetRole(Guid networkId, Guid roleId)
+    public async Task<IActionResult> GetRole(Guid networkId, Guid roleId)
     {
-        var role = service.GetById(networkId, roleId);
+        var role = await service.GetByIdAsync(networkId, roleId);
         return role != null ? Ok(mapper.Map<RoleDto>(role)) : NotFound();
     }
 
     [HttpPost]
     [RequirePermission(Constants.Permissions.ManageRole)]
     [ProducesResponseType(201, Type = typeof(RoleDto))]
-    public IActionResult CreateRole(Guid networkId, [FromBody] CreateRoleDto createRole)
+    public async Task<IActionResult> CreateRole(Guid networkId, [FromBody] CreateRoleDto createRole)
     {
-        var role = service.Create(networkId, createRole);
+        var role = await service.CreateAsync(networkId, createRole);
         return Ok(mapper.Map<RoleDto>(role));
     }
 
@@ -41,18 +41,18 @@ public class RoleController(IRoleService service, IMapper mapper) : Controller
     [RequirePermission(Constants.Permissions.ManageRole)]
     [ProducesResponseType(200, Type = typeof(RoleDto))]
     [ProducesResponseType(404)]
-    public IActionResult UpdateRole(Guid networkId, Guid roleId, [FromBody] UpdateRoleDto updateRole)
+    public async Task<IActionResult> UpdateRole(Guid networkId, Guid roleId, [FromBody] UpdateRoleDto updateRole)
     {
-        var role = service.Update(networkId, roleId, updateRole);
+        var role = await service.UpdateAsync(networkId, roleId, updateRole);
         return Ok(mapper.Map<RoleDto>(role));
     }
 
     [HttpDelete("{roleId:guid}")]
     [RequirePermission(Constants.Permissions.ManageRole)]
     [ProducesResponseType(204)]
-    public IActionResult DeleteRole(Guid networkId, Guid roleId)
+    public async Task<IActionResult> DeleteRole(Guid networkId, Guid roleId)
     {
-        service.DeleteById(networkId, roleId);
+        await service.DeleteByIdAsync(networkId, roleId);
         return NoContent();
     }
 }

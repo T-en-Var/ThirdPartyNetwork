@@ -13,15 +13,15 @@ public class UserProxyManagerService(
     IPasswordHasher passwordHasher,
     IMapper mapper) : IUserProxyManagerService
 {
-    public UserProxy AddUserProxy(Guid userId, AddUserProxyDto addUserProxy)
+    public async Task<UserProxy> AddUserProxyAsync(Guid userId, AddUserProxyDto addUserProxy)
     {
-        var user = userService.GetById(userId);
+        var user = await userService.GetByIdAsync(userId);
         if (user == null) throw new NotFoundHttpException("User not found");
 
-        var mainNetwork = networkService.GetMainNetwork();
+        var mainNetwork = await networkService.GetMainNetworkAsync();
 
         if (addUserProxy.Email != null &&
-            networkUserService.GetByNetworkIdAndEmail(mainNetwork.Id, addUserProxy.Email) != null)
+            await networkUserService.GetByNetworkIdAndEmailAsync(mainNetwork.Id, addUserProxy.Email) != null)
             throw new ConflictHttpException("Email already used");
 
         var createUserProxyDto = new CreateUserProxyDto()
@@ -33,7 +33,7 @@ public class UserProxyManagerService(
             LastName = addUserProxy.LastName,
         };
         
-        var userProxy = userProxyService.Create(user.Id, createUserProxyDto);
+        var userProxy = await userProxyService.CreateAsync(user.Id, createUserProxyDto);
 
         if (addUserProxy.FileLink != null)
         {
@@ -41,7 +41,7 @@ public class UserProxyManagerService(
             // this *should* be saved in networkUserService.Create
         }
 
-        networkUserService.Create(mainNetwork.Id, userProxy.Id, new CreateNetworkUserDto());
+        await networkUserService.CreateAsync(mainNetwork.Id, userProxy.Id, new CreateNetworkUserDto());
 
         return userProxy;
     }

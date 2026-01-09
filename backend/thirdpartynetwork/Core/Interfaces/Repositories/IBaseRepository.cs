@@ -1,10 +1,10 @@
-﻿using thirdpartynetwork.Core.Models;
+﻿﻿using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Core.Interfaces.Repositories
 {
     public interface IBaseRepository
     {
-        public void SaveAndUpdateAll<T>(IEnumerable<T> models) where T : BaseModel;
-        void SaveAndUpdate<T>(T model) where T : BaseModel;
+        public Task SaveAndUpdateAllAsync<T>(IEnumerable<T> models) where T : BaseModel;
+        Task SaveAndUpdateAsync<T>(T model) where T : BaseModel;
     }
 }

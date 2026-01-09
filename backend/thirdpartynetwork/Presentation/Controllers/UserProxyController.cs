@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+﻿﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using thirdpartynetwork.Application.Auth.Requirements;
 using thirdpartynetwork.Core;
@@ -16,9 +16,9 @@ public class UserProxyController(
     [HttpGet]
     [RequirePermission(Constants.Permissions.ReadUser)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<UserProxyDto>))]
-    public IActionResult GetProxies(Guid userId)
+    public async Task<IActionResult> GetProxiesAsync(Guid userId)
     {
-        var userProxies = service.GetByUserId(userId);
+        var userProxies = await service.GetByUserIdAsync(userId);
         return Ok(mapper.Map<IEnumerable<UserProxyDto>>(userProxies));
     }
 
@@ -26,9 +26,9 @@ public class UserProxyController(
     [RequirePermission(Constants.Permissions.ReadUser, Constants.Permissions.IsUserProxyOwner)]
     [ProducesResponseType(200, Type = typeof(UserProxyDto))]
     [ProducesResponseType(404)]
-    public IActionResult GetProxy(Guid userId, Guid userProxyId)
+    public async Task<IActionResult> GetProxy(Guid userId, Guid userProxyId)
     {
-        var userProxy = service.GetByIds(userId, userProxyId);
+        var userProxy = await service.GetByIdsAsync(userId, userProxyId);
         return userProxy != null ? Ok(mapper.Map<UserProxyDto>(userProxy)) : NotFound();
     }
 
@@ -36,9 +36,9 @@ public class UserProxyController(
     [RequirePermission(Constants.Permissions.IsUserOwner)]
     [ProducesResponseType(201, Type = typeof(UserProxyDto))]
     [ProducesResponseType(404)]
-    public IActionResult Create(Guid userId, AddUserProxyDto addUserProxy)
+    public async Task<IActionResult> Create(Guid userId, AddUserProxyDto addUserProxy)
     {
-        var userProxy = managerService.AddUserProxy(userId, addUserProxy);
+        var userProxy = await managerService.AddUserProxyAsync(userId, addUserProxy);
         return Ok(mapper.Map<UserProxyDto>(userProxy));
     }
 
@@ -46,27 +46,27 @@ public class UserProxyController(
     [RequirePermission(Constants.Permissions.IsUserProxyOwner)]
     [ProducesResponseType(200, Type = typeof(UserProxyDto))]
     [ProducesResponseType(404)]
-    public IActionResult Update(Guid userId, Guid userProxyId, UpdateUserProxyDto updateUserProxy)
+    public async Task<IActionResult> Update(Guid userId, Guid userProxyId, UpdateUserProxyDto updateUserProxy)
     {
-        var userProxy = service.Update(userId, userProxyId, updateUserProxy);
+        var userProxy = await service.UpdateAsync(userId, userProxyId, updateUserProxy);
         return Ok(mapper.Map<UserProxyDto>(userProxy));
     }
 
     [HttpDelete("{userProxyId:guid}")]
     [RequirePermission(Constants.Permissions.IsUserProxyOwner)]
     [ProducesResponseType(204)]
-    public IActionResult Delete(Guid userId, Guid userProxyId)
+    public async Task<IActionResult> Delete(Guid userId, Guid userProxyId)
     {
-        service.DeleteByIds(userId, userProxyId);
+        await service.DeleteByIdsAsync(userId, userProxyId);
         return NoContent();
     }
 
     [HttpGet("{userProxyId:guid}/networks")]
     [RequirePermission(Constants.Permissions.ReadUser, Constants.Permissions.IsUserProxyOwner)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<NetworkDto>))]
-    public IActionResult GetNetworks(Guid userId, Guid userProxyId)
+    public async Task<IActionResult> GetNetworks(Guid userId, Guid userProxyId)
     {
-        var networks = networkUserService.GetNetworksByUserProxyId(userProxyId);
+        var networks = await networkUserService.GetNetworksByUserProxyIdAsync(userProxyId);
         var networkDtos = networks
             .Select(network => mapper.Map<NetworkDto>(network, opts => { opts.Items["networkId"] = network.Id; }))
             .ToList();

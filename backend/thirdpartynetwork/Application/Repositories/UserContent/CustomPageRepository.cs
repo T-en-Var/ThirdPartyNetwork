@@ -17,51 +17,53 @@ namespace thirdpartynetwork.Application.Repositories
         private readonly DataContext _context = context;
         protected override string ReadPermissionName => Constants.Permissions.ReadCustomPage;
 
-        protected override IQueryable<CustomPage> GetQueryable()
+        protected override Task<IQueryable<CustomPage>> GetQueryableAsync()
         {
-            return _context.CustomPages
+            var query = _context.CustomPages
                 .Include(x => x.Pages)
                 .AsQueryable();
+            
+            return Task.FromResult(query);
         }
 
-        public bool Exists(Guid id)
+        public async Task<bool> ExistsAsync(Guid id)
         {
-            return _context.CustomPages.Any(c => c.Id == id);
+            return await _context.CustomPages.AnyAsync(c => c.Id == id);
         }
 
-        public CustomPage? GetById(Guid id)
+        public async Task<CustomPage?> GetByIdAsync(Guid id)
         {
-            return GetQueryable().FirstOrDefault(c => c.Id == id);
+            return await (await GetQueryableAsync()).FirstOrDefaultAsync(c => c.Id == id);
         }
 
-        public ICollection<CustomPage> GetByNetworkId(Guid networkId)
+        public async Task<ICollection<CustomPage>> GetByNetworkIdAsync(Guid networkId)
         {
-            return GetAccessibleQueryable(networkId)
-                .AsNoTracking().Where(c => c.Network.Id == networkId).ToList();
+            return await (await GetAccessibleQueryableAsync(networkId))
+                .AsNoTracking().Where(c => c.Network.Id == networkId).ToListAsync();
         }
 
-        public CustomPage Create(CustomPage customPage)
+        public async Task<CustomPage> CreateAsync(CustomPage customPage)
         {
-            _context.CustomPages.Add(customPage);
-            SaveAndUpdate(customPage);
+            await _context.CustomPages.AddAsync(customPage);
+            await SaveAndUpdateAsync(customPage);
             return customPage;
         }
 
-        public CustomPage Update(Guid networkId, Guid customPageId, UpdateCustomPageDto updateCustomPage)
+        public async Task<CustomPage> UpdateAsync(Guid networkId, Guid customPageId, UpdateCustomPageDto updateCustomPage)
         {
-            var existing = GetById(customPageId);
+            var existing = await GetByIdAsync(customPageId);
             if (existing == null) throw new Exception("CustomPage not found");
 
             mapper.Map(updateCustomPage, existing);
 
-            SaveAndUpdate(existing);
+            await SaveAndUpdateAsync(existing);
             return existing;
         }
 
-        public void Delete(CustomPage customPage)
+        public async Task DeleteAsync(CustomPage customPage)
         {
             _context.Remove(customPage);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
     }
 }

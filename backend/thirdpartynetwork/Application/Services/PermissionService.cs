@@ -6,46 +6,46 @@ namespace thirdpartynetwork.Application.Services;
 
 public class PermissionService(IPermissionRepository repository, IMapper mapper) : IPermissionService
 {
-    public ICollection<Permission> GetAll()
+    public async Task<ICollection<Permission>> GetAllAsync()
     {
-        var permissions = repository.GetAll();
+        var permissions = await repository.GetAllAsync();
         return permissions;
     }
 
-    public Permission? GetById(Guid permissionId)
+    public async Task<Permission?> GetByIdAsync(Guid permissionId)
     {
-        var permission = repository.GetById(permissionId);
+        var permission = await repository.GetByIdAsync(permissionId);
         return permission;
     }
 
-    public Permission? GetByName(string name)
+    public async Task<Permission?> GetByNameAsync(string name)
     {
-        var permission = repository.GetByName(name);
+        var permission = await repository.GetByNameAsync(name);
         return permission;
     }
 
-    public Permission Create(CreatePermissionDto createPermission)
+    public async Task<Permission> CreateAsync(CreatePermissionDto createPermission)
     {
         var permission = mapper.Map<Permission>(createPermission);
 
-        permission = repository.Create(permission);
+        permission = await repository.CreateAsync(permission);
         return permission;
     }
 
-    public Permission Update(Guid permissionId, UpdatePermissionDto updatePermission)
+    public async Task<Permission> UpdateAsync(Guid permissionId, UpdatePermissionDto updatePermission)
     {
-        if (!repository.Exists(permissionId)) throw new NotFoundHttpException("Permission not found.");
+        if (!await repository.ExistsAsync(permissionId)) throw new NotFoundHttpException("Permission not found.");
         
         var permission = mapper.Map<Permission>(updatePermission);
         permission.Id = permissionId;
         
-        permission = repository.Update(permission);
+        permission = await repository.UpdateAsync(permission);
         return permission;
     }
 
-    public void DeleteById(Guid permissionId)
+    public async Task DeleteByIdAsync(Guid permissionId)
     {
-        var permission = repository.GetById(permissionId);
-        if (permission != null) repository.Delete(permission);
+        var permission = await repository.GetByIdAsync(permissionId);
+        if (permission != null) await repository.DeleteAsync(permission);
     }
 }
