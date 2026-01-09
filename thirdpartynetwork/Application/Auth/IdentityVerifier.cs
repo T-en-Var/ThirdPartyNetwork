@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.EntityFrameworkCore;
 using thirdpartynetwork.Core;
 using thirdpartynetwork.Core.Data;
 using thirdpartynetwork.Core.Interfaces.Auth;
@@ -8,61 +9,61 @@ namespace thirdpartynetwork.Application.Auth;
 
 public class IdentityVerifier(DataContext context) : IIdentityVerifier
 {
-    public bool IsContentOwner(Guid userProxyId, Guid targetContentId)
+    public Task<bool> IsContentOwnerAsync(Guid userProxyId, Guid targetContentId)
     {
         throw new NotImplementedException();
         // var content = contentService.GetById(targetContentId);
         // return content != null && content.CreatedBy == userProxyId;
     }
 
-    public bool IsUserOwner(Guid userProxyId, Guid targetUserId)
+    public async Task<bool> IsUserOwnerAsync(Guid userProxyId, Guid targetUserId)
     {
         var userProxyQueryable = context.UserProxies;
 
-        return userProxyQueryable.Any(u => u.User.Id == targetUserId);
+        return await userProxyQueryable.AnyAsync(u => u.User.Id == targetUserId);
     }
 
-    public bool IsUserProxyOwner(Guid userProxyId, Guid targetUserProxyId)
+    public async Task<bool> IsUserProxyOwnerAsync(Guid userProxyId, Guid targetUserProxyId)
     {
         if (userProxyId == targetUserProxyId) return true;
 
         var userProxyQueryable = context.UserProxies;
 
-        return userProxyQueryable.Any(u =>
-            u.User.UserProxies.Any(n => n.Id == targetUserProxyId));
+        return await userProxyQueryable.AnyAsync(u =>
+            u.User.UserProxies.Any(n => n.Id == targetUserProxyId)); // Inner Any is translated to EXISTS
     }
 
-    public bool IsNetworkUserOwner(Guid userProxyId, Guid targetNetworkUserId)
+    public async Task<bool> IsNetworkUserOwnerAsync(Guid userProxyId, Guid targetNetworkUserId)
     {
         if (userProxyId == targetNetworkUserId) return true;
 
         var userProxyQueryable = context.UserProxies.AsQueryable();
         userProxyQueryable = userProxyQueryable.Where(u => u.Id == userProxyId);
 
-        return userProxyQueryable
-            .Any(u => u.User.UserProxies
+        return await userProxyQueryable
+            .AnyAsync(u => u.User.UserProxies
                 .Any(u2 => u2.NetworkUsers
                     .Any(n => n.Id == targetNetworkUserId)));
     }
 
-    public bool IsAllowed(Guid networkId, Guid userProxyId, string permissionName)
-        => CheckPermission(
+    public async Task<bool> IsAllowedAsync(Guid networkId, Guid userProxyId, string permissionName)
+        => await CheckPermissionAsync(
             userProxyId,
             permissionName,
             includeNetworkId: networkId,
             includeMainNetwork: true,
             checkForAdmin: true);
 
-    public bool HasPermission(Guid networkId, Guid userProxyId, string permissionName)
-        => CheckPermission(
+    public async Task<bool> HasPermissionAsync(Guid networkId, Guid userProxyId, string permissionName)
+        => await CheckPermissionAsync(
             userProxyId,
             permissionName,
             includeNetworkId: networkId,
             includeMainNetwork: false,
             checkForAdmin: false);
 
-    public bool IsNetworkAdmin(Guid networkId, Guid userProxyId)
-        => CheckPermission(
+    public async Task<bool> IsNetworkAdminAsync(Guid networkId, Guid userProxyId)
+        => await CheckPermissionAsync(
             userProxyId,
             null,
             includeNetworkId:
@@ -70,32 +71,32 @@ public class IdentityVerifier(DataContext context) : IIdentityVerifier
             includeMainNetwork: false,
             checkForAdmin: true);
 
-    public bool IsNetworkAdminOrHasPermission(Guid networkId, Guid userProxyId, string permissionName)
-        => CheckPermission(
+    public async Task<bool> IsNetworkAdminOrHasPermissionAsync(Guid networkId, Guid userProxyId, string permissionName)
+        => await CheckPermissionAsync(
             userProxyId,
             permissionName,
             includeNetworkId: networkId,
             includeMainNetwork: false,
             checkForAdmin: true);
 
-    public bool HasSuperPermission(Guid userProxyId, string permissionName)
-        => CheckPermission(
+    public async Task<bool> HasSuperPermissionAsync(Guid userProxyId, string permissionName)
+        => await CheckPermissionAsync(
             userProxyId,
             permissionName,
             includeNetworkId: null,
             includeMainNetwork: true,
             checkForAdmin: false);
 
-    public bool IsSuperAdmin(Guid userProxyId)
-        => CheckPermission(
+    public async Task<bool> IsSuperAdminAsync(Guid userProxyId)
+        => await CheckPermissionAsync(
             userProxyId,
             null,
             includeNetworkId: null,
             includeMainNetwork: true,
             checkForAdmin: true);
 
-    public bool IsSuperAdminOrHasSuperPermission(Guid userProxyId, string permissionName)
-        => CheckPermission(
+    public async Task<bool> IsSuperAdminOrHasSuperPermissionAsync(Guid userProxyId, string permissionName)
+        => await CheckPermissionAsync(
             userProxyId,
             permissionName,
             includeNetworkId: null,
@@ -122,26 +123,30 @@ public class IdentityVerifier(DataContext context) : IIdentityVerifier
         return mainNetwork;
     }
 
-    private bool CheckPermission(
+    private async Task<bool> CheckPermissionAsync(
         Guid userProxyId,
         string? permissionName,
         Guid? includeNetworkId,
         bool includeMainNetwork,
         bool checkForAdmin)
     {
-        return includeMainNetwork && CheckQueryable(GetMainNetwork(), permissionName, userProxyId, checkForAdmin)
-               || includeNetworkId.HasValue && CheckQueryable(GetNetworkById(includeNetworkId.Value), permissionName,
-                   userProxyId, checkForAdmin);
+        if (includeMainNetwork && await CheckQueryableAsync(GetMainNetwork(), permissionName, userProxyId, checkForAdmin))
+            return true;
+
+        if (includeNetworkId.HasValue && await CheckQueryableAsync(GetNetworkById(includeNetworkId.Value), permissionName, userProxyId, checkForAdmin))
+            return true;
+
+        return false;
     }
 
-    private static bool CheckQueryable(
+    private static async Task<bool> CheckQueryableAsync(
         IQueryable<Network> networkQueryable,
         string? permissionName,
         Guid userProxyId,
         bool checkForAdmin)
     {
         var checkForPerm = !string.IsNullOrEmpty(permissionName);
-        var result = networkQueryable.AsQueryable().Any(network =>
+        var result = await networkQueryable.AsQueryable().AnyAsync(network =>
             network.NetworkUsers.Any(nu =>
                 nu.UserProxyId == userProxyId &&
                 nu.NetworkUserRoles.Any(nur =>

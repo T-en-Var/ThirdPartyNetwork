@@ -18,50 +18,50 @@ namespace thirdpartynetwork.Application.Services
     {
         private readonly INetworkUserService _networkUserService = networkUserService;
 
-        public ICollection<CustomPage> GetByNetworkId(Guid networkId)
+        public async Task<ICollection<CustomPage>> GetByNetworkIdAsync(Guid networkId)
         {
-            var customPage = repository.GetByNetworkId(networkId);
+            var customPage = await repository.GetByNetworkIdAsync(networkId);
             return customPage;
         }
 
-        public CustomPage? GetById(Guid networkId, Guid customPageId)
+        public async Task<CustomPage?> GetByIdAsync(Guid networkId, Guid customPageId)
         {
-            var customPage = repository.GetById(customPageId);
+            var customPage = await repository.GetByIdAsync(customPageId);
             return customPage;
         }
 
-        public CustomPage Create(Guid networkId, CreateCustomPageDto createCustomPage)
+        public async Task<CustomPage> CreateAsync(Guid networkId, CreateCustomPageDto createCustomPage)
         {
-            var network = networkService.GetById(networkId);
+            var network = await networkService.GetByIdAsync(networkId);
             if (network == null) throw new NotFoundHttpException("Network not found");
 
-            var userProxy = identityService.GetUserProxy();
-            var networkUser = _networkUserService.GetByIds(networkId, userProxy.Id);
+            var userProxy = await identityService.GetUserProxyAsync();
+            var networkUser = await _networkUserService.GetByIdsAsync(networkId, userProxy.Id);
             if (networkUser == null) throw new NotFoundHttpException("NetworkUser not found");
 
             var customPage = mapper.Map<CustomPage>(createCustomPage);
             customPage.Network = network;
             customPage.Author = networkUser;
 
-            customPage = repository.Create(customPage);
+            customPage = await repository.CreateAsync(customPage);
             return customPage;
         }
 
-        public CustomPage Update(Guid networkId, Guid customPageId, UpdateCustomPageDto updateCustomPage)
+        public async Task<CustomPage> UpdateAsync(Guid networkId, Guid customPageId, UpdateCustomPageDto updateCustomPage)
         {
-            if (!repository.Exists(customPageId)) throw new NotFoundHttpException();
+            if (!await repository.ExistsAsync(customPageId)) throw new NotFoundHttpException();
 
-            var network = networkService.GetById(networkId);
+            var network = await networkService.GetByIdAsync(networkId);
             if (network == null) throw new NotFoundHttpException("Network not found");
 
-            var customPage = repository.Update(networkId, customPageId, updateCustomPage);
+            var customPage = await repository.UpdateAsync(networkId, customPageId, updateCustomPage);
             return customPage;
         }
 
-        public void DeleteById(Guid networkId, Guid customPageId)
+        public async Task DeleteByIdAsync(Guid networkId, Guid customPageId)
         {
-            var customPage = GetById(networkId, customPageId);
-            if (customPage != null) repository.Delete(customPage);
+            var customPage = await GetByIdAsync(networkId, customPageId);
+            if (customPage != null) await repository.DeleteAsync(customPage);
         }
     }
 }

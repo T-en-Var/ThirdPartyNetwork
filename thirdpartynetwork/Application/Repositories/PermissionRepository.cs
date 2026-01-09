@@ -20,55 +20,55 @@ public class PermissionRepository(DataContext context) : BaseRepository(context)
         return query;
     }
     
-    public bool Exists(Guid id)
+    public async Task<bool> ExistsAsync(Guid id)
     {
-        return _context.Permissions.Any(r => r.Id == id);
+        return await _context.Permissions.AnyAsync(r => r.Id == id);
     }
 
-    public ICollection<Permission> GetAll()
+    public async Task<ICollection<Permission>> GetAllAsync()
     {
-        return _context.Permissions
+        return await _context.Permissions
             .AsNoTracking()
-            .ToList();
+            .ToListAsync();
     }
 
-    public Permission? GetById(Guid id)
+    public async Task<Permission?> GetByIdAsync(Guid id)
     {
-        return _context.Permissions
-            .FirstOrDefault(r => r.Id == id);
+        return await _context.Permissions
+            .FirstOrDefaultAsync(r => r.Id == id);
     }
 
-    public Permission? GetByName(string permissionName)
+    public async Task<Permission?> GetByNameAsync(string permissionName)
     {
-        return _context.Permissions
-            .FirstOrDefault(r => r.Name == permissionName);
+        return await _context.Permissions
+            .FirstOrDefaultAsync(r => r.Name == permissionName);
     }
 
-    public Permission Create(Permission permission)
+    public async Task<Permission> CreateAsync(Permission permission)
     {
-        _context.Permissions.Add(permission);
-        SaveAndUpdate(permission);
+        await _context.Permissions.AddAsync(permission);
+        await SaveAndUpdateAsync(permission);
         return permission;
     }
 
-    public Permission Update(Permission permission)
+    public async Task<Permission> UpdateAsync(Permission permission)
     {
-        var existing = GetById(permission.Id);
+        var existing = await GetByIdAsync(permission.Id);
         if (existing == null) throw new Exception("Permission not found");
             
         if (existing.IsSystemProtected) throw new UnauthorizedHttpException("Permission is system protected");
 
         _context.Entry(existing).CurrentValues.SetValues(permission);
 
-        SaveAndUpdate(existing);
+        await SaveAndUpdateAsync(existing);
         return existing;
     }
 
-    public void Delete(Permission permission)
+    public async Task DeleteAsync(Permission permission)
     {
         if (permission.IsSystemProtected) throw new UnauthorizedHttpException("Permission is system protected");
 
         _context.Remove(permission);
-        _context.SaveChanges();
+        await _context.SaveChangesAsync();
     }
 }

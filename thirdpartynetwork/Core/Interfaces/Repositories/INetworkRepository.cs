@@ -1,19 +1,19 @@
-﻿using thirdpartynetwork.Core.Models;
+﻿﻿using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Core.Interfaces.Repositories
 {
     public interface INetworkRepository : IBaseRepository
     {
-        bool Exists(Guid id);
-        ICollection<Network> GetAll();
-        Network? GetById(Guid id, bool bypass = false);
-        Network? GetDetailsById(Guid id);
-        Network GetMainNetwork();
-        Network? GetByName(string name);
+        Task<bool> ExistsAsync(Guid id);
+        Task<ICollection<Network>> GetAllAsync();
+        Task<Network?> GetByIdAsync(Guid id, bool bypass = false);
+        Task<Network?> GetDetailsByIdAsync(Guid id);
+        Task<Network> GetMainNetworkAsync();
+        Task<Network?> GetByNameAsync(string name);
         IQueryable<Network> GetByNameQueryable(string name);
         IQueryable<Network> GetByIdQueryable(Guid id);
-        Network Create(Network network);
-        Network Update(Network network);
-        void Delete(Network network);
+        Task<Network> CreateAsync(Network network);
+        Task<Network> UpdateAsync(Network network);
+        Task DeleteAsync(Network network);
     }
 }

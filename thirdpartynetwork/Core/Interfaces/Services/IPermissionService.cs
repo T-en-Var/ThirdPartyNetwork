@@ -4,10 +4,10 @@ namespace thirdpartynetwork.Core.Interfaces.Services;
 
 public interface IPermissionService : IBaseService
 {
-    ICollection<Permission> GetAll();
-    Permission? GetById(Guid permissionId);
-    Permission? GetByName(string name);
-    Permission Create(CreatePermissionDto createPermission);
-    Permission Update(Guid permissionId, UpdatePermissionDto updatePermission);
-    void DeleteById(Guid permissionId);
+    Task<ICollection<Permission>> GetAllAsync();
+    Task<Permission?> GetByIdAsync(Guid permissionId);
+    Task<Permission?> GetByNameAsync(string name);
+    Task<Permission> CreateAsync(CreatePermissionDto createPermission);
+    Task<Permission> UpdateAsync(Guid permissionId, UpdatePermissionDto updatePermission);
+    Task DeleteByIdAsync(Guid permissionId);
 }

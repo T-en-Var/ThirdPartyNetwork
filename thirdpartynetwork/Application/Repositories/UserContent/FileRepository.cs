@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+﻿﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using thirdpartynetwork.Application.Repositories.UserContent;
 using thirdpartynetwork.Core;
@@ -18,54 +18,57 @@ namespace thirdpartynetwork.Application.Repositories
         private readonly DataContext _context = context;
         protected override string ReadPermissionName => Constants.Permissions.ReadFile;
 
-        protected override IQueryable<File> GetQueryable()
+        protected override Task<IQueryable<File>> GetQueryableAsync()
         {
-            return _context.Files
+            var query = _context.Files
                 .AsQueryable();
+            
+            return Task.FromResult(query);
         }
 
-        public File Create(File file)
+        public async Task<File> CreateAsync(File file)
         {
-            _context.Files.Add(file);
-            SaveAndUpdate(file);
+            await _context.Files.AddAsync(file);
+            await SaveAndUpdateAsync(file);
             return file;
         }
 
-        public void Delete(File file)
+        public async Task DeleteAsync(File file)
         {
             if (file.IsSystemProtected) throw new UnauthorizedHttpException("File is system protected");
             
             _context.Remove(file);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
 
-        public bool Exists(Guid id)
+        public async Task<bool> ExistsAsync(Guid id)
         {
-            return _context.Files.Any(c => c.Id == id);
+            return await _context.Files.AnyAsync(c => c.Id == id);
         }
 
-        public File? GetById(Guid id)
+        public async Task<File?> GetByIdAsync(Guid id)
         {
-            return _context.Files.Find(id);
+            return await _context.Files.FindAsync(id);
         }
 
-        public ICollection<File> GetByNetworkId(Guid networkId)
+        public async Task<ICollection<File>> GetByNetworkIdAsync(Guid networkId)
         {
-            return GetAccessibleQueryable(networkId)
+            return await (await GetAccessibleQueryableAsync(networkId))
                 .AsNoTracking()
-                .Where(c => c.NetworkId == networkId).ToList();
+                .Where(c => c.NetworkId == networkId)
+                .ToListAsync();
         }
 
-        public File Update(Guid fileId, UpdateFileDto updateFile)
+        public async Task<File> UpdateAsync(Guid fileId, UpdateFileDto updateFile)
         {
-            var existing = GetById(fileId);
+            var existing = await GetByIdAsync(fileId);
             if (existing == null) throw new Exception("File not found");
             
             if (existing.IsSystemProtected) throw new UnauthorizedHttpException("File is system protected");
 
             mapper.Map(updateFile, existing); 
 
-            SaveAndUpdate(existing);
+            await SaveAndUpdateAsync(existing);
             return existing;
         }
     }

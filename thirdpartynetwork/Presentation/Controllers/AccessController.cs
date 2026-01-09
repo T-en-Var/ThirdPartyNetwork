@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+﻿﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using thirdpartynetwork.Application.Auth.Requirements;
 using thirdpartynetwork.Core;
@@ -13,9 +13,9 @@ public class AccessController(IAccessService service, IMapper mapper) : Controll
     [HttpGet]
     [RequirePermission(Constants.Permissions.ReadAccess)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<NetworkDto>))]
-    public IActionResult GetAccesses()
+    public async Task<IActionResult> GetAccesses()
     {
-        var accesses = service.GetAll();
+        var accesses = await service.GetAllAsync();
         return Ok(mapper.Map<IEnumerable<AccessDto>>(accesses));
     }
 
@@ -23,18 +23,18 @@ public class AccessController(IAccessService service, IMapper mapper) : Controll
     [RequirePermission(Constants.Permissions.ManageAccess)]
     [ProducesResponseType(200, Type = typeof(AccessDto))]
     [ProducesResponseType(404)]
-    public IActionResult GetAccess(Guid accessId)
+    public async Task<IActionResult> GetAccess(Guid accessId)
     {
-        var access = service.GetById(accessId);
+        var access = await service.GetByIdAsync(accessId);
         return Ok(mapper.Map<AccessDto>(access));
     }
 
     [HttpPost]
     [RequirePermission(Constants.Permissions.ManageAccess)]
     [ProducesResponseType(201, Type = typeof(NetworkAccess))]
-    public IActionResult CreateAccess([FromBody] CreateAccessDto createAccess)
+    public async Task<IActionResult> CreateAccess([FromBody] CreateAccessDto createAccess)
     {
-        var access = service.Create(createAccess);
+        var access = await service.CreateAsync(createAccess);
         return StatusCode(201, mapper.Map<AccessDto>(access));
     }
 
@@ -42,9 +42,9 @@ public class AccessController(IAccessService service, IMapper mapper) : Controll
     [RequirePermission(Constants.Permissions.ManageAccess)]
     [ProducesResponseType(200, Type = typeof(AccessDto))]
     [ProducesResponseType(404)]
-    public IActionResult UpdateAccess(Guid accessId, [FromBody] UpdateAccessDto updateAccess)
+    public async Task<IActionResult> UpdateAccess(Guid accessId, [FromBody] UpdateAccessDto updateAccess)
     {
-        var access = service.Update(accessId, updateAccess);
+        var access = await service.UpdateAsync(accessId, updateAccess);
         return Ok(mapper.Map<AccessDto>(access));
     }
 
@@ -52,9 +52,9 @@ public class AccessController(IAccessService service, IMapper mapper) : Controll
     [RequirePermission(Constants.Permissions.ManageAccess)]
     [ProducesResponseType(204)]
     [ProducesResponseType(404)]
-    public IActionResult DeletePermission(Guid accessId)
+    public async Task<IActionResult> DeletePermission(Guid accessId)
     {
-        service.DeleteById(accessId);
+        await service.DeleteByIdAsync(accessId);
         return NoContent();
     }
 }

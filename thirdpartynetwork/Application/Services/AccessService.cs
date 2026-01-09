@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+﻿﻿using AutoMapper;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using thirdpartynetwork.Core.Models;
 
@@ -6,40 +6,40 @@ namespace thirdpartynetwork.Application.Services
 {
     public class AccessService(IAccessRepository repository, IMapper mapper) : IAccessService
     {
-        public ICollection<Access> GetAll()
+        public async Task<ICollection<Access>> GetAllAsync()
         {
-            var accesses = repository.GetAll();
+            var accesses = await repository.GetAllAsync();
             return accesses;
         }
 
-        public Access? GetById(Guid id)
+        public async Task<Access?> GetByIdAsync(Guid id)
         {
-            var access = repository.GetById(id);
+            var access = await repository.GetByIdAsync(id);
             return access;
         }
 
-        public Access Create(CreateAccessDto createAccess)
+        public async Task<Access> CreateAsync(CreateAccessDto createAccess)
         {
             var access = mapper.Map<Access>(createAccess);
-            access = repository.Create(access);
+            access = await repository.CreateAsync(access);
             return access;
         }
 
-        public Access Update(Guid id, UpdateAccessDto updateAccess)
+        public async Task<Access> UpdateAsync(Guid id, UpdateAccessDto updateAccess)
         {
-            if (!repository.Exists(id)) throw new NotFoundHttpException();
+            if (!await repository.ExistsAsync(id)) throw new NotFoundHttpException();
             
             var access = mapper.Map<Access>(updateAccess);
             access.Id = id;
             
-            access = repository.Update(access);
+            access = await repository.UpdateAsync(access);
             return access;
         }
 
-        public void DeleteById(Guid id)
+        public async Task DeleteByIdAsync(Guid id)
         {
-            var access = GetById(id);
-            if (access != null) repository.Delete(access);
+            var access = await GetByIdAsync(id);
+            if (access != null) await repository.DeleteAsync(access);
         }
     }
 }

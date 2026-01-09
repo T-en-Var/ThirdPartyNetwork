@@ -4,10 +4,10 @@ namespace thirdpartynetwork.Core.Interfaces.Services
 {
     public interface IPageBlockService : IUserContentBaseService<PageBlock>
     {
-        ICollection<PageBlock> GetByCustomPageId(Guid networkId, Guid customPageId);
-        PageBlock? GetById(Guid networkId, Guid pageBlockId);
-        PageBlock Create(Guid networkId, Guid customPageId, CreatePageBlockDto createPageBlock);
-        PageBlock Update(Guid networkId, Guid customPageId, Guid pageBlockId, UpdatePageBlockDto updatePageBlock);
-        void DeleteById(Guid networkId, Guid customPageId, Guid pageBlockId);
+        Task<ICollection<PageBlock>> GetByCustomPageIdAsync(Guid networkId, Guid customPageId);
+        Task<PageBlock?> GetByIdAsync(Guid networkId, Guid pageBlockId);
+        Task<PageBlock> CreateAsync(Guid networkId, Guid customPageId, CreatePageBlockDto createPageBlock);
+        Task<PageBlock> UpdateAsync(Guid networkId, Guid customPageId, Guid pageBlockId, UpdatePageBlockDto updatePageBlock);
+        Task DeleteByIdAsync(Guid networkId, Guid customPageId, Guid pageBlockId);
     }
 }

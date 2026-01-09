@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore;
 using thirdpartynetwork.Core.Data;
 using thirdpartynetwork.Core.Enum;
 using thirdpartynetwork.Core.Interfaces.Auth;
@@ -12,53 +13,53 @@ public class AccessLevelVerifier(
     IIdentityVerifier identityVerifier
 ) : IAccessLevelVerifier
 {
-    public bool CheckFileAccess(string fileId, Guid networkId, string permissionName)
+    public async Task<bool> CheckFileAccessAsync(string fileId, Guid networkId, string permissionName)
     {
-        var file = dataContext.Files.FirstOrDefault(x => x.Id == ValueToGuid(fileId));
-        return CheckAccess(file, networkId, permissionName);
+        var file = await dataContext.Files.FirstOrDefaultAsync(x => x.Id == ValueToGuid(fileId));
+        return await CheckAccessAsync(file, networkId, permissionName);
     }
 
-    public bool CheckCustomPageAccess(string customPageId, Guid networkId, string permissionName)
+    public async Task<bool> CheckCustomPageAccessAsync(string customPageId, Guid networkId, string permissionName)
     {
-        var customPage = dataContext.CustomPages.FirstOrDefault(x => x.Id == ValueToGuid(customPageId));
-        return CheckAccess(customPage, networkId, permissionName);
+        var customPage = await dataContext.CustomPages.FirstOrDefaultAsync(x => x.Id == ValueToGuid(customPageId));
+        return await CheckAccessAsync(customPage, networkId, permissionName);
     }
 
-    public bool CheckPageBlockAccess(string pageBlockId, Guid networkId, string permissionName)
+    public async Task<bool> CheckPageBlockAccessAsync(string pageBlockId, Guid networkId, string permissionName)
     {
-        var pageBlock = dataContext.PageBlocks.FirstOrDefault(x => x.Id == ValueToGuid(pageBlockId));
+        var pageBlock = await dataContext.PageBlocks.FirstOrDefaultAsync(x => x.Id == ValueToGuid(pageBlockId));
         // Check parent for permissions
-        return pageBlock != null && CheckCustomPageAccess(pageBlock.CustomPageId.ToString(), networkId, permissionName);
+        return pageBlock != null && await CheckCustomPageAccessAsync(pageBlock.CustomPageId.ToString(), networkId, permissionName);
     }
 
-    public bool CheckConfigurationAccess(string configurationId, Guid networkId, string permissionName)
+    public async Task<bool> CheckConfigurationAccessAsync(string configurationId, Guid networkId, string permissionName)
     {
-        var configuration = dataContext.Configurations.FirstOrDefault(x => x.Id == ValueToGuid(configurationId));
-        return CheckAccess(configuration, networkId, permissionName);
+        var configuration = await dataContext.Configurations.FirstOrDefaultAsync(x => x.Id == ValueToGuid(configurationId));
+        return await CheckAccessAsync(configuration, networkId, permissionName);
     }
 
-    public bool CheckBlogAccess(string blogCompareValue, Guid networkId, string permissionName)
+    public async Task<bool> CheckBlogAccessAsync(string blogCompareValue, Guid networkId, string permissionName)
     {
         var blogId = ValueToGuid(blogCompareValue);
-        var blog = blogId != Guid.Empty
-            ? dataContext.Blogs.FirstOrDefault(x => x.Id == blogId)
-            : dataContext.Blogs.FirstOrDefault(x => x.Slug == blogCompareValue);
+        var blog = blogId != Guid.Empty 
+            ? await dataContext.Blogs.FirstOrDefaultAsync(x => x.Id == blogId)
+            : await dataContext.Blogs.FirstOrDefaultAsync(x => x.Slug == blogCompareValue);
 
-        return CheckAccess(blog, networkId, permissionName);
+        return await CheckAccessAsync(blog, networkId, permissionName);
     }
 
-    public bool CheckAccess(UserContentBaseModel? model, Guid networkId, string permissionName)
+    public async Task<bool> CheckAccessAsync(UserContentBaseModel? model, Guid networkId, string permissionName)
     {
         if (model == null) return false;
         
         if (model.AccessLevel == AccessLevel.Public) return true;
 
         // If resource is not public, you must be authenticated
-        var userProxy = identityService.GetUserProxy(omitThrow: true);
+        var userProxy = await identityService.GetUserProxyAsync(omitThrow: true);
         if (userProxy?.User == null) return false;
 
         // If user has permission in either super network or local network
-        if (identityVerifier.IsAllowed(networkId, userProxy.Id, permissionName))
+        if (await identityVerifier.IsAllowedAsync(networkId, userProxy.Id, permissionName))
         {
             return true;
         }
@@ -77,7 +78,7 @@ public class AccessLevelVerifier(
         return false;
     }
 
-    public Expression<Func<T, bool>> GetAccessPredicate<T>(Guid requestedNetworkId, string permissionName)
+    public async Task<Expression<Func<T, bool>>> GetAccessPredicateAsync<T>(Guid requestedNetworkId, string permissionName)
         where T : UserContentBaseModel
     {
         // --- STEP 1: PRE-CALCULATE CONTEXT (C# Side) ---
@@ -89,10 +90,10 @@ public class AccessLevelVerifier(
         var hasPermission = false;
 
         // Get the user (safe mode, no exceptions)
-        var userProxy = identityService.GetUserProxy(omitThrow: true);
+        var userProxy = await identityService.GetUserProxyAsync(omitThrow: true);
 
         // Check if it's a real, authenticated user
-        var isRealUser = userProxy?.User != null;
+        var isRealUser = userProxy.Id != Guid.Empty;
 
         if (isRealUser)
         {
@@ -109,7 +110,7 @@ public class AccessLevelVerifier(
             // 2. Check Permissions (The "Super Admin" / Override Check)
             // We calculate this once in C#. If true, it effectively bypasses 
             // the checks for Private/Network in the SQL later.
-            hasPermission = identityVerifier.IsAllowed(requestedNetworkId, currentUserId.Value, permissionName);
+            hasPermission = await identityVerifier.IsAllowedAsync(requestedNetworkId, currentUserId.Value, permissionName);
         }
         
         // --- STEP 2: BUILD EXPRESSION (SQL Side) ---

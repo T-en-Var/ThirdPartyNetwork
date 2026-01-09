@@ -5,11 +5,11 @@ namespace thirdpartynetwork.Core.Interfaces.Services
 {
     public interface IBlogService : IUserContentBaseService<Blog>
     {
-        ICollection<Blog> GetByNetworkId(Guid networkId);
-        Blog? GetById(Guid networkId, Guid blogId);
-        Blog? GetBySlug(Guid networkId, string slug);
-        Blog Create(Guid networkId, CreateBlogDto blog);
-        Blog Update(Guid networkId, Guid blogId, UpdateBlogDto updateBlog);
-        void DeleteById(Guid networkId, Guid blogId);
+        Task<ICollection<Blog>> GetByNetworkIdAsync(Guid networkId);
+        Task<Blog?> GetByIdAsync(Guid networkId, Guid blogId);
+        Task<Blog?> GetBySlugAsync(Guid networkId, string slug);
+        Task<Blog> CreateAsync(Guid networkId, CreateBlogDto blog);
+        Task<Blog> UpdateAsync(Guid networkId, Guid blogId, UpdateBlogDto updateBlog);
+        Task DeleteByIdAsync(Guid networkId, Guid blogId);
     }
 }

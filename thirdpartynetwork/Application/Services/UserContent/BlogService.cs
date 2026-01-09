@@ -19,35 +19,35 @@ public class BlogService(
 {
     private readonly INetworkUserService _networkUserService = networkUserService;
 
-    public ICollection<Blog> GetByNetworkId(Guid networkId)
+    public async Task<ICollection<Blog>> GetByNetworkIdAsync(Guid networkId)
     {
-        return repository.GetByNetworkId(networkId);
+        return await repository.GetByNetworkIdAsync(networkId);
     }
 
-    public Blog? GetById(Guid networkId, Guid blogId)
+    public async Task<Blog?> GetByIdAsync(Guid networkId, Guid blogId)
     {
-        return repository.GetById(blogId);
+        return await repository.GetByIdAsync(blogId);
     }
 
-    public Blog? GetBySlug(Guid networkId, string slug)
+    public async Task<Blog?> GetBySlugAsync(Guid networkId, string slug)
     {
-        return repository.GetByNetworkIdAndSlug(networkId, slug);
+        return await repository.GetByNetworkIdAndSlugAsync(networkId, slug);
     }
 
-    public Blog Create(Guid networkId, CreateBlogDto createBlog)
+    public async Task<Blog> CreateAsync(Guid networkId, CreateBlogDto createBlog)
     {
-        var network = networkService.GetById(networkId);
+        var network = await networkService.GetByIdAsync(networkId);
         if (network == null) throw new NotFoundHttpException("Network not found");
 
-        var userProxy = identityService.GetUserProxy();
-        var networkUser = _networkUserService.GetByIds(networkId, userProxy.Id);
+        var userProxy = await identityService.GetUserProxyAsync();
+        var networkUser = await _networkUserService.GetByIdsAsync(networkId, userProxy.Id);
         if (networkUser == null) throw new NotFoundHttpException("NetworkUser not found");
         
         var baseSlug = SlugGenerator.GenerateSlug(createBlog.Title);
         var finalSlug = baseSlug;
         var counter = 1;
         
-        while (repository.GetByNetworkIdAndSlug(networkId, finalSlug) != null)
+        while (await repository.GetByNetworkIdAndSlugAsync(networkId, finalSlug) != null)
         {
             finalSlug = $"{baseSlug}-{counter}";
             counter++;
@@ -60,36 +60,36 @@ public class BlogService(
 
         if (createBlog.CoverImageId != null)
         {
-            var coverImage = fileService.GetById(networkId, createBlog.CoverImageId.Value);
+            var coverImage = await fileService.GetByIdAsync(networkId, createBlog.CoverImageId.Value);
             if (coverImage == null) throw new NotFoundHttpException("Cover image not found");
             blog.CoverImage = coverImage;
         }
         
-        return repository.Create(blog);
+        return await repository.CreateAsync(blog);
     }
 
-    public Blog Update(Guid networkId, Guid blogId, UpdateBlogDto updateBlog)
+    public async Task<Blog> UpdateAsync(Guid networkId, Guid blogId, UpdateBlogDto updateBlog)
     {
-        if (!repository.Exists(blogId)) throw new NotFoundHttpException();
+        if (!await repository.ExistsAsync(blogId)) throw new NotFoundHttpException();
 
-        var network = networkService.GetById(networkId);
+        var network = await networkService.GetByIdAsync(networkId);
         if (network == null) throw new NotFoundHttpException("Network not found");
 
         if (updateBlog.CoverImageId.HasValue)
         {
-            var coverImage = fileService.GetById(networkId, updateBlog.CoverImageId.Value);
+            var coverImage = await fileService.GetByIdAsync(networkId, updateBlog.CoverImageId.Value);
             if (coverImage == null) throw new NotFoundHttpException("Cover image not found");
         }
 
-        var blog = repository.Update(blogId, updateBlog);
+        var blog = await repository.UpdateAsync(blogId, updateBlog);
         return blog;
     }
 
-    public void DeleteById(Guid networkId, Guid blogId)
+    public async Task DeleteByIdAsync(Guid networkId, Guid blogId)
     {
-        var blog = GetById(networkId, blogId);
+        var blog = await GetByIdAsync(networkId, blogId);
         if (blog == null) return;
 
-        repository.Delete(blog);
+        await repository.DeleteAsync(blog);
     }
 }

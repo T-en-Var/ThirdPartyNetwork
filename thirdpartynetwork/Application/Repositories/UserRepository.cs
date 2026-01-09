@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿﻿using Microsoft.EntityFrameworkCore;
 using thirdpartynetwork.Core.Data;
 using thirdpartynetwork.Core.Models;
 
@@ -15,44 +15,44 @@ namespace thirdpartynetwork.Application.Repositories
                 .AsQueryable();
         }
 
-        public bool Exists(Guid id)
+        public async Task<bool> ExistsAsync(Guid id)
         {
-            return _context.Users.Any(u => u.Id == id);
+            return await _context.Users.AnyAsync(u => u.Id == id);
         }
 
-        public ICollection<User> GetAll()
+        public async Task<ICollection<User>> GetAllAsync()
         {
-            return [.. GetQueryable().AsNoTracking()];
+            return await GetQueryable().AsNoTracking().ToListAsync();
         }
 
-        public User? GetById(Guid id)
+        public async Task<User?> GetByIdAsync(Guid id)
         {
-            return GetQueryable()
-                .FirstOrDefault(u => u.Id == id);
+            return await GetQueryable()
+                .FirstOrDefaultAsync(u => u.Id == id);
         }
         
-        public User Create(User user)
+        public async Task<User> CreateAsync(User user)
         {
-            _context.Users.Add(user);
-            SaveAndUpdate(user);
+            await _context.Users.AddAsync(user);
+            await SaveAndUpdateAsync(user);
             return user;
         }
 
-        public User Update(User user)
+        public async Task<User> UpdateAsync(User user)
         {
-            var existing = GetById(user.Id);
+            var existing = await GetByIdAsync(user.Id);
             if (existing == null) throw new Exception("User not found");
 
             _context.Entry(existing).CurrentValues.SetValues(user);
 
-            SaveAndUpdate(existing);
+            await SaveAndUpdateAsync(existing);
             return existing;
         }
 
-        public void Delete(User user)
+        public async Task DeleteAsync(User user)
         {
             _context.Remove(user);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
     }
 }

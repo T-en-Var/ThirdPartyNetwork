@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+﻿﻿using AutoMapper;
 using thirdpartynetwork.Core;
 using thirdpartynetwork.Core.Models;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
@@ -18,43 +18,50 @@ namespace thirdpartynetwork.Application.Services
     {
         private static Network? _cachedMainNetwork;
 
-        private ICollection<Network> FilterNetworks(ICollection<Network> networks, bool bypass = false)
+        private async Task<ICollection<Network>> FilterNetworksAsync(ICollection<Network> networks, bool bypass = false)
         {
             if (bypass) return networks;
 
-            var currentUser = identityService.GetUserProxy();
+            var currentUser = await identityService.GetUserProxyAsync();
             var isSuper =
-                identityVerifier.IsSuperAdminOrHasSuperPermission(currentUser.Id, Constants.Permissions.ReadNetwork);
+                await identityVerifier.IsSuperAdminOrHasSuperPermissionAsync(currentUser.Id, Constants.Permissions.ReadNetwork);
+            
+            var allowedNetworks = new List<Network>();
 
-            return networks
-                .Where(network => network.IsPublic
-                                  || isSuper
-                                  || identityVerifier.IsAllowed(network.Id, currentUser.Id,
-                                      Constants.Permissions.ReadNetwork))
-                .ToList();
+            foreach (var network in networks)
+            {
+                if (network.IsPublic 
+                    || isSuper 
+                    || (await identityVerifier.IsAllowedAsync(network.Id, currentUser.Id, Constants.Permissions.ReadNetwork)))
+                {
+                    allowedNetworks.Add(network);
+                }
+            }
+
+            return allowedNetworks;
         }
 
-        public ICollection<Network> GetAll()
+        public async Task<ICollection<Network>> GetAllAsync()
         {
-            var networks = repository.GetAll();
-            return FilterNetworks(networks);
+            var networks = await repository.GetAllAsync();
+            return await FilterNetworksAsync(networks);
         }
 
-        public Network? GetById(Guid id, bool bypass = false)
+        public async Task<Network?> GetByIdAsync(Guid id, bool bypass = false)
         {
-            var network = repository.GetById(id, bypass);
+            var network = await repository.GetByIdAsync(id, bypass);
             if (network == null) return null;
 
-            var networks = FilterNetworks([network], bypass);
+            var networks = await FilterNetworksAsync([network], bypass);
             return networks.Count > 0 ? networks.First() : null;
         }
 
-        public Network? GetDetailsById(Guid id)
+        public async Task<Network?> GetDetailsByIdAsync(Guid id)
         {
-            var network = repository.GetDetailsById(id);
+            var network = await repository.GetDetailsByIdAsync(id);
             if (network == null) return null;
 
-            var currentUser = identityService.GetUserProxy(omitThrow: true);
+            var currentUser = await identityService.GetUserProxyAsync(omitThrow: true);
 
             network.NetworkUsers = network.NetworkUsers
                 .Where(x => x.UserProxyId == currentUser.Id).ToList();
@@ -62,9 +69,9 @@ namespace thirdpartynetwork.Application.Services
             return network;
         }
 
-        public Network Create(CreateNetworkDto createNetworkDto)
+        public async Task<Network> CreateAsync(CreateNetworkDto createNetworkDto)
         {
-            var nameFound = repository.GetByName(createNetworkDto.Name);
+            var nameFound = await repository.GetByNameAsync(createNetworkDto.Name);
             if (nameFound != null)
                 throw new ConflictHttpException("Duplicate Network name.");
 
@@ -96,7 +103,7 @@ namespace thirdpartynetwork.Application.Services
                 new RolePermission
                 {
                     Role = adminRole,
-                    Permission = permissionService.GetByName(Constants.Permissions.Administrator)!
+                    Permission = (await permissionService.GetByNameAsync(Constants.Permissions.Administrator))!
                 }
             ];
 
@@ -104,42 +111,42 @@ namespace thirdpartynetwork.Application.Services
             {
                 new()
                 {
-                    Permission = permissionService.GetByName(Constants.Permissions.ReadNetwork)!,
+                    Permission = (await permissionService.GetByNameAsync(Constants.Permissions.ReadNetwork))!,
                     Role = userRole
                 },
                 new()
                 {
-                    Permission = permissionService.GetByName(Constants.Permissions.ReadPermission)!,
+                    Permission = (await permissionService.GetByNameAsync(Constants.Permissions.ReadPermission))!,
                     Role = userRole
                 },
                 new()
                 {
-                    Permission = permissionService.GetByName(Constants.Permissions.ReadAccess)!,
+                    Permission = (await permissionService.GetByNameAsync(Constants.Permissions.ReadAccess))!,
                     Role = userRole
                 },
                 new()
                 {
-                    Permission = permissionService.GetByName(Constants.Permissions.ReadFile)!,
+                    Permission = (await permissionService.GetByNameAsync(Constants.Permissions.ReadFile))!,
                     Role = userRole
                 },
                 new()
                 {
-                    Permission = permissionService.GetByName(Constants.Permissions.ReadRole)!,
+                    Permission = (await permissionService.GetByNameAsync(Constants.Permissions.ReadRole))!,
                     Role = userRole
                 },
                 new()
                 {
-                    Permission = permissionService.GetByName(Constants.Permissions.ReadCustomPage)!,
+                    Permission = (await permissionService.GetByNameAsync(Constants.Permissions.ReadCustomPage))!,
                     Role = userRole
                 },
                 new()
                 {
-                    Permission = permissionService.GetByName(Constants.Permissions.ReadPageBlock)!,
+                    Permission = (await permissionService.GetByNameAsync(Constants.Permissions.ReadPageBlock))!,
                     Role = userRole
                 },
             };
 
-            var currentUser = identityService.GetUserProxy();
+            var currentUser = await identityService.GetUserProxyAsync();
             network.Roles = [userRole, adminRole];
 
             network.NetworkUsers =
@@ -160,14 +167,14 @@ namespace thirdpartynetwork.Application.Services
                     ]
                 }
             ];
-            network = repository.Create(network);
+            network = await repository.CreateAsync(network);
 
             return network;
         }
 
-        public Network Update(Guid id, UpdateNetworkDto updateNetworkDto)
+        public async Task<Network> UpdateAsync(Guid id, UpdateNetworkDto updateNetworkDto)
         {
-            if (!repository.Exists(id)) throw new NotFoundHttpException();
+            if (!await repository.ExistsAsync(id)) throw new NotFoundHttpException();
             
             var network = mapper.Map<Network>(updateNetworkDto);
             network.Id = id;
@@ -177,34 +184,34 @@ namespace thirdpartynetwork.Application.Services
                 network.ImageFileId = updateNetworkDto.FileLink.Id;
             }
 
-            network = repository.Update(network);
+            network = await repository.UpdateAsync(network);
             return network;
         }
 
-        public async Task DeleteById(Guid id)
+        public async Task DeleteByIdAsync(Guid id)
         {
-            var network = GetById(id, true);
+            var network = await GetByIdAsync(id, true);
             if (network == null) return;
 
             network.ImageFileId = null;
             network.ImageFile = null;
 
-            var files = fileRepository.GetByNetworkId(network.Id);
+            var files = await fileRepository.GetByNetworkIdAsync(network.Id);
 
             foreach (var networkFile in files)
             {
                 await cdnService.DeleteAsync($"{networkFile.NetworkId}/{networkFile.PublicId}", networkFile.MediaType);
             }
 
-            repository.Delete(network);
+            await repository.DeleteAsync(network);
         }
 
-        public Network GetMainNetwork()
+        public async Task<Network> GetMainNetworkAsync()
         {
             if (_cachedMainNetwork != null)
                 return _cachedMainNetwork;
 
-            _cachedMainNetwork = repository.GetMainNetwork();
+            _cachedMainNetwork = await repository.GetMainNetworkAsync();
             return _cachedMainNetwork;
         }
 
