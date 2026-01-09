@@ -28,9 +28,9 @@ public class AccessLevelVerifierTests
     }
 
     [Test]
-    public void CheckAccess_Public_ReturnsTrue_ForAnyone()
+    public async Task CheckAccess_Public_ReturnsTrue_ForAnyone()
     {
-        using var ctx = new DataContext(_options);
+        await using var ctx = new DataContext(_options);
         var file = new File
         {
             Id = Guid.NewGuid(),
@@ -42,21 +42,21 @@ public class AccessLevelVerifierTests
             Url = "",
         };
         ctx.Files.Add(file);
-        ctx.SaveChanges();
+        await ctx.SaveChangesAsync();
 
         var identityServiceMock = new Mock<IIdentityService>();
         var identityVerifierMock = new Mock<IIdentityVerifier>();
 
         var verifier = new AccessLevelVerifier(ctx, identityServiceMock.Object, identityVerifierMock.Object);
 
-        var ok = verifier.CheckFileAccess(file.Id.ToString(), Guid.NewGuid(), "perm");
+        var ok = await verifier.CheckFileAccessAsync(file.Id.ToString(), Guid.NewGuid(), "perm");
         Assert.That(ok, Is.True);
     }
 
     [Test]
-    public void CheckAccess_Private_ReturnsAuthorOnly()
+    public async Task CheckAccess_Private_ReturnsAuthorOnly()
     {
-        using var ctx = new DataContext(_options);
+        await using var ctx = new DataContext(_options);
         var authorId = Guid.NewGuid();
         var file = new File
         {
@@ -70,10 +70,10 @@ public class AccessLevelVerifierTests
             Url = "",
         };
         ctx.Files.Add(file);
-        ctx.SaveChanges();
+        await ctx.SaveChangesAsync();
 
         var identityServiceMock = new Mock<IIdentityService>();
-        identityServiceMock.Setup(s => s.GetUserProxy(true)).Returns(new UserProxy
+        identityServiceMock.Setup(s => s.GetUserProxyAsync(true)).ReturnsAsync(new UserProxy
             { Id = Guid.NewGuid(), IsDefault = true, User = new User { } });
 
         var identityVerifierMock = new Mock<IIdentityVerifier>();
@@ -81,18 +81,18 @@ public class AccessLevelVerifierTests
         var verifier = new AccessLevelVerifier(ctx, identityServiceMock.Object, identityVerifierMock.Object);
 
         // Not the author -> false
-        var ok1 = verifier.CheckFileAccess(file.Id.ToString(), Guid.NewGuid(), "perm");
+        var ok1 = await verifier.CheckFileAccessAsync(file.Id.ToString(), Guid.NewGuid(), "perm");
         Assert.That(ok1, Is.False);
 
         // As author
-        identityServiceMock.Setup(s => s.GetUserProxy(true)).Returns(new UserProxy
+        identityServiceMock.Setup(s => s.GetUserProxyAsync(true)).ReturnsAsync(new UserProxy
             { Id = authorId, IsDefault = true, User = new User { } });
-        var ok2 = verifier.CheckFileAccess(file.Id.ToString(), Guid.NewGuid(), "perm");
+        var ok2 = await verifier.CheckFileAccessAsync(file.Id.ToString(), Guid.NewGuid(), "perm");
         Assert.That(ok2, Is.True);
     }
 
     [Test]
-    public void CheckAccess_PublicToNetwork_RequiresNetworkMembership()
+    public async Task CheckAccess_PublicToNetwork_RequiresNetworkMembership()
     {
         using var ctx = new DataContext(_options);
         var networkId = Guid.NewGuid();
@@ -109,10 +109,10 @@ public class AccessLevelVerifierTests
             PublicId = Guid.NewGuid()
         };
         ctx.Files.Add(file);
-        ctx.SaveChanges();
+        await ctx.SaveChangesAsync();
 
         var identityServiceMock = new Mock<IIdentityService>();
-        identityServiceMock.Setup(s => s.GetUserProxy(true)).Returns(new UserProxy
+        identityServiceMock.Setup(s => s.GetUserProxyAsync(true)).ReturnsAsync(new UserProxy
         {
             Id = userProxyId, NetworkUsers = new System.Collections.Generic.List<NetworkUser>(), IsDefault = true,
             User = new User { }
@@ -123,24 +123,24 @@ public class AccessLevelVerifierTests
         var verifier = new AccessLevelVerifier(ctx, identityServiceMock.Object, identityVerifierMock.Object);
 
         // Not member -> false
-        var ok1 = verifier.CheckFileAccess(file.Id.ToString(), networkId, "perm");
+        var ok1 = await verifier.CheckFileAccessAsync(file.Id.ToString(), networkId, "perm");
         Assert.That(ok1, Is.False);
 
         // Member
-        identityServiceMock.Setup(s => s.GetUserProxy(true)).Returns(new UserProxy
+        identityServiceMock.Setup(s => s.GetUserProxyAsync(true)).ReturnsAsync(new UserProxy
         {
             Id = userProxyId, IsDefault = true, User = new User { },
             NetworkUsers = new System.Collections.Generic.List<NetworkUser>
                 { new NetworkUser { NetworkId = networkId } }
         });
-        var ok2 = verifier.CheckFileAccess(file.Id.ToString(), networkId, "perm");
+        var ok2 = await verifier.CheckFileAccessAsync(file.Id.ToString(), networkId, "perm");
         Assert.That(ok2, Is.True);
     }
 
     [Test]
-    public void GetAccessPredicate_Unauthenticated_ReturnsOnlyPublic()
+    public async Task GetAccessPredicate_Unauthenticated_ReturnsOnlyPublic()
     {
-        using var ctx = new DataContext(_options);
+        await using var ctx = new DataContext(_options);
         var networkId = Guid.NewGuid();
 
         var publicFile = new File { Id = Guid.NewGuid(), PublicId = Guid.NewGuid(), AccessLevel = AccessLevel.Public, Name = "", Format = "", MediaType = "", Url = "" };
@@ -148,16 +148,16 @@ public class AccessLevelVerifierTests
         var networkFile = new File { Id = Guid.NewGuid(), PublicId = Guid.NewGuid(), AccessLevel = AccessLevel.PublicToNetwork, NetworkId = networkId, Name = "", Format = "", MediaType = "", Url = "" };
 
         ctx.Files.AddRange(publicFile, privateFile, networkFile);
-        ctx.SaveChanges();
+        await ctx.SaveChangesAsync();
 
         var identityServiceMock = new Mock<IIdentityService>();
-        identityServiceMock.Setup(s => s.GetUserProxy(true)).Returns(new UserProxy { User = null, IsDefault = true });
+        identityServiceMock.Setup(s => s.GetUserProxyAsync(true)).ReturnsAsync(new UserProxy { User = null, IsDefault = true });
 
         var identityVerifierMock = new Mock<IIdentityVerifier>();
 
         var verifier = new AccessLevelVerifier(ctx, identityServiceMock.Object, identityVerifierMock.Object);
 
-        var predicate = verifier.GetAccessPredicate<File>(networkId, "perm");
+        var predicate = await verifier.GetAccessPredicateAsync<File>(networkId, "perm");
         var results = ctx.Files.Where(predicate).ToList();
 
         Assert.That(results.Select(f => f.Id), Contains.Item(publicFile.Id));
@@ -166,9 +166,9 @@ public class AccessLevelVerifierTests
     }
 
     [Test]
-    public void GetAccessPredicate_Authenticated_Author_ReturnsPrivateOwn()
+    public async Task GetAccessPredicate_Authenticated_Author_ReturnsPrivateOwn()
     {
-        using var ctx = new DataContext(_options);
+        await using var ctx = new DataContext(_options);
         var networkId = Guid.NewGuid();
         var userId = Guid.NewGuid();
 
@@ -176,10 +176,10 @@ public class AccessLevelVerifierTests
         var myPrivate = new File { Id = Guid.NewGuid(), PublicId = Guid.NewGuid(), AccessLevel = AccessLevel.Private, AuthorId = userId, Name = "", Format = "", MediaType = "", Url = "" };
 
         ctx.Files.AddRange(otherPrivate, myPrivate);
-        ctx.SaveChanges();
+        await ctx.SaveChangesAsync();
 
         var identityServiceMock = new Mock<IIdentityService>();
-        identityServiceMock.Setup(s => s.GetUserProxy(true)).Returns(new UserProxy
+        identityServiceMock.Setup(s => s.GetUserProxyAsync(true)).ReturnsAsync(new UserProxy
         {
             Id = userId,
             User = new User(),
@@ -188,11 +188,11 @@ public class AccessLevelVerifierTests
         });
 
         var identityVerifierMock = new Mock<IIdentityVerifier>();
-        identityVerifierMock.Setup(v => v.IsAllowed(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<string>())).Returns(false);
+        identityVerifierMock.Setup(v => v.IsAllowedAsync(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<string>())).ReturnsAsync(false);
 
         var verifier = new AccessLevelVerifier(ctx, identityServiceMock.Object, identityVerifierMock.Object);
 
-        var predicate = verifier.GetAccessPredicate<File>(networkId, "perm");
+        var predicate = await verifier.GetAccessPredicateAsync<File>(networkId, "perm");
         var results = ctx.Files.Where(predicate).ToList();
 
         Assert.That(results.Select(f => f.Id), Contains.Item(myPrivate.Id));
@@ -200,9 +200,9 @@ public class AccessLevelVerifierTests
     }
 
     [Test]
-    public void GetAccessPredicate_NetworkMember_ReturnsPublicToNetwork()
+    public async Task GetAccessPredicate_NetworkMember_ReturnsPublicToNetwork()
     {
-        using var ctx = new DataContext(_options);
+        await using var ctx = new DataContext(_options);
         var networkId = Guid.NewGuid();
         var otherNetworkId = Guid.NewGuid();
         var userId = Guid.NewGuid();
@@ -211,10 +211,10 @@ public class AccessLevelVerifierTests
         var otherNetFile = new File { Id = Guid.NewGuid(), PublicId = Guid.NewGuid(), AccessLevel = AccessLevel.PublicToNetwork, NetworkId = otherNetworkId, Name = "", Format = "", MediaType = "", Url = "" };
 
         ctx.Files.AddRange(netFile, otherNetFile);
-        ctx.SaveChanges();
+        await ctx.SaveChangesAsync();
 
         var identityServiceMock = new Mock<IIdentityService>();
-        identityServiceMock.Setup(s => s.GetUserProxy(true)).Returns(new UserProxy
+        identityServiceMock.Setup(s => s.GetUserProxyAsync(true)).ReturnsAsync(new UserProxy
         {
             Id = userId,
             User = new User(),
@@ -226,11 +226,11 @@ public class AccessLevelVerifierTests
         });
 
         var identityVerifierMock = new Mock<IIdentityVerifier>();
-        identityVerifierMock.Setup(v => v.IsAllowed(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<string>())).Returns(false);
+        identityVerifierMock.Setup(v => v.IsAllowedAsync(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<string>())).ReturnsAsync(false);
 
         var verifier = new AccessLevelVerifier(ctx, identityServiceMock.Object, identityVerifierMock.Object);
 
-        var predicate = verifier.GetAccessPredicate<File>(networkId, "perm");
+        var predicate = await verifier.GetAccessPredicateAsync<File>(networkId, "perm");
         var results = ctx.Files.Where(predicate).ToList();
 
         Assert.That(results.Select(f => f.Id), Contains.Item(netFile.Id));
@@ -238,9 +238,9 @@ public class AccessLevelVerifierTests
     }
 
     [Test]
-    public void GetAccessPredicate_Admin_ReturnsAll()
+    public async Task GetAccessPredicate_Admin_ReturnsAll()
     {
-        using var ctx = new DataContext(_options);
+        await using var ctx = new DataContext(_options);
         var networkId = Guid.NewGuid();
         var userId = Guid.NewGuid();
 
@@ -248,10 +248,10 @@ public class AccessLevelVerifierTests
         var netFile = new File { Id = Guid.NewGuid(), PublicId = Guid.NewGuid(), AccessLevel = AccessLevel.PublicToNetwork, NetworkId = networkId, Name = "", Format = "", MediaType = "", Url = "" };
 
         ctx.Files.AddRange(privateFile, netFile);
-        ctx.SaveChanges();
+        await ctx.SaveChangesAsync();
 
         var identityServiceMock = new Mock<IIdentityService>();
-        identityServiceMock.Setup(s => s.GetUserProxy(true)).Returns(new UserProxy
+        identityServiceMock.Setup(s => s.GetUserProxyAsync(true)).ReturnsAsync(new UserProxy
         {
             Id = userId,
             User = new User(),
@@ -260,11 +260,11 @@ public class AccessLevelVerifierTests
         });
 
         var identityVerifierMock = new Mock<IIdentityVerifier>();
-        identityVerifierMock.Setup(v => v.IsAllowed(networkId, userId, "perm")).Returns(true);
+        identityVerifierMock.Setup(v => v.IsAllowedAsync(networkId, userId, "perm")).ReturnsAsync(true);
 
         var verifier = new AccessLevelVerifier(ctx, identityServiceMock.Object, identityVerifierMock.Object);
 
-        var predicate = verifier.GetAccessPredicate<File>(networkId, "perm");
+        var predicate = await verifier.GetAccessPredicateAsync<File>(networkId, "perm");
         var results = ctx.Files.Where(predicate).ToList();
 
         Assert.That(results.Select(f => f.Id), Contains.Item(privateFile.Id));

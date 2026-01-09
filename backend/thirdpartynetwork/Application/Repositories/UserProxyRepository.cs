@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿﻿using Microsoft.EntityFrameworkCore;
 using thirdpartynetwork.Core.Data;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using thirdpartynetwork.Core.Interfaces.Auth;
@@ -13,7 +13,7 @@ namespace thirdpartynetwork.Application.Repositories
     {
         private readonly DataContext _context = context;
 
-        private IQueryable<UserProxy> GetQueryable()
+        private async Task<IQueryable<UserProxy>> GetQueryableAsync()
         {
             var query = _context.UserProxies.AsQueryable();
 
@@ -29,22 +29,22 @@ namespace thirdpartynetwork.Application.Repositories
             return query;
         }
 
-        public bool Exists(Guid userProxyId)
+        public async Task<bool> ExistsAsync(Guid userProxyId)
         {
-            return _context.UserProxies.Any(up => up.Id == userProxyId);
+            return await _context.UserProxies.AnyAsync(up => up.Id == userProxyId);
         }
 
-        public ICollection<UserProxy> GetAll()
+        public async Task<ICollection<UserProxy>> GetAllAsync()
         {
-            return [.. GetQueryable().AsNoTracking()];
+            return await (await GetQueryableAsync()).AsNoTracking().ToListAsync();
         }
 
-        public UserProxy? GetById(Guid userProxyId)
+        public async Task<UserProxy?> GetByIdAsync(Guid userProxyId)
         {
-            var query = GetQueryable();
-            var currentUser = identityService.GetUserProxy(true);
+            var query = await GetQueryableAsync();
+            var currentUser = await identityService.GetUserProxyAsync(true);
 
-            if (identityVerifier.IsUserProxyOwner(currentUser.Id, userProxyId))
+            if (await identityVerifier.IsUserProxyOwnerAsync(currentUser.Id, userProxyId))
             {
                 query = query
                     .Include(up => up.User)
@@ -76,36 +76,34 @@ namespace thirdpartynetwork.Application.Repositories
                     .ThenInclude(nu => nu.ImageFile);
             }
 
-            return query.FirstOrDefault(up => up.Id == userProxyId);
+            return await query.FirstOrDefaultAsync(up => up.Id == userProxyId);
         }
 
-        public UserProxy? GetByUsername(string username)
+        public async Task<UserProxy?> GetByUsernameAsync(string username)
         {
-            var query = GetQueryable();
+            var query = await GetQueryableAsync();
 
-            return query.FirstOrDefault(up => up.Username == username);
+            return await query.FirstOrDefaultAsync(up => up.Username == username);
         }
 
-        public ICollection<UserProxy> GetByUserId(Guid userId)
+        public async Task<ICollection<UserProxy>> GetByUserIdAsync(Guid userId)
         {
-            return
-            [
-                .. GetQueryable()
+            return await (await GetQueryableAsync())
                     .AsNoTracking()
                     .Where(up => up.User.Id == userId)
-            ];
+                    .ToListAsync();
         }
 
-        public UserProxy Create(UserProxy userProxy)
+        public async Task<UserProxy> CreateAsync(UserProxy userProxy)
         {
-            _context.UserProxies.Add(userProxy);
-            SaveAndUpdate(userProxy);
+            await _context.UserProxies.AddAsync(userProxy);
+            await SaveAndUpdateAsync(userProxy);
             return userProxy;
         }
 
-        public void SetDefaultUserProxy(Guid userProxyId)
+        public async Task SetDefaultUserProxyAsync(Guid userProxyId)
         {
-            var userProxy = GetById(userProxyId);
+            var userProxy = await GetByIdAsync(userProxyId);
             if (userProxy == null) throw new Exception("UserProxy not found");
             
             if (userProxy.IsDefault) return;
@@ -120,27 +118,27 @@ namespace thirdpartynetwork.Application.Repositories
             // assume that process calls _context.SaveChanges();
         }
 
-        public UserProxy Update(UserProxy userProxy)
+        public async Task<UserProxy> UpdateAsync(UserProxy userProxy)
         {
-            var existing = GetById(userProxy.Id);
+            var existing = await GetByIdAsync(userProxy.Id);
             if (existing == null) throw new Exception("UserProxy not found");
 
             _context.Entry(existing).CurrentValues.SetValues(userProxy);
 
-            SaveAndUpdate(existing);
+            await SaveAndUpdateAsync(existing);
             return existing;
         }
 
-        public IQueryable<UserProxy> GetByIdQueryable(Guid id)
+        public async Task<IQueryable<UserProxy>> GetByIdQueryableAsync(Guid id)
         {
-            return GetQueryable()
+            return (await GetQueryableAsync())
                 .Where(u => u.Id == id);
         }
 
-        public void Delete(UserProxy userProxy)
+        public async Task DeleteAsync(UserProxy userProxy)
         {
             _context.Remove(userProxy);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
     }
 }

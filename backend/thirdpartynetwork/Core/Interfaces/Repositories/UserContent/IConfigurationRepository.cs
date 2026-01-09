@@ -4,11 +4,11 @@ namespace thirdpartynetwork.Core.Interfaces.Repositories
 {
     public interface IConfigurationRepository : IUserContentBaseRepository<Configuration>
     {
-        bool Exists(Guid id);
-        ICollection<Configuration> GetByNetworkId(Guid networkId);
-        Configuration? GetById(Guid id);
-        Configuration Create(Configuration configuration);
-        Configuration Update(Guid configurationId, UpdateConfigurationDto updateConfiguration);
-        void Delete(Configuration configuration);
+        Task<bool> ExistsAsync(Guid id);
+        Task<ICollection<Configuration>> GetByNetworkIdAsync(Guid networkId);
+        Task<Configuration?> GetByIdAsync(Guid id);
+        Task<Configuration> CreateAsync(Configuration configuration);
+        Task<Configuration> UpdateAsync(Guid configurationId, UpdateConfigurationDto updateConfiguration);
+        Task DeleteAsync(Configuration configuration);
     }
 }

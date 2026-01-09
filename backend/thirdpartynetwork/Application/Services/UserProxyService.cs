@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+﻿﻿using AutoMapper;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using thirdpartynetwork.Core.Interfaces.Helpers;
 using thirdpartynetwork.Core.Models;
@@ -12,41 +12,41 @@ namespace thirdpartynetwork.Application.Services
         IPasswordHasher passwordHasher,
         IMapper mapper) : IUserProxyService
     {
-        public ICollection<UserProxy> GetAll()
+        public async Task<ICollection<UserProxy>> GetAllAsync()
         {
-            var proxies = repository.GetAll();
+            var proxies = await repository.GetAllAsync();
             return proxies;
         }
 
-        public ICollection<UserProxy> GetByUserId(Guid userId)
+        public async Task<ICollection<UserProxy>> GetByUserIdAsync(Guid userId)
         {
-            var proxies = repository.GetByUserId(userId);
+            var proxies = await repository.GetByUserIdAsync(userId);
             return proxies;
         }
 
-        public UserProxy? GetById(Guid userProxyId)
+        public async Task<UserProxy?> GetByIdAsync(Guid userProxyId)
         {
-            var proxy = repository.GetById(userProxyId);
+            var proxy = await repository.GetByIdAsync(userProxyId);
             return proxy;
         }
 
-        public UserProxy? GetByIds(Guid userId, Guid userProxyId)
+        public async Task<UserProxy?> GetByIdsAsync(Guid userId, Guid userProxyId)
         {
-            if (userService.GetById(userId) == null) throw new NotFoundHttpException("User not found");
+            if (await userService.GetByIdAsync(userId) == null) throw new NotFoundHttpException("User not found");
             
-            var proxy = repository.GetById(userProxyId);
+            var proxy = await repository.GetByIdAsync(userProxyId);
             return proxy;
         }
 
-        public UserProxy? GetByUsername(string username)
+        public async Task<UserProxy?> GetByUsernameAsync(string username)
         {
-            var proxy = repository.GetByUsername(username);
+            var proxy = await repository.GetByUsernameAsync(username);
             return proxy;
         }
 
-        public UserProxy Create(Guid userId, CreateUserProxyDto createUserProxy)
+        public async Task<UserProxy> CreateAsync(Guid userId, CreateUserProxyDto createUserProxy)
         {
-            var user = userService.GetById(userId);
+            var user = await userService.GetByIdAsync(userId);
             if (user == null) throw new NotFoundHttpException("User not found");
 
             var isDefault = user.UserProxies.Count == 0;
@@ -58,15 +58,15 @@ namespace thirdpartynetwork.Application.Services
             if (isDefault && proxy.Password == null) throw new BadHttpRequestException("Password is required for default proxy");
             if (proxy.Password != null) proxy.Password = passwordHasher.HashPassword(proxy.Password);
             
-            proxy = repository.Create(proxy);
+            proxy = await repository.CreateAsync(proxy);
             return proxy;
         }
 
-        public UserProxy Update(Guid userId, Guid userProxyId, UpdateUserProxyDto updateUserProxy)
+        public async Task<UserProxy> UpdateAsync(Guid userId, Guid userProxyId, UpdateUserProxyDto updateUserProxy)
         {
-            var user = userService.GetById(userId);
+            var user = await userService.GetByIdAsync(userId);
             if (user == null) throw new NotFoundHttpException("User not found");
-            var existing = GetByIds(userId, userProxyId);
+            var existing = await GetByIdsAsync(userId, userProxyId);
             if (existing == null) throw new NotFoundHttpException();
 
             if (updateUserProxy is { KeepPassword: false, IsDefault: true }) throw new BadHttpRequestException("Default proxies require a password");
@@ -87,20 +87,20 @@ namespace thirdpartynetwork.Application.Services
 
             proxy.ImageFileId = updateUserProxy.FileLink?.Id;
             
-            proxy = repository.Update(proxy);
+            proxy = await repository.UpdateAsync(proxy);
             return proxy;
         }
 
-        public IQueryable<UserProxy> GetByIdQueryable(Guid userProxyId)
+        public async Task<IQueryable<UserProxy>> GetByIdQueryableAsync(Guid userProxyId)
         {
-            var userProxyQueryable = repository.GetByIdQueryable(userProxyId);
+            var userProxyQueryable = await repository.GetByIdQueryableAsync(userProxyId);
             return userProxyQueryable;
         }
 
-        public void DeleteByIds(Guid userId, Guid userProxyId)
+        public async Task DeleteByIdsAsync(Guid userId, Guid userProxyId)
         {
-            var proxy = GetByIds(userId, userProxyId);
-            if (proxy != null) repository.Delete(proxy);
+            var proxy = await GetByIdsAsync(userId, userProxyId);
+            if (proxy != null) await repository.DeleteAsync(proxy);
         }
     }
 }

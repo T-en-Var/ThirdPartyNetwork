@@ -19,50 +19,52 @@ namespace thirdpartynetwork.Application.Repositories
         private readonly DataContext _context = context;
         protected override string ReadPermissionName => Constants.Permissions.ReadConfiguration;
 
-        protected override IQueryable<Configuration> GetQueryable()
+        protected override Task<IQueryable<Configuration>> GetQueryableAsync()
         {
-            return _context.Configurations
+            var query = _context.Configurations
                 .AsQueryable();
+            
+            return Task.FromResult(query);
         }
 
-        public Configuration Create(Configuration configuration)
+        public async Task<Configuration> CreateAsync(Configuration configuration)
         {
-            _context.Configurations.Add(configuration);
-            SaveAndUpdate(configuration);
+            await _context.Configurations.AddAsync(configuration);
+            await SaveAndUpdateAsync(configuration);
             return configuration;
         }
 
-        public void Delete(Configuration configuration)
+        public async Task DeleteAsync(Configuration configuration)
         {
             _context.Remove(configuration);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
 
-        public bool Exists(Guid id)
+        public async Task<bool> ExistsAsync(Guid id)
         {
-            return _context.Configurations.Any(c => c.Id == id);
+            return await _context.Configurations.AnyAsync(c => c.Id == id);
         }
 
-        public Configuration? GetById(Guid id)
+        public async Task<Configuration?> GetByIdAsync(Guid id)
         {
-            return GetQueryable().FirstOrDefault(x => x.Id == id);
+            return await (await GetQueryableAsync()).FirstOrDefaultAsync(x => x.Id == id);
         }
 
-        public ICollection<Configuration> GetByNetworkId(Guid networkId)
+        public async Task<ICollection<Configuration>> GetByNetworkIdAsync(Guid networkId)
         {
-            return GetAccessibleQueryable(networkId)
+            return await (await GetAccessibleQueryableAsync(networkId))
                 .AsNoTracking()
-                .Where(c => c.Network.Id == networkId).ToList();
+                .Where(c => c.Network.Id == networkId).ToListAsync();
         }
 
-        public Configuration Update(Guid configurationId, UpdateConfigurationDto updateConfiguration)
+        public async Task<Configuration> UpdateAsync(Guid configurationId, UpdateConfigurationDto updateConfiguration)
         {
-            var existing = GetById(configurationId);
+            var existing = await GetByIdAsync(configurationId);
             if (existing == null) throw new Exception("Configuration not found");
 
             mapper.Map(updateConfiguration, existing);
 
-            SaveAndUpdate(existing);
+            await SaveAndUpdateAsync(existing);
             return existing;
         }
     }

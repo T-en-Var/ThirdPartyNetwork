@@ -5,10 +5,10 @@ namespace thirdpartynetwork.Core.Interfaces.Services
 {
     public interface IConfigurationService : IUserContentBaseService<Configuration>
     {
-        ICollection<Configuration> GetByNetworkId(Guid networkId);
-        Configuration? GetById(Guid networkId, Guid configurationId);
-        Configuration Create(Guid networkId, CreateConfigurationDto createConfiguration);
-        Configuration Update(Guid networkId, Guid configurationId, UpdateConfigurationDto updateConfiguration);
-        void DeleteById(Guid networkId, Guid configurationId);
+        Task<ICollection<Configuration>> GetByNetworkIdAsync(Guid networkId);
+        Task<Configuration?> GetByIdAsync(Guid networkId, Guid configurationId);
+        Task<Configuration> CreateAsync(Guid networkId, CreateConfigurationDto createConfiguration);
+        Task<Configuration> UpdateAsync(Guid networkId, Guid configurationId, UpdateConfigurationDto updateConfiguration);
+        Task DeleteByIdAsync(Guid networkId, Guid configurationId);
     }
 }

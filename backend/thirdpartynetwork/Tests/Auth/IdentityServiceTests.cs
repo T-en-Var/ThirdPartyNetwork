@@ -1,6 +1,4 @@
-using System;
 using System.Security.Claims;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using NUnit.Framework;
@@ -24,14 +22,14 @@ public class IdentityServiceTests
     }
 
     [Test]
-    public void GetUserProxy_ReturnsCached_WhenPresent()
+    public async Task GetUserProxy_ReturnsCached_WhenPresent()
     {
-        using var context = new DataContext(_options);
+        await using var context = new DataContext(_options);
         var user = new User();
         var proxy = new UserProxy { Id = Guid.NewGuid(), IsDefault = true, User = user };
         // user.DefaultProxy = proxy;
         context.UserProxies.Add(proxy);
-        context.SaveChanges();
+        await context.SaveChangesAsync();
 
         var httpContext = new DefaultHttpContext();
         httpContext.User = new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim("uid", proxy.Id.ToString()) }));
@@ -41,14 +39,14 @@ public class IdentityServiceTests
 
         var svc = new IdentityService(accessorMock.Object, context);
 
-        var p1 = svc.GetUserProxy();
-        var p2 = svc.GetUserProxy();
+        var p1 = await svc.GetUserProxyAsync();
+        var p2 = await svc.GetUserProxyAsync();
 
         Assert.That(p1.Id, Is.EqualTo(p2.Id));
     }
 
     [Test]
-    public void GetUserProxy_OmitThrow_ReturnsDefault_WhenMissing()
+    public async Task GetUserProxy_OmitThrow_ReturnsDefault_WhenMissing()
     {
         using var context = new DataContext(_options);
 
@@ -60,7 +58,7 @@ public class IdentityServiceTests
 
         var svc = new IdentityService(accessorMock.Object, context);
 
-        var proxy = svc.GetUserProxy(true);
+        var proxy = await svc.GetUserProxyAsync(true);
 
         Assert.That(proxy, Is.Not.Null);
         Assert.That(proxy.User, Is.Null);

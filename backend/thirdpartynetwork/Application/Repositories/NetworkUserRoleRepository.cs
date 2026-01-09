@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿﻿using Microsoft.EntityFrameworkCore;
 using thirdpartynetwork.Core.Data;
 using thirdpartynetwork.Core.Models;
 
@@ -20,77 +20,71 @@ namespace thirdpartynetwork.Application.Repositories
             return query;
         }
 
-        public bool Exists(Guid networkId, Guid networkUserId, Guid roleId)
+        public async Task<bool> ExistsAsync(Guid networkId, Guid networkUserId, Guid roleId)
         {
-            return _context.NetworkUserRoles
-                .Any(nur => nur.NetworkUserId == networkUserId && nur.RoleId == roleId);
+            return await _context.NetworkUserRoles
+                .AnyAsync(nur => nur.NetworkUserId == networkUserId && nur.RoleId == roleId);
         }
 
-        public ICollection<NetworkUserRole> GetAll()
+        public async Task<ICollection<NetworkUserRole>> GetAllAsync()
         {
-            return
-            [
-                .. _context.NetworkUserRoles
+            return await _context.NetworkUserRoles
                     .Include(n => n.NetworkUser)
                     .Include(n => n.Role)
                     .AsNoTracking()
-            ];
+                    .ToListAsync();
         }
 
-        public NetworkUserRole? GetByIds(Guid networkId, Guid networkUserId, Guid roleId)
+        public async Task<NetworkUserRole?> GetByIdsAsync(Guid networkId, Guid networkUserId, Guid roleId)
         {
-            return GetQueryable(networkId)
-                .FirstOrDefault(n => n.NetworkUserId == networkUserId && n.RoleId == roleId);
+            return await GetQueryable(networkId)
+                .FirstOrDefaultAsync(n => n.NetworkUserId == networkUserId && n.RoleId == roleId);
         }
 
-        public NetworkUserRole? GetByIdAndName(Guid networkId, Guid networkUserId, string roleName)
+        public async Task<NetworkUserRole?> GetByIdAndNameAsync(Guid networkId, Guid networkUserId, string roleName)
         {
-            return GetQueryable(networkId)
-                .FirstOrDefault(n => n.NetworkUserId == networkUserId && n.Role.Name == roleName);
+            return await GetQueryable(networkId)
+                .FirstOrDefaultAsync(n => n.NetworkUserId == networkUserId && n.Role.Name == roleName);
         }
 
-        public ICollection<NetworkUserRole> GetByNetworkUserId(Guid networkId, Guid id)
+        public async Task<ICollection<NetworkUserRole>> GetByNetworkUserIdAsync(Guid networkId, Guid id)
         {
-            return
-            [
-                .. GetQueryable(networkId)
+            return await GetQueryable(networkId)
                     .AsNoTracking()
                     .Where(nur => nur.NetworkUserId == id)
-            ];
+                    .ToListAsync();
         }
 
-        public ICollection<NetworkUserRole> GetByRoleId(Guid networkId, Guid id)
+        public async Task<ICollection<NetworkUserRole>> GetByRoleIdAsync(Guid networkId, Guid id)
         {
-            return
-            [
-                .. GetQueryable(networkId)
+            return await GetQueryable(networkId)
                     .AsNoTracking()
                     .Where(nur => nur.RoleId == id)
-            ];
+                    .ToListAsync();
         }
 
-        public NetworkUserRole Create(NetworkUserRole networkUserRole)
+        public async Task<NetworkUserRole> CreateAsync(NetworkUserRole networkUserRole)
         {
-            _context.NetworkUserRoles.Add(networkUserRole);
-            SaveAndUpdate(networkUserRole);
+            await _context.NetworkUserRoles.AddAsync(networkUserRole);
+            await SaveAndUpdateAsync(networkUserRole);
             return networkUserRole;
         }
 
-        public NetworkUserRole Update(Guid networkId, NetworkUserRole networkUserRole)
+        public async Task<NetworkUserRole> UpdateAsync(Guid networkId, NetworkUserRole networkUserRole)
         {
-            var existing = GetByIds(networkId, networkUserRole.NetworkUserId, networkUserRole.RoleId);
+            var existing = await GetByIdsAsync(networkId, networkUserRole.NetworkUserId, networkUserRole.RoleId);
             if (existing == null) throw new Exception("NetworkUserRole not found");
 
             _context.Entry(existing).CurrentValues.SetValues(networkUserRole);
 
-            SaveAndUpdate(existing);
+            await SaveAndUpdateAsync(existing);
             return existing;
         }
 
-        public void Delete(NetworkUserRole networkUserRole)
+        public async Task DeleteAsync(NetworkUserRole networkUserRole)
         {
             _context.Remove(networkUserRole);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
     }
 }

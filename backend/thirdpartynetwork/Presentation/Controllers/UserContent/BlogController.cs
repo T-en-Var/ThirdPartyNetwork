@@ -14,9 +14,9 @@ public class BlogController(IBlogService service, IMapper mapper) : ControllerBa
     [HttpGet]
     [RequirePermission(Constants.Permissions.ReadBlog)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<BlogDto>))]
-    public IActionResult GetNetworkBlogs(Guid networkId)
+    public async Task<IActionResult> GetNetworkBlogs(Guid networkId)
     {
-        var list = service.GetByNetworkId(networkId);
+        var list = await service.GetByNetworkIdAsync(networkId);
         return Ok(mapper.Map<IEnumerable<BlogDto>>(list));
     }
 
@@ -24,9 +24,9 @@ public class BlogController(IBlogService service, IMapper mapper) : ControllerBa
     [RequirePermission(Constants.Permissions.ReadBlog)]
     [ProducesResponseType(200, Type = typeof(BlogDto))]
     [ProducesResponseType(404)]
-    public IActionResult GetBlog(Guid networkId, Guid blogId)
+    public async Task<IActionResult> GetBlog(Guid networkId, Guid blogId)
     {
-        var blog = service.GetById(networkId, blogId);
+        var blog = await service.GetByIdAsync(networkId, blogId);
         return blog != null ? Ok(mapper.Map<BlogDto>(blog)) : NotFound();
     }
 
@@ -34,18 +34,18 @@ public class BlogController(IBlogService service, IMapper mapper) : ControllerBa
     [RequirePermission(Constants.Permissions.ReadBlog)]
     [ProducesResponseType(200, Type = typeof(BlogDto))]
     [ProducesResponseType(404)]
-    public IActionResult GetBySlug(Guid networkId, string slug)
+    public async Task<IActionResult> GetBySlug(Guid networkId, string slug)
     {
-        var blog = service.GetBySlug(networkId, slug);
+        var blog = await service.GetBySlugAsync(networkId, slug);
         return blog != null ? Ok(mapper.Map<BlogDto>(blog)) : NotFound();
     }
 
     [HttpPost]
     [RequirePermission(Constants.Permissions.ManageBlog)]
     [ProducesResponseType(201, Type = typeof(BlogDto))]
-    public IActionResult CreateBlog(Guid networkId, [FromBody] CreateBlogDto blog)
+    public async Task<IActionResult> CreateBlog(Guid networkId, [FromBody] CreateBlogDto blog)
     {
-        var created = service.Create(networkId, blog);
+        var created = await service.CreateAsync(networkId, blog);
         return CreatedAtAction(nameof(CreateBlog), new { networkId = networkId, blogId = created.Id },
             mapper.Map<BlogDto>(created));
     }
@@ -54,18 +54,18 @@ public class BlogController(IBlogService service, IMapper mapper) : ControllerBa
     [RequirePermission(Constants.Permissions.ManageBlog)]
     [ProducesResponseType(200, Type = typeof(BlogDto))]
     [ProducesResponseType(404)]
-    public IActionResult UpdateBlog(Guid networkId, Guid blogId, [FromBody] UpdateBlogDto updateBlog)
+    public async Task<IActionResult> UpdateBlog(Guid networkId, Guid blogId, [FromBody] UpdateBlogDto updateBlog)
     {
-        var updated = service.Update(networkId, blogId, updateBlog);
+        var updated = await service.UpdateAsync(networkId, blogId, updateBlog);
         return Ok(mapper.Map<BlogDto>(updated));
     }
 
     [HttpDelete("{blogId:guid}")]
     [RequirePermission(Constants.Permissions.ManageBlog)]
     [ProducesResponseType(204)]
-    public IActionResult DeleteBlog(Guid networkId, Guid blogId)
+    public async Task<IActionResult> DeleteBlog(Guid networkId, Guid blogId)
     {
-        service.DeleteById(networkId, blogId);
+        await service.DeleteByIdAsync(networkId, blogId);
         return NoContent();
     }
 }

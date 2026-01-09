@@ -13,18 +13,18 @@ public class PageBlockController(IPageBlockService service, IMapper mapper) : Co
     [RequirePermission(Constants.Permissions.ReadPageBlock)]
     [ProducesResponseType(200, Type = typeof(PageBlockDto))]
     [ProducesResponseType(404)]
-    public IActionResult GetPageBlock(Guid networkId, Guid customPageId, Guid pageBlockId)
+    public async Task<IActionResult> GetPageBlock(Guid networkId, Guid customPageId, Guid pageBlockId)
     {
-        var pageBlock = service.GetById(networkId, pageBlockId);
+        var pageBlock = await service.GetByIdAsync(networkId, pageBlockId);
         return pageBlock != null ? Ok(mapper.Map<PageBlockDto>(pageBlock)) : NotFound();
     }
 
     [HttpPost]
     [RequirePermission(Constants.Permissions.ManagePageBlock)]
     [ProducesResponseType(201, Type = typeof(PageBlockDto))]
-    public IActionResult CreatePageBlock(Guid networkId, Guid customPageId, [FromBody] CreatePageBlockDto pageBlock)
+    public async Task<IActionResult> CreatePageBlock(Guid networkId, Guid customPageId, [FromBody] CreatePageBlockDto pageBlock)
     {
-        var uploadedPageBlock = service.Create(networkId, customPageId, pageBlock);
+        var uploadedPageBlock = await service.CreateAsync(networkId, customPageId, pageBlock);
         return Ok(mapper.Map<PageBlockDto>(uploadedPageBlock));
     }
 
@@ -32,19 +32,19 @@ public class PageBlockController(IPageBlockService service, IMapper mapper) : Co
     [RequirePermission(Constants.Permissions.ManagePageBlock)]
     [ProducesResponseType(200, Type = typeof(PageBlockDto))]
     [ProducesResponseType(404)]
-    public IActionResult UpdatePageBlock(Guid networkId, Guid customPageId, Guid pageBlockId,
+    public async Task<IActionResult> UpdatePageBlock(Guid networkId, Guid customPageId, Guid pageBlockId,
         [FromBody] UpdatePageBlockDto updatePageBlock)
     {
-        var pageBlock = service.Update(networkId, customPageId, pageBlockId, updatePageBlock);
+        var pageBlock = await service.UpdateAsync(networkId, customPageId, pageBlockId, updatePageBlock);
         return Ok(mapper.Map<PageBlockDto>(pageBlock));
     }
 
     [HttpDelete("{pageBlockId:guid}")]
     [RequirePermission(Constants.Permissions.ManagePageBlock)]
     [ProducesResponseType(204)]
-    public IActionResult DeletePageBlock(Guid networkId, Guid customPageId, Guid pageBlockId)
+    public async Task<IActionResult> DeletePageBlock(Guid networkId, Guid customPageId, Guid pageBlockId)
     {
-        service.DeleteById(networkId, customPageId, pageBlockId);
+        await service.DeleteByIdAsync(networkId, customPageId, pageBlockId);
         return NoContent();
     }
 }

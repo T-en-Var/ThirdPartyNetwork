@@ -2,15 +2,15 @@ namespace thirdpartynetwork.Core.Interfaces.Auth;
 
 public interface IIdentityVerifier
 {
-    bool IsContentOwner(Guid userProxyId, Guid targetContentId);
-    bool IsUserOwner(Guid userProxyId, Guid targetUserId);
-    bool IsUserProxyOwner(Guid userProxyId, Guid targetUserProxyId);
-    bool IsNetworkUserOwner(Guid userProxyId, Guid targetNetworkUserId);
-    bool IsAllowed(Guid networkId, Guid userProxyId, string permissionName);
-    bool HasPermission(Guid networkId, Guid userProxyId, string permissionName);
-    bool IsNetworkAdmin(Guid networkId, Guid userProxyId);
-    bool IsNetworkAdminOrHasPermission(Guid networkId, Guid userProxyId, string permissionName);
-    bool HasSuperPermission(Guid userProxyId, string permissionName);
-    bool IsSuperAdmin(Guid userProxyId);
-    bool IsSuperAdminOrHasSuperPermission(Guid userProxyId, string permissionName);
+    Task<bool> IsContentOwnerAsync(Guid userProxyId, Guid targetContentId);
+    Task<bool> IsUserOwnerAsync(Guid userProxyId, Guid targetUserId);
+    Task<bool> IsUserProxyOwnerAsync(Guid userProxyId, Guid targetUserProxyId);
+    Task<bool> IsNetworkUserOwnerAsync(Guid userProxyId, Guid targetNetworkUserId);
+    Task<bool> IsAllowedAsync(Guid networkId, Guid userProxyId, string permissionName);
+    Task<bool> HasPermissionAsync(Guid networkId, Guid userProxyId, string permissionName);
+    Task<bool> IsNetworkAdminAsync(Guid networkId, Guid userProxyId);
+    Task<bool> IsNetworkAdminOrHasPermissionAsync(Guid networkId, Guid userProxyId, string permissionName);
+    Task<bool> HasSuperPermissionAsync(Guid userProxyId, string permissionName);
+    Task<bool> IsSuperAdminAsync(Guid userProxyId);
+    Task<bool> IsSuperAdminOrHasSuperPermissionAsync(Guid userProxyId, string permissionName);
 }

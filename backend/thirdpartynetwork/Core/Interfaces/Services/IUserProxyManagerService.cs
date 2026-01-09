@@ -4,5 +4,5 @@ namespace thirdpartynetwork.Core.Interfaces.Services;
 
 public interface IUserProxyManagerService
 {
-    UserProxy AddUserProxy(Guid userId, AddUserProxyDto addUserProxy);
+    Task<UserProxy> AddUserProxyAsync(Guid userId, AddUserProxyDto addUserProxy);
 }

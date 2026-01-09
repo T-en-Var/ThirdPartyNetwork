@@ -15,9 +15,9 @@ public class NetworkUserRoleController(INetworkUserRoleService service, IMapper 
     [RequirePermission(Constants.Permissions.ReadRole)]
     [RequirePermission(Constants.Permissions.ReadUser)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<NetworkUserRoleDto>))]
-    public IActionResult GetNetworkUserRoles(Guid networkId, Guid networkUserId)
+    public async Task<IActionResult> GetNetworkUserRoles(Guid networkId, Guid networkUserId)
     {
-        var networkUserRoles = service.GetByNetworkUserId(networkId, networkUserId);
+        var networkUserRoles = await service.GetByNetworkUserIdAsync(networkId, networkUserId);
         return Ok(mapper.Map<IEnumerable<NetworkUserRoleDto>>(networkUserRoles,
             opts => opts.Items["networkId"] = networkId));
     }
@@ -27,9 +27,9 @@ public class NetworkUserRoleController(INetworkUserRoleService service, IMapper 
     [RequirePermission(Constants.Permissions.ReadUser)]
     [ProducesResponseType(200, Type = typeof(NetworkUserRoleDto))]
     [ProducesResponseType(404)]
-    public IActionResult GetNetworkUserRole(Guid networkId, Guid networkUserId, Guid roleId)
+    public async Task<IActionResult> GetNetworkUserRole(Guid networkId, Guid networkUserId, Guid roleId)
     {
-        var networkUserRole = service.GetByIds(networkId, networkUserId, roleId);
+        var networkUserRole = await service.GetByIdsAsync(networkId, networkUserId, roleId);
         return networkUserRole != null
             ? Ok(mapper.Map<NetworkUserRoleDto>(networkUserRole, opts => opts.Items["networkId"] = networkId))
             : NotFound();
@@ -39,10 +39,10 @@ public class NetworkUserRoleController(INetworkUserRoleService service, IMapper 
     [RequirePermission(Constants.Permissions.ManageRole)]
     [RequirePermission(Constants.Permissions.ManageUser)]
     [ProducesResponseType(200, Type = typeof(NetworkUserRoleDto))]
-    public IActionResult CreateNetworkUserRole(Guid networkId, Guid networkUserId, Guid roleId,
+    public async Task<IActionResult> CreateNetworkUserRole(Guid networkId, Guid networkUserId, Guid roleId,
         [FromBody] CreateNetworkUserRoleDto createNetworkUserRole)
     {
-        var networkUserRole = service.Create(networkId, networkUserId, roleId, createNetworkUserRole);
+        var networkUserRole = await service.CreateAsync(networkId, networkUserId, roleId, createNetworkUserRole);
         return Ok(mapper.Map<NetworkUserRoleDto>(networkUserRole, opts => opts.Items["networkId"] = networkId));
     }
 
@@ -51,10 +51,10 @@ public class NetworkUserRoleController(INetworkUserRoleService service, IMapper 
     [RequirePermission(Constants.Permissions.ManageUser)]
     [ProducesResponseType(200, Type = typeof(NetworkUserRoleDto))]
     [ProducesResponseType(404)]
-    public IActionResult UpdateNetworkUserRole(Guid networkId, Guid networkUserId, Guid roleId,
+    public async Task<IActionResult> UpdateNetworkUserRole(Guid networkId, Guid networkUserId, Guid roleId,
         [FromBody] UpdateNetworkUserRoleDto updateNetworkUserRole)
     {
-        var networkUserRole = service.Update(networkId, networkUserId, roleId, updateNetworkUserRole);
+        var networkUserRole = await service.UpdateAsync(networkId, networkUserId, roleId, updateNetworkUserRole);
         return Ok(mapper.Map<NetworkUserRoleDto>(networkUserRole, opts => opts.Items["networkId"] = networkId));
     }
 
@@ -62,9 +62,9 @@ public class NetworkUserRoleController(INetworkUserRoleService service, IMapper 
     [RequirePermission(Constants.Permissions.ManageRole)]
     [RequirePermission(Constants.Permissions.ManageUser)]
     [ProducesResponseType(204)]
-    public IActionResult DeleteNetworkUserRole(Guid networkId, Guid networkUserId, Guid roleId)
+    public async Task<IActionResult> DeleteNetworkUserRole(Guid networkId, Guid networkUserId, Guid roleId)
     {
-        service.DeleteByIds(networkId, networkUserId, roleId);
+        await service.DeleteByIdsAsync(networkId, networkUserId, roleId);
         return NoContent();
     }
 }

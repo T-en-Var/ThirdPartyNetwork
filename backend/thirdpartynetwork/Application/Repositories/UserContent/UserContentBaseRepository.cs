@@ -10,16 +10,19 @@ public abstract class UserContentBaseRepository<T>(DataContext context, IAccessL
     : BaseRepository(context), IUserContentBaseRepository<T>
     where T : UserContentBaseModel
 {
-    protected abstract IQueryable<T> GetQueryable();
+    protected abstract Task<IQueryable<T>> GetQueryableAsync();
     protected abstract string ReadPermissionName { get; }
 
-    protected IQueryable<T> GetAccessibleQueryable(Guid networkId, bool bypass = false)
+    protected async Task<IQueryable<T>> GetAccessibleQueryableAsync(Guid networkId, bool bypass = false)
     {
-        var query = GetQueryable();
+        var query = await GetQueryableAsync();
 
         if (!bypass)
         {
-            query = query.Where(accessLevelVerifier.GetAccessPredicate<T>(networkId, ReadPermissionName));
+            var accessPredicate = await accessLevelVerifier
+                .GetAccessPredicateAsync<T>(networkId, ReadPermissionName);
+
+            query = query.Where(accessPredicate);
         }
 
         return query
@@ -28,19 +31,21 @@ public abstract class UserContentBaseRepository<T>(DataContext context, IAccessL
             .AsQueryable();
     }
 
-    public ICollection<T> GetByAuthorId(Guid networkId, Guid networkUserId, bool bypass = false)
+    public async Task<ICollection<T>> GetByAuthorIdAsync(Guid networkId, Guid networkUserId, bool bypass = false)
     {
-        return GetAccessibleQueryable(networkId, bypass)
+        var query = await GetAccessibleQueryableAsync(networkId, bypass);
+
+        return await query
             .Where(x => x.AuthorId == networkUserId)
-            .ToList();
+            .ToListAsync();
     }
     
-    public ICollection<T> GetByUserProxyId(Guid userProxyId)
+    public async Task<ICollection<T>> GetByUserProxyIdAsync(Guid userProxyId)
     {
-        var query = GetQueryable(); 
+        var query = await GetQueryableAsync(); 
 
         query = query.Where(x => x.Author.UserProxyId == userProxyId);
     
-        return query.ToList();
+        return await query.ToListAsync();
     }
 }

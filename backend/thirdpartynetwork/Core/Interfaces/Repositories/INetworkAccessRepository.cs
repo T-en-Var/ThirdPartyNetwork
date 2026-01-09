@@ -1,16 +1,16 @@
-﻿using thirdpartynetwork.Core.Models;
+﻿﻿using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Core.Interfaces.Repositories
 {
     public interface INetworkAccessRepository : IBaseRepository
     {
-        bool Exists(Guid networkId, Guid accessId);
-        ICollection<NetworkAccess> GetAll();
-        ICollection<NetworkAccess> GetByNetworkId(Guid id);
-        ICollection<NetworkAccess> GetByAccessId(Guid id);
-        NetworkAccess? GetByIds(Guid networkId, Guid accessId);
-        NetworkAccess Create(NetworkAccess networkAccess);
-        NetworkAccess Update(NetworkAccess networkAccess);
-        void Delete(NetworkAccess networkAccess);
+        Task<bool> ExistsAsync(Guid networkId, Guid accessId);
+        Task<ICollection<NetworkAccess>> GetAllAsync();
+        Task<ICollection<NetworkAccess>> GetByNetworkIdAsync(Guid id);
+        Task<ICollection<NetworkAccess>> GetByAccessIdAsync(Guid id);
+        Task<NetworkAccess?> GetByIdsAsync(Guid networkId, Guid accessId);
+        Task<NetworkAccess> CreateAsync(NetworkAccess networkAccess);
+        Task<NetworkAccess> UpdateAsync(NetworkAccess networkAccess);
+        Task DeleteAsync(NetworkAccess networkAccess);
     }
 }

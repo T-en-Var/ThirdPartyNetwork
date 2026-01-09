@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+﻿﻿using AutoMapper;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using thirdpartynetwork.Core.Interfaces.Helpers;
 using thirdpartynetwork.Core.Models;
@@ -7,34 +7,34 @@ namespace thirdpartynetwork.Application.Services
 {
     public class UserService(IUserRepository repository, IMapper mapper) : IUserService
     {
-        public ICollection<User> GetAll()
+        public async Task<ICollection<User>> GetAllAsync()
         {
-            var users = repository.GetAll();
+            var users = await repository.GetAllAsync();
             return users;
         }
 
-        public User? GetById(Guid id)
+        public async Task<User?> GetByIdAsync(Guid id)
         {
-            var user = repository.GetById(id);
+            var user = await repository.GetByIdAsync(id);
             return user;
         }
 
-        public User Create(CreateUserDto createUser)
+        public async Task<User> CreateAsync(CreateUserDto createUser)
         {
             var user = mapper.Map<User>(createUser);
-            user = repository.Create(user);
+            user = await repository.CreateAsync(user);
             
             return user;
         }
         
-        public User Update(Guid userId, UpdateUserDto updateUser)
+        public async Task<User> UpdateAsync(Guid userId, UpdateUserDto updateUser)
         {
-            if (!repository.Exists(userId)) throw new NotFoundHttpException();
+            if (!await repository.ExistsAsync(userId)) throw new NotFoundHttpException();
             
             var user = mapper.Map<User>(updateUser);
             user.Id = userId;
             
-            user = repository.Update(user);
+            user = await repository.UpdateAsync(user);
 
             // var defaultProxy = user.Proxies.FirstOrDefault(proxy => proxy.IsDefault);
             
@@ -48,10 +48,10 @@ namespace thirdpartynetwork.Application.Services
             return user;
         }
 
-        public void DeleteById(Guid userId)
+        public async Task DeleteByIdAsync(Guid userId)
         {
-            var user = GetById(userId);
-            if (user != null) repository.Delete(user);
+            var user = await GetByIdAsync(userId);
+            if (user != null) await repository.DeleteAsync(user);
         }
     }
 }

@@ -18,56 +18,59 @@ namespace thirdpartynetwork.Application.Repositories
         private readonly DataContext _context = context;
         protected override string ReadPermissionName => Constants.Permissions.ReadBlog;
 
-        protected override IQueryable<Blog> GetQueryable()
+        protected override Task<IQueryable<Blog>> GetQueryableAsync()
         {
-            return _context.Blogs
+            var query = _context.Blogs
                 .Include(x => x.CoverImage)
                 .AsQueryable();
+            
+            return Task.FromResult(query);
         }
 
-        public Blog? GetByNetworkIdAndSlug(Guid networkId, string slug)
+        public async Task<Blog?> GetByNetworkIdAndSlugAsync(Guid networkId, string slug)
         {
-            return GetQueryable().FirstOrDefault(x => x.NetworkId == networkId && x.Slug == slug);
+            return await (await GetQueryableAsync()).FirstOrDefaultAsync(x => x.NetworkId == networkId && x.Slug == slug);
         }
 
-        public Blog Create(Blog blog)
+        public async Task<Blog> CreateAsync(Blog blog)
         {
-            _context.Add(blog);
-            SaveAndUpdate(blog);
+            await _context.AddAsync(blog);
+            await SaveAndUpdateAsync(blog);
             return blog;
         }
 
-        public void Delete(Blog blog)
+        public async Task DeleteAsync(Blog blog)
         {
             _context.Remove(blog);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
 
-        public bool Exists(Guid id)
+        public async Task<bool> ExistsAsync(Guid id)
         {
-            return _context.Set<Blog>().Any(b => b.Id == id);
+            return await _context.Set<Blog>().AnyAsync(b => b.Id == id);
         }
 
-        public Blog? GetById(Guid id)
+        public async Task<Blog?> GetByIdAsync(Guid id)
         {
-            return GetQueryable().FirstOrDefault(x => x.Id == id);
+            return await (await GetQueryableAsync()).FirstOrDefaultAsync(x => x.Id == id);
         }
 
-        public ICollection<Blog> GetByNetworkId(Guid networkId)
+        public async Task<ICollection<Blog>> GetByNetworkIdAsync(Guid networkId)
         {
-            return GetAccessibleQueryable(networkId)
+            return await (await GetAccessibleQueryableAsync(networkId))
                 .AsNoTracking()
-                .Where(b => b.Network.Id == networkId).ToList();
+                .Where(b => b.Network.Id == networkId)
+                .ToListAsync();
         }
 
-        public Blog Update(Guid blogId, UpdateBlogDto updateBlog)
+        public async Task<Blog> UpdateAsync(Guid blogId, UpdateBlogDto updateBlog)
         {
-            var existing = GetById(blogId);
+            var existing = await GetByIdAsync(blogId);
             if (existing == null) throw new Exception("Blog not found");
 
             mapper.Map(updateBlog, existing);
 
-            SaveAndUpdate(existing);
+            await SaveAndUpdateAsync(existing);
             return existing;
         }
     }

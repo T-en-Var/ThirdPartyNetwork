@@ -17,7 +17,7 @@ public class IdentityService(
         return _ExtractUserProxyId(true) != Guid.Empty;
     }
     
-    public UserProxy GetUserProxy(bool omitThrow = false)
+    public async Task<UserProxy> GetUserProxyAsync(bool omitThrow = false)
     {
         var userProxyId = _ExtractUserProxyId(omitThrow);
         
@@ -31,7 +31,7 @@ public class IdentityService(
             return cachedProxy;
         }
 
-        var userProxy = _GetUserProxy(userProxyId);
+        var userProxy = await _GetUserProxyAsync(userProxyId);
         if (userProxy == null)
         {
         
@@ -71,12 +71,12 @@ public class IdentityService(
         return httpContext;
     }
 
-    private UserProxy? _GetUserProxy(Guid userProxyId)
+    private async Task<UserProxy?> _GetUserProxyAsync(Guid userProxyId)
     {
-        return dataContext.UserProxies
+        return await dataContext.UserProxies
             .Include(up => up.NetworkUsers)
             .AsNoTracking()
-            .FirstOrDefault(up => up.Id == userProxyId);
+            .FirstOrDefaultAsync(up => up.Id == userProxyId);
     }
 
     private Guid _ExtractUserProxyId(bool omitThrow)

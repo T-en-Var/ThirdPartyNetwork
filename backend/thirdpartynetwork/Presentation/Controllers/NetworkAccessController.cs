@@ -12,9 +12,9 @@ public class NetworkAccessController(INetworkAccessService service, IMapper mapp
     [RequirePermission(Constants.Permissions.ReadAccess)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<NetworkAccessDto>))]
     [ProducesResponseType(404)]
-    public IActionResult GetNetworkAccesses(Guid networkId)
+    public async Task<IActionResult> GetNetworkAccesses(Guid networkId)
     {
-        var networkAccesses = service.GetByNetworkId(networkId);
+        var networkAccesses = await service.GetByNetworkIdAsync(networkId);
         return Ok(mapper.Map<IEnumerable<NetworkAccessDto>>(networkAccesses, opts => opts.Items["networkId"] = networkId));
     }
 
@@ -22,9 +22,9 @@ public class NetworkAccessController(INetworkAccessService service, IMapper mapp
     [RequirePermission(Constants.Permissions.ManageAccess)]
     [ProducesResponseType(200, Type = typeof(NetworkAccessDto))]
     [ProducesResponseType(404)]
-    public IActionResult GetNetworkAccess(Guid networkId, Guid accessId)
+    public async Task<IActionResult> GetNetworkAccess(Guid networkId, Guid accessId)
     {
-        var networkAccess = service.GetByIds(networkId, accessId);
+        var networkAccess = await service.GetByIdsAsync(networkId, accessId);
         if (networkAccess == null) return NotFound();
         return Ok(mapper.Map<NetworkAccessDto>(networkAccess, opts => opts.Items["networkId"] = networkId));
     }
@@ -32,9 +32,9 @@ public class NetworkAccessController(INetworkAccessService service, IMapper mapp
     [HttpPost("{accessId:guid}")]
     [RequirePermission(Constants.Permissions.ManageAccess)]
     [ProducesResponseType(201, Type = typeof(NetworkAccessDto))]
-    public IActionResult CreateNetworkAccess(Guid networkId, Guid accessId, [FromBody] CreateNetworkAccessDto createNetworkAccess)
+    public async Task<IActionResult> CreateNetworkAccess(Guid networkId, Guid accessId, [FromBody] CreateNetworkAccessDto createNetworkAccess)
     {
-        var networkAccess = service.Create(networkId, accessId, createNetworkAccess);
+        var networkAccess = await service.CreateAsync(networkId, accessId, createNetworkAccess);
         return Ok(mapper.Map<NetworkAccessDto>(networkAccess, opts => opts.Items["networkId"] = networkId));
     }
 
@@ -42,19 +42,19 @@ public class NetworkAccessController(INetworkAccessService service, IMapper mapp
     [RequirePermission(Constants.Permissions.ManageAccess)]
     [ProducesResponseType(200, Type = typeof(NetworkAccessDto))]
     [ProducesResponseType(404)]
-    public IActionResult UpdateNetworkAccess(Guid networkId, Guid accessId,
+    public async Task<IActionResult> UpdateNetworkAccess(Guid networkId, Guid accessId,
         [FromBody] UpdateNetworkAccessDto updateNetworkAccess)
     {
-        var networkAccess = service.Update(networkId, accessId, updateNetworkAccess);
+        var networkAccess = await service.UpdateAsync(networkId, accessId, updateNetworkAccess);
         return Ok(mapper.Map<NetworkAccessDto>(networkAccess, opts => opts.Items["networkId"] = networkId));
     }
 
     [HttpDelete("{accessId:guid}")]
     [RequirePermission(Constants.Permissions.ManageAccess)]
     [ProducesResponseType(204)]
-    public IActionResult DeleteNetworkAccess(Guid networkId, Guid accessId)
+    public async Task<IActionResult> DeleteNetworkAccess(Guid networkId, Guid accessId)
     {
-        service.DeleteByIds(networkId, accessId);
+        await service.DeleteByIdsAsync(networkId, accessId);
         return NoContent();
     }
 }

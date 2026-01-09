@@ -8,15 +8,15 @@ public abstract class UserContentBaseService<T>(IUserContentBaseRepository<T> re
     : IUserContentBaseService<T> 
     where T : UserContentBaseModel
 {
-    public ICollection<T> GetByAuthorId(Guid networkUserId)
+    public async Task<ICollection<T>> GetByAuthorIdAsync(Guid networkUserId)
     {
-        var networkUser = networkUserService.GetJustById(networkUserId);
+        var networkUser = await networkUserService.GetJustByIdAsync(networkUserId);
         if (networkUser == null) throw new NotFoundHttpException();
-        return repository.GetByAuthorId(networkUser.NetworkId, networkUserId);
+        return await repository.GetByAuthorIdAsync(networkUser.NetworkId, networkUserId);
     }
     
-    public ICollection<T> GetByUserProxyId(Guid userProxyId)
+    public async Task<ICollection<T>> GetByUserProxyIdAsync(Guid userProxyId)
     {
-        return repository.GetByUserProxyId(userProxyId);
+        return await repository.GetByUserProxyIdAsync(userProxyId);
     }
 }

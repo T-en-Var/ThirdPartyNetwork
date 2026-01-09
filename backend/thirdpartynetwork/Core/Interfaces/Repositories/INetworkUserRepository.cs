@@ -4,18 +4,18 @@ namespace thirdpartynetwork.Core.Interfaces.Repositories
 {
     public interface INetworkUserRepository : IBaseRepository
     {
-        bool Exists(Guid id);
-        ICollection<NetworkUser> GetAll();
-        ICollection<NetworkUser> GetByNetworkId(Guid networkId);
-        ICollection<NetworkUser> GetByUserProxyId(Guid userProxyId, Func<IQueryable<NetworkUser>, IQueryable<NetworkUser>>? queryConfig = null);
-        NetworkUser? GetById(Guid networkId, Guid networkUserId);
-        NetworkUser? GetJustById(Guid networkUserId);
-        NetworkUser? GetByNetworkIdAndEmail(Guid networkId, string email);
-        NetworkUser? GetByIds(Guid networkId, Guid userProxyId);
-        NetworkUser? GetByIdsPreAuth(Guid networkId, Guid userProxyId);
-        NetworkUser Create(NetworkUser networkUser);
-        NetworkUser Update(Guid networkId, NetworkUser networkUser);
-        void NetworkAccessUpdate(Guid networkId);
-        void Delete(NetworkUser networkUser);
+        Task<bool> ExistsAsync(Guid id);
+        Task<ICollection<NetworkUser>> GetAllAsync();
+        Task<ICollection<NetworkUser>> GetByNetworkIdAsync(Guid networkId);
+        Task<ICollection<NetworkUser>> GetByUserProxyIdAsync(Guid userProxyId, Func<IQueryable<NetworkUser>, IQueryable<NetworkUser>>? queryConfig = null);
+        Task<NetworkUser?> GetByIdAsync(Guid networkId, Guid networkUserId);
+        Task<NetworkUser?> GetJustByIdAsync(Guid networkUserId);
+        Task<NetworkUser?> GetByNetworkIdAndEmailAsync(Guid networkId, string email);
+        Task<NetworkUser?> GetByIdsAsync(Guid networkId, Guid userProxyId);
+        Task<NetworkUser?> GetByIdsPreAuthAsync(Guid networkId, Guid userProxyId);
+        Task<NetworkUser> CreateAsync(NetworkUser networkUser);
+        Task<NetworkUser> UpdateAsync(Guid networkId, NetworkUser networkUser);
+        Task NetworkAccessUpdateAsync(Guid networkId);
+        Task DeleteAsync(NetworkUser networkUser);
     }
 }

@@ -12,9 +12,9 @@ public class CustomPageController(ICustomPageService service, IMapper mapper) : 
     [HttpGet]
     [RequirePermission(Constants.Permissions.ReadCustomPage)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<CustomPageDto>))]
-    public IActionResult GetNetworkCustomPages(Guid networkId)
+    public async Task<IActionResult> GetNetworkCustomPages(Guid networkId)
     {
-        var customPage = service.GetByNetworkId(networkId);
+        var customPage = await service.GetByNetworkIdAsync(networkId);
         return Ok(mapper.Map<IEnumerable<CustomPageDto>>(customPage));
     }
 
@@ -22,18 +22,18 @@ public class CustomPageController(ICustomPageService service, IMapper mapper) : 
     [RequirePermission(Constants.Permissions.ReadCustomPage)]
     [ProducesResponseType(200, Type = typeof(CustomPageDto))]
     [ProducesResponseType(404)]
-    public IActionResult GetCustomPage(Guid networkId, Guid customPageId)
+    public async Task<IActionResult> GetCustomPage(Guid networkId, Guid customPageId)
     {
-        var customPage = service.GetById(networkId, customPageId);
+        var customPage = await service.GetByIdAsync(networkId, customPageId);
         return customPage != null ? Ok(mapper.Map<CustomPageDto>(customPage)) : NotFound();
     }
 
     [HttpPost]
     [RequirePermission(Constants.Permissions.ManageCustomPage)]
     [ProducesResponseType(201, Type = typeof(CustomPageDto))]
-    public IActionResult CreateCustomPage(Guid networkId, [FromBody] CreateCustomPageDto customPage)
+    public async Task<IActionResult> CreateCustomPage(Guid networkId, [FromBody] CreateCustomPageDto customPage)
     {
-        var uploadedCustomPage = service.Create(networkId, customPage);
+        var uploadedCustomPage = await service.CreateAsync(networkId, customPage);
         return Ok(mapper.Map<CustomPageDto>(uploadedCustomPage));
     }
 
@@ -41,19 +41,19 @@ public class CustomPageController(ICustomPageService service, IMapper mapper) : 
     [RequirePermission(Constants.Permissions.ManageCustomPage)]
     [ProducesResponseType(200, Type = typeof(CustomPageDto))]
     [ProducesResponseType(404)]
-    public IActionResult UpdateCustomPage(Guid networkId, Guid customPageId,
+    public async Task<IActionResult> UpdateCustomPage(Guid networkId, Guid customPageId,
         [FromBody] UpdateCustomPageDto updateCustomPage)
     {
-        var customPage = service.Update(networkId, customPageId, updateCustomPage);
+        var customPage = await service.UpdateAsync(networkId, customPageId, updateCustomPage);
         return Ok(mapper.Map<CustomPageDto>(customPage));
     }
 
     [HttpDelete("{customPageId:guid}")]
     [RequirePermission(Constants.Permissions.ManageCustomPage)]
     [ProducesResponseType(204)]
-    public IActionResult DeleteCustomPage(Guid networkId, Guid customPageId)
+    public async Task<IActionResult> DeleteCustomPage(Guid networkId, Guid customPageId)
     {
-        service.DeleteById(networkId, customPageId);
+        await service.DeleteByIdAsync(networkId, customPageId);
         return NoContent();
     }
 }

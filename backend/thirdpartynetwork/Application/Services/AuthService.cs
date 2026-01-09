@@ -16,47 +16,47 @@ public class AuthService(
     IUserProxyService userProxyService,
     IUserService userService) : IAuthService
 {
-    private NetworkUser GetUserById(Guid networkId, Guid userProxyId)
+    private async Task<NetworkUser> GetUserByIdAsync(Guid networkId, Guid userProxyId)
     {
-        var networkUser = networkUserService.GetByIdsPreAuth(networkId, userProxyId);
+        var networkUser = await networkUserService.GetByIdsPreAuthAsync(networkId, userProxyId);
         if (networkUser == null) throw new UnauthorizedHttpException("Invalid email or password");
 
         return networkUser;
     }
 
-    private NetworkUser GetNetworkUserByEmail(Guid networkId, string email)
+    private async Task<NetworkUser> GetNetworkUserByEmailAsync(Guid networkId, string email)
     {
-        var networkUser = networkUserService.GetByNetworkIdAndEmail(networkId, email);
+        var networkUser = await networkUserService.GetByNetworkIdAndEmailAsync(networkId, email);
         if (networkUser == null) throw new UnauthorizedHttpException("Invalid email or password");
 
         return networkUser;
     }
 
-    private NetworkUser CreateNetworkUser(Guid networkId, CreateUserProxyDto createUserProxy)
+    private async Task<NetworkUser> CreateNetworkUserAsync(Guid networkId, CreateUserProxyDto createUserProxy)
     {
-        if (networkUserService.GetByNetworkIdAndEmail(networkId, createUserProxy.Email) != null)
+        if (await networkUserService.GetByNetworkIdAndEmailAsync(networkId, createUserProxy.Email) != null)
             throw new ConflictHttpException("Email already used");
-        var mainNetwork = networkService.GetMainNetwork();
+        var mainNetwork = await networkService.GetMainNetworkAsync();
 
         var userDto = new CreateUserDto();
-        var user = userService.Create(userDto);
+        var user = await userService.CreateAsync(userDto);
 
-        var userProxy = userProxyService.Create(user.Id, createUserProxy);
+        var userProxy = await userProxyService.CreateAsync(user.Id, createUserProxy);
 
-        var networkUser = networkUserService.Create(networkId, userProxy.Id, new CreateNetworkUserDto());
+        var networkUser = await networkUserService.CreateAsync(networkId, userProxy.Id, new CreateNetworkUserDto());
         if (mainNetwork.Id != networkId)
-            networkUserService.Create(mainNetwork.Id, userProxy.Id, new CreateNetworkUserDto());
+            await networkUserService.CreateAsync(mainNetwork.Id, userProxy.Id, new CreateNetworkUserDto());
 
         return networkUser;
     }
 
-    public AuthorizationCodeDto ExternalLogin(Guid networkId, LoginDto loginData, string clientId, string codeChallenge)
+    public async Task<AuthorizationCodeDto> ExternalLoginAsync(Guid networkId, LoginDto loginData, string clientId, string codeChallenge)
     {
-        var networkUser = GetNetworkUserByEmail(networkId, loginData.Email);
+        var networkUser = await GetNetworkUserByEmailAsync(networkId, loginData.Email);
         if (!passwordHasher.VerifyPassword(loginData.Password, networkUser.UserProxy.Password))
             throw new UnauthorizedHttpException("Invalid email or password");
 
-        var network = networkService.GetById(networkId, true);
+        var network = await networkService.GetByIdAsync(networkId, true);
         if (network == null) throw new NotFoundHttpException("Invalid email or password");
 
         var audience = GetAudienceFromRedirectUri(network.RedirectURI);
@@ -81,7 +81,7 @@ public class AuthService(
         return new AuthorizationCodeDto { Code = code, AccessToken = tokens.AccessToken };
     }
 
-    public TokensDto Refresh(Guid networkId, RefreshTokenDto refreshTokenDto, bool isExternal = true)
+    public async Task<TokensDto> RefreshAsync(Guid networkId, RefreshTokenDto refreshTokenDto, bool isExternal = true)
     {
         var isTokenValid = jwtHandler.ValidateToken(refreshTokenDto.RefreshToken);
         if (!isTokenValid) throw new UnauthorizedHttpException("Invalid token 1");
@@ -96,19 +96,19 @@ public class AuthService(
         if (oldJti == null) throw new UnauthorizedHttpException("Invalid token 3");
 
         var userId = Guid.Parse(uidClaim.Value);
-        var networkUser = GetUserById(networkId, userId);
+        var networkUser = await GetUserByIdAsync(networkId, userId);
 
         return isExternal 
             ? tokenGenerator.GenerateTokenPair(networkUser, audClaim?.Value, networkId, oldJti.Value)
             : tokenGenerator.GenerateTokenPair(networkUser, null, null, oldJti.Value);
     }
 
-    public AuthorizationCodeDto ExternalRegister(Guid networkId, CreateUserProxyDto createUserProxy, string clientId,
+    public async Task<AuthorizationCodeDto> ExternalRegisterAsync(Guid networkId, CreateUserProxyDto createUserProxy, string clientId,
         string codeChallenge)
     {
-        var networkUser = CreateNetworkUser(networkId, createUserProxy);
+        var networkUser = await CreateNetworkUserAsync(networkId, createUserProxy);
 
-        var network = networkService.GetById(networkId);
+        var network = await networkService.GetByIdAsync(networkId);
         if (network == null) throw new NotFoundHttpException("Network not found");
 
         var audience = GetAudienceFromRedirectUri(network.RedirectURI);
@@ -133,7 +133,7 @@ public class AuthService(
         return new AuthorizationCodeDto { Code = code, AccessToken = tokens.AccessToken };
     }
 
-    public TokensDto Token(TokenRequestDto dto)
+    public async Task<TokensDto> TokenAsync(TokenRequestDto dto)
     {
         var authCode = AuthorizationCodeStore.Get(dto.Code);
         if (authCode == null)
@@ -147,21 +147,21 @@ public class AuthService(
 
         AuthorizationCodeStore.Remove(dto.Code);
 
-        var networkUser = GetUserById(authCode.NetworkId, authCode.UserId);
+        var networkUser = await GetUserByIdAsync(authCode.NetworkId, authCode.UserId);
 
         return tokenGenerator.GenerateTokenPair(networkUser, authCode.Audience, authCode.NetworkId);
     }
 
-    public TokensDto MainNetworkLogin(LoginDto loginDto)
+    public async Task<TokensDto> MainNetworkLoginAsync(LoginDto loginDto)
     {
-        var mainNetwork = networkService.GetMainNetwork();
+        var mainNetwork = await networkService.GetMainNetworkAsync();
 
-        return LoginGetTokens(mainNetwork.Id, loginDto);
+        return await LoginGetTokensAsync(mainNetwork.Id, loginDto);
     }
 
-    private TokensDto LoginGetTokens(Guid networkId, LoginDto loginData)
+    private async Task<TokensDto> LoginGetTokensAsync(Guid networkId, LoginDto loginData)
     {
-        var networkUser = GetNetworkUserByEmail(networkId, loginData.Email);
+        var networkUser = await GetNetworkUserByEmailAsync(networkId, loginData.Email);
         if (networkUser == null) throw new UnauthorizedHttpException("Invalid email or password");
 
         if (networkUser.UserProxy.Password is null ||
@@ -171,21 +171,21 @@ public class AuthService(
         return tokenGenerator.GenerateTokenPair(networkUser);
     }
 
-    public TokensDto MainNetworkRefresh(RefreshTokenDto refreshTokenDto)
+    public async Task<TokensDto> MainNetworkRefreshAsync(RefreshTokenDto refreshTokenDto)
     {
-        var mainNetwork = networkService.GetMainNetwork();
-        return Refresh(mainNetwork.Id, refreshTokenDto, false);
+        var mainNetwork = await networkService.GetMainNetworkAsync();
+        return await RefreshAsync(mainNetwork.Id, refreshTokenDto, false);
     }
 
-    public TokensDto MainNetworkRegister(CreateUserProxyDto createUserProxy)
+    public async Task<TokensDto> MainNetworkRegisterAsync(CreateUserProxyDto createUserProxy)
     {
-        var mainNetwork = networkService.GetMainNetwork();
-        return RegisterGetTokens(mainNetwork.Id, createUserProxy);
+        var mainNetwork = await networkService.GetMainNetworkAsync();
+        return await RegisterGetTokensAsync(mainNetwork.Id, createUserProxy);
     }
 
-    private TokensDto RegisterGetTokens(Guid networkId, CreateUserProxyDto createUserProxy)
+    private async Task<TokensDto> RegisterGetTokensAsync(Guid networkId, CreateUserProxyDto createUserProxy)
     {
-        var networkUser = CreateNetworkUser(networkId, createUserProxy);
+        var networkUser = await CreateNetworkUserAsync(networkId, createUserProxy);
         return tokenGenerator.GenerateTokenPair(networkUser);
     }
 

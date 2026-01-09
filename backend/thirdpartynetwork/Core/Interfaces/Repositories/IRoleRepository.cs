@@ -1,15 +1,15 @@
-﻿using thirdpartynetwork.Core.Models;
+﻿﻿using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Core.Interfaces.Repositories
 {
     public interface IRoleRepository : IBaseRepository
     {
-        bool Exists(Guid id);
-        ICollection<Role> GetAll();
-        ICollection<Role> GetByNetworkId(Guid networkId);
-        Role? GetById(Guid networkId, Guid roleId);
-        Role Create(Role role);
-        Role Update(Guid networkId, Role role);
-        void Delete(Role role);
+        Task<bool> ExistsAsync(Guid id);
+        Task<ICollection<Role>> GetAllAsync();
+        Task<ICollection<Role>> GetByNetworkIdAsync(Guid networkId);
+        Task<Role?> GetByIdAsync(Guid networkId, Guid roleId);
+        Task<Role> CreateAsync(Role role);
+        Task<Role> UpdateAsync(Guid networkId, Role role);
+        Task DeleteAsync(Role role);
     }
 }

@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿﻿using Microsoft.EntityFrameworkCore;
 using thirdpartynetwork.Core.Data;
 using thirdpartynetwork.Core.Exceptions;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
@@ -20,47 +20,47 @@ namespace thirdpartynetwork.Application.Repositories
             return query;
         }
 
-        public bool Exists(Guid id)
+        public async Task<bool> ExistsAsync(Guid id)
         {
-            return _context.Accesses.Any(p => p.Id == id);
+            return await _context.Accesses.AnyAsync(p => p.Id == id);
         }
 
-        public ICollection<Access> GetAll()
+        public async Task<ICollection<Access>> GetAllAsync()
         {
-            return [.. GetQueryable().AsNoTracking()];
+            return await GetQueryable().AsNoTracking().ToListAsync();
         }
 
-        public Access? GetById(Guid id)
+        public async Task<Access?> GetByIdAsync(Guid id)
         {
-            return GetQueryable().FirstOrDefault(x => x.Id == id);
+            return await GetQueryable().FirstOrDefaultAsync(x => x.Id == id);
         }
 
-        public Access Create(Access access)
+        public async Task<Access> CreateAsync(Access access)
         {
-            _context.Accesses.Add(access);
-            SaveAndUpdate(access);
+            await _context.Accesses.AddAsync(access);
+            await SaveAndUpdateAsync(access);
             return access;
         }
 
-        public Access Update(Access access)
+        public async Task<Access> UpdateAsync(Access access)
         {
-            var existing = GetById(access.Id);
+            var existing = await GetByIdAsync(access.Id);
             if (existing == null) throw new Exception("Access not found");
             
             if (existing.IsSystemProtected) throw new UnauthorizedHttpException("Access is system protected");
 
             _context.Entry(existing).CurrentValues.SetValues(access);
 
-            SaveAndUpdate(existing);
+            await SaveAndUpdateAsync(existing);
             return existing;
         }
 
-        public void Delete(Access access)
+        public async Task DeleteAsync(Access access)
         {
             if (access.IsSystemProtected) throw new UnauthorizedHttpException("Access is system protected");
 
             _context.Remove(access);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
     }
 }

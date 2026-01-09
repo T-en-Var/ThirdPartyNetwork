@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿﻿using Microsoft.EntityFrameworkCore;
 using thirdpartynetwork.Core.Data;
 using thirdpartynetwork.Core.Exceptions;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
@@ -20,22 +20,22 @@ namespace thirdpartynetwork.Application.Repositories
             return query;
         }
         
-        public bool Exists(Guid networkUserId, Guid accessId)
+        public async Task<bool> ExistsAsync(Guid networkUserId, Guid accessId)
         {
-            return _context.NetworkUserAccesses
-                .Any(nup =>  nup.NetworkUserId == networkUserId && nup.AccessId == accessId);
+            return await _context.NetworkUserAccesses
+                .AnyAsync(nup =>  nup.NetworkUserId == networkUserId && nup.AccessId == accessId);
         }
 
-        public ICollection<NetworkUserAccess> GetAll()
+        public async Task<ICollection<NetworkUserAccess>> GetAllAsync()
         {
-            return [.. GetQueryable().AsNoTracking()];
+            return await GetQueryable().AsNoTracking().ToListAsync();
         }
 
-        public void Populate(Guid networkId, Guid accessId)
+        public async Task PopulateAsync(Guid networkId, Guid accessId)
         {
-            var networkUsers = _context.NetworkUsers
+            var networkUsers = await _context.NetworkUsers
                 .Where(u => u.NetworkId == networkId)
-                .ToList();
+                .ToListAsync();
 
             var newAccesses = networkUsers.Select(nu => new NetworkUserAccess
             {
@@ -46,81 +46,81 @@ namespace thirdpartynetwork.Application.Repositories
                 Access = null
             }).ToList();
 
-            _context.NetworkUserAccesses.AddRange(newAccesses);
-            SaveAndUpdateAll(newAccesses);
+            await _context.NetworkUserAccesses.AddRangeAsync(newAccesses);
+            await SaveAndUpdateAllAsync(newAccesses);
         }
 
-        public void Depopulate(Guid networkId, Guid accessId)
+        public async Task DepopulateAsync(Guid networkId, Guid accessId)
         {
-            var accessesToRemove = _context.NetworkUserAccesses
+            var accessesToRemove = await _context.NetworkUserAccesses
                 .Where(nua => nua.AccessId == accessId && nua.NetworkUser.NetworkId == networkId)
-                .ToList();
+                .ToListAsync();
 
             _context.NetworkUserAccesses.RemoveRange(accessesToRemove);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
 
-        public NetworkUserAccess? GetByIds(Guid networkUserId, Guid accessId)
+        public async Task<NetworkUserAccess?> GetByIdsAsync(Guid networkUserId, Guid accessId)
         {
-            return GetQueryable()
-                .FirstOrDefault(n => n.NetworkUserId == networkUserId && n.AccessId == accessId);
+            return await GetQueryable()
+                .FirstOrDefaultAsync(n => n.NetworkUserId == networkUserId && n.AccessId == accessId);
         }
 
-        public ICollection<NetworkUserAccess> GetByNetworkUserId(Guid id)
+        public async Task<ICollection<NetworkUserAccess>> GetByNetworkUserIdAsync(Guid id)
         {
-            return [.. GetQueryable()
+            return await GetQueryable()
                 .AsNoTracking()
-                .Where(nup => nup.NetworkUserId == id)];
+                .Where(nup => nup.NetworkUserId == id).ToListAsync();
         }
 
-        public ICollection<NetworkUserAccess> GetByAccessId(Guid accessId)
+        public async Task<ICollection<NetworkUserAccess>> GetByAccessIdAsync(Guid accessId)
         {
-            return [.. GetQueryable()
+            return await GetQueryable()
                 .AsNoTracking()
-                .Where(nup => nup.AccessId == accessId)];
+                .Where(nup => nup.AccessId == accessId).ToListAsync();
         }
 
-        public NetworkUserAccess Create(NetworkUserAccess networkUserPermission)
+        public async Task<NetworkUserAccess> CreateAsync(NetworkUserAccess networkUserPermission)
         {
-            _context.NetworkUserAccesses.Add(networkUserPermission);
-            SaveAndUpdate(networkUserPermission);
+            await _context.NetworkUserAccesses.AddAsync(networkUserPermission);
+            await SaveAndUpdateAsync(networkUserPermission);
             return networkUserPermission;
         }
 
-        public NetworkUserAccess Update(NetworkUserAccess networkUserAccess)
+        public async Task<NetworkUserAccess> UpdateAsync(NetworkUserAccess networkUserAccess)
         {
-            var existing = GetByIds(networkUserAccess.NetworkUserId, networkUserAccess.AccessId);
+            var existing = await GetByIdsAsync(networkUserAccess.NetworkUserId, networkUserAccess.AccessId);
             if (existing == null) throw new Exception("NetworkUserPermission not found");
 
             _context.Entry(existing).CurrentValues.SetValues(networkUserAccess);
 
-            SaveAndUpdate(existing);
+            await SaveAndUpdateAsync(existing);
             return existing;
         }
 
-        public void MarkAccessComplete(Guid networkUserId)
+        public async Task MarkAccessCompleteAsync(Guid networkUserId)
         {
             // Fast check: are there any required accesses that are NOT accepted?
-            bool hasUnacceptedRequiredAccess = _context.NetworkAccesses
+            bool hasUnacceptedRequiredAccess = await _context.NetworkAccesses
                 .Where(na => na.IsRequired && na.Network.NetworkUsers.Any(nu => nu.Id == networkUserId))
-                .Any(na => !_context.NetworkUserAccesses
-                    .Any(nua => nua.NetworkUserId == networkUserId && nua.AccessId == na.AccessId && nua.IsAccepted));
+                .AnyAsync(na => !_context.NetworkUserAccesses
+                    .Any(nua => nua.NetworkUserId == networkUserId && nua.AccessId == na.AccessId && nua.IsAccepted)); // Inner Any is usually translated to SQL EXISTS, so it's fine inside AnyAsync
 
             if (hasUnacceptedRequiredAccess)
                 return;
 
-            var networkUser = _context.NetworkUsers.FirstOrDefault(nu => nu.Id == networkUserId);
+            var networkUser = await _context.NetworkUsers.FirstOrDefaultAsync(nu => nu.Id == networkUserId);
             if (networkUser == null)
                 return;
             
             networkUser.AccessIncomplete = false;
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
 
-        public void Delete(NetworkUserAccess networkUserAccess)
+        public async Task DeleteAsync(NetworkUserAccess networkUserAccess)
         {
             _context.Remove(networkUserAccess);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
     }
 }
