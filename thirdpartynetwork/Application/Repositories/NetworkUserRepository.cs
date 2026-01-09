@@ -68,16 +68,13 @@ namespace thirdpartynetwork.Application.Repositories
             Guid userProxyId,
             Func<IQueryable<NetworkUser>, IQueryable<NetworkUser>>? queryConfig = null)
         {
-            // Start with the base query
-            var query = _context.NetworkUsers.Include(x => x.Files).AsNoTracking().AsQueryable();
-
-            // Apply the includes if provided
+            var query = _context.NetworkUsers.AsNoTracking().AsQueryable();
+            
             if (queryConfig != null)
             {
                 query = queryConfig(query);
             }
 
-            // Apply the filter and execute
             return await query.Where(nu => nu.UserProxyId == userProxyId).ToListAsync();
         }
 
