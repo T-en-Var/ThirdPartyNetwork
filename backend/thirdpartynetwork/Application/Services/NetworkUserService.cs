@@ -49,23 +49,17 @@ namespace thirdpartynetwork.Application.Services
         public async Task<ICollection<Network>> GetNetworksByUserProxyIdAsync(Guid userProxyId)
         {
             if (await userProxyService.GetByIdAsync(userProxyId) == null) throw new NotFoundHttpException("UserProxy not Found");
-
+            
             var networkUsers = await repository.GetByUserProxyIdAsync(userProxyId, q => q
-                    .Include(n => n.Network)
-                    .ThenInclude(x => x.NetworkUsers)
-                    .ThenInclude(x => x.UserProxy));
+                    .Include(n => n.Network));
             
             var networks = networkUsers.Select(nu => nu.Network).ToList();
-
             return networks;
         }
 
         public async Task<ICollection<File>> GetFilesByUserProxyIdAsync(Guid userProxyId)
         {
             if (await userProxyService.GetByIdAsync(userProxyId) == null) throw new NotFoundHttpException("UserProxy not Found");
-
-            // var x = await repository.GetByUserProxyIdAsync(userProxyId, q => q
-            //     .Include(nu => nu.Files));
 
             var networkUsers = await repository.GetByUserProxyIdAsync(userProxyId, q => q
                 .Include(nu => nu.Files));

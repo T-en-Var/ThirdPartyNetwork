@@ -93,7 +93,7 @@ public class AccessLevelVerifier(
         var userProxy = await identityService.GetUserProxyAsync(omitThrow: true);
 
         // Check if it's a real, authenticated user
-        var isRealUser = userProxy?.User != null;
+        var isRealUser = userProxy.Id != Guid.Empty;
 
         if (isRealUser)
         {
@@ -112,11 +112,6 @@ public class AccessLevelVerifier(
             // the checks for Private/Network in the SQL later.
             hasPermission = await identityVerifier.IsAllowedAsync(requestedNetworkId, currentUserId.Value, permissionName);
         }
-        
-        Console.WriteLine($"hasPermission: {hasPermission}");
-        Console.WriteLine($"isRealUser: {isRealUser}");
-        Console.WriteLine($"userProxy.Id: {userProxy?.Id}");
-        Console.WriteLine($"isMemberOfRequestedNetwork: {isMemberOfRequestedNetwork}");
         
         // --- STEP 2: BUILD EXPRESSION (SQL Side) ---
         // EF Core converts this Lambda into SQL.

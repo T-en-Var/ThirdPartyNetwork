@@ -21,8 +21,6 @@ public class IdentityService(
     {
         var userProxyId = _ExtractUserProxyId(omitThrow);
         
-        Console.WriteLine($"userProxyId: {userProxyId}");
-        
         var httpContext = GetHttpContext();
         var cacheKey = $"UserProxy_{userProxyId}";
         
@@ -34,13 +32,11 @@ public class IdentityService(
         var userProxy = await _GetUserProxyAsync(userProxyId);
         if (userProxy == null)
         {
-        
-            Console.WriteLine($"not found");
             if (!omitThrow) throw new UnauthorizedHttpException();
             
             userProxy = new UserProxy
             {
-                Id = Guid.NewGuid(),
+                Id = Guid.Empty,
                 Username = null,
                 FirstName = null,
                 LastName = null,
@@ -75,6 +71,7 @@ public class IdentityService(
     {
         return await dataContext.UserProxies
             .Include(up => up.NetworkUsers)
+            .Include(up => up.User)
             .AsNoTracking()
             .FirstOrDefaultAsync(up => up.Id == userProxyId);
     }
