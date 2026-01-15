@@ -66,7 +66,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'close'): void;
-  (e: 'update-file', id: string, updated: EditFileForm): void;
+  (e: 'update-file', id: string, networkId: string, updated: EditFileForm): void;
   (e: 'delete-file', file: NetworkFile): void;
 }>();
 
@@ -86,6 +86,7 @@ watch(() => props.file, (newFile) => {
 function handleSubmit() {
   emit('update-file',
     props.file.id,
+    props.file.networkId,
     {
       name: form.value.name,
       isPublic: form.value.isPublic,

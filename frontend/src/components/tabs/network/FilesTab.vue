@@ -72,14 +72,6 @@
             </div>
           </div>
 
-          <div>
-            <h3 class="font-semibold text-gray-700">Visibility</h3>
-            <div v-for="level in ACCESS_LEVELS" :key="level.value" class="flex items-center gap-2">
-              <input type="checkbox" :id="`access-${level.value}`" v-model="filters.accessLevels" :value="level.value" class="accent-blue-600" />
-              <label :for="`access-${level.value}`" class="text-sm text-gray-800">{{ level.label }}</label>
-            </div>
-          </div>
-
           <button @click="clearFilters"
             class="w-auto xl:w-full text-sm px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-gray-800 border border-gray-300">
             Clear Filters
@@ -289,8 +281,9 @@ const filteredFiles = computed(() => {
     const matchesVisibility = filters.value.visibility.length === 0 || filters.value.visibility.includes(visibility);
     const matchesMin = !filters.value.minSize || sizeMb >= filters.value.minSize;
     const matchesMax = !filters.value.maxSize || sizeMb <= filters.value.maxSize;
+    const matchesAccessLevel = filters.value.accessLevels.length === 0 || filters.value.accessLevels.includes(file.accessLevel ?? 0);
 
-    return matchesSearch && matchesMediaType && matchesVisibility && matchesMin && matchesMax;
+    return matchesSearch && matchesMediaType && matchesVisibility && matchesMin && matchesMax && matchesAccessLevel;
   });
 });
 
@@ -304,7 +297,6 @@ defineEmits<{
   (e: 'addFile'): void;
   (e: 'editFile', file: NetworkFile): void;
   (e: 'removeFile', file: NetworkFile): void;
-  (e: 'toggleFileVisibility', file: NetworkFile): void;
   (e: 'previewFile', file: NetworkFile): void;
 }>();
 </script>

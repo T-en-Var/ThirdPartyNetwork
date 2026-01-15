@@ -16,7 +16,6 @@
         @toggle-access-required="confirmToggleAccessRequired"
         @remove-access="confirmRemoveAccess" @add-file="showAddFileModal = true"
         @edit-file="openEditFileModal" @remove-file="confirmRemoveFile"
-        @toggle-file-visibility="confirmToggleFileVisibility"
         @open-create-custom-page-modal="showCreateCustomPageModal = true"
         @open-create-blog-modal="showCreateBlogModal = true"
         @open-create-configuration-modal="showCreateConfigurationModal = true"
@@ -448,33 +447,6 @@ async function addAccessToNetwork(accessData: NetworkAccessCreate) {
   }
 }
 
-async function confirmToggleFileVisibility(networkFile: NetworkFile) {
-  confirmationTitle.value = 'Toggle File Visibility';
-  confirmationMessage.value = networkFile.isPublic
-    ? `Are you sure you want to make the File ${networkFile.name} private?`
-    : `Are you sure you want to make the File ${networkFile.name} publicly visible?`;
-  confirmButtonText.value = 'Confirm';
-  confirmButtonColor.value = 'green';
-
-  confirmationAction.value = async () => {
-    isSubmitting.value = true;
-    globalStore.startFetching();
-
-    try {
-      const response = await api.put<NetworkFile, EditFileForm>(`/networks/${networkState.network.value!.id}/files/${networkFile.id}`,
-        { isPublic: !networkFile.isPublic, name: networkFile.name });
-      fileState.insertFile(response.data);
-    } catch (err) {
-      console.error('Error toggling file visibility:', err);
-    } finally {
-      isSubmitting.value = false;
-      globalStore.stopFetching();
-    }
-  };
-
-  showConfirmationModal.value = true;
-}
-
 function confirmRemoveFile(networkFile: NetworkFile) {
   showEditFileModal.value = false;
 
@@ -508,12 +480,12 @@ async function openEditFileModal(file: NetworkFile) {
   fileState.insertFile(file);
 }
 
-async function editFile(id: string, networkFile: EditFileForm) {
+async function editFile(id: string, networkId: string, networkFile: EditFileForm) {
   isSubmitting.value = true;
   globalStore.startFetching();
 
   try {
-    const response = await api.put<NetworkFile, EditFileForm>(`/networks/${networkState.network.value!.id}/files/${id}`, networkFile);
+    const response = await api.put<NetworkFile, EditFileForm>(`/networks/${networkId}/files/${id}`, networkFile);
     fileState.insertFile(response.data);
     showEditFileModal.value = false;
   } catch (err) {

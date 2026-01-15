@@ -14,18 +14,11 @@ export interface AccessTokenClaims {
   nbf: number;
   uid: string;
   AccessIncomplete?: string;
-  networks: string;
-}
-
-
-export interface CustomClaim {
-  Key: string;
-  Value: boolean
+  networks: NetworkClaims;
 }
 
 export interface NetworkClaims {
-  id: string;
-  claims: CustomClaim[]
+  [networkId: string]: string[];
 }
 
 

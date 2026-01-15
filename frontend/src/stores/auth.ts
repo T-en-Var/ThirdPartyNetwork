@@ -4,7 +4,6 @@ import { AxiosError, type InternalAxiosRequestConfig } from 'axios';
 import type {
   AccessTokenClaims,
   ErrorMessage,
-  NetworkClaims,
   NetworkFile,
   TokenPair,
   UserProxy,
@@ -62,8 +61,8 @@ export const useAuthStore = defineStore('auth', () => {
   const isModalOpen = ref<boolean>(false);
   const isUnauthModalOpen = ref<boolean>(false);
 
-  const networkClaims = ref<NetworkClaims[]>([]);
-  const claimChecker = ref(new ClaimChecker([]));
+  // const networkClaims = ref<NetworkClaims[]>([]);
+  const claimChecker = ref(new ClaimChecker({}));
 
   const modalMode = ref<'signup' | 'login'>('signup');
   let modalCallback = () => {};
@@ -121,8 +120,7 @@ export const useAuthStore = defineStore('auth', () => {
         return clearTokens();
       }
 
-      networkClaims.value = JSON.parse(decodedPayload.networks);
-      claimChecker.value.setNetworkClaims(networkClaims.value);
+      claimChecker.value.setNetworkClaims(decodedPayload.networks);
     } catch (e) {
       console.error('Failed to decode token or parse network claims.', e);
       clearTokens();
@@ -149,7 +147,7 @@ export const useAuthStore = defineStore('auth', () => {
     refreshToken.value = null;
     localStorage.removeItem(ACCESS_TOKEN_KEY);
     localStorage.removeItem(REFRESH_TOKEN_KEY);
-    claimChecker.value.setNetworkClaims([]);
+    claimChecker.value.setNetworkClaims({});
     currentUserProxy.value = null;
   }
 
@@ -377,7 +375,6 @@ export const useAuthStore = defineStore('auth', () => {
     refreshToken,
     isModalOpen,
     isUnauthModalOpen,
-    networkClaims,
     claimChecker: computed(() => claimChecker.value),
     modalMode,
     currentUserProxy,

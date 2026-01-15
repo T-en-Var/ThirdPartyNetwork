@@ -6,32 +6,36 @@
     <!-- Main Content -->
     <div class="flex-1 p-6 overflow-auto">
       <!-- Loading and Error States -->
-      <LoadingErrorComponent :loading="authStore.loading" :error="authStore.error" button-value="Reload page"
-        @button-action="router.go(0)" />
+      <LoadingErrorComponent :loading="authStore.loading" :error="authStore.error"
+        button-value="Reload page" @button-action="router.go(0)" />
 
       <!-- Route View (Page Content) -->
       <div v-if="authStore.currentUserProxy">
-        <RouterView v-if="!authStore.loading && !authStore.error && authStore.currentUserProxy"
-          @create-proxy="showAddUserProxyModal = true" @edit-proxy="handleEditProxyClick"
-          @switch-proxy="handleSwitchProxyClick" @update-user-proxy="handleUpdateProxy" @add-file="handleAddFile"
-          @edit-file="handleEditFile" @remove-file="handleRemoveFile"
-          @toggle-file-visibility="handleToggleFileVisibility" />
+        <RouterView
+          v-if="!authStore.loading && !authStore.error && authStore.currentUserProxy"
+          @create-proxy="showAddUserProxyModal = true"
+          @edit-proxy="handleEditProxyClick" @switch-proxy="handleSwitchProxyClick"
+          @update-user-proxy="handleUpdateProxy" @add-file="handleAddFile"
+          @edit-file="handleEditFile" @remove-file="handleRemoveFile" />
       </div>
 
       <div v-if="authStore.currentUserProxy">
         <!-- Modals -->
-        <ConfirmationModal v-if="showConfirmationModal" :title="confirmationTitle" :message="confirmationMessage"
-          :button-text="confirmButtonText" :color="confirmButtonColor" :is-submitting="isSubmitting"
+        <ConfirmationModal v-if="showConfirmationModal" :title="confirmationTitle"
+          :message="confirmationMessage" :button-text="confirmButtonText"
+          :color="confirmButtonColor" :is-submitting="isSubmitting"
           @close="showConfirmationModal = false" @confirm="confirmAction" />
 
-        <AddUserProxyModal v-if="showAddUserProxyModal" :is-submitting="isSubmitting" :default-proxy="defaultProxy!"
+        <AddUserProxyModal v-if="showAddUserProxyModal && defaultProxy"
+          :is-submitting="isSubmitting" :default-proxy="defaultProxy"
           @close="showAddUserProxyModal = false" @create-proxy="createUserProxy" />
 
-        <!-- NOTE: You may need to create these modal components or adjust the paths -->
-        <AddFileModal v-if="showAddFileModal" :is-submitting="isSubmitting" @close="showAddFileModal = false"
-          @create-file="createFile" />
+        <AddFileModal v-if="showAddFileModal"
+          :networks="userProxy!.networkUsers.map(nu => nu.network)"
+          @close="showAddFileModal = false" @uploaded="handleUploadedFile" />
 
-        <EditFileModal v-if="showEditFileModal" :is-submitting="isSubmitting" :file="fileToEdit"
+        <EditFileModal v-if="showEditFileModal && fileToEdit"
+          :is-submitting="isSubmitting" :file="fileToEdit"
           @close="showEditFileModal = false" @update-file="updateFile" />
       </div>
     </div>
@@ -47,13 +51,15 @@ import { useGlobalStore } from '@/stores/global';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import ConfirmationModal from '@/components/modals/ConfirmationModal.vue';
 
-import type { NetworkFile, UserProxyCreate, UserProxyUpdate } from '@/types';
+import type { EditFileForm, NetworkFile, UserProxy, UserProxyCreate, UserProxyUpdate } from '@/types';
 
 import AccountSidebar from '@/components/sidebar/AccountSidebar.vue';
 import { useAuthStore } from '@/stores/auth';
 import AddUserProxyModal from '@/components/modals/account/AddUserProxyModal.vue';
 import api from '@/api/api';
 import useMainNetwork from '@/composables/useMainNetwork';
+import AddFileModal from '@/components/modals/network/AddFileModal.vue';
+import EditFileModal from '@/components/modals/network/EditFileModal.vue';
 
 const router = useRouter();
 
@@ -75,11 +81,12 @@ const confirmationTitle = ref('');
 const confirmationMessage = ref('');
 const confirmButtonText = ref('');
 const confirmButtonColor = ref('');
-const confirmationAction = ref(() => { });
+const confirmationAction = ref<() => Promise<void> | void>(() => { });
+const userProxy = ref<UserProxy | null>(null);
 
 onMounted(async () => {
   globalStore.startFetching();
-  await authStore.getUserProxy();
+  userProxy.value = await authStore.getUserProxy();
   await mainNetwork.fetchMainNetwork();
   globalStore.stopFetching();
 });
@@ -95,8 +102,8 @@ const defaultProxy = computed(() => {
 });
 
 // Methods
-function confirmAction() {
-  confirmationAction.value();
+async function confirmAction() {
+  await confirmationAction.value();
   showConfirmationModal.value = false;
 }
 
@@ -105,8 +112,8 @@ async function createUserProxy(newUserProxy: UserProxyCreate) {
   globalStore.startFetching();
   try {
     await api.post(`/users/${authStore.currentUserProxy?.user.id}/proxies/`, newUserProxy);
-    window.location.reload();
     showAddUserProxyModal.value = false;
+    router.go(0);
   } catch (err) {
     console.error('Error adding user proxy:', err);
   } finally {
@@ -141,20 +148,10 @@ function handleAddFile() {
   showAddFileModal.value = true;
 }
 
-async function createFile(file: File) {
-  if (!authStore.currentUserProxy) return;
-  isSubmitting.value = true;
-  globalStore.startFetching();
-  try {
-    await api.post(`/networks/${mainNetwork.network.value?.id}/files`, file);
-    await authStore.getUserProxy();
-    showAddFileModal.value = false;
-  } catch (err) {
-    console.error('Error adding file:', err);
-  } finally {
-    isSubmitting.value = false;
-    globalStore.stopFetching();
-  }
+async function handleUploadedFile(file: NetworkFile) {
+  void file;
+  showAddFileModal.value = false;
+  router.go(0);
 }
 
 function handleEditFile(file: NetworkFile) {
@@ -162,14 +159,14 @@ function handleEditFile(file: NetworkFile) {
   showEditFileModal.value = true;
 }
 
-async function updateFile(file: NetworkFile) {
+async function updateFile(id: string, networkId: string, file: EditFileForm) {
   if (!authStore.currentUserProxy) return;
   isSubmitting.value = true;
   globalStore.startFetching();
   try {
-    await api.put(`/users/${authStore.currentUserProxy.user.id}/proxies/${authStore.currentUserProxy.id}/files/${file.id}`, file);
-    await authStore.getUserProxy();
+    await api.put(`/networks/${networkId}/files/${id}`, file);
     showEditFileModal.value = false;
+    router.go(0);
   } catch (err) {
     console.error('Error updating file:', err);
   } finally {
@@ -188,8 +185,8 @@ function handleRemoveFile(file: NetworkFile) {
     isSubmitting.value = true;
     globalStore.startFetching();
     try {
-      await api.delete(`/users/${authStore.currentUserProxy.user.id}/proxies/${authStore.currentUserProxy.id}/files/${file.id}`);
-      await authStore.getUserProxy();
+      await api.delete(`/networks/${file.networkId}/files/${file.id}`);
+      router.go(0);
     } catch (err) {
       console.error('Error removing file:', err);
     } finally {
@@ -198,20 +195,5 @@ function handleRemoveFile(file: NetworkFile) {
     }
   };
   showConfirmationModal.value = true;
-}
-
-async function handleToggleFileVisibility(file: NetworkFile) {
-  if (!authStore.currentUserProxy) return;
-  isSubmitting.value = true;
-  globalStore.startFetching();
-  try {
-    await api.patch(`/users/${authStore.currentUserProxy.user.id}/proxies/${authStore.currentUserProxy.id}/files/${file.id}`, { isPublic: !file.isPublic });
-    await authStore.getUserProxy();
-  } catch (err) {
-    console.error('Error toggling file visibility:', err);
-  } finally {
-    isSubmitting.value = false;
-    globalStore.stopFetching();
-  }
 }
 </script>
