@@ -1,8 +1,7 @@
 <template>
   <div
     @click="toggleVisibility"
-    class="cursor-pointer"
-    :class="{ 'font-medium': !sensitive || isVisible, 'flex justify-start items-center': true }"
+    :class="{ 'font-medium': !sensitive || isVisible, 'flex justify-start items-center': true, 'cursor-pointer': !!value }"
   >
     <template v-if="sensitive && !isVisible">
       <span class="inline-block blur-sm select-none">••••••••</span>

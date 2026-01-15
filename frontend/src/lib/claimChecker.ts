@@ -1,7 +1,7 @@
-import type { CustomClaim, Network, NetworkClaims } from "@/types";
+import type { Network, NetworkClaims } from "@/types";
 
 export class ClaimChecker {
-  private networkClaims: NetworkClaims[];
+  private networkClaims: NetworkClaims;
 
   private Administrator = "Administrator";
   private ReadNetwork = "Read Network";
@@ -23,27 +23,23 @@ export class ClaimChecker {
   private ManagePageBlock = "Manage PageBlock";
   private ReadFile = "Read File";
   private ManageFile = "Manage File";
+  private ReadConfiguration = "Read Configuration";
+  private ManageConfiguration = "Manage Configuration";
+  private ReadBlog = "Read Blog";
+  private ManageBlog = "Manage Blog";
 
-  constructor(networkClaims: NetworkClaims[]) {
+  constructor(networkClaims: NetworkClaims) {
     this.networkClaims = networkClaims;
   }
 
-  setNetworkClaims(networkClaims: NetworkClaims[]) {
+  setNetworkClaims(networkClaims: NetworkClaims) {
     this.networkClaims = networkClaims;
-  }
-
-  checkAdmin(claim: CustomClaim) {
-    return claim.Key == this.Administrator && claim.Value == true
-  }
-
-  checkClaim(claim: CustomClaim, key: string) {
-    return claim.Key == key && claim.Value == true
   }
 
   canManageNetwork(network: Network) {
-    const claimCollection = this.networkClaims.find(nc => nc.id == network.id);
+    const claimCollection = this.networkClaims[network.id];
     if (!claimCollection) return false;
 
-    return claimCollection.claims.some(c => this.checkAdmin(c) || this.checkClaim(c, this.ManageNetwork))
+    return claimCollection.includes(this.Administrator) || claimCollection.includes(this.ManageNetwork);
   }
 }
