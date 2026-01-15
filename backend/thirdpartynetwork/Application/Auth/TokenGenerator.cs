@@ -79,19 +79,22 @@ public class TokenGenerator(IJtiCacheService jtiCacheService, IConfiguration con
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.UTF8.GetBytes(TokenSecret);
 
-        var networksJson = JsonSerializer.Serialize(
-            networkClaims.Select(n => new
-            {
-                id = n.Id,
-                claims = n.Claims
-            }));
+        // Transform to Dictionary<NetworkId, string[]>
+        var networksDict = networkClaims.ToDictionary(
+            n => n.Id.ToString(),
+            n => n.Claims.Select(c => c.Key).ToArray() // Assumes 'Key' holds the permission name like "Read Network"
+        );
+
+        var networksJson = JsonSerializer.Serialize(networksDict);
 
         var claims = new List<Claim>
         {
             new(JwtRegisteredClaimNames.Jti, jti.ToString()),
             new(JwtRegisteredClaimNames.Name, username),
             new("uid", userId.ToString()),
-            new("networks", networksJson),
+        
+            // This tells the handler this is already Json
+            new("networks", networksJson, JsonClaimValueTypes.Json) 
         };
 
         if (accessIncomplete)
@@ -115,9 +118,7 @@ public class TokenGenerator(IJtiCacheService jtiCacheService, IConfiguration con
         };
 
         var token = tokenHandler.CreateToken(tokenDescriptor);
-        var jwt = tokenHandler.WriteToken(token);
-
-        return jwt;
+        return tokenHandler.WriteToken(token);
     }
 
     private string GenerateRefreshToken(

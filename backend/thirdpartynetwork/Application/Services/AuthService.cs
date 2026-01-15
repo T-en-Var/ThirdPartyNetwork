@@ -106,10 +106,10 @@ public class AuthService(
     public async Task<AuthorizationCodeDto> ExternalRegisterAsync(Guid networkId, CreateUserProxyDto createUserProxy, string clientId,
         string codeChallenge)
     {
-        var networkUser = await CreateNetworkUserAsync(networkId, createUserProxy);
-
-        var network = await networkService.GetByIdAsync(networkId);
+        var network = await networkService.GetByIdAsync(networkId, true);
         if (network == null) throw new NotFoundHttpException("Network not found");
+        
+        var networkUser = await CreateNetworkUserAsync(networkId, createUserProxy);
 
         var audience = GetAudienceFromRedirectUri(network.RedirectURI);
         if (audience == null)

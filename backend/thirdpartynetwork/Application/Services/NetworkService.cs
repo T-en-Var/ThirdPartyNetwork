@@ -22,10 +22,10 @@ namespace thirdpartynetwork.Application.Services
         {
             if (bypass) return networks;
 
-            var currentUser = await identityService.GetUserProxyAsync();
+            var currentUser = await identityService.GetUserProxyAsync(true);
             var isSuper =
                 await identityVerifier.IsSuperAdminOrHasSuperPermissionAsync(currentUser.Id, Constants.Permissions.ReadNetwork);
-            
+
             var allowedNetworks = new List<Network>();
 
             foreach (var network in networks)
