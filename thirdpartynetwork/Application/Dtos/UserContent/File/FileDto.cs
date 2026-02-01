@@ -15,8 +15,6 @@ namespace thirdpartynetwork.Application.Dtos.UserContent.File
         public TimeSpan? Duration { get; set; }
         public string MediaType { get; set; } // e.g., image, video
         public string Name { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
         public required bool IsSystemProtected { get; set; }
     }
 }
