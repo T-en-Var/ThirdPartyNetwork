@@ -51,7 +51,8 @@ namespace thirdpartynetwork.Application.Services
             if (await userProxyService.GetByIdAsync(userProxyId) == null) throw new NotFoundHttpException("UserProxy not Found");
             
             var networkUsers = await repository.GetByUserProxyIdAsync(userProxyId, q => q
-                    .Include(n => n.Network));
+                    .Include(n => n.Network)
+                    .ThenInclude(n => n.ImageFile));
             
             var networks = networkUsers.Select(nu => nu.Network).ToList();
             return networks;
