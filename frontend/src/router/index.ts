@@ -1,8 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import HomeView from '../views/HomeView.vue';
 import { useAuthStore } from '@/stores/auth';
-import AboutView from '@/views/AboutView.vue';
-import ToSView from '@/views/ToSView.vue';
 // import NetworksView from '@/views/NetworksView.vue';
 
 const router = createRouter({
@@ -11,7 +8,7 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
-      component: HomeView,
+      component: () => import('@/views/HomeView.vue'),
       meta: {
         title: 'TrojoNetworks'
       }
@@ -19,7 +16,7 @@ const router = createRouter({
     {
       path: '/about',
       name: 'about',
-      component: AboutView,
+      component: () => import('@/views/AboutView.vue'),
       meta: {
         title: 'TrojoNetworks | About'
       },
@@ -261,9 +258,17 @@ const router = createRouter({
       },
     },
     {
+      path: '/contact',
+      name: 'contact',
+      component: () => import('@/views/ContactView.vue'),
+      meta: {
+        title: 'TrojoNetworks | Contact'
+      },
+    },
+    {
       path: '/tos',
-      name: 'Terms of Service',
-      component: ToSView,
+      name: 'terms-of-service',
+      component: () => import('@/views/ToSView.vue'),
       meta: {
         title: 'TrojoNetworks | Terms of Service'
       },

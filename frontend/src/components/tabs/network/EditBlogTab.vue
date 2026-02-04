@@ -160,7 +160,6 @@ onMounted(async () => {
   form.value.body = blog.value.body ? JSON.parse(JSON.stringify(blog.value.body)) : undefined;
 
   // Handle Dates
-  console.log('blog publishedAt', blog.value.publishedAt, !!blog.value.publishedAt);
   published.value = !!blog.value.publishedAt;
   publishedAtLocal.value = blog.value.publishedAt ? toLocalDatetimeInput(blog.value.publishedAt) : null;
 });
