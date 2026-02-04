@@ -10,8 +10,9 @@
           <h2 class="text-xl font-medium text-gray-800 mb-4">Data Access and Privacy</h2>
 
           <div class="mb-6 bg-blue-50 border-l-4 border-blue-500 p-4">
-            <p class="text-blue-700"><strong>Important:</strong> Networks only access data you explicitly allow them to
-              read from you. You maintain control over your information at all times.</p>
+            <span class="text-blue-700"><strong>Important:</strong> Networks only access data you explicitly allow them to
+              read from you. You maintain control over your information at all times.</span><br>
+            <span>Also, this is very incomplete. If something is unclear, I, the author and developer, will have the final say in any matter.</span>
           </div>
 
           <h3 class="text-lg font-medium text-gray-700 mb-3">Data Access Controls</h3>
