@@ -9,7 +9,7 @@
     </div>
 
     <div v-if="loading || error">
-      <LoadingErrorComponent :loading="loading" :error="error"
+      <LoadingErrorComponent :loading="loading" :error="error ?? undefined"
         :button-value="'Nothing will happen if you press me.'" />
     </div>
 
@@ -90,7 +90,7 @@ import useRoles from '@/composables/useRoles';
 import type { Network, Role } from '@/types';
 import { onMounted } from 'vue';
 
-const { roles, loading, error, fetchRoles } = useRoles();
+const { data: roles, loading, error, execute: fetchRoles } = useRoles().fetchRoles;
 
 const props = defineProps<{
   network: Network;

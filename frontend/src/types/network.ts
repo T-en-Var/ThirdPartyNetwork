@@ -3,6 +3,25 @@ import type { Role } from "./role";
 import type { NetworkUser } from "./networkUser";
 import type { NetworkFile, NetworkFileLink } from "./userContent/files";
 
+
+export interface NetworkEntitlement {
+  networkId: string;
+
+  allowFiles: boolean;
+  fileCountLimit: number;
+  fileSizeLimit: number; // in KB
+  fileStorageLimit: number; // in KB
+
+  allowBlogs: boolean;
+  blogCountLimit: number;
+
+  allowConfigurations: boolean;
+  configurationCountLimit: number;
+
+  allowCustomPages: boolean;
+  customPageCountLimit: number;
+}
+
 export interface Network {
   id: string,
   name: string,
@@ -17,6 +36,7 @@ export interface Network {
   isSystemProtected: boolean,
   // files: NetworkFile[],
   // customPages: CustomPage[]
+  entitlement?: NetworkEntitlement,
 }
 
 export interface CreateNetwork {

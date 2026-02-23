@@ -1,6 +1,6 @@
 <template>
   <div class="bg-white shadow-md rounded-lg overflow-hidden p-6">
-    <LoadingErrorComponent :loading="loading" :error="error" button-value="Go back" @button-action="router.go(-1)" />
+    <LoadingErrorComponent :loading="loading" :error="error ?? undefined" button-value="Go back" @button-action="router.go(-1)" />
 
     <div v-if="!loading && !error && customPage" class="space-y-6">
       <!-- Top segment: Edit custom page -->
@@ -89,7 +89,7 @@
 </template>
 
 <script setup lang="ts">
-import useCustomPage from '@/composables/useCustomPage';
+import useCustomPages from '@/composables/useCustomPages';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import AccessLevelPicker from '@/components/fields/AccessLevelPicker.vue';
 import type { CreateCustomPage, CustomPage, Network, PageBlock } from '@/types';
@@ -110,7 +110,7 @@ const emit = defineEmits<{
 const router = useRouter()
 const route = useRoute()
 const historyStore = useHistoryStore();
-const { customPage, loading, error, fetchCustomPage } = useCustomPage();
+const { data: customPage, loading, error, execute: fetchCustomPage } = useCustomPages().fetchCustomPage;
 
 const customPageId = route.params.customPageId as string;
 const networkId = route.params.networkId as string;

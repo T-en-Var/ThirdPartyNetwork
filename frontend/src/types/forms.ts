@@ -1,5 +1,6 @@
 export type ManageUserForm = {
   roleIds: string[];
+  entitlements: object;
 };
 
 export type RoleForm = {
@@ -7,6 +8,7 @@ export type RoleForm = {
   description: string;
   permissionIds: string[];
   isDefault: boolean;
+  entitlements: object;
 }
 
 export type NetworkForm = {

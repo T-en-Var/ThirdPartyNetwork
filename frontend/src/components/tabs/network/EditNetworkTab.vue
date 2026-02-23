@@ -1,7 +1,7 @@
 <!-- EditNetworkPage.vue -->
 <template>
   <div class="p-6 bg-white shadow-md rounded-lg overflow-hidden">
-    <LoadingErrorComponent :loading="loading" :error="error" button-value="Go back" @button-action="router.go(-1)" />
+    <LoadingErrorComponent :loading="loading" :error="error ?? undefined" button-value="Go back" @button-action="router.go(-1)" />
 
     <div v-if="!loading && !error && network" class="space-y-10">
       <!-- Network Info -->
@@ -117,12 +117,12 @@ import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue'
 import CloudinaryFile from '@/components/cdn/CloudinaryFile.vue'
 import AddFileModal from '@/components/modals/network/AddFileModal.vue'
 import type { Network, NetworkFile, NetworkUpdate } from '@/types'
-import useNetwork from '@/composables/useNetwork'
+import useNetworks from '@/composables/useNetworks'
 
 const route = useRoute()
 const router = useRouter()
 
-const { network, loading, error, fetchNetwork } = useNetwork()
+const { data: network, loading, error, execute: fetchNetwork } = useNetworks().fetchNetwork
 
 const uploadedFile = ref<NetworkFile | null>(null)
 const showUploadModal = ref(false)

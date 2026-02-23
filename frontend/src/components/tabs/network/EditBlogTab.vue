@@ -1,6 +1,6 @@
 <template>
   <div class="max-w-4xl mx-auto py-8">
-    <LoadingErrorComponent :loading="loading" :error="error" button-value="Go back"
+    <LoadingErrorComponent :loading="loading" :error="error ?? undefined" button-value="Go back"
       @button-action="router.go(-1)" />
 
     <div v-if="!loading && !error"
@@ -127,7 +127,7 @@ import { useHistoryStore } from '@/stores/history';
 const router = useRouter();
 const route = useRoute();
 const historyStore = useHistoryStore();
-const { blog, loading, error, fetchBlog } = useBlogs();
+const { data: blog, loading, error, execute: fetchBlog } = useBlogs().fetchBlog;
 
 const blogId = route.params.blogId as string;
 const networkId = route.params.networkId as string;

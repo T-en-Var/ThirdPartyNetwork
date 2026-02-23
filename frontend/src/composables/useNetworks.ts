@@ -1,37 +1,34 @@
-// useNetworks.ts
-import { ref } from 'vue';
-import type { Network } from '@/types';
+import type { Network, NetworkUpdate } from '@/types';
 import api from '@/api/api';
-import { useGlobalStore } from '@/stores/global';
+import { useCachedApi, useMutation } from './useApi';
 
 export default function useNetworks() {
-  const networks = ref<Network[]>([]);
-  const loading = ref(true);
-  const error = ref<string | null>(null);
+  const fetchMainNetwork = useCachedApi<Network, []>(
+    () => `mainNetwork`,
+    async () => await api.get<Network>(`/mainNetwork`),
+  );
 
-  const global = useGlobalStore();
+  const fetchNetworks = useCachedApi<Network[], []>(
+    () => `networks`,
+    async () => await api.get<Network[]>('/networks'),
+  );
+  
+  const fetchNetwork = useCachedApi<Network, [networkId: string]>(
+    (networkId) => `networks_${networkId}`,
+    async (networkId) => await api.get<Network>(`/networks/${networkId}`),
+  );
 
-  const fetchNetworks = async () => {
-    global.startFetching();
-    loading.value = true;
-    error.value = null;
-    
-    try {
-      const response = await api.get<Network[]>('/networks');
+  const fetchNetworkDetails = useCachedApi<Network, [networkId: string]>(
+    (networkId) => `networks_${networkId}_details`,
+    async (networkId) => await api.get<Network>(`/networks/${networkId}/details`),
+  );
 
-      networks.value = response.data;
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Unknown error occurred';
-    } finally {
-      global.stopFetching();
-      loading.value = false;
+  const updateNetwork = useMutation<Network, [networkId: string, payload: NetworkUpdate]>(
+    async (networkId, payload) => await api.put(`/networks/${networkId}/`, payload),
+    {
+      itemKeyFactory: (_, networkId) => `networks_${networkId}`,
     }
-  };
+  )
 
-  return {
-    networks,
-    loading,
-    error,
-    fetchNetworks,
-  };
+  return { fetchMainNetwork, fetchNetworks, fetchNetwork, fetchNetworkDetails, updateNetwork };
 }

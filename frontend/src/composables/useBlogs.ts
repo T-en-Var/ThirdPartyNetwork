@@ -1,44 +1,38 @@
-import { ref } from 'vue'
-import api from '@/api/api'
-import type { Ref } from 'vue'
-import type { AxiosError } from 'axios'
-import type { Blog } from '@/types/userContent/blog'
-import { useGlobalStore } from '@/stores/global'
+import api from '@/api/api';
+import type { Blog, CreateBlog } from '@/types/userContent/blog';
+import { useCachedApi, useMutation } from './useApi';
 
 export default function useBlogs() {
-  const blogs: Ref<Blog[]> = ref([])
-  const blog: Ref<Blog | null> = ref(null)
-  const loading = ref(false)
-  const error: Ref<string | null> = ref(null)
-  const globalStore = useGlobalStore()
+  const fetchBlogs = useCachedApi<Blog[], [networkId: string]>(
+    (networkId) => `networks_${networkId}_blogs`,
+    async (networkId) => await api.get<Blog[]>(`/networks/${networkId}/blogs`),
+  );
 
-  const fetchBlogs = async (networkId: string) => {
-    globalStore.startFetching()
-    loading.value = true
-    try {
-      const response = await api.get<Blog[]>(`/networks/${networkId}/blogs`)
-      blogs.value = response.data
-    } catch (err) {
-      error.value = (err as AxiosError).message
-    } finally {
-      loading.value = false
-      globalStore.stopFetching()
+  const fetchBlog = useCachedApi<Blog, [networkId: string, blogId: string]>(
+    (networkId, blogId) => `networks_${networkId}_blogs_${blogId}`,
+    async (networkId, blogId) => await api.get<Blog>(`/networks/${networkId}/blogs/${blogId}`),
+  );
+
+  const createBlog = useMutation<Blog, [networkId: string, payload: CreateBlog]>(
+    async (networkId, payload) =>
+      await api.post<Blog, CreateBlog>(`/networks/${networkId}/blogs/`, payload),
+    {
+      itemKeyFactory: (result, networkId) => `networks_${networkId}_blogs_${result.id}`,
+      listKeyFactory: (networkId) => `networks_${networkId}_blogs`,
+      listUpdater: (currentList, result) => {
+        return currentList.map((item) => item.id == result.id ? result : item)
+      }
     }
-  }
+  );
 
-  const fetchBlog = async (networkId: string, blogId: string) => {
-    globalStore.startFetching()
-    loading.value = true
-    try {
-      const response = await api.get<Blog>(`/networks/${networkId}/blogs/${blogId}`)
-      blog.value = response.data
-    } catch (err) {
-      error.value = (err as AxiosError).message
-    } finally {
-      loading.value = false
-      globalStore.stopFetching()
+  const deleteBlog = useMutation<void, [networkId: string, blogId: string], Blog>(
+    async (networkId, blogId) => await api.delete(`/networks/${networkId}/blogs/${blogId}/`),
+    {
+      itemKeyFactory: (_, networkId, blogId) => `networks_${networkId}_blogs_${blogId}`,
+      listKeyFactory: (networkId) => `networks_${networkId}_blogs`,
+      listUpdater: (currentList, _, __, blogId) => currentList.filter((item) => item.id !== blogId),
     }
-  }
+  )
 
-  return { blogs, blog, loading, error, fetchBlogs, fetchBlog }
+  return { fetchBlogs, fetchBlog, createBlog, deleteBlog };
 }

@@ -29,7 +29,7 @@
       </div>
 
       <div v-else class="mt-4 max-h-64 overflow-y-auto border rounded-md p-2">
-        <div v-if="permissions.length === 0" class="text-sm text-gray-500">
+        <div v-if="permissions?.length === 0" class="text-sm text-gray-500">
           No permissions available
         </div>
 
@@ -93,7 +93,7 @@ import ModalContainer from '@/components/modals/ModalContainer.vue';
 import type { Role, Network, RoleForm } from '@/types';
 import usePermissions from '@/composables/usePermissions';
 
-const { permissions, loading, error, fetchPermissions } = usePermissions();
+const { data: permissions, loading, error, execute: fetchPermissions } = usePermissions().fetchPermissions;
 
 const isSubmitting = ref(false);
 
@@ -111,7 +111,7 @@ onMounted(async () => {
 
 function handleSubmit() {
   isSubmitting.value = true;
-  emit('update', localForm);
+  emit('update', localForm.value);
 }
 
 // Create a local reactive copy

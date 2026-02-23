@@ -103,7 +103,7 @@ const router = createRouter({
         {
           path: '',
           name: 'manage-network-home',
-          component: () => import('@/components/tabs/network/NetworkDasboard.vue'),
+          component: () => import('@/components/tabs/network/HomeTab.vue'),
           meta: {
             requiresAuth: true,
             title: 'Dashboard'

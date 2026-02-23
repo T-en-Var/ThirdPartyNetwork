@@ -132,13 +132,13 @@ const showFilters = ref(false);
 const filterKey = ref('');
 
 const route = useRoute();
-const configsState = useConfigurations();
+const configsState = useConfigurations().fetchNetworkConfigurations;
 
 const filters = ref({ authors: [] as string[], accessLevels: [] as number[] });
 
 onMounted(() => {
   const networkId = route.params.networkId as string;
-  configsState.fetchNetworkConfigurations(networkId);
+  configsState.execute(networkId);
 });
 
 const clearFilters = () => {
@@ -147,8 +147,10 @@ const clearFilters = () => {
 };
 
 const uniqueAuthors = computed(() => {
+  if (!configsState.data.value) return [];
+  
   const seen = new Map<string, { username: string; firstName: string; lastName: string; }>();
-  configsState.configurations.value.forEach(p => {
+  configsState.data.value.forEach(p => {
     const u = p.author.userProxy;
     if (u && !seen.has(u.username ?? 'Unknown')) {
       seen.set(u.username ?? 'Unknown', { username: u.username ?? 'Unknown', firstName: u.firstName ?? 'Unknown', lastName: u.lastName ?? 'Unknown' });
@@ -158,8 +160,10 @@ const uniqueAuthors = computed(() => {
 });
 
 const filteredConfigs = computed(() => {
+  if (!configsState.data.value) return [];
+  
   const query = filterKey.value.trim().toLowerCase();
-  return configsState.configurations.value.filter(cfg => {
+  return configsState.data.value.filter(cfg => {
     const key = cfg.key.toLowerCase();
     const author = `${cfg.author?.userProxy?.username ?? ''} ${cfg.author?.userProxy?.firstName ?? ''} ${cfg.author?.userProxy?.lastName ?? ''}`.toLowerCase();
     const value = JSON.stringify(cfg.value).toLowerCase();

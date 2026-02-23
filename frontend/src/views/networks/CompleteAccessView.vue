@@ -93,7 +93,7 @@ import NetworkLogo from '@/components/NetworkLogo.vue';
 import ErrorAlert from '@/components/ErrorAlert.vue';
 import UserProxyDisplay from '@/components/UserProxyDisplay.vue';
 import api from '@/api/api';
-import useNetworkDetails from '@/composables/useNetworkDetails';
+import useNetworks from '@/composables/useNetworks';
 
 // --- Types ---
 interface UserAccessState {
@@ -105,7 +105,9 @@ interface UserAccessState {
 const router = useRouter();
 const route = useRoute();
 const global = useGlobalStore();
-const { network, loading, fetchNetworkDetails } = useNetworkDetails();
+
+const networksState = useNetworks();
+const { data: network, loading, execute: fetchNetworkDetails } = networksState.fetchNetworkDetails;
 
 // --- State ---
 const isSubmitting = ref(false);

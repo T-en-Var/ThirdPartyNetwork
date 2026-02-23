@@ -14,10 +14,15 @@ export interface NetworkUser {
   networkUserAccesses: NetworkUserAccess[],
   networkUserRoles: NetworkUserRole[],
   createdOn: Date,
-  files: NetworkFile[]
+  files: NetworkFile[],
+  entitlements: object,
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface CreateNetworkUser {
   
+}
+
+export interface UpdateNetworkUser {
+  entitlements: object,
 }

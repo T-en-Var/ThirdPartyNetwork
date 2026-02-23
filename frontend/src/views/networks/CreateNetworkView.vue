@@ -1,10 +1,10 @@
 <template>
   <div class="container mx-auto px-4 py-10 mt-6">
     <div class="bg-white shadow-lg rounded-2xl overflow-hidden border border-gray-200">
-      <LoadingErrorComponent :loading="networkState.loading.value" :error="networkState.error.value"
+      <LoadingErrorComponent :loading="networkState.loading.value" :error="networkState.error.value ?? undefined"
         button-value="Go back" @button-action="router.go(-1)" />
 
-      <div v-if="!networkState.loading.value && !networkState.error.value && networkState.network.value">
+      <div v-if="!networkState.loading.value && !networkState.error.value && networkState.data.value">
         <!-- Header -->
         <div class="bg-gray-100 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
           <h1 class="text-2xl font-semibold text-gray-800">Create New Network</h1>
@@ -64,7 +64,7 @@
                       </button>
                     </div>
                   </div>
-                  <AddFileModal v-if="showUploadModal" :network="networkState.network.value"
+                  <AddFileModal v-if="showUploadModal" :network="networkState.data.value"
                     @close="showUploadModal = false" @uploaded="handleImageUploaded" media-type="image" />
                 </div>
               </div>
@@ -159,12 +159,12 @@ import { useGlobalStore } from '@/stores/global';
 import type { AxiosError } from 'axios';
 import ErrorAlert from '@/components/ErrorAlert.vue';
 import AddFileModal from '@/components/modals/network/AddFileModal.vue';
-import useMainNetwork from '@/composables/useMainNetwork';
 import AddAccessModal from '@/components/modals/network/AddAccessModal.vue';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import CloudinaryFile from '@/components/cdn/CloudinaryFile.vue';
 import ForceLoadModal from '@/components/modals/ForceWaitModal.vue';
 import { useAuthStore } from '@/stores/auth';
+import useNetworks from '@/composables/useNetworks';
 
 const router = useRouter();
 const global = useGlobalStore();
@@ -178,11 +178,11 @@ const uploadedFile = ref<NetworkFile | null>(null);
 const showUploadModal = ref(false);
 const showAddAccessModal = ref(false);
 
-const networkState = useMainNetwork();
+const networkState = useNetworks().fetchMainNetwork;
 const authStore = useAuthStore();
 
 onMounted(async () => {
-  await networkState.fetchMainNetwork();
+  await networkState.execute();
 });
 
 const form = ref<CreateNetwork>({

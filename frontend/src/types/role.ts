@@ -10,6 +10,7 @@ export interface Role {
   rolePermissions: RolePermission[],
   networkUserRoles: NetworkUserRole[],
   network: Network,
+  entitlements: object,
 }
 
 export interface CreateRole {
@@ -22,4 +23,5 @@ export interface UpdateRole {
   name: string,
   description: string,
   isDefault: boolean,
+  entitlements: object,
 }

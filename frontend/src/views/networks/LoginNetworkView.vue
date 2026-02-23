@@ -18,7 +18,7 @@
 
     <div v-else-if="validUrl">
       <AuthFormCard title="Sign In"
-        :subtitle="networkDetails.network.value ? `Access your ${networkDetails.network.value?.name} account` : 'Access your account'"
+        :subtitle="networkDetails.data.value ? `Access your ${networkDetails.data.value.name} account` : 'Access your account'"
         :error="error" :network-details="networkDetails">
         <form @submit.prevent="login" class="flex flex-col gap-5">
           <div>
@@ -69,7 +69,6 @@ import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import type { AxiosError } from 'axios';
 import type { AccessTokenClaims, AuthorizationCode, ErrorMessage } from '@/types';
-import useNetworkDetails from '@/composables/useNetworkDetails';
 import { decodeJWT } from '@/lib/utils';
 import { useGlobalStore } from '@/stores/global';
 import rawApi from '@/api/rawApi';
@@ -79,12 +78,13 @@ import AuthLayout from '@/components/AuthLayout.vue';
 import AuthFormCard from '@/components/AuthFormCard.vue';
 import ConfirmationModal from '@/components/modals/ConfirmationModal.vue';
 import NetworkNotFound from '@/components/NetworkNotFound.vue';
+import useNetworks from '@/composables/useNetworks';
 
 // --- Setup ---
 const global = useGlobalStore();
 const router = useRouter();
 const route = useRoute();
-const networkDetails = useNetworkDetails();
+const networkDetails = useNetworks().fetchNetworkDetails;
 
 // --- State Management ---
 const email = ref('');
@@ -111,7 +111,7 @@ const state = computed(() => route.query.state as string);
 const backUrlQuery = computed(() => route.query.back as string);
 
 const networkNotFoundError = computed(() => {
-  return !!networkId.value && !networkDetails.network.value;
+  return !!networkId.value && !networkDetails.data.value;
 });
 
 const validUrl = computed(() => {
@@ -127,7 +127,7 @@ const validUrl = computed(() => {
 onMounted(async () => {
   localStorage.removeItem('temporaryAccessToken');
   // Fetch details, error handling is handled by the `networkNotFoundError` computed property
-  await networkDetails.fetchNetworkDetails(networkId.value);
+  await networkDetails.execute(networkId.value);
   pageLoading.value = false;
 });
 
@@ -139,8 +139,9 @@ const navigateToSignup = () => {
 
 const login = async () => {
   error.value = ''; // Clear previous errors
-
-  if (!networkDetails.network.value) {
+  
+  const network = networkDetails.data.value;
+  if (!network) {
     error.value = 'Network details are not available yet.';
     return;
   }
@@ -153,7 +154,6 @@ const login = async () => {
   global.startFetching();
   pageLoading.value = true;
 
-  const network = networkDetails.network.value;
   const loginUrl = `/auth/${networkId.value}/login?clientId=${clientId.value}&redirectUri=${network.redirectURI}&codeChallenge=${codeChallenge.value}`;
 
   try {

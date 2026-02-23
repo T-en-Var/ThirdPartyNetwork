@@ -121,8 +121,8 @@ import ErrorAlert from '@/components/ErrorAlert.vue';
 import { useAuthStore } from '@/stores/auth';
 import UserProxyDisplay from '@/components/UserProxyDisplay.vue'
 import api from '@/api/api';
-import useNetworkDetails from '@/composables/useNetworkDetails';
 import CloudinaryFile from '@/components/cdn/CloudinaryFile.vue';
+import useNetworks from '@/composables/useNetworks';
 
 const router = useRouter();
 const route = useRoute();
@@ -134,7 +134,7 @@ const authStore = useAuthStore();
 
 const currentUserProxy = ref<UserProxy | null>(null);
 
-const { network, loading, error, fetchNetworkDetails } = useNetworkDetails();
+const { data: network, loading, execute: fetchNetworkDetails } = useNetworks().fetchNetworkDetails;
 
 onMounted(async () => {
   const networkId = route.params.networkId as string;
@@ -163,8 +163,6 @@ async function handleJoinNetwork() {
   const networkId = route.params.networkId as string;
   const userProxyId = currentUserProxy.value.id;
 
-  // Clear any previous errors
-  error.value = '';
   global.startFetching();
   isSubmitting.value = true;
 

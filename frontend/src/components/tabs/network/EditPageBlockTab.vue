@@ -9,7 +9,7 @@
     </div>
 
     <div class="bg-white shadow-md rounded-lg p-6">
-      <LoadingErrorComponent :loading="loading" :error="error" button-value="Go back" @button-action="router.go(-1)" />
+      <LoadingErrorComponent :loading="loading" :error="error ?? undefined" button-value="Go back" @button-action="router.go(-1)" />
 
       <div v-if="!loading && !error && currentPageBlock" class="space-y-6">
         <h2 class="text-xl font-semibold text-gray-800 mb-4">Edit Page Block</h2>
@@ -168,10 +168,10 @@ import type { PageBlock, Network, TreeNode } from '@/types';
 import { ref, computed, watch, type Ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import JsonEditorVue from 'json-editor-vue';
-import useCustomPage from '@/composables/useCustomPage';
 import { useHistoryStore } from '@/stores/history';
 import TreeNodeComponent from '@/components/TreeNodeComponent.vue';
 import SearchableSelect from '@/components/SearchableSelect.vue';
+import useCustomPages from '@/composables/useCustomPages';
 
 defineProps<{ network: Network; }>();
 
@@ -197,7 +197,7 @@ const form = ref<Partial<PageBlock>>({
 const editDataMode = ref(false);
 const jsonEditorValue = ref<object>({});
 
-const { customPage, loading, error, fetchCustomPage } = useCustomPage();
+const { data: customPage, loading, error, execute: fetchCustomPage } = useCustomPages().fetchCustomPage;
 
 const handleMounted = async () => {
   await fetchCustomPage(networkId, customPageId);

@@ -1,7 +1,7 @@
 <!-- EditUserProxyPage.vue -->
 <template>
   <div class="max-w-4xl mx-auto p-6 bg-white shadow-md rounded-lg overflow-hidden">
-    <LoadingErrorComponent :loading="loading" :error="error" button-value="Go back" @button-action="router.go(-1)" />
+    <LoadingErrorComponent :loading="loading" :error="error ?? undefined" button-value="Go back" @button-action="router.go(-1)" />
 
     <div v-if="!loading && !error && userProxy" class="space-y-10">
       <div class="flex justify-between items-stretch gap-10">
@@ -219,7 +219,7 @@ const router = useRouter();
 const authStore = useAuthStore();
 const historyStore = useHistoryStore();
 
-const { userProxy, loading, error, fetchUserProxy } = useUserProxy();
+const { data: userProxy, loading, error, execute: fetchUserProxy } = useUserProxy().fetchUserProxy;
 
 const uploadedFile = ref<NetworkFile | null>(null);
 const showUploadModal = ref(false);

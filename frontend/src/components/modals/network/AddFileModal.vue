@@ -90,7 +90,7 @@
             </div>
           </label>
         </div>
-        <p v-if="!files.length" class="text-sm text-gray-500">No images available.</p>
+        <p v-if="!files?.length" class="text-sm text-gray-500">No images available.</p>
       </div>
 
       <!-- Action Buttons -->
@@ -115,7 +115,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import ModalContainer from '@/components/modals/ModalContainer.vue';
 import AccessLevelPicker from '@/components/fields/AccessLevelPicker.vue';
 import useFiles from '@/composables/useFiles';
@@ -125,7 +125,16 @@ import { useAuthStore } from '@/stores/auth';
 import CloudinaryFile from '@/components/cdn/CloudinaryFile.vue';
 import ForceLoadModal from '../ForceWaitModal.vue';
 
-const { uploadFile, fetchUserFiles, file, files, loading, error, progress } = useFiles();
+const filesState = useFiles();
+const { progress } = filesState;
+const { execute: uploadFile } = filesState.uploadFile;
+const { execute: fetchUserFiles, data: files } = filesState.fetchUserFiles;
+
+const error = computed(() => {
+  return [filesState.uploadFile.error.value, filesState.fetchUserFiles.error.value].filter(Boolean).join(' - ');
+})
+
+const loading = computed(() => filesState.uploadFile.loading.value || filesState.uploadFile.loading.value)
 
 const props = withDefaults(defineProps<{
   network?: Network;
@@ -181,13 +190,6 @@ function handleDrop(e: DragEvent) {
   }
 }
 
-watch(file, (newFile) => {
-  if (newFile) {
-    emit('uploaded', newFile);
-    selectedFile.value = null;
-  }
-});
-
 function triggerFileInput() { if (!loading.value) fileInput.value?.click(); }
 function handleFileChange(e: Event) {
   const target = e.target as HTMLInputElement;
@@ -220,8 +222,9 @@ async function handleUpload() {
 
   if (activeTab.value === 'upload') {
     if (!selectedFile.value || !selectedNetwork.value) return;
-    await uploadFile(selectedNetwork.value.id, selectedFile.value, selectedAccessLevel.value);
+    const file = await uploadFile(selectedNetwork.value.id, selectedFile.value, selectedAccessLevel.value);
 
+    emit('uploaded', file);
     selectedFile.value = null;
   }
 }

@@ -6,7 +6,7 @@
     <!-- Main Content -->
     <div class="flex-1 p-6 overflow-auto">
       <!-- Loading and Error States -->
-      <LoadingErrorComponent :loading="authStore.loading" :error="authStore.error"
+      <LoadingErrorComponent :loading="authStore.loading" :error="authStore.error ?? undefined"
         button-value="Reload page" @button-action="router.go(0)" />
 
       <!-- Route View (Page Content) -->
@@ -57,16 +57,16 @@ import AccountSidebar from '@/components/sidebar/AccountSidebar.vue';
 import { useAuthStore } from '@/stores/auth';
 import AddUserProxyModal from '@/components/modals/account/AddUserProxyModal.vue';
 import api from '@/api/api';
-import useMainNetwork from '@/composables/useMainNetwork';
 import AddFileModal from '@/components/modals/network/AddFileModal.vue';
 import EditFileModal from '@/components/modals/network/EditFileModal.vue';
+import useNetworks from '@/composables/useNetworks';
 
 const router = useRouter();
 
 const globalStore = useGlobalStore();
 const authStore = useAuthStore();
 
-const mainNetwork = useMainNetwork();
+const mainNetwork = useNetworks().fetchMainNetwork;
 
 const isSubmitting = ref(false);
 
@@ -87,7 +87,7 @@ const userProxy = ref<UserProxy | null>(null);
 onMounted(async () => {
   globalStore.startFetching();
   userProxy.value = await authStore.getUserProxy();
-  await mainNetwork.fetchMainNetwork();
+  await mainNetwork.execute();
   globalStore.stopFetching();
 });
 

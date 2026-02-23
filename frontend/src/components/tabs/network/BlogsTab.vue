@@ -165,7 +165,7 @@ import { onMounted, ref, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { ACCESS_LEVELS, getAccessLevel } from '@/lib/accessLevels';
 
-const blogsState = useBlogs();
+const blogsState = useBlogs().fetchBlogs;
 const route = useRoute();
 
 const showFilters = ref(false);
@@ -177,7 +177,7 @@ const endDate = ref('');
 const filters = ref({ authors: [] as string[], accessLevels: [] as number[] });
 
 const filteredBlogs = computed(() => {
-  let blogs = blogsState.blogs.value || [];
+  let blogs = blogsState.data.value || [];
 
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase();
@@ -218,12 +218,14 @@ const filteredBlogs = computed(() => {
 
 onMounted(() => {
   const networkId = route.params.networkId as string;
-  blogsState.fetchBlogs(networkId);
+  blogsState.execute(networkId);
 });
 
 const uniqueAuthors = computed(() => {
+  if (!blogsState.data.value) return [];
+
   const seen = new Map<string, { username: string; firstName: string; lastName: string; }>();
-  (blogsState.blogs.value || []).forEach(b => {
+  (blogsState.data.value || []).forEach(b => {
     const u = b.author?.userProxy;
     if (u && !seen.has(u.username ?? 'Unknown')) {
       seen.set(u.username ?? 'Unknown', { username: u.username ?? 'Unknown', firstName: u.firstName ?? 'Unknown', lastName: u.lastName ?? 'Unknown' });

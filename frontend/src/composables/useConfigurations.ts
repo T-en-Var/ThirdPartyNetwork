@@ -1,110 +1,78 @@
-import { ref } from 'vue'
-import api from '@/api/api'
-import type { Ref } from 'vue'
-import type { AxiosError } from 'axios'
-import type { Configuration, CreateConfiguration } from '@/types'
-import { useGlobalStore } from '@/stores/global'
+import api from '@/api/api';
+import type { Configuration, CreateConfiguration } from '@/types';
+import { useCachedApi, useMutation } from './useApi';
 
 export default function useConfigurations() {
-  const configurations: Ref<Configuration[]> = ref([])
-  const configuration: Ref<Configuration | null> = ref(null)
-  const loading: Ref<boolean> = ref(false)
-  const error: Ref<string | null> = ref(null)
+  const fetchNetworkConfigurations = useCachedApi<Configuration[], [networkId: string]>(
+    (networkId) => `networks_${networkId}_configurations`,
+    async (networkId) => await api.get<Configuration[]>(`/networks/${networkId}/configurations`),
+  );
 
-  const globalStore = useGlobalStore()
+  const fetchConfiguration = useCachedApi<Configuration, [networkId: string, configId: string]>(
+    (networkId, configId) => `networks_${networkId}_configurations_${configId}`,
+    async (networkId, configId) =>
+      await api.get<Configuration>(`/networks/${networkId}/configurations/${configId}`),
+  );
 
-  const insertConfiguration = (cfg: Configuration) => {
-    const index = configurations.value.findIndex(c => c.id === cfg.id)
-    if (index !== -1) configurations.value.splice(index, 1, cfg)
-    else configurations.value.unshift(cfg)
-  }
+  const createConfiguration = useMutation<
+    Configuration,
+    [networkId: string, payload: CreateConfiguration]
+  >(
+    async (networkId, payload) =>
+      await api.post<Configuration, CreateConfiguration>(
+        `/networks/${networkId}/configurations`,
+        payload,
+      ),
+    {
+      itemKeyFactory: (result, networkId) => `networks_${networkId}_configurations_${result.id}`,
+      listKeyFactory: (networkId) => `networks_${networkId}_configurations`,
+      listUpdater: (currentList, result) => {
+        return [result, ...currentList];
+      },
+    },
+  );
 
-  const fetchNetworkConfigurations = async (networkId: string) => {
-    loading.value = true
-    globalStore.startFetching()
-    try {
-      const response = await api.get<Configuration[]>(`/networks/${networkId}/configurations`)
-      configurations.value = response.data
-    } catch (err) {
-      error.value = (err as AxiosError).message
-    } finally {
-      loading.value = false
-      globalStore.stopFetching()
-    }
-  }
+  const updateConfiguration = useMutation<
+    Configuration,
+    [networkId: string, configurationId: string, payload: Partial<Configuration>]
+  >(
+    async (networkId, configurationId, payload) =>
+      await api.put<Configuration, Partial<Configuration>>(
+        `/networks/${networkId}/configurations/${configurationId}`,
+        payload,
+      ),
+    {
+      itemKeyFactory: (_, networkId, configurationId) =>
+        `networks_${networkId}_configurations_${configurationId}`,
 
-  const fetchConfiguration = async (networkId: string, configId: string) => {
-    loading.value = true
-    globalStore.startFetching()
-    try {
-      const response = await api.get<Configuration>(`/networks/${networkId}/configurations/${configId}`)
-      configuration.value = response.data
-      insertConfiguration(response.data)
-    } catch (err) {
-      error.value = (err as AxiosError).message
-    } finally {
-      loading.value = false
-      globalStore.stopFetching()
-    }
-  }
+      listKeyFactory: (networkId) => `networks_${networkId}_configurations`,
+      listUpdater: (currentList, result, networkId, configurationId) => {
+        return currentList.map((item) => (item.id === configurationId ? result : item));
+      },
+    },
+  );
 
-  const createConfiguration = async (networkId: string, payload: CreateConfiguration) => {
-    loading.value = true
-    globalStore.startFetching()
-    try {
-      const response = await api.post<Configuration, CreateConfiguration>(`/networks/${networkId}/configurations`, payload)
-      configurations.value.unshift(response.data)
-      return response.data
-    } catch (err) {
-      error.value = (err as AxiosError).message
-      throw err
-    } finally {
-      loading.value = false
-      globalStore.stopFetching()
-    }
-  }
-
-  const updateConfiguration = async (networkId: string, configurationId: string, payload: Partial<Configuration>) => {
-    loading.value = true
-    globalStore.startFetching()
-    try {
-      const response = await api.put<Configuration, Partial<Configuration>>(`/networks/${networkId}/configurations/${configurationId}`, payload)
-      insertConfiguration(response.data)
-      return response.data
-    } catch (err) {
-      error.value = (err as AxiosError).message
-      throw err
-    } finally {
-      loading.value = false
-      globalStore.stopFetching()
-    }
-  }
-
-  const deleteConfiguration = async (networkId: string, configurationId: string) => {
-    loading.value = true
-    globalStore.startFetching()
-    try {
-      await api.delete(`/networks/${networkId}/configurations/${configurationId}`)
-      configurations.value = configurations.value.filter(c => c.id !== configurationId)
-    } catch (err) {
-      error.value = (err as AxiosError).message
-      throw err
-    } finally {
-      loading.value = false
-      globalStore.stopFetching()
-    }
-  }
+  const deleteConfiguration = useMutation<
+    void,
+    [networkId: string, configurationId: string],
+    Configuration
+  >(
+    async (networkId, configurationId) =>
+      await api.delete<void>(`/networks/${networkId}/configurations/${configurationId}`),
+    {
+      itemKeyFactory: (_, networkId, configurationId) =>
+        `networks_${networkId}_configurations_${configurationId}`,
+      listKeyFactory: (networkId) => `networks_${networkId}_configurations`,
+      listUpdater: (currentList, _, __, configurationId) =>
+        currentList.filter((item) => item.id !== configurationId),
+    },
+  );
 
   return {
-    configurations,
-    configuration,
-    loading,
-    error,
-    insertConfiguration,
     fetchNetworkConfigurations,
     fetchConfiguration,
     createConfiguration,
     updateConfiguration,
     deleteConfiguration,
-  }
+  };
 }

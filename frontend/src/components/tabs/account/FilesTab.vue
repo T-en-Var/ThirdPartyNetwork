@@ -262,13 +262,13 @@ import api from '@/api/api';
 const showFilters = ref(false);
 const filterSlug = ref("");
 
-const filesState = useFiles();
+const filesState = useFiles().fetchUserFiles;
 const authStore = useAuthStore();
 
 onMounted(async () => {
   const userProxy = await authStore.getUserProxy();
   if (!userProxy) return;
-  filesState.fetchUserFiles(userProxy.user.id, userProxy.id);
+  filesState.execute(userProxy.user.id, userProxy.id);
 });
 
 const filters = ref({
@@ -327,22 +327,28 @@ function getNetworkName(networkId: string) {
 
 // Extract formats
 const formats = computed(() => {
+  if (!filesState.data.value) return [];
+
   const types = new Set<string>();
-  filesState.files.value.forEach(f => { if (f.format) types.add(f.format.toLowerCase()); });
+  filesState.data.value.forEach(f => { if (f.format) types.add(f.format.toLowerCase()); });
   return Array.from(types).sort();
 });
 
 // Extract unique networks
 const uniqueNetworks = computed(() => {
+  if (!filesState.data.value) return [];
+
   const ids = new Set<string>();
-  filesState.files.value.forEach(f => ids.add(f.networkId));
+  filesState.data.value.forEach(f => ids.add(f.networkId));
   return Array.from(ids);
 });
 
 // Filtered files
 const filteredFiles = computed(() => {
+  if (!filesState.data.value) return [];
+  
   const query = filterSlug.value.trim().toLowerCase();
-  return filesState.files.value.filter(file => {
+  return filesState.data.value.filter(file => {
     const name = file.name.toLowerCase();
     const format = file.format?.toLowerCase();
     const visibility = file.isPublic ? 'public' : 'private';
