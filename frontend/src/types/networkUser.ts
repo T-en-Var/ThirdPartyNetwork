@@ -1,5 +1,5 @@
 import type { NetworkFile } from "./userContent/files";
-import type { Network } from "./network";
+import type { Network, SettableEntitlement } from "./network";
 import type { NetworkUserAccess } from "./networkUserAccess";
 import type { NetworkUserRole } from "./networkUserRole";
 import type { UserProxy } from "./userProxy";
@@ -15,7 +15,7 @@ export interface NetworkUser {
   networkUserRoles: NetworkUserRole[],
   createdOn: Date,
   files: NetworkFile[],
-  entitlements: object,
+  entitlements: SettableEntitlement,
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type

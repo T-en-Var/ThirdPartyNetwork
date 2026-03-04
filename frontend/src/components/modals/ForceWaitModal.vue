@@ -14,9 +14,10 @@
 
 <script setup lang="ts">
 import ModalContainer from '@/components/modals/ModalContainer.vue'
-import { onMounted, watch } from 'vue'
+// import { onMounted, watch } from 'vue'
 
-const props = defineProps({
+// const props = 
+defineProps({
   title: {
     type: String,
     required: true
@@ -31,9 +32,9 @@ const props = defineProps({
   }
 })
 
-onMounted(() => console.log("Forcing!", props.progress))
+// onMounted(() => console.log("Forcing!", props.progress))
 
-watch(props, (props) => console.log(props.progress))
+// watch(props, (props) => console.log(props.progress))
 
 defineEmits(['close', 'confirm'])
 </script>

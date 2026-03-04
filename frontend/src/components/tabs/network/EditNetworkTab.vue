@@ -1,10 +1,9 @@
 <!-- EditNetworkPage.vue -->
 <template>
   <div class="p-6 bg-white shadow-md rounded-lg overflow-hidden">
-    <LoadingErrorComponent :loading="loading" :error="error ?? undefined" button-value="Go back" @button-action="router.go(-1)" />
+    <LoadingErrorComponent :loading="loading" :error="error" button-value="Go back" @button-action="router.go(-1)" :has-value="!!network" />
 
     <div v-if="!loading && !error && network" class="space-y-10">
-      <!-- Network Info -->
       <h2 class="text-xl font-medium text-gray-800 mb-4">Network Details</h2>
 
       <div class="flex justify-between items-stretch gap-10">
@@ -41,7 +40,6 @@
           </div>
         </section>
 
-        <!-- Network Image -->
         <section class="flex flex-col mr-6">
           <h2 class="block text-sm font-medium text-gray-700 text-center">Network Image</h2>
           <div class="flex flex-col items-center flex-grow">
@@ -58,7 +56,6 @@
               </div>
             </div>
 
-            <!-- If no image yet -->
             <div v-else class="flex flex-col items-center justify-center flex-grow">
               <div class="h-24 w-24 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
                 No Image
@@ -71,13 +68,11 @@
             </div>
           </div>
 
-          <!-- Upload Modal -->
           <AddFileModal v-if="showUploadModal" :network="network" @close="showUploadModal = false"
             @uploaded="handleImageUploaded" media-type="image" />
         </section>
       </div>
 
-      <!-- Danger Zone -->
       <section v-if="!network.isSystemProtected" class="border border-red-300 bg-red-50 rounded-lg p-6">
         <h2 class="text-lg font-semibold text-red-700 mb-4">Danger Zone</h2>
         <p class="text-sm text-red-600 mb-4">
@@ -89,7 +84,6 @@
         </button>
       </section>
 
-      <!-- Floating Save Bar -->
       <transition name="fade">
         <div v-if="hasChanges" class="fixed left-0 bottom-0 w-screen flex justify-center">
           <div

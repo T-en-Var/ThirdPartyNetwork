@@ -15,7 +15,10 @@ export default function useNetworks() {
   
   const fetchNetwork = useCachedApi<Network, [networkId: string]>(
     (networkId) => `networks_${networkId}`,
-    async (networkId) => await api.get<Network>(`/networks/${networkId}`),
+    async (networkId) => {
+      console.log("fetching")
+      return await api.get<Network>(`/networks/${networkId}`)
+    },
   );
 
   const fetchNetworkDetails = useCachedApi<Network, [networkId: string]>(

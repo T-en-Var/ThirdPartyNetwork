@@ -9,6 +9,8 @@
     </div>
     <AppFooter v-if="showNavbar" />
     <FetchingToast />
+    
+    <!-- <div class="fixed bg-red-500 w-10 h-10 z-50 cursor-pointer" @click="console.log((globalCache.get(`networks_019b722f-5d71-7631-812d-6646febcaef2`)))"></div> -->
   </main>
 </template>
 
@@ -20,6 +22,7 @@ import AppFooter from '@/components/AppFooter.vue';
 import { computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { initializeApiClient } from './api/api'
+// import { globalCache } from './composables/useApi';
 
 const router = useRouter()
 const route = useRoute()

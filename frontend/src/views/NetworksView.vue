@@ -26,15 +26,13 @@
         </nav>
       </div>
 
-      <LoadingErrorComponent :loading="loading" :error="error ?? undefined"
+      <LoadingErrorComponent :loading="loading" :error="error"
         button-value="Reload page" @button-action="router.go(0)" />
 
       <div class="p-6">
-        <!-- My Networks Tab -->
         <my-networks-tab v-if="activeTab === 'my-networks'"
           :networks="userNetworksState.data.value ?? []" />
 
-        <!-- Browse Networks Tab -->
         <browse-networks-tab v-if="activeTab === 'browse-networks'"
           :networks="filteredNetworks" />
       </div>

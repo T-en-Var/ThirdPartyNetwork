@@ -1,4 +1,4 @@
-import type { Network } from "./network";
+import type { Network, SettableEntitlement } from "./network";
 import type { NetworkUserRole } from "./networkUserRole";
 import type { RolePermission } from "./rolePermission";
 
@@ -10,7 +10,7 @@ export interface Role {
   rolePermissions: RolePermission[],
   networkUserRoles: NetworkUserRole[],
   network: Network,
-  entitlements: object,
+  entitlements: SettableEntitlement,
 }
 
 export interface CreateRole {

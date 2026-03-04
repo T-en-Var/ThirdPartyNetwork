@@ -22,6 +22,41 @@ export interface NetworkEntitlement {
   customPageCountLimit: number;
 }
 
+
+export interface SettableEntitlement {
+  allowFiles?: boolean;
+  fileCountLimit?: number;
+  fileSizeLimit?: number; // in KB
+  fileStorageLimit?: number; // in KB
+
+  allowBlogs?: boolean;
+  blogCountLimit?: number;
+
+  allowConfigurations?: boolean;
+  configurationCountLimit?: number;
+
+  allowCustomPages?: boolean;
+  customPageCountLimit?: number;
+}
+
+
+export interface SettableEntitlementForm extends SettableEntitlement {
+  setAllowFiles?: boolean;
+  setFileCountLimit?: boolean;
+  setFileSizeLimit?: boolean;
+  setFileStorageLimit?: boolean;
+
+  setAllowBlogs?: boolean;
+  setBlogCountLimit?: boolean;
+
+  setAllowConfigurations?: boolean;
+  setConfigurationCountLimit?: boolean;
+
+  setAllowCustomPages?: boolean;
+  setCustomPageCountLimit?: boolean;
+}
+
+
 export interface Network {
   id: string,
   name: string,

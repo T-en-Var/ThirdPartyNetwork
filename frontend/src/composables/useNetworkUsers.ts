@@ -1,27 +1,26 @@
 import api from '@/api/api.ts';
-import type { CreateNetworkUser, Network, NetworkUser, UpdateNetworkUser } from '@/types';
+import type { CreateNetworkUser, NetworkUser, UpdateNetworkUser } from '@/types';
 import { useCachedApi, useMutation } from './useApi';
 
 export default function useNetworkUsers() {
   const fetchNetworkUsers = useCachedApi<NetworkUser[], [networkId: string]>(
     (networkId) => `networks_${networkId}_users`,
-    async (networkId) => await api.get<NetworkUser[]>(`networks/${networkId}/users/`),
+    async (networkId) => {
+      return await api.get<NetworkUser[]>(`networks/${networkId}/users/`);
+    },
   );
 
   const createNetworkUser = useMutation<
     NetworkUser,
-    [networkId: string, payload: CreateNetworkUser],
-    unknown
+    [networkId: string, payload: CreateNetworkUser]
   >(
     async (networkId, payload) =>
       await api.post<NetworkUser, CreateNetworkUser>(`/networks/${networkId}/users/`, payload),
     {
       itemKeyFactory: (result, networkId) => `networks_${networkId}_users_${result.id}`,
-      listKeyFactory: (networkId) => `networks_${networkId}`,
+      listKeyFactory: (networkId) => `networks_${networkId}_users`,
       listUpdater: (currentList, result) => {
-        const network = currentList as unknown as Network;
-        network.networkUsers = [result, ...network.networkUsers];
-        return network as unknown as unknown[];
+        return [result, ...currentList];
       },
     },
   );
@@ -34,8 +33,7 @@ export default function useNetworkUsers() {
       payload: UpdateNetworkUser,
       addedRoles: string[],
       removedRoles: string[],
-    ],
-    unknown
+    ]
   >(
     async (networkId, userId, payload, addedRoles, removedRoles) => {
       await api.put<NetworkUser, UpdateNetworkUser>(
@@ -59,28 +57,22 @@ export default function useNetworkUsers() {
     },
     {
       itemKeyFactory: (_, networkId, roleId) => `networks_${networkId}_roles_${roleId}`,
-      listKeyFactory: (networkId) => `networks_${networkId}`,
+      listKeyFactory: (networkId) => `networks_${networkId}_users`,
       listUpdater: (currentList, result) => {
-        const network = currentList as unknown as Network;
-        network.networkUsers = network.networkUsers.map((item) =>
-          item.id === result.id ? result : item,
-        );
-        return network as unknown as unknown[];
+        return currentList.map((item) => (item.id === result.id ? result : item));
       },
     },
   );
 
-  const deleteNetworkUser = useMutation<void, [networkId: string, networkUserId: string], unknown>(
+  const deleteNetworkUser = useMutation<void, [networkId: string, networkUserId: string], NetworkUser>(
     async (networkId, networkUserId) =>
       await api.delete(`/networks/${networkId}/users/${networkUserId}/`),
     {
       itemKeyFactory: (_, networkId, networkUserId) =>
         `networks_${networkId}_users_${networkUserId}`,
-      listKeyFactory: (networkId) => `networks_${networkId}`,
+      listKeyFactory: (networkId) => `networks_${networkId}_users`,
       listUpdater: (currentList, _, __, networkUserId) => {
-        const network = currentList as unknown as Network;
-        network.networkUsers = network.networkUsers.filter((item) => item.id !== networkUserId);
-        return network as unknown as unknown[];
+        return currentList.filter((item) => item.id !== networkUserId);
       },
     },
   );

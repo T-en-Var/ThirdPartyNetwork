@@ -32,7 +32,7 @@ class ApiClient {
       (response) => {
         // Automatically convert fields that are string dates
         response.data = this.convertDatesInResponse(response.data);
-        console.log(response.data)
+        // console.log(response.data)
         return response;
       },
       (error) => {

@@ -33,47 +33,57 @@
           </div>
         </div>
 
-        <div class="mt-4 flex justify-between items-center">
-          <div>
-            <h4 class="text-sm font-medium text-gray-700 mb-2">Permissions:</h4>
-            <div class="flex flex-wrap gap-2">
-              <span v-for="rolePermission in role.rolePermissions"
-                :key="rolePermission.permissionId"
-                class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                {{ rolePermission.permission.name }}
-              </span>
-              <span v-if="!role.rolePermissions?.length"
-                class="text-sm text-gray-500">No permissions assigned</span>
-            </div>
-          </div>
-
-          <div v-if="role.isDefault">
-            <span
-              class="px-4 py-2 text-sm border rounded-md bg-gray-100 text-gray-800 border-gray-200">
-              Default
-            </span>
-          </div>
-        </div>
-
-        <div class="mt-4">
-          <h4 class="text-sm font-medium text-gray-700 mb-2">Users with this access:
-          </h4>
-          <div class="flex flex-wrap gap-2">
-            <div v-for="networkUser in role.networkUserRoles.map(r => r.networkUser)"
-              :key="networkUser.id"
-              class="flex items-center px-2 py-1 bg-white rounded-md border border-gray-200">
-              <div class="h-6 w-6 flex-shrink-0 mr-2">
-                <ProfileAvatar :userProxy="networkUser.userProxy" :size="6" />
+        <template v-if="!isFetching">
+          <div class="mt-4 flex justify-between items-center">
+            <div>
+              <h4 class="text-sm font-medium text-gray-700 mb-2">Permissions:</h4>
+              <div class="flex flex-wrap gap-2">
+                <span v-for="rolePermission in role.rolePermissions"
+                  :key="rolePermission.permissionId"
+                  class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                  {{ rolePermission.permission.name }}
+                </span>
+                <span v-if="!role.rolePermissions?.length"
+                  class="text-sm text-gray-500">No permissions assigned</span>
               </div>
-              <span class="text-xs">{{ networkUser.userProxy.firstName }} {{
-                networkUser.userProxy.lastName }}</span>
             </div>
-            <span v-if="role.networkUserRoles.length === 0"
-              class="text-sm text-gray-500">
-              No users have this role assigned
-            </span>
+
+            <div v-if="role.isDefault">
+              <span
+                class="px-4 py-2 text-sm border rounded-md bg-gray-100 text-gray-800 border-gray-200">
+                Default
+              </span>
+            </div>
           </div>
-        </div>
+
+          <div class="mt-4">
+            <h4 class="text-sm font-medium text-gray-700 mb-2">Users with this
+              access:
+            </h4>
+            <div class="flex flex-wrap gap-2">
+              <div
+                v-for="networkUser in role.networkUserRoles.map(r => r.networkUser)"
+                :key="networkUser.id"
+                class="flex items-center px-2 py-1 bg-white rounded-md border border-gray-200">
+                <div class="h-6 w-6 flex-shrink-0 mr-2">
+                  <ProfileAvatar :userProxy="networkUser.userProxy" :size="6" />
+                </div>
+                <span class="text-xs">{{ getNameDisplayNetworkUser(networkUser) }}</span>
+              </div>
+              <span v-if="role.networkUserRoles.length === 0"
+                class="text-sm text-gray-500">
+                No users have this role assigned
+              </span>
+            </div>
+          </div>
+        </template>
+
+        <template v-else>
+          <div class="text-sm text-gray-500 pt-8">
+            <LoadingSpinner size="sm" /> Fetching more information...
+          </div>
+        </template>
+
       </div>
 
       <div v-if="!network.roles.length" class="p-6 text-center text-gray-500">
@@ -85,12 +95,14 @@
 
 <script setup lang="ts">
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
+import LoadingSpinner from '@/components/LoadingSpinner.vue';
 import ProfileAvatar from '@/components/ProfileAvatar.vue';
 import useRoles from '@/composables/useRoles';
+import { getNameDisplayNetworkUser } from '@/lib/user';
 import type { Network, Role } from '@/types';
 import { onMounted } from 'vue';
 
-const { data: roles, loading, error, execute: fetchRoles } = useRoles().fetchRoles;
+const { data: roles, isFetching, loading, error, execute: fetchRoles } = useRoles().fetchRoles;
 
 const props = defineProps<{
   network: Network;

@@ -1,6 +1,6 @@
 import api from '@/api/api.ts';
-import type { CreateRole, Role, UpdateRole } from '@/types';
-import { useCachedApi, useMutation } from './useApi';
+import type { CreateRole, Network, Role, UpdateRole } from '@/types';
+import { globalCache, useCachedApi, useMutation } from './useApi';
 
 export default function useRoles() {
   const fetchRoles = useCachedApi<Role[], [networkId: string]>(
@@ -10,6 +10,14 @@ export default function useRoles() {
       result.data.sort((a, b) => a.name.localeCompare(b.name));
       return result;
     },
+    undefined,
+    undefined,
+    {
+      initialData: (networkId) => {
+        const network = globalCache.get(`networks_${networkId}`)?.data.value as Network | undefined;
+        return network?.roles ?? [];
+      }
+    }
   );
 
   const fetchRole = useCachedApi<Role, [networkId: string, roleId: string]>(

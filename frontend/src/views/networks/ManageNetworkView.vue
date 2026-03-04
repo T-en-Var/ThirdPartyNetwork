@@ -4,7 +4,8 @@
 
     <div class="flex-1 p-6 overflow-auto">
       <LoadingErrorComponent :loading="networksState.fetchNetwork.loading.value"
-        :error="networksState.fetchNetwork.error.value ?? undefined"
+        :error="networksState.fetchNetwork.error.value"
+        :has-value="!!networksState.fetchNetwork.data"
         button-value="Return to networks"
         @button-action="router.push(`/networks`)" />
 
@@ -13,7 +14,7 @@
         :network="networksState.fetchNetwork.data.value"
         @add-user="showAddUserModal = true" @manage-user="openManageUserModal"
         @remove-user="confirmRemoveUser" @add-role="showAddRoleModal = true"
-        @manage-role="openManageRoleModal" @remove-role="confirmRemoveRole"
+        @manage-role="openEditRoleModal" @remove-role="confirmRemoveRole"
         @add-access="showAddAccessModal = true"
         @toggle-access-required="confirmToggleAccessRequired"
         @remove-access="confirmRemoveAccess" @add-file="showAddFileModal = true"
@@ -40,7 +41,7 @@
           :is-submitting="isSubmitting" @close="showAddUserModal = false"
           @add-user="addUserToNetwork" />
 
-        <ManageUserModal v-if="showManageUserModal && selectedUser"
+        <EditUserModal v-if="showManageUserModal && selectedUser"
           :network="networksState.fetchNetwork.data.value!"
           :selected-user="selectedUser" :is-submitting="isSubmitting"
           :manage-user-form="manageUserForm" @close="showManageUserModal = false"
@@ -51,10 +52,10 @@
           :is-submitting="isSubmitting" @close="showAddRoleModal = false"
           @add-role="addRoleToNetwork" />
 
-        <ManageRoleModal v-if="showManageRoleModal && selectedRole"
+        <EditRoleModal v-if="showEditRoleModal && selectedRole"
           :network="networksState.fetchNetwork.data.value!"
           :selected-role="selectedRole" :manage-role-form="manageRoleForm"
-          @close="showManageRoleModal = false" @update="updateRolePermissions" />
+          @close="showEditRoleModal = false" @update="updateRolePermissions" />
 
         <AddAccessModal v-if="showAddAccessModal"
           :network="networksState.fetchNetwork.data.value!"
@@ -107,9 +108,9 @@ import { useGlobalStore } from '@/stores/global';
 import NetworkSidebar from '@/components/sidebar/NetworkSidebar.vue';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import AddUserModal from '@/components/modals/network/AddUserModal.vue';
-import ManageUserModal from '@/components/modals/network/ManageUserModal.vue';
+import EditUserModal from '@/components/modals/network/EditUserModal.vue';
 import AddRoleModal from '@/components/modals/network/AddRoleModal.vue';
-import ManageRoleModal from '@/components/modals/network/ManageRoleModal.vue';
+import EditRoleModal from '@/components/modals/network/EditRoleModal.vue';
 import AddAccessModal from '@/components/modals/network/AddAccessModal.vue';
 import AddFileModal from '@/components/modals/network/AddFileModal.vue';
 import EditFileModal from '@/components/modals/network/EditFileModal.vue';
@@ -150,7 +151,7 @@ const filesState = useFiles();
 const showAddUserModal = ref(false);
 const showManageUserModal = ref(false);
 const showAddRoleModal = ref(false);
-const showManageRoleModal = ref(false);
+const showEditRoleModal = ref(false);
 const showAddAccessModal = ref(false);
 const showConfirmationModal = ref(false);
 const showAddFileModal = ref(false);
@@ -248,7 +249,7 @@ function confirmRemoveUser(networkUser: NetworkUser) {
   showConfirmationModal.value = true;
 }
 
-async function openManageRoleModal(role: Role) {
+async function openEditRoleModal(role: Role) {
   selectedRole.value = role;
 
   const { execute: fetchPermissions } = permissionsState.fetchPermissions;
@@ -259,7 +260,7 @@ async function openManageRoleModal(role: Role) {
   manageRoleForm.isDefault = role.isDefault;
   manageRoleForm.permissionIds = role.rolePermissions?.map(rp => rp.permission.id) || [];
 
-  showManageRoleModal.value = true;
+  showEditRoleModal.value = true;
 }
 
 function confirmRemoveRole(role: Role) {
@@ -348,6 +349,7 @@ async function addUserToNetwork(userData: { userId: string, roleIds: string[]; }
 }
 
 async function updateUserSettings(localForm: ManageUserForm) {
+  console.log(localForm)
   if (!selectedUser.value) return;
 
   const addedRoles = localForm.roleIds.filter(roleId => !manageUserForm.roleIds.includes(roleId));
@@ -393,27 +395,27 @@ async function addRoleToNetwork(localForm: Ref<RoleForm>) {
   }
 }
 
-async function updateRolePermissions(localForm: Ref<RoleForm>) {
+async function updateRolePermissions(localForm: RoleForm) {
   if (!selectedRole.value) return;
   isSubmitting.value = true;
 
   const { execute: updateRole } = rolesState.updateRole;
   const payload = {
-    name: localForm.value.name.trim(),
-    description: localForm.value.description.trim(),
-    isDefault: localForm.value.isDefault,
-    entitlements: localForm.value.entitlements
+    name: localForm.name.trim(),
+    description: localForm.description.trim(),
+    isDefault: localForm.isDefault,
+    entitlements: localForm.entitlements
   };
 
   try {
     const roleId = selectedRole.value!.id;
 
-    const addedPerms = localForm.value.permissionIds.filter(permId => !manageRoleForm.permissionIds.includes(permId));
-    const removedPerms = manageRoleForm.permissionIds.filter(permId => !localForm.value.permissionIds.includes(permId));
+    const addedPerms = localForm.permissionIds.filter(permId => !manageRoleForm.permissionIds.includes(permId));
+    const removedPerms = manageRoleForm.permissionIds.filter(permId => !localForm.permissionIds.includes(permId));
 
     await updateRole(networkId.value, roleId, payload, addedPerms, removedPerms);
 
-    showManageRoleModal.value = false;
+    showEditRoleModal.value = false;
   } catch (err) {
     console.error('Error updating role permissions:', err);
   } finally {
@@ -467,6 +469,8 @@ async function openEditFileModal(file: NetworkFile) {
   await filesState.fetchFile.execute(networkId.value, file.id);
 
   if (showAddFileModal.value) showAddFileModal.value = false;
+
+  selectedFile.value = file;
   showEditFileModal.value = true;
 }
 

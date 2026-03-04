@@ -11,7 +11,7 @@ interface CacheEntry<T> {
 }
 
 // Global "Source of Truth" (Primitive values, not refs, to keep it simple)
-const globalCache = new Map<string, CacheEntry<unknown>>();
+export const globalCache = new Map<string, CacheEntry<unknown>>();
 
 function getOrCreateEntry<T>(key: string): CacheEntry<T> {
   if (!globalCache.has(key)) {
