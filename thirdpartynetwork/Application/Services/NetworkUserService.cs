@@ -142,12 +142,14 @@ namespace thirdpartynetwork.Application.Services
 
         public async Task<NetworkUser> UpdateAsync(Guid networkId, Guid networkUserId, UpdateNetworkUserDto updateNetworkUser)
         {
+            var existing = await repository.GetByIdAsync(networkId, networkUserId);
             if (await networkService.GetByIdAsync(networkId) == null) throw new NotFoundHttpException("Network not Found");
-            if (!await repository.ExistsAsync(networkUserId)) throw new NotFoundHttpException();
+            if (existing == null) throw new NotFoundHttpException();
 
             var networkUser = mapper.Map<NetworkUser>(updateNetworkUser);
             networkUser.Id = networkUserId;
             networkUser.NetworkId = networkId;
+            networkUser.UserProxyId = existing.UserProxyId;
 
             networkUser = await repository.UpdateAsync(networkId, networkUser);
             return networkUser;

@@ -11,6 +11,7 @@ namespace thirdpartynetwork.Core.Data
         public DbSet<File> Files { get; set; }
         public DbSet<Network> Networks { get; set; }
         public DbSet<NetworkAccess> NetworkAccesses { get; set; }
+        public DbSet<NetworkEntitlement> NetworkEntitlements { get; set; }
         public DbSet<NetworkUser> NetworkUsers { get; set; }
         public DbSet<NetworkUserAccess> NetworkUserAccesses { get; set; }
         public DbSet<NetworkUserRole> NetworkUserRoles { get; set; }
@@ -85,6 +86,41 @@ namespace thirdpartynetwork.Core.Data
                 .HasMany(n => n.Roles)
                 .WithOne(r => r.Network)
                 .HasForeignKey(r => r.NetworkId);
+            
+            modelBuilder.Entity<NetworkEntitlement>()
+                .HasKey(e => e.NetworkId);
+
+            // One-to-one: Network -> NetworkEntitlement
+            modelBuilder.Entity<Network>()
+                .HasOne(n => n.Entitlement)
+                .WithOne()
+                .HasForeignKey<NetworkEntitlement>(e => e.NetworkId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            var entityRole = modelBuilder.Entity<Role>();
+            if (Database.ProviderName == "Microsoft.EntityFrameworkCore.InMemory")
+            {
+                entityRole
+                    .Property(b => b.Entitlements)
+                    .HasConversion(
+                        v => v.RootElement.GetRawText(),
+                        v => JsonDocument.Parse(v, default)
+                    );
+            }
+            entityRole.Property(b => b.Entitlements).HasDefaultValueSql("'{}'");
+            
+            var entityNetworkUser = modelBuilder.Entity<NetworkUser>();
+            if (Database.ProviderName == "Microsoft.EntityFrameworkCore.InMemory")
+            {
+                entityNetworkUser
+                    .Property(b => b.Entitlements)
+                    .HasConversion(
+                        v => v.RootElement.GetRawText(),
+                        v => JsonDocument.Parse(v, default)
+                    );
+            }
+            entityNetworkUser.Property(b => b.Entitlements).HasDefaultValueSql("'{}'");
             
             // * ----------------------- *
             //         UserContent

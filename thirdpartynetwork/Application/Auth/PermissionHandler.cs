@@ -37,6 +37,7 @@ public class PermissionHandler(
                 ? "[PermissionHandler] Passed"
                 : "[PermissionHandler] Refused");
 
+            // At least one requirement needs to pass
             if (!isAllowed) continue;
 
             Console.WriteLine("[PermissionHandler] Accepted.");

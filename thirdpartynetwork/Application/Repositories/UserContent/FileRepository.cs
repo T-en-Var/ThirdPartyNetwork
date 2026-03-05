@@ -26,11 +26,13 @@ namespace thirdpartynetwork.Application.Repositories
             return Task.FromResult(query);
         }
 
-        public async Task<File> CreateAsync(File file)
+        public async Task<File> CreateAsync(Guid networkId, File file)
         {
             await _context.Files.AddAsync(file);
             await SaveAndUpdateAsync(file);
-            return file;
+            
+            var createdFile = await GetByIdAsync(networkId, file.Id);
+            return createdFile ?? throw new InvalidOperationException($"Record for file {file.Id} was created but could not be retrieved.");
         }
 
         public async Task DeleteAsync(File file)
@@ -46,9 +48,9 @@ namespace thirdpartynetwork.Application.Repositories
             return await _context.Files.AnyAsync(c => c.Id == id);
         }
 
-        public async Task<File?> GetByIdAsync(Guid id)
+        public async Task<File?> GetByIdAsync(Guid networkId, Guid id)
         {
-            return await _context.Files.FindAsync(id);
+            return await (await GetAccessibleQueryableAsync(networkId)).FirstOrDefaultAsync(x => x.Id == id);
         }
 
         public async Task<ICollection<File>> GetByNetworkIdAsync(Guid networkId)
@@ -59,9 +61,9 @@ namespace thirdpartynetwork.Application.Repositories
                 .ToListAsync();
         }
 
-        public async Task<File> UpdateAsync(Guid fileId, UpdateFileDto updateFile)
+        public async Task<File> UpdateAsync(Guid networkId, Guid fileId, UpdateFileDto updateFile)
         {
-            var existing = await GetByIdAsync(fileId);
+            var existing = await GetByIdAsync(networkId, fileId);
             if (existing == null) throw new Exception("File not found");
             
             if (existing.IsSystemProtected) throw new UnauthorizedHttpException("File is system protected");

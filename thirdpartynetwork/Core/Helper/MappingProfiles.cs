@@ -23,9 +23,15 @@ namespace thirdpartynetwork.Core.Helper
             CreateMap<UpdateNetworkAccessDto, NetworkAccess>();
 
             CreateMap<NetworkUser, NetworkUserDto>()
-                .ForMember(n => n.UserProxy, opt => opt.MapFrom(u => u.UserProxy));
+                .ForMember(n => n.UserProxy, opt => opt.MapFrom(u => u.UserProxy))
+                .ForMember(dest => dest.Entitlements, opt => opt.MapFrom(src =>
+                    src.Entitlements.RootElement.Clone()
+                ));
             CreateMap<CreateNetworkUserDto, NetworkUser>();
-            CreateMap<UpdateNetworkUserDto, NetworkUser>();
+            CreateMap<UpdateNetworkUserDto, NetworkUser>()
+                .ForMember(dest => dest.Entitlements, opt => opt.MapFrom(src =>
+                    JsonDocument.Parse(src.Entitlements.GetRawText(), default)
+                ));
 
             CreateMap<NetworkUserAccess, NetworkUserAccessDto>()
                 .ForMember(dest => dest.Access, opt => opt.MapFrom(src => src.Access))
@@ -44,9 +50,18 @@ namespace thirdpartynetwork.Core.Helper
             CreateMap<UpdateAccessDto, Access>();
 
             CreateMap<Role, RoleDto>()
-                .ForMember(dest => dest.RolePermissions, opt => opt.MapFrom(src => src.RolePermissions));
-            CreateMap<CreateRoleDto, Role>();
-            CreateMap<UpdateRoleDto, Role>();
+                .ForMember(dest => dest.RolePermissions, opt => opt.MapFrom(src => src.RolePermissions))
+                .ForMember(dest => dest.Entitlements, opt => opt.MapFrom(src =>
+                    src.Entitlements.RootElement.Clone()
+                ));
+            CreateMap<CreateRoleDto, Role>()
+                .ForMember(dest => dest.Entitlements, opt => opt.MapFrom(src =>
+                    JsonDocument.Parse(src.Entitlements.GetRawText(), default)
+                ));
+            CreateMap<UpdateRoleDto, Role>()
+                .ForMember(dest => dest.Entitlements, opt => opt.MapFrom(src =>
+                    JsonDocument.Parse(src.Entitlements.GetRawText(), default)
+                ));
 
             CreateMap<RolePermission, RolePermissionDto>()
                 .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role))
@@ -126,6 +141,10 @@ namespace thirdpartynetwork.Core.Helper
             CreateMap<Configuration, ConfigurationDto>();
             CreateMap<CreateConfigurationDto, Configuration>();
             CreateMap<UpdateConfigurationDto, Configuration>();
+            
+            CreateMap<NetworkEntitlement, NetworkEntitlementDto>();
+            CreateMap<CreateNetworkEntitlementDto, NetworkEntitlement>();
+            CreateMap<UpdateNetworkEntitlementDto, NetworkEntitlement>();
         }
 
         private static T? MapFieldIfAccessGranted<T>(
@@ -138,9 +157,9 @@ namespace thirdpartynetwork.Core.Helper
                 !items.TryGetValue("networkId", out var networkIdObj) ||
                 networkIdObj is not Guid networkId)
             {
-                return fieldSelector(src);
+                return default;
             }
-
+            
             var access = src.NetworkUsers
                 .FirstOrDefault(nu => nu.NetworkId == networkId)?
                 .NetworkUserAccesses

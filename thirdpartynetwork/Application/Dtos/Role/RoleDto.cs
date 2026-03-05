@@ -1,4 +1,5 @@
-﻿using thirdpartynetwork.Application.Dtos.NetworkUserRole;
+﻿using System.Text.Json;
+using thirdpartynetwork.Application.Dtos.NetworkUserRole;
 
 namespace thirdpartynetwork.Application.Dtos.Role
 {
@@ -10,6 +11,7 @@ namespace thirdpartynetwork.Application.Dtos.Role
         public required bool IsDefault { get; set; }
         public ICollection<RolePermissionDto> RolePermissions { get; set; } = [];
         public ICollection<NetworkUserRoleDto> NetworkUserRoles { get; set; } = [];
+        public required JsonElement Entitlements { get; set; }
         public required NetworkDto Network { get; set; }
     }
 }

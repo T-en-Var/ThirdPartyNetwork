@@ -1,4 +1,5 @@
-﻿﻿using AutoMapper;
+﻿﻿using System.Text.Json;
+ using AutoMapper;
 using thirdpartynetwork.Core;
 using thirdpartynetwork.Core.Models;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
@@ -87,7 +88,8 @@ namespace thirdpartynetwork.Application.Services
                 Name = "User",
                 Description = "Default role for new users.",
                 IsDefault = true,
-                Network = network
+                Network = network,
+                Entitlements = JsonDocument.Parse("{}")
             };
 
             var adminRole = new Role
@@ -95,7 +97,8 @@ namespace thirdpartynetwork.Application.Services
                 Name = "Admin",
                 Description = "Default admin role.",
                 IsDefault = false,
-                Network = network
+                Network = network,
+                Entitlements = JsonDocument.Parse("{}")
             };
 
             adminRole.RolePermissions =
@@ -156,7 +159,7 @@ namespace thirdpartynetwork.Application.Services
                     NetworkId = network.Id,
                     UserProxyId = currentUser.Id,
                     Network = network,
-                    UserProxy = currentUser,
+                    // UserProxy = currentUser,
                     NetworkUserRoles =
                     [
                         new NetworkUserRole
@@ -164,9 +167,32 @@ namespace thirdpartynetwork.Application.Services
                             NetworkUser = null,
                             Role = adminRole
                         }
-                    ]
+                    ],
+                    Entitlements = JsonDocument.Parse("{}")
                 }
             ];
+
+            network.Entitlement = new NetworkEntitlement()
+            {
+                NetworkId = network.Id,
+                
+                AllowBlogs = false,
+                BlogCountLimit = 0,
+                
+                AllowConfigurations = false,
+                ConfigurationCountLimit = 0,
+                
+                AllowFiles = false,
+                FileCountLimit = 0,
+                FileSizeLimit = 0,
+                FileStorageLimit = 0,
+                
+                AllowCustomPages = false,
+                CustomPageCountLimit = 0,
+                CustomPageBlockCountLimit = 0,
+                CustomPageBlockSizeLimit = 0,
+            };
+            
             network = await repository.CreateAsync(network);
 
             return network;

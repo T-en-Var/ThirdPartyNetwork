@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
 using thirdpartynetwork.Application.Auth;
@@ -28,7 +29,14 @@ public class IdentityVerifierTests
         var main = new Network
         {
             Id = Guid.NewGuid(), Name = Constants.Networks.Main, IsPublic = false, Description = "Main network",
-            RedirectURI = ""
+            RedirectURI = "",
+            Entitlement = new()
+            {
+                AllowBlogs = true,
+                AllowConfigurations = true,
+                AllowFiles = true,
+                AllowCustomPages = true,
+            }
         };
         var user = new User();
         var proxy = new UserProxy { Id = Guid.NewGuid(), User = user, IsDefault = true };
@@ -37,14 +45,18 @@ public class IdentityVerifierTests
             { Id = Guid.NewGuid(), Name = Constants.Permissions.Administrator, Description = "admin" };
         var role = new Role
         {
-            Id = Guid.NewGuid(), Name = "r", Description = "d", Network = main, NetworkId = main.Id, IsDefault = false
+            Id = Guid.NewGuid(), Name = "r", Description = "d", Network = main, NetworkId = main.Id, IsDefault = false,
+            Entitlements = JsonDocument.Parse("{}")
         };
         var rolePerm = new RolePermission
             { Permission = permissionAdmin, Role = role, PermissionId = permissionAdmin.Id, RoleId = role.Id };
         role.RolePermissions.Add(rolePerm);
 
         var nu = new NetworkUser
-            { Id = Guid.NewGuid(), NetworkId = main.Id, UserProxy = proxy, UserProxyId = proxy.Id };
+        {
+            Id = Guid.NewGuid(), NetworkId = main.Id, UserProxy = proxy, UserProxyId = proxy.Id,
+            Entitlements = JsonDocument.Parse("{}")
+        };
         var nur = new NetworkUserRole { NetworkUserId = nu.Id, RoleId = role.Id, Role = role, NetworkUser = nu };
         nu.NetworkUserRoles.Add(nur);
         proxy.NetworkUsers.Add(nu);
@@ -74,12 +86,20 @@ public class IdentityVerifierTests
             Name = "other",
             IsPublic = false,
             Description = "",
-            RedirectURI = ""
+            RedirectURI = "",
+            Entitlement = new()
+            {
+                AllowBlogs = true,
+                AllowConfigurations = true,
+                AllowFiles = true,
+                AllowCustomPages = true,
+            }
         };
         var permission = new Permission { Id = Guid.NewGuid(), Name = "perm:x", Description = "x" };
         var role = new Role
         {
-            Id = Guid.NewGuid(), Name = "r2", Description = "d2", Network = net, NetworkId = net.Id, IsDefault = false
+            Id = Guid.NewGuid(), Name = "r2", Description = "d2", Network = net, NetworkId = net.Id, IsDefault = false,
+            Entitlements = JsonDocument.Parse("{}")
         };
         var rp = new RolePermission
             { Permission = permission, Role = role, PermissionId = permission.Id, RoleId = role.Id };
@@ -88,7 +108,8 @@ public class IdentityVerifierTests
         var user = new User();
         var proxy = new UserProxy { Id = Guid.NewGuid(), User = user, IsDefault = true };
 
-        var nu = new NetworkUser { Id = Guid.NewGuid(), NetworkId = net.Id, UserProxy = proxy, UserProxyId = proxy.Id };
+        var nu = new NetworkUser { Id = Guid.NewGuid(), NetworkId = net.Id, UserProxy = proxy, UserProxyId = proxy.Id,
+            Entitlements = JsonDocument.Parse("{}") };
         var nur = new NetworkUserRole { NetworkUserId = nu.Id, RoleId = role.Id, Role = role, NetworkUser = nu };
         nu.NetworkUserRoles.Add(nur);
         proxy.NetworkUsers.Add(nu);

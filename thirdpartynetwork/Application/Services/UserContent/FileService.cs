@@ -1,9 +1,7 @@
-﻿﻿using AutoMapper;
-using CloudinaryDotNet.Actions;
+﻿using AutoMapper;
 using thirdpartynetwork.Core.Enum;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using thirdpartynetwork.Core.Interfaces.Auth;
-using thirdpartynetwork.Core.Models;
 using File = thirdpartynetwork.Core.Models.File;
 
 namespace thirdpartynetwork.Application.Services
@@ -14,6 +12,7 @@ namespace thirdpartynetwork.Application.Services
         IIdentityService identityService,
         INetworkUserService networkUserService,
         ICDNService cdnService,
+        IEntitlementService entitlementService,
         IMapper mapper) : UserContentBaseService<File>(repository, networkUserService), IFileService
     {
         private readonly INetworkUserService _networkUserService = networkUserService;
@@ -26,7 +25,7 @@ namespace thirdpartynetwork.Application.Services
 
         public async Task<File?> GetByIdAsync(Guid networkId, Guid fileId)
         {
-            var file = await repository.GetByIdAsync(fileId);
+            var file = await repository.GetByIdAsync(networkId, fileId);
             return file;
         }
 
@@ -43,7 +42,7 @@ namespace thirdpartynetwork.Application.Services
             file.Network = network;
             file.Author = networkUser;
 
-            file = await repository.CreateAsync(file);
+            file = await repository.CreateAsync(networkId, file);
             return file;
         }
 
@@ -53,6 +52,9 @@ namespace thirdpartynetwork.Application.Services
 
             var userProxy = await identityService.GetUserProxyAsync();
             var networkUser = await _networkUserService.GetByIdsAsync(networkId, userProxy.Id) ?? throw new NotFoundHttpException("NetworkUser not found");
+            
+            if (await entitlementService.CheckUserAddNetworkFileEntitlementAsync(networkUser.UserProxyId, networkId, file))
+                throw new UnauthorizedHttpException("You are exceeding a file upload limit.");
 
             var publicId = Guid.NewGuid();
 
@@ -76,7 +78,7 @@ namespace thirdpartynetwork.Application.Services
                 AccessLevel = AccessLevel.Private
             };
 
-            return await repository.CreateAsync(newFile);
+            return await repository.CreateAsync(networkId, newFile);
         }
 
         public async Task<File> UpdateAsync(Guid networkId, Guid fileId, UpdateFileDto updateFile)
@@ -86,7 +88,8 @@ namespace thirdpartynetwork.Application.Services
             var network = await networkService.GetByIdAsync(networkId);
             if (network == null) throw new NotFoundHttpException("Network not found");
 
-            var file = await repository.UpdateAsync(fileId, updateFile);
+            var file = await repository.UpdateAsync(networkId, fileId, updateFile);
+            // return await GetByIdAsync(networkId, fileId);
             return file;
         }
 
