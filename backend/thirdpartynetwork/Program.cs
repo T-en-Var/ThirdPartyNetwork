@@ -144,6 +144,7 @@ builder.Services.AddScoped<IAccessLevelVerifier, AccessLevelVerifier>();
 builder.Services.AddScoped<IAccessService, AccessService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICustomPageService, CustomPageService>();
+builder.Services.AddScoped<IEntitlementService, EntitlementService>();
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IConfigurationService, ConfigurationService>();
 builder.Services.AddScoped<IBlogService, BlogService>();

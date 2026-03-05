@@ -1,4 +1,6 @@
-﻿namespace thirdpartynetwork.Application.Dtos.NetworkUser
+﻿using System.Text.Json;
+
+namespace thirdpartynetwork.Application.Dtos.NetworkUser
 {
     public class NetworkUserDto
     {
@@ -12,5 +14,6 @@
         public ICollection<NetworkUserAccessDto> NetworkUserAccesses { get; set; } = [];
         public ICollection<NetworkUserRoleDto> NetworkUserRoles { get; set; } = [];
         public ICollection<FileDto> Files { get; set; }
+        public required JsonElement Entitlements { get; set; }
     }
 }

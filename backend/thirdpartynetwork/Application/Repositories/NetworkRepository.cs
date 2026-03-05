@@ -7,11 +7,11 @@ using thirdpartynetwork.Core.Interfaces.Auth;
 
 namespace thirdpartynetwork.Application.Repositories
 {
-    public class NetworkRepository(DataContext context) : BaseRepository(context), INetworkRepository
+    public class NetworkRepository(DataContext context, IIdentityService identityService, IIdentityVerifier identityVerifier) : BaseRepository(context), INetworkRepository
     {
         private readonly DataContext _context = context;
 
-        private IQueryable<Network> GetQueryable(Guid id, bool bypass = false)
+        private async Task<IQueryable<Network>> GetQueryableAsync(Guid id, bool bypass = false)
         {
             var query = _context.Networks
                 .Include(x => x.ImageFile)
@@ -20,48 +20,17 @@ namespace thirdpartynetwork.Application.Repositories
                 .Include(x => x.NetworkAccesses)
                 .ThenInclude(x => x.Access)
                 .AsQueryable();
-            // var currentUser = identityService.GetUserProxy(true);
-
-            // var allowUsers = bypass || identityVerifier.IsAllowed(id, currentUser.Id, Constants.Permissions.ReadUser);
-            // var allowRoles = bypass || identityVerifier.IsAllowed(id, currentUser.Id, Constants.Permissions.ReadRole);
-            // var allowAccess = bypass || identityVerifier.IsAllowed(id, currentUser.Id, Constants.Permissions.ReadAccess);
-            // var allowPerms = bypass || identityVerifier.IsAllowed(id, currentUser.Id, Constants.Permissions.ReadPermission);
             
-            // if (allowUsers)
-            // {
-            //     query = query
-            //         .Include(x => x.NetworkUsers)
-            //         .ThenInclude(x => x.UserProxy);
-            //
-            //     if (allowRoles)
-            //         query = query
-            //             .Include(x => x.NetworkUsers)
-            //             .ThenInclude(x => x.NetworkUserRoles)
-            //             .ThenInclude(x => x.Role);
-            //
-            //     if (allowAccess)
-            //         query = query
-            //             .Include(x => x.NetworkUsers)
-            //             .ThenInclude(x => x.NetworkUserAccesses)
-            //             .ThenInclude(x => x.Access);
-            // }
-            //
-            // if (allowRoles)
-            // {
-            //     query = query
-            //         .Include(x => x.Roles);
-            //     
-            //     if (allowPerms)
-            //         query = query
-            //             .Include(x => x.Roles)
-            //             .ThenInclude(x => x.RolePermissions)
-            //             .ThenInclude(x => x.Permission);
-            // }
-            //
-            // if (allowAccess)
-            //     query = query
-            //         .Include(x => x.NetworkAccesses)
-            //         .ThenInclude(x => x.Access);
+            var currentUser = await identityService.GetUserProxyAsync(true);
+            
+
+            var allowEntitlement = bypass || await identityVerifier.IsAllowedAsync(id, currentUser.Id, Constants.Permissions.ManageNetwork);
+            Console.WriteLine($"allowEntitlement: {allowEntitlement}");
+
+            if (allowEntitlement)
+            {
+                query = query.Include(x => x.Entitlement);
+            }
             
             return query;
         }
@@ -87,7 +56,7 @@ namespace thirdpartynetwork.Application.Repositories
 
         public async Task<Network?> GetByIdAsync(Guid id, bool bypass = false)
         {
-            return await GetQueryable(id, bypass).FirstOrDefaultAsync(x => x.Id == id);
+            return await (await GetQueryableAsync(id, bypass)).FirstOrDefaultAsync(x => x.Id == id);
         }
 
         public async Task<Network?> GetDetailsByIdAsync(Guid id)
@@ -114,7 +83,7 @@ namespace thirdpartynetwork.Application.Repositories
         public async Task<Network?> GetByNameAsync(string name)
         {
             var mainNetwork = await GetMainNetworkAsync();
-            return await GetQueryable(mainNetwork.Id).FirstOrDefaultAsync(n => n.Name == name);
+            return await (await GetQueryableAsync(mainNetwork.Id)).FirstOrDefaultAsync(n => n.Name == name);
         }
 
         public IQueryable<Network> GetByNameQueryable(string name)
@@ -127,6 +96,13 @@ namespace thirdpartynetwork.Application.Repositories
         {
             return _context.Networks
                 .Where(n => n.Id == id);
+        }
+
+        public async Task<Network?> GetByIdEntitlementAsync(Guid id)
+        {
+            return await _context.Networks
+                .Include(n => n.Entitlement)
+                .FirstOrDefaultAsync(n => n.Id == id);
         }
 
         public async Task<Network> CreateAsync(Network network)

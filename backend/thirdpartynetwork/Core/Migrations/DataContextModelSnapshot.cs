@@ -18,7 +18,7 @@ namespace thirdpartynetwork.Core.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.1")
+                .HasAnnotation("ProductVersion", "9.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -317,6 +317,52 @@ namespace thirdpartynetwork.Core.Migrations
                     b.ToTable("NetworkAccesses");
                 });
 
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.NetworkEntitlement", b =>
+                {
+                    b.Property<Guid>("NetworkId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("AllowBlogs")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("AllowConfigurations")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("AllowCustomPages")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("AllowFiles")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("BlogCountLimit")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ConfigurationCountLimit")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("CustomPageBlockCountLimit")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("CustomPageBlockSizeLimit")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("CustomPageCountLimit")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("FileCountLimit")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("FileSizeLimit")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("FileStorageLimit")
+                        .HasColumnType("integer");
+
+                    b.HasKey("NetworkId");
+
+                    b.ToTable("NetworkEntitlements");
+                });
+
             modelBuilder.Entity("thirdpartynetwork.Core.Models.NetworkUser", b =>
                 {
                     b.Property<Guid>("Id")
@@ -328,6 +374,12 @@ namespace thirdpartynetwork.Core.Migrations
 
                     b.Property<DateTime>("CreatedOn")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<JsonDocument>("Entitlements")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasDefaultValueSql("'{}'");
 
                     b.Property<Guid>("NetworkId")
                         .HasColumnType("uuid");
@@ -481,6 +533,12 @@ namespace thirdpartynetwork.Core.Migrations
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<JsonDocument>("Entitlements")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasDefaultValueSql("'{}'");
 
                     b.Property<bool>("IsDefault")
                         .HasColumnType("boolean");
@@ -704,6 +762,15 @@ namespace thirdpartynetwork.Core.Migrations
                     b.Navigation("Network");
                 });
 
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.NetworkEntitlement", b =>
+                {
+                    b.HasOne("thirdpartynetwork.Core.Models.Network", null)
+                        .WithOne("Entitlement")
+                        .HasForeignKey("thirdpartynetwork.Core.Models.NetworkEntitlement", "NetworkId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("thirdpartynetwork.Core.Models.NetworkUser", b =>
                 {
                     b.HasOne("thirdpartynetwork.Core.Models.Network", "Network")
@@ -849,6 +916,9 @@ namespace thirdpartynetwork.Core.Migrations
 
             modelBuilder.Entity("thirdpartynetwork.Core.Models.Network", b =>
                 {
+                    b.Navigation("Entitlement")
+                        .IsRequired();
+
                     b.Navigation("NetworkAccesses");
 
                     b.Navigation("NetworkUsers");

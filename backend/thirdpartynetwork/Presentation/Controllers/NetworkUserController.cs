@@ -43,7 +43,7 @@ public class NetworkUserController(INetworkUserService service, IMapper mapper) 
     }
 
     [HttpPut("{networkUserId:guid}")]
-    [RequirePermission(Constants.Permissions.ManageUser, Constants.Permissions.IsNetworkUserOwner)]
+    [RequirePermission(Constants.Permissions.ManageUser)]
     [ProducesResponseType(200, Type = typeof(NetworkUserDto))]
     [ProducesResponseType(404)]
     public async Task<IActionResult> UpdateNetworkUser(Guid networkId, Guid networkUserId,
