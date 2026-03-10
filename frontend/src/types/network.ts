@@ -20,6 +20,8 @@ export interface NetworkEntitlement {
 
   allowCustomPages: boolean;
   customPageCountLimit: number;
+  customPageBlockCountLimit: number;
+  customPageBlockSizeLimit: number;
 }
 
 
@@ -37,6 +39,8 @@ export interface SettableEntitlement {
 
   allowCustomPages?: boolean;
   customPageCountLimit?: number;
+  customPageBlockCountLimit?: number;
+  customPageBlockSizeLimit?: number;
 }
 
 
@@ -54,6 +58,8 @@ export interface SettableEntitlementForm extends SettableEntitlement {
 
   setAllowCustomPages?: boolean;
   setCustomPageCountLimit?: boolean;
+  setCustomPageBlockCountLimit?: number;
+  setCustomPageBlockSizeLimit?: number;
 }
 
 

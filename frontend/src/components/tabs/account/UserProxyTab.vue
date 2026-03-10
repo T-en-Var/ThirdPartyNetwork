@@ -97,7 +97,7 @@
                     class="h-10 w-10 rounded-full object-cover" />
                   <img v-else
                     :src="`https://ui-avatars.com/api/?name=${encodeURIComponent(network.name)}&background=random`"
-                    :alt="network.name" class="h-16 w-16 rounded-full object-cover" />
+                    :alt="network.name" class="h-10 w-10 rounded-full object-cover" />
                 </a>
                 <!-- Hover Card -->
                 <div

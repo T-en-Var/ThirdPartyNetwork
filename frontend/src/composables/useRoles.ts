@@ -16,8 +16,8 @@ export default function useRoles() {
       initialData: (networkId) => {
         const network = globalCache.get(`networks_${networkId}`)?.data.value as Network | undefined;
         return network?.roles ?? [];
-      }
-    }
+      },
+    },
   );
 
   const fetchRole = useCachedApi<Role, [networkId: string, roleId: string]>(
@@ -66,7 +66,10 @@ export default function useRoles() {
     ]
   >(
     async (networkId, roleId, payload, addedPerms, removedPerms) => {
-      await api.put<Role, UpdateRole>(`/networks/${networkId}/roles/${roleId}`, payload);
+      let response = await api.put<Role, UpdateRole>(
+        `/networks/${networkId}/roles/${roleId}`,
+        payload,
+      );
 
       const hasChanges = addedPerms.length > 0 || removedPerms.length > 0;
       if (hasChanges) {
@@ -78,9 +81,10 @@ export default function useRoles() {
             api.delete(`/networks/${networkId}/roles/${roleId}/permissions/${permId}/`),
           ),
         ]);
+        response = await api.get<Role>(`/networks/${networkId}/roles/${roleId}/`);
       }
 
-      return await api.get<Role>(`/networks/${networkId}/roles/${roleId}/`);
+      return response;
     },
     {
       itemKeyFactory: (_, networkId, roleId) => `networks_${networkId}_roles_${roleId}`,
@@ -93,11 +97,7 @@ export default function useRoles() {
     },
   );
 
-  const deleteRole = useMutation<
-    void,
-    [networkId: string, roleId: string],
-    Role
-  >(
+  const deleteRole = useMutation<void, [networkId: string, roleId: string], Role>(
     async (networkId, roleId) => {
       return await api.delete(`/networks/${networkId}/roles/${roleId}/`);
     },

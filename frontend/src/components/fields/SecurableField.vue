@@ -1,15 +1,15 @@
 <template>
   <div
-    @click="toggleVisibility"
-    :class="{ 'font-medium': !sensitive || isVisible, 'flex justify-start items-center': true, 'cursor-pointer': !!value }"
-  >
+    :class="{ 'font-medium': !sensitive || isVisible, 'flex justify-start items-center': 1 }">
     <template v-if="sensitive && !isVisible">
       <span class="inline-block blur-sm select-none">••••••••</span>
-      <span class="text-xs text-blue-600 ml-2">({{ buttonText }})</span>
+      <span class="text-xs text-blue-600 ml-2 cursor-pointer" @click="toggleVisibility">({{
+        buttonText }})</span>
     </template>
     <template v-else>
-      <span  class="break-all">{{ value || 'Not provided' }}</span>
-      <span v-if="sensitive" class="text-xs text-blue-600 ml-2">(Click to hide)</span>
+      <span class="break-all">{{ value || 'Not provided' }}</span>
+      <span v-if="sensitive" class="text-xs text-blue-600 ml-2 cursor-pointer"
+        @click="toggleVisibility">(Click to hide)</span>
     </template>
   </div>
 </template>

@@ -101,78 +101,7 @@
           </p>
         </div>
 
-        <div class="space-y-4 overflow-y-auto pr-1">
-          <div v-for="group in entitlementGroups" :key="group.title">
-            <section v-if="network.entitlement![group.allowKey]"
-              class="border border-slate-200 rounded-xl overflow-hidden mb-4">
-              <div class="bg-slate-50 px-4 py-2 border-b border-slate-200">
-                <h3
-                  class="text-[10px] font-black uppercase tracking-widest text-slate-500">
-                  {{ group.title }}</h3>
-              </div>
-              <div class="p-4 space-y-6">
-                <div v-for="limit in group.limits" :key="limit.key"
-                  class="space-y-3">
-                  <div class="flex items-center justify-between">
-                    <span class="text-sm font-bold text-slate-700">{{ limit.label
-                    }}</span>
-                    <label
-                      class="relative inline-flex items-center cursor-pointer group">
-                      <input type="checkbox" v-model="entitlementsData[limit.setKey]"
-                        class="sr-only peer">
-                      <div class="
-                        w-9 h-5 
-                        bg-slate-200 
-                        rounded-full 
-                        peer 
-                        peer-checked:bg-blue-600 
-                        after:content-[''] 
-                        after:absolute 
-                        after:top-[2px] 
-                        after:left-[2px] 
-                        after:bg-white 
-                        after:rounded-full 
-                        after:h-4 
-                        after:w-4 
-                        after:transition-all 
-                        after:shadow-sm
-                        peer-checked:after:translate-x-[100%]
-                        group-hover:after:scale-110
-                      "></div>
-                    </label>
-                  </div>
-
-                  <div
-                    :class="entitlementsData[limit.setKey] ? 'opacity-100' : 'opacity-30 grayscale pointer-events-none transition-all duration-300'">
-                    <div class="flex justify-between items-center mb-2">
-                      <span class="text-[10px] text-slate-400 font-bold uppercase">
-                        Range: 0 - {{ network.entitlement![limit.key] }}
-                      </span>
-
-                      <div
-                        class="flex items-center gap-1 bg-white border border-slate-200 rounded px-2 py-0.5 shadow-sm focus-within:border-blue-400 transition-colors">
-                        <input type="number"
-                          v-model.number="entitlementsData[limit.key as keyof SettableEntitlementForm]"
-                          @blur="clampValue(limit.key as keyof SettableEntitlementForm, network.entitlement![limit.key] as number)"
-                          @change="clampValue(limit.key as keyof SettableEntitlementForm, network.entitlement![limit.key] as number)"
-                          class="w-20 text-xs font-bold text-blue-600 outline-none text-right bg-transparent appearance-none" />
-                        <span v-if="limit.unit"
-                          class="text-[9px] font-black text-slate-400 uppercase">
-                          {{ limit.unit }}
-                        </span>
-                      </div>
-                    </div>
-
-                    <input type="range"
-                      v-model.number="entitlementsData[limit.key as keyof SettableEntitlementForm]"
-                      :min="0" :max="(network.entitlement![limit.key] as number)"
-                      class="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600 hover:accent-blue-700 transition-all" />
-                  </div>
-                </div>
-              </div>
-            </section>
-          </div>
-        </div>
+        <entitlements-form :network="network" v-model="entitlementsData" />
       </div>
 
       <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
@@ -195,63 +124,14 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import ModalContainer from '@/components/modals/ModalContainer.vue';
-import type { Role, Network, RoleForm, SettableEntitlementForm, NetworkEntitlement } from '@/types';
+import type { Role, Network, RoleForm } from '@/types';
 import usePermissions from '@/composables/usePermissions';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
+import { useEntitlements } from '@/composables/useEntitlements';
+import EntitlementsForm from '@/components/EntitlementsForm.vue';
 
 const { data: permissions, loading, error, execute: fetchPermissions } = usePermissions().fetchPermissions;
 const activeTab = ref<"permissions" | "entitlements">("permissions");
-
-type EntitlementKey = keyof NetworkEntitlement;
-type FormKey = keyof SettableEntitlementForm;
-
-interface EntitlementLimit {
-  label: string;
-  key: EntitlementKey;
-  setKey: FormKey;
-  unit?: string;
-}
-
-interface EntitlementGroup {
-  title: string;
-  allowKey: EntitlementKey;
-  limits: EntitlementLimit[];
-}
-
-const entitlementGroups: EntitlementGroup[] = [
-  {
-    title: 'File Management',
-    allowKey: 'allowFiles',
-    limits: [
-      { label: 'File Count Limit', key: 'fileCountLimit', setKey: 'setFileCountLimit' },
-      { label: 'File Size Limit', key: 'fileSizeLimit', setKey: 'setFileSizeLimit', unit: 'KB' },
-      { label: 'Storage Total Limit', key: 'fileStorageLimit', setKey: 'setFileStorageLimit', unit: 'KB' },
-    ]
-  },
-  {
-    title: 'Blog Settings',
-    allowKey: 'allowBlogs',
-    limits: [
-      { label: 'Blog Count Limit', key: 'blogCountLimit', setKey: 'setBlogCountLimit' },
-    ]
-  },
-  {
-    title: 'Configurations',
-    allowKey: 'allowConfigurations',
-    limits: [
-      { label: 'Config Count Limit', key: 'configurationCountLimit', setKey: 'setConfigurationCountLimit' },
-    ]
-  },
-  {
-    title: 'Custom Pages',
-    allowKey: 'allowCustomPages',
-    limits: [
-      { label: 'Custom Page Count Limit', key: 'customPageCountLimit', setKey: 'setCustomPageCountLimit' },
-    ]
-  }
-];
-
-const entitlementsData = ref<SettableEntitlementForm>({});
 
 const isSubmitting = ref(false);
 
@@ -261,83 +141,22 @@ const props = defineProps<{
   manageRoleForm: RoleForm;
 }>();
 
+const { entitlementsData, initEntitlements, getSubmitData } = useEntitlements(props.network);
+
 const emit = defineEmits(['close', 'update']);
 
 onMounted(async () => {
   await fetchPermissions();
 
-  initEntitlements();
+  initEntitlements(props.selectedRole.entitlements);
 });
-
-function initEntitlements() {
-  if (!props.network.entitlement) return;
-
-  entitlementsData.value.allowBlogs = props.selectedRole.entitlements.allowBlogs;
-  entitlementsData.value.allowConfigurations = props.network.entitlement.allowConfigurations;
-  entitlementsData.value.allowCustomPages = props.network.entitlement.allowCustomPages;
-  entitlementsData.value.allowFiles = props.network.entitlement.allowFiles;
-
-  entitlementsData.value.blogCountLimit = props.network.entitlement.blogCountLimit;
-  entitlementsData.value.configurationCountLimit = props.network.entitlement.configurationCountLimit;
-  entitlementsData.value.customPageCountLimit = props.network.entitlement.customPageCountLimit;
-  entitlementsData.value.fileCountLimit = props.network.entitlement.fileCountLimit;
-  entitlementsData.value.fileSizeLimit = props.network.entitlement.fileSizeLimit;
-  entitlementsData.value.fileStorageLimit = props.network.entitlement.fileStorageLimit;
-
-  if (props.selectedRole.entitlements.blogCountLimit) {
-    entitlementsData.value.blogCountLimit = props.selectedRole.entitlements.blogCountLimit;
-    entitlementsData.value.setBlogCountLimit = true;
-  }
-  if (props.selectedRole.entitlements.configurationCountLimit) {
-    entitlementsData.value.configurationCountLimit = props.selectedRole.entitlements.configurationCountLimit;
-    entitlementsData.value.setConfigurationCountLimit = true;
-  }
-  if (props.selectedRole.entitlements.customPageCountLimit) {
-    entitlementsData.value.customPageCountLimit = props.selectedRole.entitlements.customPageCountLimit;
-    entitlementsData.value.setCustomPageCountLimit = true;
-  }
-  if (props.selectedRole.entitlements.fileCountLimit) {
-    entitlementsData.value.fileCountLimit = props.selectedRole.entitlements.fileCountLimit;
-    entitlementsData.value.setFileCountLimit = true;
-  }
-  if (props.selectedRole.entitlements.fileSizeLimit) {
-    entitlementsData.value.fileSizeLimit = props.selectedRole.entitlements.fileSizeLimit;
-    entitlementsData.value.setFileSizeLimit = true;
-  }
-  if (props.selectedRole.entitlements.fileStorageLimit) {
-    entitlementsData.value.fileStorageLimit = props.selectedRole.entitlements.fileStorageLimit;
-    entitlementsData.value.setFileStorageLimit = true;
-  }
-}
 
 function handleSubmit() {
   isSubmitting.value = true;
-  localForm.value.entitlements = {};
-
-  if (entitlementsData.value.setAllowBlogs) localForm.value.entitlements.allowBlogs = entitlementsData.value.allowBlogs;
-  if (entitlementsData.value.setAllowConfigurations) localForm.value.entitlements.allowConfigurations = entitlementsData.value.allowConfigurations;
-  if (entitlementsData.value.setAllowCustomPages) localForm.value.entitlements.allowCustomPages = entitlementsData.value.allowCustomPages;
-  if (entitlementsData.value.setAllowFiles) localForm.value.entitlements.allowFiles = entitlementsData.value.allowFiles;
-  if (entitlementsData.value.setBlogCountLimit) localForm.value.entitlements.blogCountLimit = entitlementsData.value.blogCountLimit;
-  if (entitlementsData.value.setConfigurationCountLimit) localForm.value.entitlements.configurationCountLimit = entitlementsData.value.configurationCountLimit;
-  if (entitlementsData.value.setCustomPageCountLimit) localForm.value.entitlements.customPageCountLimit = entitlementsData.value.customPageCountLimit;
-  if (entitlementsData.value.setFileCountLimit) localForm.value.entitlements.fileCountLimit = entitlementsData.value.fileCountLimit;
-  if (entitlementsData.value.setFileSizeLimit) localForm.value.entitlements.fileSizeLimit = entitlementsData.value.fileSizeLimit;
-  if (entitlementsData.value.setFileStorageLimit) localForm.value.entitlements.fileStorageLimit = entitlementsData.value.fileStorageLimit;
+  localForm.value.entitlements = getSubmitData();
 
   emit('update', localForm.value);
 }
-
-function clampValue(key: keyof SettableEntitlementForm, max: number) {
-  const val = entitlementsData.value[key];
-  if (typeof val !== 'number') return;
-
-  if (val < 0) {
-    (entitlementsData.value[key] as number) = 0;
-  } else if (val > max) {
-    (entitlementsData.value[key] as number) = max;
-  }
-};
 
 // Create a local reactive copy
 const localForm = ref({ ...props.manageRoleForm });

@@ -147,9 +147,10 @@ import { useRoute, useRouter } from 'vue-router';
 import type { AxiosError } from 'axios';
 import type { ErrorMessage } from '@/types';
 
-const authStore = useAuthStore();
 const router = useRouter();
 const route = useRoute();
+
+const authStore = useAuthStore();
 
 const email = ref('');
 const password = ref('');

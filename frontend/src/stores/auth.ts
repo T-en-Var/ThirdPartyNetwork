@@ -1,18 +1,14 @@
 import { ref, computed, type Ref } from 'vue';
 import { defineStore } from 'pinia';
 import { AxiosError, type InternalAxiosRequestConfig } from 'axios';
-import type {
-  AccessTokenClaims,
-  ErrorMessage,
-  NetworkFile,
-  TokenPair,
-  UserProxy,
-} from '@/types';
+import type { AccessTokenClaims, ErrorMessage, NetworkFile, TokenPair, UserProxy } from '@/types';
 import rawApi from '@/api/rawApi';
 import api from '@/api/api';
 import { useGlobalStore } from './global';
 import { decodeJWT } from '@/lib/utils';
 import { ClaimChecker } from '@/lib/claimChecker';
+import useNetworks from '@/composables/useNetworks';
+import { useHistoryStore } from './history';
 
 // --- Constants for Local Storage Keys ---
 const ACCESS_TOKEN_KEY = 'access_token';
@@ -58,8 +54,12 @@ export const useAuthStore = defineStore('auth', () => {
   const accessToken = ref<string | null>(null);
   const refreshToken = ref<string | null>(null);
 
+  const isInitialized = ref(false);
+  let initPromise: Promise<void> | null = null;
+
   const isModalOpen = ref<boolean>(false);
   const isUnauthModalOpen = ref<boolean>(false);
+  const { execute: fetchMainNetwork, data: mainNetwork } = useNetworks().fetchMainNetwork;
 
   // const networkClaims = ref<NetworkClaims[]>([]);
   const claimChecker = ref(new ClaimChecker({}));
@@ -72,6 +72,7 @@ export const useAuthStore = defineStore('auth', () => {
   const error = ref<string | null>(null);
 
   const global = useGlobalStore();
+  const historyStore = useHistoryStore();
 
   // --- Computed Properties ---
 
@@ -83,7 +84,9 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isAdmin = computed(() => {
     if (!isAuthenticated.value) return false;
-    return false;
+    if (!mainNetwork.value) return false;
+
+    return claimChecker.value.isSuperAdmin(mainNetwork.value);
   });
 
   // --- Core Methods ---
@@ -161,6 +164,7 @@ export const useAuthStore = defineStore('auth', () => {
       if (response.status === 200) {
         saveTokens(response.data.accessToken, response.data.refreshToken);
       }
+      historyStore.reset();
       return response;
     } catch (err) {
       const message =
@@ -354,8 +358,8 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   function setModalOpen(newModelState: boolean) {
-    console.log(newModelState)
-    console.log(modalCallback)
+    console.log(newModelState);
+    console.log(modalCallback);
     isModalOpen.value = newModelState;
     if (newModelState) modalCallback();
   }
@@ -366,6 +370,23 @@ export const useAuthStore = defineStore('auth', () => {
 
   function setUnauthModalOpen(newModelState: boolean) {
     isUnauthModalOpen.value = newModelState;
+  }
+
+  async function initialize() {
+    if (initPromise) return initPromise;
+
+    initPromise = (async () => {
+      try {
+        await fetchMainNetwork();
+        if (!mainNetwork.value) throw new Error('MAIN NETWORK NOT FOUND');
+        isInitialized.value = true;
+      } catch (e) {
+        console.error(e);
+        throw e;
+      }
+    })();
+
+    return initPromise;
   }
 
   // --- Return exposed state and actions ---
@@ -398,6 +419,7 @@ export const useAuthStore = defineStore('auth', () => {
     getUserProxyId,
     getUserProxy,
     getAllUserFiles,
+    initialize,
 
     // Modal Functions
     setModalOpen,

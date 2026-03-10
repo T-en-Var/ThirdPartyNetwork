@@ -26,7 +26,7 @@
         </nav>
       </div>
 
-      <LoadingErrorComponent :loading="loading" :error="error"
+      <LoadingErrorComponent :loading="loading" :error="error" :has-value="!!networksState.data && !!userNetworksState.data"
         button-value="Reload page" @button-action="router.go(0)" />
 
       <div class="p-6">

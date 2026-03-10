@@ -44,8 +44,8 @@
                 </div>
                 <div class="ml-4">
                   <div class="text-sm font-medium text-gray-900 truncate max-w-xs"
-                    :title="getNameDisplayNetworkUser(networkUser)">
-                    {{ getNameDisplayNetworkUser(networkUser) }}
+                    :title="getNameDisplayUserProxy(networkUser.userProxy)">
+                    {{ getNameDisplayUserProxy(networkUser.userProxy) }}
                   </div>
                   <SecurableField class="text-sm text-gray-500"
                     :value="networkUser.userProxy.email"
@@ -112,7 +112,7 @@ import SecurableField from '@/components/fields/SecurableField.vue';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import ProfileAvatar from '@/components/ProfileAvatar.vue';
 import useNetworkUsers from '@/composables/useNetworkUsers';
-import { getNameDisplayNetworkUser } from '@/lib/user';
+import { getNameDisplayUserProxy } from '@/lib/user';
 import type { Network, NetworkUser } from '@/types';
 import { onMounted } from 'vue';
 

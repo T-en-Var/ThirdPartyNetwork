@@ -349,7 +349,6 @@ async function addUserToNetwork(userData: { userId: string, roleIds: string[]; }
 }
 
 async function updateUserSettings(localForm: ManageUserForm) {
-  console.log(localForm)
   if (!selectedUser.value) return;
 
   const addedRoles = localForm.roleIds.filter(roleId => !manageUserForm.roleIds.includes(roleId));
@@ -702,8 +701,10 @@ function handleDeleteNetwork(network: Network) {
     confirmButtonColor.value = 'red';
 
     confirmationAction.value = async () => {
+      throw new Error("I am not sure if this fully works so please lets not do this.");
       globalStore.startFetching();
       isSubmitting.value = true;
+
       try {
         await api.delete(`/networks/${network.id}/`);
         router.push("/networks");
@@ -714,14 +715,16 @@ function handleDeleteNetwork(network: Network) {
         globalStore.stopFetching();
       }
     };
+
     showConfirmationModal.value = true;
   };
+
   showConfirmationModal.value = true;
 }
 
 function confirmAction() {
-  confirmationAction.value();
   showConfirmationModal.value = false;
+  confirmationAction.value();
 }
 
 </script>

@@ -9,31 +9,38 @@
     </div>
     <AppFooter v-if="showNavbar" />
     <FetchingToast />
-    
+
     <!-- <div class="fixed bg-red-500 w-10 h-10 z-50 cursor-pointer" @click="console.log((globalCache.get(`networks_019b722f-5d71-7631-812d-6646febcaef2`)))"></div> -->
   </main>
 </template>
 
 <script setup lang="ts">
 import FetchingToast from '@/components/toasts/FetchingToast.vue';
-import { RouterView } from 'vue-router'
+import { RouterView } from 'vue-router';
 import NavBar from '@/components/NavBar.vue';
 import AppFooter from '@/components/AppFooter.vue';
-import { computed, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { initializeApiClient } from './api/api'
+import { computed, onMounted } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
+import { initializeApiClient } from './api/api';
+import { useHistoryStore } from './stores/history';
+import { useAuthStore } from './stores/auth';
 // import { globalCache } from './composables/useApi';
 
-const router = useRouter()
-const route = useRoute()
+const router = useRouter();
+const route = useRoute();
+const historyStore = useHistoryStore();
+const authStore = useAuthStore();
 
-onMounted(() => {
+onMounted(async () => {
   initializeApiClient(router, route);
-})
+  
+  await authStore.initialize();
+  historyStore.initialize();
+});
 
 const showNavbar = computed(() => {
   return !(route.meta.showNavbar === false || route.query.hideNavbar !== undefined);
-})
+});
 </script>
 
 <style>

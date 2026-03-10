@@ -1,7 +1,7 @@
-import type { NetworkUser } from '@/types';
+import type { User, UserProxy } from '@/types';
 
-export function getNameDisplayNetworkUser(networkUser: NetworkUser) {
-  const { firstName, lastName, username } = networkUser.userProxy;
+export function getNameDisplayUserProxy(userProxy: UserProxy) {
+  const { firstName, lastName, username } = userProxy;
 
   const fullName = [firstName, lastName].filter(Boolean).join(' ');
 
@@ -10,4 +10,8 @@ export function getNameDisplayNetworkUser(networkUser: NetworkUser) {
   }
 
   return fullName || username || 'Unknown User'; 
+}
+
+export const defaultProxy = (user: User) => {
+  return user.userProxies.find(up => up.isDefault)!;
 }
