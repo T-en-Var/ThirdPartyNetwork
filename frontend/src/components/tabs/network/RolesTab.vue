@@ -10,7 +10,8 @@
 
     <div v-if="loading || error">
       <LoadingErrorComponent :loading="loading" :error="error ?? undefined"
-        :button-value="'Nothing will happen if you press me.'" />
+        :button-value="'Nothing will happen if you press me.'"
+        :has-value="!!roles" />
     </div>
 
     <div v-else class="space-y-4">
@@ -68,7 +69,8 @@
                 <div class="h-6 w-6 flex-shrink-0 mr-2">
                   <ProfileAvatar :userProxy="networkUser.userProxy" :size="6" />
                 </div>
-                <span class="text-xs">{{ getNameDisplayUserProxy(networkUser.userProxy) }}</span>
+                <span class="text-xs">{{
+                  getNameDisplayUserProxy(networkUser.userProxy) }}</span>
               </div>
               <span v-if="role.networkUserRoles.length === 0"
                 class="text-sm text-gray-500">

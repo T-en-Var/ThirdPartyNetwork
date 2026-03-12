@@ -6,8 +6,9 @@
     <!-- Main Content -->
     <div class="flex-1 p-6 overflow-auto">
       <!-- Loading and Error States -->
-      <LoadingErrorComponent :loading="authStore.loading" :error="authStore.error ?? undefined"
-        button-value="Reload page" @button-action="router.go(0)" />
+      <LoadingErrorComponent :loading="authStore.loading"
+        :error="authStore.error ?? undefined" button-value="Reload page"
+        @button-action="router.go(0)" :has-value="!!authStore.currentUserProxy" />
 
       <!-- Route View (Page Content) -->
       <div v-if="authStore.currentUserProxy">

@@ -8,6 +8,17 @@ import type { Network, SettableEntitlementForm, SettableEntitlement } from '@/ty
 //   ) => array;
 // }
 
+export const entitlementKeys = {
+  allowFiles: ['fileCountLimit', 'fileSizeLimit', 'fileStorageLimit'],
+  allowBlogs: ['blogCountLimit'],
+  allowConfigurations: ['configurationCountLimit'],
+  allowCustomPages: [
+    'customPageCountLimit',
+    'customPageBlockCountLimit',
+    'customPageBlockSizeLimit',
+  ],
+} as const;
+
 export function useEntitlements(network: Network) {
   const entitlementsData = ref<SettableEntitlementForm>({});
 
@@ -37,24 +48,13 @@ export function useEntitlements(network: Network) {
   //   // 'setCustomPageCountLimit',
   // ] as const);
 
-  const allowKeys = {
-    allowFiles: ['fileCountLimit', 'fileSizeLimit', 'fileStorageLimit'],
-    allowBlogs: ['blogCountLimit'],
-    allowConfigurations: ['configurationCountLimit'],
-    allowCustomPages: [
-      'customPageCountLimit',
-      'customPageBlockCountLimit',
-      'customPageBlockSizeLimit',
-    ],
-  } as const;
-
   const initEntitlements = (
     sourceEntitlements: SettableEntitlement,
     unsetIsOff: boolean = true,
   ) => {
     if (!network.entitlement) return;
 
-    Object.entries(allowKeys).forEach(([key, list]) => {
+    Object.entries(entitlementKeys).forEach(([key, list]) => {
       if (!unsetIsOff && sourceEntitlements[key as keyof SettableEntitlement]) {
         (entitlementsData.value[key as keyof SettableEntitlementForm] as boolean | undefined) =
           true;
@@ -76,7 +76,7 @@ export function useEntitlements(network: Network) {
   const getSubmitData = () => {
     const result: SettableEntitlement = {};
 
-    Object.entries(allowKeys).forEach(([key, list]) => {
+    Object.entries(entitlementKeys).forEach(([key, list]) => {
       if (!entitlementsData.value[key as keyof SettableEntitlement]) return;
 
       (result[key as keyof SettableEntitlement] as boolean | undefined) = true;

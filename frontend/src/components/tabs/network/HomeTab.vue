@@ -66,7 +66,8 @@
             </div>
 
             <LoadingErrorComponent v-if="filesLoading || filesError"
-              :loading="filesLoading" :error="filesError ?? undefined" />
+              :loading="filesLoading" :error="filesError ?? undefined"
+              :has-value="!!files" />
 
             <template v-else-if="network.entitlement.allowFiles">
               <div class="space-y-4">
@@ -120,7 +121,8 @@
             </div>
 
             <LoadingErrorComponent v-if="blogsLoading || blogsError"
-              :loading="blogsLoading" :error="blogsError ?? undefined" />
+              :loading="blogsLoading" :error="blogsError ?? undefined"
+              :has-value="!!blogs" />
 
             <template v-else-if="network.entitlement.allowBlogs">
               <div class="space-y-4">
@@ -166,7 +168,8 @@
             </div>
 
             <LoadingErrorComponent v-if="configsLoading || configsError"
-              :loading="configsLoading" :error="configsError ?? undefined" />
+              :loading="configsLoading" :error="configsError ?? undefined"
+              :has-value="!!configs" />
 
             <template v-else-if="network.entitlement.allowConfigurations">
               <div class="space-y-4">
@@ -212,7 +215,8 @@
             </div>
 
             <LoadingErrorComponent v-if="pagesLoading || pagesError"
-              :loading="pagesLoading" :error="pagesError ?? undefined" />
+              :loading="pagesLoading" :error="pagesError ?? undefined"
+              :has-value="!!pages" />
 
             <template v-else-if="network.entitlement.allowCustomPages">
               <div class="space-y-4">

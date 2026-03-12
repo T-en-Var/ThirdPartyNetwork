@@ -10,7 +10,8 @@
 
     <div v-if="loading || error">
       <LoadingErrorComponent :loading="loading" :error="error ?? undefined"
-        :button-value="'Nothing will happen if you press me.'" />
+        :button-value="'Nothing will happen if you press me.'"
+        :has-value="!!networkUsers" />
     </div>
 
     <div v-else class="overflow-x-auto">

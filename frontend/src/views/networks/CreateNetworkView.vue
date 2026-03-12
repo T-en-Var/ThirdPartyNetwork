@@ -2,7 +2,7 @@
   <div class="container mx-auto px-4 py-10 mt-6">
     <div class="bg-white shadow-lg rounded-2xl overflow-hidden border border-gray-200">
       <LoadingErrorComponent :loading="networkState.loading.value" :error="networkState.error.value ?? undefined"
-        button-value="Go back" @button-action="router.go(-1)" />
+        button-value="Go back" @button-action="router.go(-1)" :has-value="!!networkState.data.value" />
 
       <div v-if="!networkState.loading.value && !networkState.error.value && networkState.data.value">
         <!-- Header -->

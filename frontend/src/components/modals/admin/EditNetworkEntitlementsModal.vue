@@ -13,7 +13,7 @@
       </p>
     </div>
 
-    <entitlements-form :network="mainNetwork" v-model="entitlementsData"
+    <entitlements-form :network="fakeNetwork" v-model="entitlementsData"
       :auto-increase-max="mainNetwork.id == network.id" />
 
     <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
@@ -43,15 +43,16 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { computed, onMounted, type ComputedRef } from 'vue';
 import ModalContainer from '@/components/modals/ModalContainer.vue';
-import type { Network, SettableEntitlement } from '@/types';
+import type { EntitlementLimits, Network, SettableEntitlement } from '@/types';
 import EntitlementsForm from '@/components/EntitlementsForm.vue';
 import { useEntitlements } from '@/composables/useEntitlements';
 
 const props = withDefaults(defineProps<{
   mainNetwork: Network,
   network: Network,
+  totalLimits: EntitlementLimits,
   isSubmitting: boolean;
 }>(), {
   isSubmitting: false
@@ -64,8 +65,31 @@ const emit = defineEmits<{
 
 const { entitlementsData, initEntitlements, getSubmitData } = useEntitlements(props.network);
 
+const fakeNetwork: ComputedRef<Network> = computed(() => {
+  return {
+    ...props.mainNetwork,
+    entitlement: {
+      networkId: props.mainNetwork.id,
+      allowFiles: props.mainNetwork.entitlement!.allowFiles,
+      fileCountLimit: props.mainNetwork.entitlement!.fileCountLimit - props.totalLimits["fileCountLimit"] + props.network.entitlement!.fileCountLimit,
+      fileSizeLimit: props.mainNetwork.entitlement!.fileSizeLimit - props.totalLimits["fileSizeLimit"],
+      fileStorageLimit: props.mainNetwork.entitlement!.fileStorageLimit - props.totalLimits["fileStorageLimit"] + props.network.entitlement!.fileStorageLimit,
+      allowBlogs: props.mainNetwork.entitlement!.allowBlogs,
+      blogCountLimit: props.mainNetwork.entitlement!.blogCountLimit - props.totalLimits["blogCountLimit"] + props.network.entitlement!.blogCountLimit,
+      allowConfigurations: props.mainNetwork.entitlement!.allowConfigurations,
+      configurationCountLimit: props.mainNetwork.entitlement!.configurationCountLimit - props.totalLimits["configurationCountLimit"] + props.network.entitlement!.configurationCountLimit,
+      allowCustomPages: props.mainNetwork.entitlement!.allowCustomPages,
+      customPageCountLimit: props.mainNetwork.entitlement!.customPageCountLimit - props.totalLimits["customPageCountLimit"] + props.network.entitlement!.customPageCountLimit,
+      customPageBlockCountLimit: props.mainNetwork.entitlement!.customPageBlockCountLimit - props.totalLimits["customPageBlockCountLimit"] + props.network.entitlement!.customPageBlockCountLimit,
+      customPageBlockSizeLimit: props.mainNetwork.entitlement!.customPageBlockSizeLimit - props.totalLimits["customPageBlockSizeLimit"] + props.network.entitlement!.customPageBlockSizeLimit,
+    }
+  };
+});
+
 onMounted(() => {
   initEntitlements(props.network.entitlement!, false);
+  console.log(fakeNetwork.value)
+  setTimeout(() => console.log(fakeNetwork.value), 1000)
 });
 
 function handleSubmit() {

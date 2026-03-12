@@ -8,7 +8,7 @@
 
     <div class="bg-white shadow-md rounded-lg p-6">
       <LoadingErrorComponent :loading="loading" :error="error ?? undefined" button-value="Go back"
-        @button-action="router.go(-1)" />
+        @button-action="router.go(-1)" :has-value="!!cfg" />
 
       <div v-if="!loading && !error && cfg" class="space-y-6">
         <h2 class="text-xl font-semibold text-gray-800 mb-4">Edit Configuration</h2>

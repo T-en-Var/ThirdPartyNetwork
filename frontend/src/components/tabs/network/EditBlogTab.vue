@@ -1,7 +1,7 @@
 <template>
   <div class="max-w-4xl mx-auto py-8">
     <LoadingErrorComponent :loading="loading" :error="error ?? undefined" button-value="Go back"
-      @button-action="router.go(-1)" />
+      @button-action="router.go(-1)" :has-value="!!blog" />
 
     <div v-if="!loading && !error"
       class="bg-white shadow-lg rounded-xl overflow-hidden p-8 space-y-8">

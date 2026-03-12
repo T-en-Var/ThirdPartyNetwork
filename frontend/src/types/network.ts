@@ -4,32 +4,38 @@ import type { NetworkUser } from "./networkUser";
 import type { NetworkFile, NetworkFileLink } from "./userContent/files";
 
 
-export interface NetworkEntitlement {
-  networkId: string;
 
-  allowFiles: boolean;
+
+
+export interface EntitlementLimits {
   fileCountLimit: number;
   fileSizeLimit: number; // in KB
   fileStorageLimit: number; // in KB
 
-  allowBlogs: boolean;
   blogCountLimit: number;
 
-  allowConfigurations: boolean;
   configurationCountLimit: number;
 
-  allowCustomPages: boolean;
   customPageCountLimit: number;
   customPageBlockCountLimit: number;
-  customPageBlockSizeLimit: number;
+  customPageBlockSizeLimit: number; // in chars
+}
+
+export interface NetworkEntitlement extends EntitlementLimits {
+  networkId: string;
+
+  allowFiles: boolean;
+  allowBlogs: boolean;
+  allowConfigurations: boolean;
+  allowCustomPages: boolean;
 }
 
 
 export interface SettableEntitlement {
   allowFiles?: boolean;
   fileCountLimit?: number;
-  fileSizeLimit?: number; // in KB
-  fileStorageLimit?: number; // in KB
+  fileSizeLimit?: number;
+  fileStorageLimit?: number;
 
   allowBlogs?: boolean;
   blogCountLimit?: number;
