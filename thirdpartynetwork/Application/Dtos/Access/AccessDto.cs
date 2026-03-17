@@ -1,5 +1,4 @@
-﻿using thirdpartynetwork.Application.Dtos.NetworkAccess;
-using thirdpartynetwork.Application.Dtos.NetworkUserAccess;
+﻿using System.Text.Json.Serialization;
 
 namespace thirdpartynetwork.Application.Dtos.Access
 {
@@ -8,7 +7,16 @@ namespace thirdpartynetwork.Application.Dtos.Access
         public Guid Id { get; set; }
         public required string Name { get; set; }
         public required string Description { get; set; }
-        public ICollection<NetworkAccessDto> NetworkAccesses { get; set; } = [];
-        public ICollection<NetworkUserAccessDto> NetworkUserAccesses { get; set; } = [];
+        [JsonIgnore]
+        public ICollection<NetworkAccessAtNDto> NetworkAccesses { get; set; } = [];
+        [JsonIgnore]
+        public ICollection<NetworkUserAccessAtNDto> NetworkUserAccesses { get; set; } = [];
+    }
+    
+    public class AccessLightDto
+    {
+        public Guid Id { get; set; }
+        public required string Name { get; set; }
+        public required string Description { get; set; }
     }
 }
