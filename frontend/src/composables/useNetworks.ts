@@ -1,4 +1,4 @@
-import type { Network, NetworkEntitlement, NetworkUpdate, SettableEntitlement } from '@/types';
+import type { Network, NetworkEntitlement, NetworkMetrics, NetworkUpdate, SettableEntitlement } from '@/types';
 import api from '@/api/api';
 import { globalCache, useCachedApi, useMutation } from './useApi';
 
@@ -18,6 +18,11 @@ export default function useNetworks() {
     async () => await api.get<Network[]>('/networks'),
   );
 
+  const fetchNetworksMetrics = useCachedApi<NetworkMetrics[], []>(
+    () => `networks_metrics`,
+    async () => await api.get<NetworkMetrics[]>('/metrics/networks'),
+  );
+
   const forceFetchNetworks = useCachedApi<Network[], []>(
     () => `networks`,
     async () => await api.get<Network[]>('/networks'),
@@ -29,6 +34,13 @@ export default function useNetworks() {
     (networkId) => `networks_${networkId}`,
     async (networkId) => {
       return await api.get<Network>(`/networks/${networkId}`);
+    },
+    undefined,
+    undefined,
+    {
+      initialData: (networkId) => {
+        return globalCache.get(`networks_${networkId}`)?.data.value as Network | null;
+      },
     },
   );
 
@@ -48,30 +60,31 @@ export default function useNetworks() {
     },
   );
 
-  const updateNetworkEntitlement = useMutation<NetworkEntitlement, [networkId: string, payload: SettableEntitlement], unknown>(
-    async (networkId, payload) => await api.put(`/networks/${networkId}/entitlements`, payload),
-    {
-      itemKeyFactory: (_, networkId) => `networks_${networkId}_entitlement`,
-      listKeyFactory: () => `networks`,
-      listUpdater: (currentList, result, networkId) => {
-        let networkList = currentList as unknown as Network[];
-        networkList = networkList.map(item => {
-          if (item.id == result.networkId) {
-            item.entitlement = result;
-          }
-          return item
-        });
-
-        const mainNetwork = globalCache.get('mainNetwork_details')
-
-        if (mainNetwork && networkId == (mainNetwork.data.value as Network).id) {
-          (mainNetwork.data.value as Network).entitlement = result;
+  const updateNetworkEntitlement = useMutation<
+    NetworkEntitlement,
+    [networkId: string, payload: SettableEntitlement],
+    unknown
+  >(async (networkId, payload) => await api.put(`/networks/${networkId}/entitlements`, payload), {
+    itemKeyFactory: (_, networkId) => `networks_${networkId}_entitlement`,
+    listKeyFactory: () => `networks`,
+    listUpdater: (currentList, result, networkId) => {
+      let networkList = currentList as unknown as Network[];
+      networkList = networkList.map((item) => {
+        if (item.id == result.networkId) {
+          item.entitlement = result;
         }
+        return item;
+      });
 
-        return networkList as unknown as unknown[];
-      },
+      const mainNetwork = globalCache.get('mainNetwork_details');
+
+      if (mainNetwork && networkId == (mainNetwork.data.value as Network).id) {
+        (mainNetwork.data.value as Network).entitlement = result;
+      }
+
+      return networkList as unknown as unknown[];
     },
-  );
+  });
 
   const deleteNetwork = useMutation<Network, [networkId: string], Network>(
     async (networkId) => await api.delete(`/networks/${networkId}/`),
@@ -81,14 +94,15 @@ export default function useNetworks() {
       listUpdater: (currentList, _, networkId) => {
         return currentList.filter((item) => item.id !== networkId);
       },
-    }
-  )
+    },
+  );
 
   return {
     fetchMainNetwork,
     fetchMainNetworkDetails,
     forceFetchNetworks,
     fetchNetworks,
+    fetchNetworksMetrics,
     fetchNetwork,
     fetchNetworkDetails,
     updateNetworkEntitlement,

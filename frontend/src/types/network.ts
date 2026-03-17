@@ -101,3 +101,14 @@ export interface NetworkUpdate {
   fileLink?: NetworkFileLink,
   redirectURI: string,
 }
+
+export interface NetworkMetrics {
+  networkId: string,
+  fileCount: number,
+  fileStorage: number,
+  blogCount: number,
+  configurationCount: number,
+  customPageCount: number,
+  customPageBlockCount: number,
+  customPageBlockSize: number
+}

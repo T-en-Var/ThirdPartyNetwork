@@ -1,0 +1,94 @@
+<template>
+  <div class="relative w-full h-6 flex items-center">
+    <div class="absolute w-full h-1 bg-slate-200 rounded-lg"></div>
+    
+    <div 
+      class="absolute h-1 bg-purple-600 rounded-lg"
+      :style="trackStyle"
+    ></div>
+
+    <input 
+      type="range" 
+      :value="values[0]"
+      :min="min"
+      :max="max"
+      @input="(e) => handleMinInput(e.target as HTMLInputElement)"
+      class="dual-range-input z-30"
+    />
+    <input 
+      type="range" 
+      :value="values[1]"
+      :min="min"
+      :max="max"
+      @input="(e) => handleMaxInput(e.target as HTMLInputElement)"
+      class="dual-range-input z-40"
+    />
+  </div>
+</template>
+
+<script setup lang="ts">
+import { computed } from 'vue';
+
+type DualNumber = [number, number] 
+
+const props = withDefaults(
+  defineProps<{
+    modelValue: DualNumber;
+    min?: number;
+    max?: number;
+  }>(), 
+  {
+    modelValue: () => [0, 100], // Defaults for types must be wrapped in withDefaults
+    min: 0,
+    max: 100
+  }
+);
+
+const emit = defineEmits(['update:modelValue']);
+
+// Local computed for easier access and validation
+const values = computed({
+  get: () => props.modelValue,
+  set: (val) => emit('update:modelValue', val)
+});
+
+// Calculate percentages for the colored track
+const getPercent = (value: number) => {
+  return ((value - props.min) / (props.max - props.min)) * 100;
+};
+
+const trackStyle = computed(() => {
+  const left = getPercent(values.value[0]);
+  const right = 100 - getPercent(values.value[1]);
+  return {
+    left: `${left}%`,
+    right: `${right}%`
+  };
+});
+
+const handleMinInput = (target: HTMLInputElement) => {
+  const val = Math.min(Number(target.value), values.value[1]);
+  values.value = [val, values.value[1]];
+};
+
+const handleMaxInput = (target: HTMLInputElement) => {
+  const val = Math.max(Number(target.value), values.value[0]);
+  values.value = [values.value[0], val];
+};
+</script>
+
+<style scoped>
+.dual-range-input {
+  @apply absolute w-full appearance-none bg-transparent pointer-events-none outline-none;
+}
+
+/* Chrome, Safari, Edge, Opera */
+.dual-range-input::-webkit-slider-thumb {
+  @apply appearance-none pointer-events-auto w-4 h-4 rounded-full bg-purple-600 cursor-pointer border-2 border-white shadow-md active:scale-110 transition-transform;
+}
+
+/* Firefox */
+.dual-range-input::-moz-range-thumb {
+  @apply appearance-none pointer-events-auto w-4 h-4 rounded-full bg-purple-600 cursor-pointer border-2 border-white shadow-md active:scale-110 transition-transform;
+}
+</style>

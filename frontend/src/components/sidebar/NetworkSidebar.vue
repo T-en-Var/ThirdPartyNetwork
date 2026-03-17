@@ -25,7 +25,7 @@ import type { NavCategory, SubItem } from '@/types/sidebar';
 const route = useRoute();
 const historyStore = useHistoryStore();
 
-const networkId = computed(() => route.params.networkId as string);
+const networkId = computed(() => route.params?.networkId as string | undefined);
 
 const navItems: ComputedRef<NavCategory[]> = computed(() => [
   {

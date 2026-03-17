@@ -1,5 +1,5 @@
 import api from '@/api/api.ts';
-import type { CreateUser, User, UpdateUser } from '@/types';
+import type { CreateUser, User, UpdateUser, UserMetrics } from '@/types';
 import { globalCache, useCachedApi, useMutation } from './useApi';
 
 export default function useUsers() {
@@ -30,6 +30,14 @@ export default function useUsers() {
         const users = globalCache.get(`users`)?.data.value as User[];
         return users.find((u) => u.id == userId) ?? null;
       },
+    },
+  );
+
+  const fetchUsersMetrics = useCachedApi<UserMetrics[], []>(
+    () => `users_metrics`,
+    async () => {
+      const result = await api.get<UserMetrics[]>(`/metrics/users/`);
+      return result;
     },
   );
 
@@ -80,6 +88,7 @@ export default function useUsers() {
     fetchUsers,
     forceFetchUsers,
     fetchUser,
+    fetchUsersMetrics,
     createUser,
     updateUser,
     deleteUser,

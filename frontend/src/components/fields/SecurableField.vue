@@ -1,6 +1,6 @@
 <template>
   <div
-    :class="{ 'font-medium': !sensitive || isVisible, 'flex justify-start items-center': 1 }">
+    :class="{ 'font-medium': !sensitive || isVisible, 'flex justify-start items-center flex-nowrap text-nowrap whitespace-nowrap': 1 }">
     <template v-if="sensitive && !isVisible">
       <span class="inline-block blur-sm select-none">••••••••</span>
       <span class="text-xs text-blue-600 ml-2 cursor-pointer" @click="toggleVisibility">({{
