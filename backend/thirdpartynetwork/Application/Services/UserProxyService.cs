@@ -7,7 +7,6 @@ namespace thirdpartynetwork.Application.Services
 {
     public class UserProxyService(
         IUserProxyRepository repository,
-        INetworkService networkService,
         IUserService userService,
         IPasswordHasher passwordHasher,
         IMapper mapper) : IUserProxyService

@@ -14,7 +14,9 @@ namespace thirdpartynetwork.Core.Migrations
 {
     [DbContext(typeof(DataContext))]
     [Migration("20250918183516_add references to author")]
+#pragma warning disable CS8981 // The type name only contains lower-cased ascii characters. Such names may become reserved for the language.
     partial class addreferencestoauthor
+#pragma warning restore CS8981 // The type name only contains lower-cased ascii characters. Such names may become reserved for the language.
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

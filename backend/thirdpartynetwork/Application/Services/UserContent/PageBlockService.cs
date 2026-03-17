@@ -40,7 +40,7 @@ namespace thirdpartynetwork.Application.Services
             var networkUser = await _networkUserService.GetByIdsAsync(networkId, userProxy.Id);
             if (networkUser == null) throw new NotFoundHttpException("NetworkUser not found");
 
-            if (await entitlementService.CheckUserAddCustomPageBlockEntitlementAsync(networkUser.UserProxyId, networkId,
+            if (!await entitlementService.CheckUserAddCustomPageBlockEntitlementAsync(networkUser.UserProxyId, networkId,
                     customPageId, createPageBlock.Data))
                 throw new UnauthorizedHttpException("You are exceeding a page block limit.");
 

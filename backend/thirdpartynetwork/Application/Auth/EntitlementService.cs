@@ -17,6 +17,12 @@ public class EntitlementService(
     IConfigurationRepository configurationRepository,
     ICustomPageRepository customPageRepository) : IEntitlementService
 {
+    private async Task<Network> GetMainNetwork()
+    {
+        var network = await networkRepository.GetMainNetworkDetailsAsync();
+        return network;
+    }
+    
     private async Task<Network> GetNetwork(Guid networkId)
     {
         var network = await networkRepository.GetByIdEntitlementAsync(networkId);
@@ -57,6 +63,15 @@ public class EntitlementService(
         // - enough space in network
         // - enough space in user / role
         //
+        
+        // Global Checks
+        var mainNetwork = await GetMainNetwork();
+
+        if (!mainNetwork.Entitlement.AllowFiles)
+        {
+            Console.WriteLine("mainNetwork.Entitlement.AllowFiles was false");
+            return false;
+        }
 
         // Network Checks
         var network = await GetNetwork(networkId);
@@ -122,6 +137,15 @@ public class EntitlementService(
 
     public async Task<bool> CheckUserAddBlogEntitlementAsync(Guid userProxyId, Guid networkId)
     {
+        // Global Checks
+        var mainNetwork = await GetMainNetwork();
+
+        if (!mainNetwork.Entitlement.AllowBlogs)
+        {
+            Console.WriteLine("mainNetwork.Entitlement.AllowBlogs was false");
+            return false;
+        }
+        
         // Network Checks
         var network = await GetNetwork(networkId);
 
@@ -155,6 +179,15 @@ public class EntitlementService(
 
     public async Task<bool> CheckUserAddConfigurationEntitlementAsync(Guid userProxyId, Guid networkId)
     {
+        // Global Checks
+        var mainNetwork = await GetMainNetwork();
+
+        if (!mainNetwork.Entitlement.AllowConfigurations)
+        {
+            Console.WriteLine("mainNetwork.Entitlement.AllowConfigurations was false");
+            return false;
+        }
+
         // Network Checks
         var network = await GetNetwork(networkId);
 
@@ -189,6 +222,15 @@ public class EntitlementService(
 
     public async Task<bool> CheckUserAddCustomPageEntitlementAsync(Guid userProxyId, Guid networkId)
     {
+        // Global Checks
+        var mainNetwork = await GetMainNetwork();
+
+        if (!mainNetwork.Entitlement.AllowCustomPages)
+        {
+            Console.WriteLine("mainNetwork.Entitlement.AllowCustomPages was false");
+            return false;
+        }
+
         // Network Checks
         var network = await GetNetwork(networkId);
 
@@ -317,7 +359,12 @@ public class EntitlementService(
 
     public int? ReadCustomPageBlockSizeLimitEntitlement(NetworkUser networkUser)
     {
-        return ReadEntitlement<int?>(networkUser.Entitlements, CustomPageBlockSizeLimit);
+        var onUser = ReadEntitlement<int?>(networkUser.Entitlements, CustomPageBlockSizeLimit);
+        if (onUser != null) return onUser;
+        
+        return networkUser.NetworkUserRoles
+            .Select(x => ReadEntitlement<int?>(x.Role.Entitlements, CustomPageBlockSizeLimit))
+            .Max();
     }
 
     public NetworkUser RemoveCustomPageBlockSizeLimitEntitlement(NetworkUser networkUser)
@@ -335,7 +382,12 @@ public class EntitlementService(
 
     public int? ReadCustomPageBlockCountLimitEntitlement(NetworkUser networkUser)
     {
-        return ReadEntitlement<int?>(networkUser.Entitlements, CustomPageBlockCountLimit);
+        var onUser = ReadEntitlement<int?>(networkUser.Entitlements, CustomPageBlockCountLimit);
+        if (onUser != null) return onUser;
+        
+        return networkUser.NetworkUserRoles
+            .Select(x => ReadEntitlement<int?>(x.Role.Entitlements, CustomPageBlockCountLimit))
+            .Max();
     }
 
     public NetworkUser RemoveCustomPageBlockCountLimitEntitlement(NetworkUser networkUser)
@@ -353,7 +405,12 @@ public class EntitlementService(
 
     public int? ReadCustomPageCountLimitEntitlement(NetworkUser networkUser)
     {
-        return ReadEntitlement<int?>(networkUser.Entitlements, CustomPageCountLimit);
+        var onUser = ReadEntitlement<int?>(networkUser.Entitlements, CustomPageCountLimit);
+        if (onUser != null) return onUser;
+        
+        return networkUser.NetworkUserRoles
+            .Select(x => ReadEntitlement<int?>(x.Role.Entitlements, CustomPageCountLimit))
+            .Max();
     }
 
     public NetworkUser RemoveCustomPageCountLimitEntitlement(NetworkUser networkUser)
@@ -371,7 +428,12 @@ public class EntitlementService(
 
     public int? ReadConfigurationCountLimitEntitlement(NetworkUser networkUser)
     {
-        return ReadEntitlement<int?>(networkUser.Entitlements, ConfigurationCountLimit);
+        var onUser = ReadEntitlement<int?>(networkUser.Entitlements, ConfigurationCountLimit);
+        if (onUser != null) return onUser;
+        
+        return networkUser.NetworkUserRoles
+            .Select(x => ReadEntitlement<int?>(x.Role.Entitlements, ConfigurationCountLimit))
+            .Max();
     }
 
     public NetworkUser RemoveConfigurationCountLimitEntitlement(NetworkUser networkUser)
@@ -389,7 +451,12 @@ public class EntitlementService(
 
     public int? ReadBlogCountLimitEntitlement(NetworkUser networkUser)
     {
-        return ReadEntitlement<int?>(networkUser.Entitlements, BlogCountLimit);
+        var onUser = ReadEntitlement<int?>(networkUser.Entitlements, BlogCountLimit);
+        if (onUser != null) return onUser;
+        
+        return networkUser.NetworkUserRoles
+            .Select(x => ReadEntitlement<int?>(x.Role.Entitlements, BlogCountLimit))
+            .Max();
     }
 
     public NetworkUser RemoveBlogCountLimitEntitlement(NetworkUser networkUser)
@@ -407,15 +474,12 @@ public class EntitlementService(
 
     public int? ReadFileCountLimitEntitlement(NetworkUser networkUser)
     {
-        var a = ReadEntitlement<int?>(networkUser.Entitlements, FileCountLimit);
-        var b = networkUser.NetworkUserRoles
+        var onUser = ReadEntitlement<int?>(networkUser.Entitlements, FileCountLimit);
+        if (onUser != null) return onUser;
+        
+        return networkUser.NetworkUserRoles
             .Select(x => ReadEntitlement<int?>(x.Role.Entitlements, FileCountLimit))
             .Max();
-
-        if (a == null) return b;
-        if (b == null) return a;
-
-        return Math.Max(a.Value, b.Value);
     }
 
     public NetworkUser RemoveFileCountLimitEntitlement(NetworkUser networkUser)
@@ -433,15 +497,12 @@ public class EntitlementService(
 
     public int? ReadFileSizeLimitEntitlement(NetworkUser networkUser)
     {
-        var a = ReadEntitlement<int?>(networkUser.Entitlements, FileSizeLimit);
-        var b = networkUser.NetworkUserRoles
+        var onUser = ReadEntitlement<int?>(networkUser.Entitlements, FileSizeLimit);
+        if (onUser != null) return onUser;
+        
+        return networkUser.NetworkUserRoles
             .Select(x => ReadEntitlement<int?>(x.Role.Entitlements, FileSizeLimit))
             .Max();
-
-        if (a == null) return b;
-        if (b == null) return a;
-
-        return Math.Max(a.Value, b.Value);
     }
 
     public NetworkUser RemoveFileSizeLimitEntitlement(NetworkUser networkUser)
@@ -459,15 +520,12 @@ public class EntitlementService(
 
     public int? ReadFileStorageLimitEntitlement(NetworkUser networkUser)
     {
-        var a = ReadEntitlement<int?>(networkUser.Entitlements, FileStorageLimit);
-        var b = networkUser.NetworkUserRoles
+        var onUser = ReadEntitlement<int?>(networkUser.Entitlements, FileStorageLimit);
+        if (onUser != null) return onUser;
+        
+        return networkUser.NetworkUserRoles
             .Select(x => ReadEntitlement<int?>(x.Role.Entitlements, FileStorageLimit))
             .Max();
-
-        if (a == null) return b;
-        if (b == null) return a;
-
-        return Math.Max(a.Value, b.Value);
     }
 
     public NetworkUser RemoveFileStorageLimitEntitlement(NetworkUser networkUser)

@@ -1,4 +1,4 @@
-﻿namespace thirdpartynetwork.Application.Dtos.Network
+﻿namespace thirdpartynetwork.Application.Dtos.NetworkEntitlement
 {
     public class NetworkEntitlementDto
     {
@@ -6,7 +6,7 @@
         
         public bool AllowFiles { get; set; }
         public int FileCountLimit { get; set; } = 0;
-        public int FileSizeLimit { get; set; } = 0;
+        public int FileSizeLimit { get; set; } = 0; // in KB
         public int FileStorageLimit { get; set; } = 0; // in KB
     
         public bool AllowBlogs { get; set; }
@@ -16,6 +16,8 @@
         public int ConfigurationCountLimit { get; set; } = 0;
     
         public bool AllowCustomPages { get; set; }
-        public int CustomPageCountLimit { get; set; }
+        public int CustomPageCountLimit { get; set; } = 0;
+        public int CustomPageBlockCountLimit { get; set; } = 0;
+        public int CustomPageBlockSizeLimit { get; set; } = 0;
     }
 }

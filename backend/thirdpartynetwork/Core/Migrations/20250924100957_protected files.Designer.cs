@@ -14,7 +14,9 @@ namespace thirdpartynetwork.Core.Migrations
 {
     [DbContext(typeof(DataContext))]
     [Migration("20250924100957_protected files")]
+#pragma warning disable CS8981 // The type name only contains lower-cased ascii characters. Such names may become reserved for the language.
     partial class protectedfiles
+#pragma warning restore CS8981 // The type name only contains lower-cased ascii characters. Such names may become reserved for the language.
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

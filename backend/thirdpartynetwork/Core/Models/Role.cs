@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace thirdpartynetwork.Core.Models;
 
@@ -11,7 +12,9 @@ public class Role : BaseModel
     public Guid NetworkId { get; set; }
     public required JsonDocument Entitlements { get; set; } = JsonDocument.Parse("{}");
     public ICollection<RolePermission> RolePermissions { get; set; } = new List<RolePermission>();
+    [JsonIgnore]
     public ICollection<NetworkUserRole> NetworkUserRoles { get; set; } = new List<NetworkUserRole>();
-    public required Network Network { get; set; }
+    [JsonIgnore]
+    public Network Network { get; set; }
     public bool IsSystemProtected { get; set; } = false;
 }

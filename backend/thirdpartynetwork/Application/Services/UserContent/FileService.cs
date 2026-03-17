@@ -53,7 +53,7 @@ namespace thirdpartynetwork.Application.Services
             var userProxy = await identityService.GetUserProxyAsync();
             var networkUser = await _networkUserService.GetByIdsAsync(networkId, userProxy.Id) ?? throw new NotFoundHttpException("NetworkUser not found");
             
-            if (await entitlementService.CheckUserAddNetworkFileEntitlementAsync(networkUser.UserProxyId, networkId, file))
+            if (!await entitlementService.CheckUserAddNetworkFileEntitlementAsync(networkUser.UserProxyId, networkId, file))
                 throw new UnauthorizedHttpException("You are exceeding a file upload limit.");
 
             var publicId = Guid.NewGuid();

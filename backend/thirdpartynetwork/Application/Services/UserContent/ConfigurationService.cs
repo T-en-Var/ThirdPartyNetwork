@@ -35,7 +35,7 @@ public class ConfigurationService(
         var networkUser = await _networkUserService.GetByIdsAsync(networkId, userProxy.Id);
         if (networkUser == null) throw new NotFoundHttpException("NetworkUser not found");
 
-        if (await entitlementService.CheckUserAddConfigurationEntitlementAsync(networkUser.UserProxyId, networkId))
+        if (!await entitlementService.CheckUserAddConfigurationEntitlementAsync(networkUser.UserProxyId, networkId))
             throw new UnauthorizedHttpException("You are exceeding a configuration limit.");
         
         var configuration = mapper.Map<Configuration>(createConfiguration);

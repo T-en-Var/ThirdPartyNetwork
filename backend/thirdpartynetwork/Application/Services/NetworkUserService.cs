@@ -10,6 +10,7 @@ namespace thirdpartynetwork.Application.Services
         INetworkUserRepository repository,
         INetworkService networkService,
         IUserProxyService userProxyService,
+        IFileRepository fileRepository,
         IMapper mapper) : INetworkUserService
     {
         public async Task<ICollection<NetworkUser>> GetAllAsync()
@@ -62,13 +63,7 @@ namespace thirdpartynetwork.Application.Services
         {
             if (await userProxyService.GetByIdAsync(userProxyId) == null) throw new NotFoundHttpException("UserProxy not Found");
 
-            var networkUsers = await repository.GetByUserProxyIdAsync(userProxyId, q => q
-                .Include(nu => nu.Files));
-            
-            var files = networkUsers
-                .SelectMany(nu => nu.Files)
-                .ToList();
-
+            var files = await fileRepository.GetByUserProxyIdAsync(userProxyId);
             return files;
         }
 
