@@ -108,7 +108,6 @@ export const useHistoryStore = defineStore('history', () => {
 
     localStorage.removeItem('history_users');
     users.value = []
-
   }
 
   return {

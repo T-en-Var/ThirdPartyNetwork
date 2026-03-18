@@ -1,5 +1,5 @@
 import api from '@/api/api.ts';
-import type { CreateUser, User, UpdateUser, UserMetrics } from '@/types';
+import type { CreateUser, User, UpdateUser, UserMetrics, UserProxy, UserProxyCreate } from '@/types';
 import { globalCache, useCachedApi, useMutation } from './useApi';
 
 export default function useUsers() {
@@ -27,8 +27,8 @@ export default function useUsers() {
     undefined,
     {
       initialData: (userId) => {
-        const users = globalCache.get(`users`)?.data.value as User[];
-        return users.find((u) => u.id == userId) ?? null;
+        const users = globalCache.get(`users`)?.data.value as User[] | undefined;
+        return users?.find((u) => u.id == userId) ?? null;
       },
     },
   );
@@ -55,6 +55,20 @@ export default function useUsers() {
       },
     },
   );
+
+  const createUserProxy = useMutation<UserProxy, [userId: string, payload: UserProxyCreate], User>(
+    async (userId, payload) => {
+      return await api.post(`/users/${userId}/proxies/`, payload)},
+    {
+      itemKeyFactory: (result, userId) => `users_${userId}_proxies_${result.id}`,
+      listKeyFactory: (userId) => `users_${userId}`,
+      listUpdater: (currentList, result) => {
+        const newList = currentList as unknown as User;
+        newList.userProxies = [...newList.userProxies, result];
+        return newList as unknown as User[];
+      },
+    }
+  )
 
   const updateUser = useMutation<User, [userId: string, payload: UpdateUser]>(
     async (userId, payload) => {
@@ -92,5 +106,6 @@ export default function useUsers() {
     createUser,
     updateUser,
     deleteUser,
+    createUserProxy,
   };
 }

@@ -171,7 +171,7 @@ function removeImage() {
 }
 
 function handleSubmit() {
-  if (!form.value.password || form.value.password != form.value.password_retype) return;
+  if (form.value.password && form.value.password != form.value.password_retype) return;
 
   const payload: UserProxyCreate = {
     ...form.value,

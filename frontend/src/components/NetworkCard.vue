@@ -3,8 +3,8 @@
     <div class="p-4">
       <div class="flex items-center mb-3">
         <div class="logo-container">
-          <CloudinaryFile v-if="network.imageFile" :display-only="true" :file="network.imageFile" class="w-10 max-h-10 object-cover" />
-          <div v-else class="logo">
+          <CloudinaryFile v-if="network.imageFile" :display-only="true" :file="network.imageFile" class="w-10 h-10 object-cover" />
+          <div v-else class="logo w-10 h-10">
             <img 
               :src="`https://ui-avatars.com/api/?name=${network?.name}&size=24&background=random`"
               :alt="network.name" />
@@ -77,8 +77,6 @@ defineEmits<{
   align-items: center;
   justify-content: center;
   color: white;
-  width: 36px;
-  height: 36px;
   border-radius: 6px;
   font-weight: 600;
   font-size: 12px;

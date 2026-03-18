@@ -4,7 +4,7 @@
     <AdminSidebar />
 
     <div class="flex-1 p-6 overflow-auto">
-      <RouterView @delete-network="confirmDeleteNetwork"/>
+      <RouterView @delete-network="confirmDeleteNetwork" />
 
       <!-- Modals -->
       <ConfirmationModal v-if="showConfirmationModal" :title="confirmationTitle"
@@ -41,16 +41,24 @@ function confirmDeleteNetwork(network: Network) {
   confirmButtonColor.value = 'red';
 
   confirmationAction.value = async () => {
-    if(true)return
-    isSubmitting.value = true;
-    const { execute: deleteNetwork } = networksState.deleteNetwork;
-    try {
-      await deleteNetwork(network.id);
-    } catch (err) {
-      console.error('Failed to delete network', err);
-    } finally {
-      isSubmitting.value = false;
-    }
+    confirmationTitle.value = 'Delete Confirmation Network';
+    confirmationMessage.value = `Are you SURE you want to delete "${network.name}"? This action CANNOT be undone.`;
+    confirmButtonText.value = 'YES, DELETE';
+    confirmButtonColor.value = 'red';
+
+    confirmationAction.value = async () => {
+      isSubmitting.value = true;
+      const { execute: deleteNetwork } = networksState.deleteNetwork;
+      try {
+        await deleteNetwork(network.id);
+      } catch (err) {
+        console.error('Failed to delete network', err);
+      } finally {
+        isSubmitting.value = false;
+      }
+    };
+
+    showConfirmationModal.value = true;
   };
 
   showConfirmationModal.value = true;

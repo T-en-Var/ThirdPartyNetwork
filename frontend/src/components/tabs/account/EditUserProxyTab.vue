@@ -5,14 +5,12 @@
 
     <div v-if="!loading && !error && userProxy" class="space-y-10">
       <div class="flex justify-between items-stretch gap-10">
-        <!-- Profile Info -->
         <section class="flex-grow">
           <h2 class="text-lg font-semibold text-gray-800 mb-4">Profile Info</h2>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label class="block text-sm font-medium text-gray-700">Username</label>
               <div class="relative mt-1">
-                <!-- Gray @ prefix -->
                 <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">@</span>
                 <input v-model="form.username" type="text"
                   class="block w-full rounded-lg border border-gray-300 pl-7 pr-3 py-2 text-sm shadow-sm focus:border-blue-600 focus:ring focus:ring-blue-100" />
@@ -205,24 +203,27 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import CloudinaryFile from '@/components/cdn/CloudinaryFile.vue'
-import type { Network, NetworkFile, UserProxyForm, UserProxyUpdate } from '@/types'
+import type { Network, NetworkFile, UserProxy, UserProxyForm, UserProxyUpdate } from '@/types'
 import { useHistoryStore } from '@/stores/history';
-import useUserProxy from '@/composables/useUserProxy';
+// import useUserProxy from '@/composables/useUserProxy';
 import { useRoute, useRouter } from 'vue-router';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import NetworkCard from '@/components/NetworkCard.vue';
 import { useAuthStore } from '@/stores/auth';
 import AddFileModal from '@/components/modals/network/AddFileModal.vue';
+import useUsers from '@/composables/useUsers';
 
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
 const historyStore = useHistoryStore();
 
-const { data: userProxy, loading, error, execute: fetchUserProxy } = useUserProxy().fetchUserProxy;
+// const { data: userProxy, loading, error, execute: fetchUserProxy } = useUserProxy().fetchUserProxy;
+const { data: user, loading, error, execute: fetchUser } = useUsers().fetchUser;
 
 const uploadedFile = ref<NetworkFile | null>(null);
 const showUploadModal = ref(false);
+const userProxy = ref<UserProxy | null>(null);
 
 const emit = defineEmits<{
   (e: 'updateUserProxy', payload: UserProxyUpdate): void,
@@ -242,9 +243,17 @@ watch(
 )
 
 async function handleMounted() {
-  await fetchUserProxy(userProxyId.value)
+  const currentUser = await authStore.getUserProxy()
+  if (!currentUser) throw new Error("UserProxy not found");
   
+  await fetchUser(currentUser.user.id);
+  if (!user.value) throw new Error("User not found");
+
+  userProxy.value = user.value.userProxies.find(up => up.id == userProxyId.value) ?? null;
   if (!userProxy.value) throw new Error("UserProxy not found");
+
+  console.log(user.value)
+
   historyStore.userProxyVisit(userProxy.value);
 
   form.value = {
