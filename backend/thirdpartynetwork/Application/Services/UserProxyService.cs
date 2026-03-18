@@ -7,7 +7,6 @@ namespace thirdpartynetwork.Application.Services
 {
     public class UserProxyService(
         IUserProxyRepository repository,
-        INetworkService networkService,
         IUserService userService,
         IPasswordHasher passwordHasher,
         IMapper mapper) : IUserProxyService
@@ -15,18 +14,21 @@ namespace thirdpartynetwork.Application.Services
         public async Task<ICollection<UserProxy>> GetAllAsync()
         {
             var proxies = await repository.GetAllAsync();
+            proxies = proxies.Select(p => p.ApplyDefaults()).ToList();
             return proxies;
         }
 
         public async Task<ICollection<UserProxy>> GetByUserIdAsync(Guid userId)
         {
             var proxies = await repository.GetByUserIdAsync(userId);
+            proxies = proxies.Select(p => p.ApplyDefaults()).ToList();
             return proxies;
         }
 
         public async Task<UserProxy?> GetByIdAsync(Guid userProxyId)
         {
             var proxy = await repository.GetByIdAsync(userProxyId);
+            proxy = proxy?.ApplyDefaults();
             return proxy;
         }
 
@@ -35,12 +37,14 @@ namespace thirdpartynetwork.Application.Services
             if (await userService.GetByIdAsync(userId) == null) throw new NotFoundHttpException("User not found");
             
             var proxy = await repository.GetByIdAsync(userProxyId);
+            proxy = proxy?.ApplyDefaults();
             return proxy;
         }
 
         public async Task<UserProxy?> GetByUsernameAsync(string username)
         {
             var proxy = await repository.GetByUsernameAsync(username);
+            proxy = proxy?.ApplyDefaults();
             return proxy;
         }
 

@@ -6,15 +6,13 @@ using thirdpartynetwork.Core.Models;
 namespace thirdpartynetwork.Application.Services
 {
     public class CustomPageService(
-        ICustomPageRepository repository, // This is your specific repo
+        ICustomPageRepository repository,
         INetworkService networkService,
         IIdentityService identityService,
         INetworkUserService networkUserService,
+        IEntitlementService entitlementService,
         IMapper mapper
-    ) 
-// 1. Inherit from the Base Service, passing T as <CustomPage>
-// 2. Pass 'repository' to the base constructor
-        : UserContentBaseService<CustomPage>(repository, networkUserService), ICustomPageService
+    ) : UserContentBaseService<CustomPage>(repository, networkUserService), ICustomPageService
     {
         private readonly INetworkUserService _networkUserService = networkUserService;
 
@@ -39,6 +37,9 @@ namespace thirdpartynetwork.Application.Services
             var networkUser = await _networkUserService.GetByIdsAsync(networkId, userProxy.Id);
             if (networkUser == null) throw new NotFoundHttpException("NetworkUser not found");
 
+            if (!await entitlementService.CheckUserAddCustomPageEntitlementAsync(networkUser.UserProxyId, networkId))
+                throw new UnauthorizedHttpException("You are exceeding a custom page limit.");
+
             var customPage = mapper.Map<CustomPage>(createCustomPage);
             customPage.Network = network;
             customPage.Author = networkUser;
@@ -47,7 +48,8 @@ namespace thirdpartynetwork.Application.Services
             return customPage;
         }
 
-        public async Task<CustomPage> UpdateAsync(Guid networkId, Guid customPageId, UpdateCustomPageDto updateCustomPage)
+        public async Task<CustomPage> UpdateAsync(Guid networkId, Guid customPageId,
+            UpdateCustomPageDto updateCustomPage)
         {
             if (!await repository.ExistsAsync(customPageId)) throw new NotFoundHttpException();
 

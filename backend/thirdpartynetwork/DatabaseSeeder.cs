@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 using thirdpartynetwork.Core;
 using thirdpartynetwork.Core.Models;
 using thirdpartynetwork.Core.Data;
@@ -40,6 +41,13 @@ namespace thirdpartynetwork
                     Description = "Dummy Network Description",
                     IsPublic = true,
                     RedirectURI = "#",
+                    Entitlement = new ()
+                    {
+                        AllowBlogs = false,
+                        AllowConfigurations = false,
+                        AllowFiles = false,
+                        AllowCustomPages = false
+                    }
                 };
 
                 var adminRole = new Role
@@ -48,6 +56,7 @@ namespace thirdpartynetwork
                     Description = "Admin Role",
                     Network = dummyNetwork,
                     IsDefault = false,
+                    Entitlements = JsonDocument.Parse("{}")
                 };
 
                 adminRole.RolePermissions = new List<RolePermission>()
@@ -66,6 +75,7 @@ namespace thirdpartynetwork
                     Description = "User Role",
                     Network = dummyNetwork,
                     IsDefault = true,
+                    Entitlements = JsonDocument.Parse("{}")
                 };
 
                 userRole.RolePermissions = new List<RolePermission>()
@@ -135,12 +145,14 @@ namespace thirdpartynetwork
                 {
                     UserProxy = dummyAdminProxy,
                     Network = dummyNetwork,
+                    Entitlements = JsonDocument.Parse("{}")
                 };
                 
                 var nu1 = new NetworkUser()
                 {
                     UserProxy = dummyAdminProxy,
                     Network = mainNetwork,
+                    Entitlements = JsonDocument.Parse("{}")
                 };
 
                 dummyAdminProxy.NetworkUsers = new List<NetworkUser>()
@@ -186,12 +198,14 @@ namespace thirdpartynetwork
                 {
                     UserProxy = dummyUserProxy,
                     Network = dummyNetwork,
+                    Entitlements = JsonDocument.Parse("{}")
                 };
                 
                 var nu2 = new NetworkUser()
                 {
                     UserProxy = dummyUserProxy,
                     Network = mainNetwork,
+                    Entitlements = JsonDocument.Parse("{}")
                 };
 
                 dummyUserProxy.NetworkUsers = new List<NetworkUser>()
@@ -257,6 +271,13 @@ namespace thirdpartynetwork
                     RedirectURI = "#",
                     IsSystemProtected = true,
                     IsPublic = true,
+                    Entitlement = new ()
+                    {
+                        AllowBlogs = true,
+                        AllowConfigurations = true,
+                        AllowFiles = true,
+                        AllowCustomPages = true,
+                    }
                 };
 
                 var permissions = new List<Permission>
@@ -329,6 +350,7 @@ namespace thirdpartynetwork
                     IsSystemProtected = true,
                     Network = network,
                     IsDefault = false,
+                    Entitlements = JsonDocument.Parse("{}")
                 };
 
                 adminRole.RolePermissions = new List<RolePermission>
@@ -347,6 +369,7 @@ namespace thirdpartynetwork
                     IsSystemProtected = true,
                     Network = network,
                     IsDefault = true,
+                    Entitlements = JsonDocument.Parse("{}")
                 };
 
                 userRole.RolePermissions = new List<RolePermission>()
@@ -404,6 +427,7 @@ namespace thirdpartynetwork
                 {
                     UserProxy = adminUser,
                     Network = network,
+                    Entitlements = JsonDocument.Parse("{}")
                 };
 
                 adminNetworkUser.NetworkUserRoles = new List<NetworkUserRole>

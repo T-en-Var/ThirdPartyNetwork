@@ -13,7 +13,9 @@ namespace thirdpartynetwork.Core.Migrations
 {
     [DbContext(typeof(DataContext))]
     [Migration("20250916231809_more nullable")]
+#pragma warning disable CS8981 // The type name only contains lower-cased ascii characters. Such names may become reserved for the language.
     partial class morenullable
+#pragma warning restore CS8981 // The type name only contains lower-cased ascii characters. Such names may become reserved for the language.
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

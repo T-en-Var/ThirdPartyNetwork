@@ -1,11 +1,15 @@
-﻿namespace thirdpartynetwork.Core.Models
+﻿using System.Text.Json.Serialization;
+
+namespace thirdpartynetwork.Core.Models
 {
     public class Access : BaseModel
     {
         public Guid Id { get; set; }
         public required string Name { get; set; }
         public required string Description { get; set; }
+        [JsonIgnore]
         public ICollection<NetworkAccess> NetworkAccesses { get; set; } = new List<NetworkAccess>();
+        [JsonIgnore]
         public ICollection<NetworkUserAccess> NetworkUserAccesses { get; set; } = new List<NetworkUserAccess>();
         public bool IsSystemProtected { get; set; } = false;
     }

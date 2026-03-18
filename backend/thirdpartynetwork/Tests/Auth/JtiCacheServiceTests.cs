@@ -1,4 +1,3 @@
-using System;
 using NUnit.Framework;
 using thirdpartynetwork.Application.Auth;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;

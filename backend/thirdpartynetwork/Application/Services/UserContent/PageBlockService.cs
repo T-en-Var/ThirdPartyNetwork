@@ -11,6 +11,7 @@ namespace thirdpartynetwork.Application.Services
         ICustomPageService customPageService,
         IIdentityService identityService,
         INetworkUserService networkUserService,
+        IEntitlementService entitlementService,
         IMapper mapper) : UserContentBaseService<PageBlock>(repository, networkUserService), IPageBlockService
     {
         private readonly INetworkUserService _networkUserService = networkUserService;
@@ -31,13 +32,17 @@ namespace thirdpartynetwork.Application.Services
         {
             var network = await networkService.GetByIdAsync(networkId);
             if (network == null) throw new NotFoundHttpException("Network not found");
-            
+
             var customPage = await customPageService.GetByIdAsync(networkId, customPageId);
             if (customPage == null) throw new NotFoundHttpException("CustomPage not found");
 
             var userProxy = await identityService.GetUserProxyAsync();
             var networkUser = await _networkUserService.GetByIdsAsync(networkId, userProxy.Id);
             if (networkUser == null) throw new NotFoundHttpException("NetworkUser not found");
+
+            if (!await entitlementService.CheckUserAddCustomPageBlockEntitlementAsync(networkUser.UserProxyId, networkId,
+                    customPageId, createPageBlock.Data))
+                throw new UnauthorizedHttpException("You are exceeding a page block limit.");
 
             var pageBlock = mapper.Map<PageBlock>(createPageBlock);
             pageBlock.NetworkId = networkId;
@@ -48,7 +53,8 @@ namespace thirdpartynetwork.Application.Services
             return pageBlock;
         }
 
-        public async Task<PageBlock> UpdateAsync(Guid networkId, Guid customPageId, Guid pageBlockId, UpdatePageBlockDto updatePageBlock)
+        public async Task<PageBlock> UpdateAsync(Guid networkId, Guid customPageId, Guid pageBlockId,
+            UpdatePageBlockDto updatePageBlock)
         {
             if (!await repository.ExistsAsync(pageBlockId)) throw new NotFoundHttpException();
 

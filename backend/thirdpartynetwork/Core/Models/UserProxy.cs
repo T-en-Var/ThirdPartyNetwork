@@ -1,4 +1,6 @@
-﻿namespace thirdpartynetwork.Core.Models
+﻿using System.Text.Json.Serialization;
+
+namespace thirdpartynetwork.Core.Models
 {
     public class UserProxy : BaseModel
     {
@@ -11,7 +13,9 @@
         public File? ImageFile { get; set; }
         public Guid? ImageFileId { get; set; }
         public required bool IsDefault { get; set; }
-        public required User User { get; set; }
+        [JsonIgnore]
+        public User User { get; set; }
+        [JsonIgnore]
         public ICollection<NetworkUser> NetworkUsers { get; set; } = new List<NetworkUser>();
         
         public UserProxy ApplyDefaults()

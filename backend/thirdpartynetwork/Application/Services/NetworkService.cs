@@ -1,4 +1,5 @@
-﻿﻿using AutoMapper;
+﻿using System.Text.Json;
+using AutoMapper;
 using thirdpartynetwork.Core;
 using thirdpartynetwork.Core.Models;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
@@ -8,15 +9,17 @@ namespace thirdpartynetwork.Application.Services
 {
     public class NetworkService(
         INetworkRepository repository,
+        INetworkEntitlementRepository entitlementRepository,
         IPermissionService permissionService,
         IMapper mapper,
         IIdentityService identityService,
         ICDNService cdnService,
         IIdentityVerifier identityVerifier,
         IFileRepository fileRepository // im sorry
-        ) : INetworkService
+    ) : INetworkService
     {
         private static Network? _cachedMainNetwork;
+        // private static Network? _cachedMainNetworkDetails;
 
         private async Task<ICollection<Network>> FilterNetworksAsync(ICollection<Network> networks, bool bypass = false)
         {
@@ -24,15 +27,17 @@ namespace thirdpartynetwork.Application.Services
 
             var currentUser = await identityService.GetUserProxyAsync(true);
             var isSuper =
-                await identityVerifier.IsSuperAdminOrHasSuperPermissionAsync(currentUser.Id, Constants.Permissions.ReadNetwork);
+                await identityVerifier.IsSuperAdminOrHasSuperPermissionAsync(currentUser.Id,
+                    Constants.Permissions.ReadNetwork);
 
             var allowedNetworks = new List<Network>();
 
             foreach (var network in networks)
             {
-                if (network.IsPublic 
-                    || isSuper 
-                    || (await identityVerifier.IsAllowedAsync(network.Id, currentUser.Id, Constants.Permissions.ReadNetwork)))
+                if (network.IsPublic
+                    || isSuper
+                    || (await identityVerifier.IsAllowedAsync(network.Id, currentUser.Id,
+                        Constants.Permissions.ReadNetwork)))
                 {
                     allowedNetworks.Add(network);
                 }
@@ -45,6 +50,18 @@ namespace thirdpartynetwork.Application.Services
         {
             var networks = await repository.GetAllAsync();
             return await FilterNetworksAsync(networks);
+        }
+
+        public async Task<ICollection<NetworkMetricsDto>> GetAllWithMetricsAsync()
+        {
+            return await repository.GetWithMetricsAsync();
+        }
+
+        public async Task<NetworkMetricsDto> GetByIdWithMetricsAsync(Guid networkId)
+        {
+            var metrics = (await repository.GetWithMetricsAsync(networkId)).First();
+            if (metrics == null) throw new NotFoundHttpException("Network not found");
+            return metrics;
         }
 
         public async Task<Network?> GetByIdAsync(Guid id, bool bypass = false)
@@ -71,6 +88,9 @@ namespace thirdpartynetwork.Application.Services
 
         public async Task<Network> CreateAsync(CreateNetworkDto createNetworkDto)
         {
+            if (createNetworkDto.Name == Constants.Networks.Main)
+                throw new ConflictHttpException("Cannot name network as main network.");
+            
             var nameFound = await repository.GetByNameAsync(createNetworkDto.Name);
             if (nameFound != null)
                 throw new ConflictHttpException("Duplicate Network name.");
@@ -87,7 +107,8 @@ namespace thirdpartynetwork.Application.Services
                 Name = "User",
                 Description = "Default role for new users.",
                 IsDefault = true,
-                Network = network
+                Network = network,
+                Entitlements = JsonDocument.Parse("{}")
             };
 
             var adminRole = new Role
@@ -95,7 +116,8 @@ namespace thirdpartynetwork.Application.Services
                 Name = "Admin",
                 Description = "Default admin role.",
                 IsDefault = false,
-                Network = network
+                Network = network,
+                Entitlements = JsonDocument.Parse("{}")
             };
 
             adminRole.RolePermissions =
@@ -156,7 +178,7 @@ namespace thirdpartynetwork.Application.Services
                     NetworkId = network.Id,
                     UserProxyId = currentUser.Id,
                     Network = network,
-                    UserProxy = currentUser,
+                    // UserProxy = currentUser,
                     NetworkUserRoles =
                     [
                         new NetworkUserRole
@@ -164,9 +186,32 @@ namespace thirdpartynetwork.Application.Services
                             NetworkUser = null,
                             Role = adminRole
                         }
-                    ]
+                    ],
+                    Entitlements = JsonDocument.Parse("{}")
                 }
             ];
+
+            network.Entitlement = new NetworkEntitlement()
+            {
+                NetworkId = network.Id,
+
+                AllowBlogs = false,
+                BlogCountLimit = 0,
+
+                AllowConfigurations = false,
+                ConfigurationCountLimit = 0,
+
+                AllowFiles = false,
+                FileCountLimit = 0,
+                FileSizeLimit = 0,
+                FileStorageLimit = 0,
+
+                AllowCustomPages = false,
+                CustomPageCountLimit = 0,
+                CustomPageBlockCountLimit = 0,
+                CustomPageBlockSizeLimit = 0,
+            };
+
             network = await repository.CreateAsync(network);
 
             return network;
@@ -175,7 +220,7 @@ namespace thirdpartynetwork.Application.Services
         public async Task<Network> UpdateAsync(Guid id, UpdateNetworkDto updateNetworkDto)
         {
             if (!await repository.ExistsAsync(id)) throw new NotFoundHttpException();
-            
+
             var network = mapper.Map<Network>(updateNetworkDto);
             network.Id = id;
 
@@ -186,6 +231,70 @@ namespace thirdpartynetwork.Application.Services
 
             network = await repository.UpdateAsync(network);
             return network;
+        }
+
+        public async Task<NetworkEntitlement> UpdateEntitlementAsync(Guid networkId,
+            UpdateNetworkEntitlementDto updateNetworkEntitlementDto)
+        {
+            if (!await entitlementRepository.ExistsAsync(networkId))
+                throw new NotFoundHttpException();
+
+            var mainNetwork = await GetMainNetworkDetailsAsync();
+
+            if (networkId == mainNetwork.Id)
+            {
+                var mainEntitlement = mapper.Map<NetworkEntitlement>(updateNetworkEntitlementDto);
+                mainEntitlement.NetworkId = networkId;
+                return await entitlementRepository.UpdateAsync(mainEntitlement);
+            }
+
+            var allEntitlements = await GetAllAsync();
+
+            ValidateGlobalLimits(networkId, updateNetworkEntitlementDto, mainNetwork.Entitlement,
+                allEntitlements.Select(x => x.Entitlement));
+
+            var networkEntitlement = mapper.Map<NetworkEntitlement>(updateNetworkEntitlementDto);
+            networkEntitlement.NetworkId = networkId;
+
+            networkEntitlement = await entitlementRepository.UpdateAsync(networkEntitlement);
+            return networkEntitlement;
+        }
+
+        private static void ValidateGlobalLimits(
+            Guid updatingNetworkId,
+            UpdateNetworkEntitlementDto incoming,
+            NetworkEntitlement mainLimit,
+            IEnumerable<NetworkEntitlement> allEntitlements)
+        {
+            var otherNetworks = allEntitlements
+                .Where(e => e.NetworkId != updatingNetworkId && e.NetworkId != mainLimit.NetworkId);
+
+            // Validation Logic: (Sum of Others) + (Incoming Value) <= (Main Network Limit)
+
+            var networkEntitlements = otherNetworks as NetworkEntitlement[] ?? otherNetworks.ToArray();
+            if ((networkEntitlements.Sum(e => e.FileCountLimit) + incoming.FileCountLimit) > mainLimit.FileCountLimit)
+                throw new BadHttpRequestException("File count limit exceeds global capacity.");
+
+            if ((networkEntitlements.Sum(e => e.FileStorageLimit) + incoming.FileStorageLimit) >
+                mainLimit.FileStorageLimit)
+                throw new BadHttpRequestException("Total file storage exceeds global capacity.");
+
+            if ((networkEntitlements.Sum(e => e.BlogCountLimit) + incoming.BlogCountLimit) > mainLimit.BlogCountLimit)
+                throw new BadHttpRequestException("Blog count limit exceeds global capacity.");
+
+            if ((networkEntitlements.Sum(e => e.ConfigurationCountLimit) + incoming.ConfigurationCountLimit) >
+                mainLimit.ConfigurationCountLimit)
+                throw new BadHttpRequestException("Configuration count limit exceeds global capacity.");
+
+            if ((networkEntitlements.Sum(e => e.CustomPageCountLimit) + incoming.CustomPageCountLimit) >
+                mainLimit.CustomPageCountLimit)
+                throw new BadHttpRequestException("Custom page count limit exceeds global capacity.");
+
+            if ((networkEntitlements.Sum(e => e.CustomPageBlockCountLimit) + incoming.CustomPageBlockCountLimit) >
+                mainLimit.CustomPageBlockCountLimit)
+                throw new BadHttpRequestException("Custom page block count limit exceeds global capacity.");
+
+            // Add additional checks for when adding new
         }
 
         public async Task DeleteByIdAsync(Guid id)
@@ -213,6 +322,12 @@ namespace thirdpartynetwork.Application.Services
 
             _cachedMainNetwork = await repository.GetMainNetworkAsync();
             return _cachedMainNetwork;
+        }
+
+        public async Task<Network> GetMainNetworkDetailsAsync()
+        {
+            var network = await repository.GetMainNetworkDetailsAsync();
+            return network;
         }
 
         public IQueryable<Network> GetMainNetworkQueryable()
