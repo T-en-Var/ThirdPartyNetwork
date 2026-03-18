@@ -86,20 +86,18 @@ namespace thirdpartynetwork.Application.Services
 
         public async Task<NetworkUser> CreateAsync(Guid networkId, Guid userProxyId, CreateNetworkUserDto createNetworkUser)
         {
+            var mainNetwork = await networkService.GetMainNetworkAsync();
             var network = await networkService.GetByIdAsync(networkId, bypass: true);
             if (network == null) throw new NotFoundHttpException("Network not Found");
 
             var userProxy = await userProxyService.GetByIdAsync(userProxyId);
             if (userProxy == null) throw new NotFoundHttpException("UserProxy not Found");
 
-            var isNotDefaultFlag = userProxy.Email == null;
-            userProxy = userProxy.ApplyDefaults();
-
-            if (await GetByIdsAsync(networkId, userProxyId) != null) throw new ConflictHttpException("Email is already in use.");
-            if (await GetByNetworkIdAndEmailAsync(networkId, userProxy.Email) != null)
+            if (await GetByIdsAsync(networkId, userProxyId) != null) throw new ConflictHttpException("User already joined this network.");
+            if (mainNetwork.Id != networkId && await GetByNetworkIdAndEmailAsync(networkId, userProxy.Email) != null)
                 throw new ConflictHttpException("User with this email already exists" +
-                                                (isNotDefaultFlag
-                                                    ? ". (You email was imported from your default proxy)"
+                                                (!userProxy.IsDefault
+                                                    ? ". (Your email was imported from your default proxy)"
                                                     : ""));
 
             var networkUser = mapper.Map<NetworkUser>(createNetworkUser);

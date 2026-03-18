@@ -44,6 +44,8 @@ namespace thirdpartynetwork.Application.Repositories
         {
             var query = _context.Networks
                 .Include(x => x.NetworkUsers)
+                .Include(x => x.Roles)
+                .Include(x => x.Entitlement)
                 .AsQueryable();
 
             var currentUser = await identityService.GetUserProxyAsync(true);
