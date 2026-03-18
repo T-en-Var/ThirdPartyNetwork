@@ -58,6 +58,8 @@ import ModalContainer from '@/components/modals/ModalContainer.vue';
 import type { Network, NetworkAccessCreate } from '@/types';
 import useAccesses from '@/composables/useAccesses';
 
+const accessesState = useAccesses().fetchAccesses;
+
 const props = withDefaults(defineProps<{
   network: Network;
   isSubmitting?: boolean;
@@ -68,7 +70,7 @@ const props = withDefaults(defineProps<{
 const accessId = ref('');
 watch(accessId, (newId) => {
   if (newId) {
-    form.value.access = accessesState.accesses.value.find(x => x.id == newId);
+    form.value.access = accessesState.data.value!.find(x => x.id == newId);
   }
 })
 
@@ -83,22 +85,23 @@ const form = ref<NetworkAccessCreate>({
   isRequired: false
 });
 
-const accessesState = useAccesses();
-
 const availableAccesses = computed(() => {
+  if (!accessesState.data.value) return [];
   // Filter out accesses that are already in the network
   const networkAccessIds = props.network.networkAccesses.map(na => na.access.id);
-  return accessesState.accesses.value.filter(access => !networkAccessIds.includes(access.id));
+  return accessesState.data.value.filter(access => !networkAccessIds.includes(access.id));
 });
 
 const selectedAccessDescription = computed(() => {
+  if (!accessesState.data.value) return '';
   if (!form.value.access) return '';
-  const access = accessesState.accesses.value.find(a => a.id === form.value.access?.id);
+  
+  const access = accessesState.data.value.find(a => a.id === form.value.access?.id);
   return access?.description || '';
 });
 
 onMounted(async () => {
-  await accessesState.fetchAccesses();
+  await accessesState.execute();
 });
 
 function handleSubmit() {

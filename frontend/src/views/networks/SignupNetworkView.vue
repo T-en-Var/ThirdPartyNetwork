@@ -19,7 +19,7 @@
     </div>
 
     <AuthFormCard v-else-if="signUpStep == 1" title="Create Account"
-      :subtitle="networkDetails.network.value ? `Join ${networkDetails.network.value.name}` : 'Join the platform'"
+      :subtitle="networkDetails.data.value ? `Join ${networkDetails.data.value.name}` : 'Join the platform'"
       :error="error" :network-details="networkDetails">
       <form @submit.prevent="signUp" class="flex flex-col gap-5">
         <div class="flex flex-wrap gap-5">
@@ -96,8 +96,8 @@
       subtitle="Review the required data access for this network." :error="error" :network-details="networkDetails"
       max-width="2xl">
       <div class="mb-8 bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden p-4">
-        <h2 class="text-xl font-semibold text-gray-800">{{ networkDetails.network.value?.name }}</h2>
-        <p class="text-gray-600 text-sm mt-1">{{ networkDetails.network.value?.description || 'No description available.' }}
+        <h2 class="text-xl font-semibold text-gray-800">{{ networkDetails.data.value?.name }}</h2>
+        <p class="text-gray-600 text-sm mt-1">{{ networkDetails.data.value?.description || 'No description available.' }}
         </p>
       </div>
 
@@ -105,12 +105,12 @@
         <LoadingSpinner />
       </div>
 
-      <div v-else-if="networkDetails.network.value && networkDetails.network.value.networkAccesses.length > 0">
+      <div v-else-if="networkDetails.data.value && networkDetails.data.value.networkAccesses.length > 0">
         <h3 class="text-lg font-medium text-gray-800 mb-4">Required Data Access</h3>
         <p class="text-gray-600 mb-4">Update your consent for the following data accesses:</p>
 
         <div class="space-y-4 mb-6">
-          <div v-for="access in networkDetails.network.value.networkAccesses" :key="access.accessId"
+          <div v-for="access in networkDetails.data.value.networkAccesses" :key="access.accessId"
             class="p-4 border border-gray-200 rounded-md">
             <div class="flex items-start">
               <input :id="access.accessId" v-model="userAccesses[access.accessId].value" type="checkbox"
@@ -178,7 +178,6 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import type { AccessTokenClaims, AuthorizationCode, ErrorMessage, UserProxy, NetworkAccess } from '@/types';
-import useNetworkDetails from '@/composables/useNetworkDetails';
 import { decodeJWT } from '@/lib/utils';
 import { useGlobalStore } from '@/stores/global';
 import type { AxiosError } from 'axios';
@@ -192,12 +191,13 @@ import LoadingSpinner from '@/components/LoadingSpinner.vue';
 import ConfirmationModal from '@/components/modals/ConfirmationModal.vue';
 import UserProxyDisplay from '@/components/UserProxyDisplay.vue';
 import NetworkNotFound from '@/components/NetworkNotFound.vue';
+import useNetworks from '@/composables/useNetworks';
 
 // --- Setup ---
 const router = useRouter();
 const route = useRoute();
 const global = useGlobalStore();
-const networkDetails = useNetworkDetails();
+const networkDetails = useNetworks().fetchNetworkDetails;
 
 // --- Computed Route Params/Queries (Vue Style-Guide C: Keep complex logic in script) ---
 const networkId = computed(() => route.params.networkId as string);
@@ -235,24 +235,24 @@ const isSubmitting = ref(false); // Used for the final step 2 button state
 // --- Computed Properties ---
 
 const networkNotFoundError = computed(() => {
-  return !!networkId.value && !networkDetails.network.value;
+  return !!networkId.value && !networkDetails.data.value;
 });
 
 const canSubmit = computed(() => {
-  if (!networkDetails.network.value || isSubmitting.value) return false;
+  if (!networkDetails.data.value || isSubmitting.value) return false;
 
   // Check if all required accesses have been consented to
-  const requiredAccesses = networkDetails.network.value.networkAccesses.filter((na: NetworkAccess) => na.isRequired);
+  const requiredAccesses = networkDetails.data.value.networkAccesses.filter((na: NetworkAccess) => na.isRequired);
   return requiredAccesses.every((na: NetworkAccess) => userAccesses.value[na.accessId]?.value);
 });
 
 
 // --- Lifecycle Hooks ---
 onMounted(async () => {
-  await networkDetails.fetchNetworkDetails(networkId.value);
+  await networkDetails.execute(networkId.value);
 
   // Initialize userAccesses state only if network is loaded successfully
-  for (const access of networkDetails.network.value?.networkAccesses || []) {
+  for (const access of networkDetails.data.value?.networkAccesses || []) {
     userAccesses.value[access.accessId] = { value: false, userChecked: false }
   }
 
@@ -303,7 +303,7 @@ const redirectToTos = () => {
 const signUp = async () => {
   error.value = ''; // Clear previous errors
 
-  if (!networkDetails.network.value) {
+  if (!networkDetails.data.value) {
     error.value = 'Network details are not available yet.';
     return;
   }
@@ -340,7 +340,7 @@ async function handleSubmit() {
   signUpStep.value = 3; // Switch to loading screen
   global.startFetching();
 
-  const network = networkDetails.network.value;
+  const network = networkDetails.data.value;
 
   if (!network) {
     error.value = 'Network details missing.';
@@ -412,9 +412,9 @@ async function handleSubmit() {
  * Sends PUT requests to update user access consent.
  */
 async function handleUpdateAccesses(networkUserId: string, temporaryAccessToken: string) {
-  if (!networkDetails.network.value) return;
+  if (!networkDetails.data.value) return;
 
-  const acceptedAccesses = networkDetails.network.value.networkAccesses
+  const acceptedAccesses = networkDetails.data.value.networkAccesses
     .filter(access => userAccesses.value[access.accessId].value)
     .map(access => access.accessId);
 
@@ -449,12 +449,12 @@ function handleIncompleteAccess(redirectUri: string) {
  * Validation for required accesses on checkbox change.
  */
 function validateRequiredAccesses(e: Event) {
-  if (!networkDetails.network.value) return;
+  if (!networkDetails.data.value) return;
 
   const currentElementId = (e.target as HTMLInputElement).id;
   const isChecked = (e.target as HTMLInputElement).checked;
 
-  const access = networkDetails.network.value.networkAccesses.find(a => a.accessId === currentElementId);
+  const access = networkDetails.data.value.networkAccesses.find(a => a.accessId === currentElementId);
 
   if (access && access.isRequired) {
     // For required fields, we track if the user has explicitly checked/unchecked

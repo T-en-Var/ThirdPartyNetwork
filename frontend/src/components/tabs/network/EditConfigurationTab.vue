@@ -7,8 +7,8 @@
     </div>
 
     <div class="bg-white shadow-md rounded-lg p-6">
-      <LoadingErrorComponent :loading="loading" :error="error" button-value="Go back"
-        @button-action="router.go(-1)" />
+      <LoadingErrorComponent :loading="loading" :error="error ?? undefined" button-value="Go back"
+        @button-action="router.go(-1)" :has-value="!!cfg" />
 
       <div v-if="!loading && !error && cfg" class="space-y-6">
         <h2 class="text-xl font-semibold text-gray-800 mb-4">Edit Configuration</h2>
@@ -74,7 +74,8 @@ const historyStore = useHistoryStore();
 const networkId = route.params.networkId as string;
 const configurationId = computed(() => route.params.configurationId as string);
 
-const { configuration, fetchConfiguration, loading, error } = useConfigurations();
+const configurationsState = useConfigurations();
+const { data: configuration, execute: fetchConfiguration, loading, error } = configurationsState.fetchConfiguration;
 
 const form = ref<CreateConfiguration>({ key: '', accessLevel: 0, value: {} });
 const editMode = ref(false);
@@ -121,7 +122,7 @@ function confirmDelete() {
 }
 
 const emit = defineEmits<{
-  (e: 'updateConfiguration', cfgId: string, cfg: CreateConfiguration): void;
-  (e: 'removeConfiguration', cfg: Configuration): void;
+  (e: 'updateConfiguration', cfgId: string, payload: CreateConfiguration): void;
+  (e: 'removeConfiguration', payload: Configuration): void;
 }>();
 </script>

@@ -28,7 +28,7 @@
       </div>
 
       <div v-else class="mt-4 max-h-64 overflow-y-auto border rounded-md p-2">
-        <div v-if="permissions.length === 0" class="text-sm text-gray-500">
+        <div v-if="permissions?.length === 0" class="text-sm text-gray-500">
           No permissions available
         </div>
 
@@ -87,7 +87,7 @@ import type { RoleForm } from '@/types';
 import usePermissions from '@/composables/usePermissions';
 
 const emit = defineEmits(['close', 'add-role']);
-const { permissions, loading, error, fetchPermissions } = usePermissions();
+const { data: permissions, loading, error, execute: fetchPermissions } = usePermissions().fetchPermissions;
 
 const isSubmitting = ref(false);
 
@@ -96,6 +96,7 @@ const localForm = ref<RoleForm>({
   description: '',
   permissionIds: [],
   isDefault: false,
+  entitlements: {},
 });
 
 onMounted(async () => {
@@ -104,6 +105,6 @@ onMounted(async () => {
 
 function handleSubmit() {
   isSubmitting.value = true;
-  emit('add-role', localForm);
+  emit('add-role', localForm.value);
 }
 </script>

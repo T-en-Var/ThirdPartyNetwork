@@ -1,41 +1,16 @@
-import { ref } from 'vue'
 import api from '@/api/api.ts'
-import type { AxiosError } from 'axios'
-import type { Permission, ErrorMessage } from '@/types'
-import { useGlobalStore } from '@/stores/global'
-import { usePermissionsStore } from '@/stores/permissions'
+import type { Permission } from '@/types'
+import { useCachedApi } from './useApi';
 
 export default function usePermissions() {
-  const permissions = ref<Permission[]>([]);
-  const loading = ref<boolean>(false);
-  const error = ref<string | null>(null);
-  
-  const globalStore = useGlobalStore();
-  const permissionsStore = usePermissionsStore();
+  const fetchPermissions = useCachedApi<Permission[], []>(
+    () => 'permissions',
+    async () => {
+      const result = await api.get<Permission[]>('/permissions/');
+      result.data.sort((a, b) => a.name.localeCompare(b.name));
+      return result;
+    },
+  );
 
-  const fetchPermissions = async () => {
-    loading.value = true;
-
-    if (permissionsStore.permissions.length > 0) {
-      loading.value = false;
-      permissions.value = permissionsStore.permissions;
-      return;
-    }
-
-    globalStore.startFetching();
-    try {
-      const response = await api.get<Permission[]>(`/permissions/`)
-      const data = response.data.sort((a, b) => a.name > b.name ? 1 : -1);
-
-      permissions.value = data;
-      permissionsStore.setPermissions(data)
-    } catch (err) {
-      error.value = (err as AxiosError<ErrorMessage>).response?.data.message || null;
-    } finally {
-      loading.value = false;
-      globalStore.stopFetching();
-    }
-  };
-
-  return { permissions, loading, error, fetchPermissions };
+  return { fetchPermissions };
 }

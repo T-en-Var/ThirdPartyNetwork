@@ -218,11 +218,11 @@ const showFilters = ref(false);
 const filterSlug = ref("");
 
 const route = useRoute();
-const filesState = useFiles();
+const filesState = useFiles().fetchNetworkFiles;
 
 onMounted(async () => {
   const networkId = route.params.networkId as string;
-  filesState.fetchNetworkFiles(networkId);
+  filesState.execute(networkId);
 });
 
 const filters = ref({
@@ -261,15 +261,18 @@ function togglePlay(file: NetworkFile) {
 
 // Extract formats
 const formats = computed(() => {
+  if (!filesState.data.value) return [];
   const types = new Set<string>();
-  filesState.files.value.forEach(f => { if (f.format) types.add(f.format.toLowerCase()); });
+  filesState.data.value.forEach(f => { if (f.format) types.add(f.format.toLowerCase()); });
   return Array.from(types).sort();
 });
 
 // Filtered files
 const filteredFiles = computed(() => {
+  if (!filesState.data.value) return [];
+
   const query = filterSlug.value.trim().toLowerCase();
-  return filesState.files.value.filter(file => {
+  return filesState.data.value.filter(file => {
     const name = file.name.toLowerCase();
     const author = `${file.author?.userProxy?.username ?? ''} ${file.author?.userProxy?.firstName ?? ''} ${file.author?.userProxy?.lastName ?? ''}`.toLowerCase();
     const format = file.format?.toLowerCase();

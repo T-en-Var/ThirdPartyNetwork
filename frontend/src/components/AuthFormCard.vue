@@ -2,8 +2,8 @@
   <div class="bg-white rounded-lg shadow-lg overflow-hidden">
     <div class="flex justify-center py-6 relative">
       <div class="absolute top-4 left-4 z-10">
-        <NetworkLogo :loading="networkDetails.loading.value" :image-file="networkDetails.network.value?.imageFile"
-          :network-name="networkDetails.network.value?.name || 'Network'" />
+        <NetworkLogo :loading="networkDetails.loading.value" :image-file="networkDetails.data.value?.imageFile"
+          :network-name="networkDetails.data.value?.name || 'Network'" />
       </div>
     </div>
 
@@ -31,7 +31,7 @@ import type { Network } from '@/types';
 
 interface NetworkDetails {
   loading: Ref<boolean>;
-  network: Ref<Network | null>;
+  data: Ref<Network | null>;
 }
 
 defineProps<{

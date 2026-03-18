@@ -1,136 +1,105 @@
-import { ref } from 'vue'
-import api from '@/api/api.ts'
-import type { Ref } from 'vue'
-import type { AxiosError, AxiosProgressEvent } from 'axios'
-import type { NetworkFile, ErrorMessage } from '@/types'
-import { useGlobalStore } from '@/stores/global'
+import { ref } from 'vue';
+import api from '@/api/api';
+import type { Ref } from 'vue';
+import type { AxiosProgressEvent } from 'axios';
+import type { EditFileForm, NetworkFile } from '@/types';
+import { useCachedApi, useMutation } from './useApi';
 
 export default function useFiles() {
-  const files = ref<NetworkFile[]>([])
-  const file: Ref<NetworkFile | null> = ref(null)
-  const loading: Ref<boolean> = ref(false)
-  const error: Ref<string | null> = ref(null)
-  const progress: Ref<number> = ref(0)
+  // We keep progress here because it's specific to this module's upload functionality.
+  const progress: Ref<number> = ref(0);
 
-  const globalStore = useGlobalStore()
+  const fetchNetworkFiles = useCachedApi<NetworkFile[], [networkId: string]>(
+    (networkId) => `networks_${networkId}_files`,
+    async (networkId) => await api.get<NetworkFile[]>(`/networks/${networkId}/files/`),
+  );
 
-  const insertFile = (networkFile: NetworkFile) => {
-    const index = files.value.findIndex(f => f.id === networkFile.id)
+  const fetchUserFiles = useCachedApi<NetworkFile[], [userId: string, userProxyId: string]>(
+    (userId, userProxyId) => `users_${userId}_proxies_${userProxyId}_files`,
+    async (userId, userProxyId) =>
+      await api.get<NetworkFile[]>(`/users/${userId}/proxies/${userProxyId}/files/`),
+  );
 
-    if (index !== -1) files.value.splice(index, 1, networkFile)
-    else files.value.unshift(networkFile)
-  }
+  const fetchFile = useCachedApi<NetworkFile, [networkId: string, fileId: string]>(
+    (networkId, fileId) => `networks_${networkId}_files_${fileId}`,
+    async (networkId, fileId) =>
+      await api.get<NetworkFile>(`/networks/${networkId}/files/${fileId}`),
+  );
 
-  const fetchNetworkFiles = async (networkId: string) => {
-    loading.value = true
+  const uploadFile = useMutation<
+    NetworkFile,
+    [networkId: string, fileToUpload: File, accessLevel?: number]
+  >(
+    async (networkId, fileToUpload, accessLevel = 0) => {
+      progress.value = 0; // Reset progress on start
 
-    if (files.value.length > 0) {
-      loading.value = false
-      return
-    }
+      const formData = new FormData();
+      formData.append('file', fileToUpload);
+      formData.append('accessLevel', accessLevel.toString());
 
-    globalStore.startFetching()
-    try {
-      const response = await api.get<NetworkFile[]>(`/networks/${networkId}/files/`)
-      files.value = response.data
-    } catch (err) {
-      error.value = (err as AxiosError<ErrorMessage>).response?.data.message || 'Failed to fetch files.'
-    } finally {
-      loading.value = false
-      globalStore.stopFetching()
-    }
-  }
+      const config = {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        onUploadProgress: (e: AxiosProgressEvent) => {
+          if (e.total) {
+            progress.value = Math.round((e.loaded * 100) / e.total);
+          }
+        },
+      };
 
-  const fetchUserFiles = async (userId: string, userProxyId: string) => {
-    loading.value = true
+      return await api.post<NetworkFile, FormData>(
+        `/networks/${networkId}/files/`,
+        formData,
+        config,
+      );
+    },
+    {
+      itemKeyFactory: (result, networkId) => `networks_${networkId}_files_${result.id}`,
 
-    if (files.value.length > 0) {
-      loading.value = false
-      return
-    }
-
-    globalStore.startFetching()
-    try {
-      const response = await api.get<NetworkFile[]>(`/users/${userId}/proxies/${userProxyId}/files/`)
-      files.value = response.data
-    } catch (err) {
-      error.value = (err as AxiosError<ErrorMessage>).response?.data.message || 'Failed to fetch files.'
-    } finally {
-      loading.value = false
-      globalStore.stopFetching()
-    }
-  }
-
-  const fetchFile = async (networkId: string, fileId: string) => {
-    loading.value = true
-    globalStore.startFetching()
-
-    try {
-      const response = await api.get<NetworkFile>(`/networks/${networkId}/files/${fileId}`)
-      file.value = response.data
-
-      insertFile(response.data)
-    } catch (err) {
-      error.value = (err as AxiosError<ErrorMessage>).response?.data.message || 'Failed to fetch file.'
-    } finally {
-      loading.value = false
-      globalStore.stopFetching()
-    }
-  }
-
-  const uploadFile = async (networkId: string, fileToUpload: File, accessLevel: number = 0) => {
-    loading.value = true
-    progress.value = 0
-    error.value = null
-    file.value = null
-
-    const formData = new FormData()
-    formData.append('file', fileToUpload)
-    formData.append('accessLevel', accessLevel.toString())
-
-    const config = {
-      headers: {
-        'Content-Type': 'multipart/form-data'
+      listKeyFactory: (networkId) => `networks_${networkId}_files`,
+      listUpdater: (currentList, result) => {
+        return [result, ...currentList];
       },
-      onUploadProgress: (e: AxiosProgressEvent) => {
-        if (e.total) {
-          progress.value = Math.round((e.loaded * 100) / e.total)
-        }
-      }
-    }
+    },
+  );
 
-    globalStore.startFetching()
-    try {
-      const response = await api.post<NetworkFile, typeof formData>(`/networks/${networkId}/files/`, formData, config)
-      file.value = response.data
+  const updateFile = useMutation<
+    NetworkFile,
+    [networkId: string, fileId: string, payload: EditFileForm]
+  >(
+    async (networkId, fileId, payload) =>
+      await api.put<NetworkFile, EditFileForm>(`/networks/${networkId}/files/${fileId}`, payload),
+    {
+      itemKeyFactory: (_, networkId, fileId) => `networks_${networkId}_files_${fileId}`,
+      listKeyFactory: (networkId) => `networks_${networkId}_files`,
+      listUpdater: (currentList, result, __, fileId) =>
+        currentList.map((item) => (item.id === fileId ? result : item)),
+    },
+  );
 
-      // Update list of files with new one
-      files.value.unshift(response.data)
-    } catch (err) {
-      error.value = (err as AxiosError<ErrorMessage>).response?.data.message || 'File upload failed.'
-    } finally {
-      loading.value = false
-      globalStore.stopFetching()
-    }
-  }
+  const deleteFile = useMutation<void, [networkId: string, fileId: string], NetworkFile>(
+    async (networkId, fileId) =>
+      await api.delete<void>(`/networks/${networkId}/configurations/${fileId}`),
+    {
+      itemKeyFactory: (_, networkId, fileId) => `networks_${networkId}_files_${fileId}`,
+      listKeyFactory: (networkId) => `networks_${networkId}_files`,
+      listUpdater: (currentList, _, __, fileId) => currentList.filter((item) => item.id !== fileId),
+    },
+  );
 
-  const reset = () => {
-    file.value = null
-    error.value = null
-    progress.value = 0
-  }
+  const resetProgress = () => {
+    progress.value = 0;
+  };
 
   return {
-    files,
-    file,
-    loading,
-    error,
-    insertFile,
     progress,
     fetchNetworkFiles,
     fetchUserFiles,
     fetchFile,
     uploadFile,
-    reset,
-  }
+    updateFile,
+    deleteFile,
+    resetProgress,
+  };
 }

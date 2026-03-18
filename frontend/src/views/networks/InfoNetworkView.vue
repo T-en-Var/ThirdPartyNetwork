@@ -255,15 +255,15 @@ import { useGlobalStore } from '@/stores/global';
 import ErrorAlert from '@/components/ErrorAlert.vue';
 import ConfirmationModal from '@/components/modals/ConfirmationModal.vue';
 import api from '@/api/api';
-import useNetworkDetails from '@/composables/useNetworkDetails';
 import CloudinaryFile from '@/components/cdn/CloudinaryFile.vue';
+import useNetworks from '@/composables/useNetworks';
 
 const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
 const global = useGlobalStore();
 
-const { network, loading, error, fetchNetworkDetails } = useNetworkDetails();
+const { data: network, loading, error, execute: fetchNetworkDetails } = useNetworks().fetchNetworkDetails;
 
 // Simulated connected websites - in a real app, you would fetch this from API
 const connectedWebsites = ref([

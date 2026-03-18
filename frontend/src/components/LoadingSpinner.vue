@@ -1,10 +1,46 @@
 <template>
-  <div class="flex justify-center">
-    <svg class="animate-spin h-6 w-6 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none"
-      viewBox="0 0 24 24" role="status" aria-live="polite" aria-label="Loading">
-      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-      <path class="opacity-75" fill="currentColor"
-        d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 000 16v-4l-3 3 3 3v-4a8 8 0 01-8-8z" />
-    </svg>
+  <div :class="classes" role="status">
+    <span class="sr-only">Loading...</span>
   </div>
 </template>
+
+<script setup lang="ts">
+import { computed } from 'vue';
+
+const props = withDefaults(defineProps<{
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+  colorClass?: string;
+}>(), {
+  size: 'md',
+  colorClass: 'text-blue-500'
+});
+
+// Map size props to Tailwind width/height classes
+const sizeClasses = {
+  xs: 'w-3 h-3 border-[2px]',
+  sm: 'w-4 h-4 border-[2px]',
+  md: 'w-8 h-8 border-[3px]',
+  lg: 'w-12 h-12 border-[4px]',
+  xl: 'w-16 h-16 border-[5px]',
+};
+
+const classes = computed(() => [
+  'spinner-border inline-block align-middle',
+  sizeClasses[props.size],
+  props.colorClass
+]);
+</script>
+
+<style scoped>
+.spinner-border {
+  border-style: solid;
+  border-color: currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spinner-border 0.75s linear infinite;
+}
+
+@keyframes spinner-border {
+  to { transform: rotate(360deg); }
+}
+</style>

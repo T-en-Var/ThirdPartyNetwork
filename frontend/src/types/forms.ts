@@ -1,5 +1,8 @@
+import type { SettableEntitlement } from "./network";
+
 export type ManageUserForm = {
   roleIds: string[];
+  entitlements: SettableEntitlement;
 };
 
 export type RoleForm = {
@@ -7,6 +10,7 @@ export type RoleForm = {
   description: string;
   permissionIds: string[];
   isDefault: boolean;
+  entitlements: SettableEntitlement;
 }
 
 export type NetworkForm = {

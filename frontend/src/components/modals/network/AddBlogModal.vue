@@ -1,46 +1,56 @@
 <template>
-  <modal-container title="Add Blog" @close="$emit('close')">
-    <form @submit.prevent="handleSubmit" class="space-y-4">
+  <modal-container title="Create New Blog" @close="$emit('close')">
+    <form @submit.prevent="handleSubmit" class="space-y-6">
+
       <div>
         <label for="title"
-          class="block text-sm font-semibold text-gray-800 mb-2">Title</label>
+          class="block text-xs font-black uppercase tracking-widest text-slate-500 mb-2 ml-1">
+          Blog Title
+        </label>
         <input id="title" v-model="form.title" type="text"
-          placeholder="Enter blog title"
-          class="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-600 focus:ring focus:ring-blue-100 disabled:bg-gray-100 disabled:text-gray-500 transition-all"
+          placeholder="My Awesome Journey..."
+          class="block w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
           required />
       </div>
 
-      <div>
-        <label class="block text-sm font-semibold text-gray-800 mb-2">Slug
-          preview</label>
-        <input type="text" :value="slugPreview" disabled
-          class="block w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2 text-sm text-gray-500 shadow-sm" />
+      <div class="rounded-xl border border-slate-100 bg-slate-50 p-4 space-y-3">
+        <label
+          class="block text-[10px] font-black uppercase tracking-tighter text-slate-400">
+          Permanent URL Preview
+        </label>
 
-        <div class="mt-4 flex items-center text-sm text-gray-600">
-          <span class="mr-2 font-medium">Permanent link:</span>
+        <div class="flex items-center gap-2 font-mono text-sm overflow-hidden">
+          <span class="text-slate-400 shrink-0">.../blogs/</span>
+          <span :class="[
+            'font-bold truncate',
+            slugExists ? 'text-amber-600' : 'text-blue-600',
+            !slugPreview ? 'italic text-slate-300' : ''
+          ]">
+            {{ slugPreview || 'your-slug-here' }}
+          </span>
 
-          <div
-            class="bg-gray-100 border border-gray-300 rounded px-1.5 py-0.5 font-mono text-gray-800">
-            <span class="text-gray-500">.../blogs/</span>
-            <span class="text-indigo-600 font-bold">{{ slugPreview }}</span>
+          <div class="ml-auto shrink-0">
+            <LoadingSpinner v-if="isChecking" size="sm" />
+            <div v-else-if="slugExists" class="text-amber-500" title="Slug Taken">
+              ⚠️
+            </div>
+            <div v-else-if="isValid" class="text-emerald-500" title="Available">
+              ✓
+            </div>
           </div>
         </div>
-        <div class="mt-3">
-          <div v-if="isChecking"
-            class="flex items-center gap-2 text-sm text-gray-600">
-            <LoadingSpinner />
-            <span>Checking your slug...</span>
-          </div>
 
-          <div v-else-if="slugExists"
-            class="mt-2 p-2 bg-yellow-50 border border-yellow-200 text-yellow-800 text-sm rounded">
-            A blog with this url already exists, an arbitrary number may be added to
-            the url by the system
+        <transition name="fade">
+          <div v-if="slugExists"
+            class="text-[11px] text-amber-700 bg-amber-100/50 p-2 rounded-lg border border-amber-200">
+            This URL is already taken. The system will append a unique ID to your
+            link.
           </div>
-        </div>
-
-        <p class="mt-1 text-xs text-gray-500">You can change the title, but not the
-          link.</p>
+          <div v-else-if="isChanged && slugPreview"
+            class="text-[11px] text-slate-400 italic">
+            Verifying availability...
+          </div>
+        </transition>
       </div>
 
       <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
@@ -66,23 +76,69 @@ import ModalContainer from '@/components/modals/ModalContainer.vue';
 import type { CreateBlog } from '@/types/userContent/blog';
 import api from '@/api/api';
 import LoadingSpinner from '@/components/LoadingSpinner.vue';
-import type { AxiosError } from 'axios';
-import type { ErrorMessage } from '@/types';
 
 const emit = defineEmits<{
   (e: 'close'): void;
   (e: 'createBlog', payload: CreateBlog): void;
 }>();
 
-const props = withDefaults(defineProps<{
-  isSubmitting?: boolean;
-  networkId?: string;
-}>(), {
-  isSubmitting: false,
-  networkId: undefined
+
+const props = defineProps({
+  isSubmitting: {
+    type: Boolean,
+    default: false,
+  },
+  networkId: {
+    type: String,
+    required: false,
+  }
 });
 
 const form = ref({ title: '' });
+const isChecking = ref(false);
+const slugExists = ref(false);
+const isChanged = ref(false); // Tracks if the user has typed since the last check
+
+const slugPreview = computed(() => generateSlug(form.value.title));
+
+const isValid = computed(() =>
+  !!form.value.title.trim() &&
+  !isChecking.value &&
+  !isChanged.value &&
+  !slugExists.value
+);
+
+let debounceTimer: ReturnType<typeof setTimeout>;
+
+watch(slugPreview, (newSlug) => {
+  if (!newSlug) {
+    slugExists.value = false;
+    isChecking.value = false;
+    isChanged.value = false;
+    return;
+  }
+
+  isChanged.value = true;
+  isChecking.value = true;
+  slugExists.value = false;
+
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(async () => {
+    if (!props.networkId) return;
+
+    try {
+      await api.get(`/networks/${props.networkId}/blogs/${newSlug}`);
+      slugExists.value = true;
+    } catch (err) {
+      // 404 = available
+      void err;
+      slugExists.value = false;
+    } finally {
+      isChecking.value = false;
+      isChanged.value = false;
+    }
+  }, 500);
+});
 
 function generateSlug(title: string) {
   if (!title) return '';
@@ -96,72 +152,6 @@ function generateSlug(title: string) {
   return str.replace(/^-+|-+$/g, '');
 }
 
-const slugPreview = computed(() => generateSlug(form.value.title));
-
-const isChecking = ref(false);
-const slugExists = ref(false);
-const isChanged = ref(false);
-let checkTimeout: ReturnType<typeof setTimeout> | null = null;
-let checkLock: ReturnType<typeof setTimeout> | null = null;
-let callback = () => { };
-const isValid = computed(() => !isChanged.value && !slugExists.value && !isChecking.value && !!slugPreview.value);
-
-function handleSlugCheck(s: string) {
-  slugExists.value = false;
-  if (checkTimeout) clearTimeout(checkTimeout);
-
-  if (!s) {
-    isChecking.value = false;
-    return;
-  }
-
-  // debounce before checking
-  isChecking.value = true;
-  checkTimeout = setTimeout(async () => {
-    const networkId = props.networkId as string | undefined;
-    if (!networkId) {
-      isChecking.value = false;
-      return;
-    }
-
-    try {
-      callback = () => {};
-      checkLock = setTimeout(() => {
-        console.log('Slug check timeout, assuming not changed');
-        isChanged.value = false;
-        checkLock = null;
-        callback();
-        callback = () => {};
-      }, 2000);
-
-      await api.get(`/networks/${networkId}/blogs/${s}`);
-      clearTimeout(checkLock);
-      slugExists.value = true;
-      isChanged.value = false;
-    } catch (err) {
-      // if 404 -> not found
-      const status = (err as AxiosError<ErrorMessage>)?.response?.status;
-      if (status === 404) {
-        slugExists.value = false;
-      } else {
-        console.error('Error checking slug', err);
-        slugExists.value = false;
-      }
-    } finally {
-      isChecking.value = false;
-    }
-  }, 350);
-}
-
-watch(slugPreview, (s) => {
-  isChanged.value = true;
-  if (checkLock) {
-    callback = () => handleSlugCheck(s);
-    return;
-  }
-
-  handleSlugCheck(s);
-});
 
 function handleSubmit() {
   emit('createBlog', { title: form.value.title, summary: '', body: {}, accessLevel: 0 });

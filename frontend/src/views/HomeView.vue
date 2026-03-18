@@ -13,7 +13,7 @@
       <div class="max-w-4xl mx-auto text-center">
         <div v-motion :initial="{ opacity: 0, y: 20 }" :enter="{ opacity: 1, y: 0 }" :delay="200" class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-50 border border-purple-100 text-purple-700 text-xs font-semibold uppercase tracking-wide mb-6">
           <span class="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></span>
-          v0.18 is now live
+          v0.21 is now live
         </div>
         
         <h1 v-motion :initial="{ opacity: 0, y: 20 }" :enter="{ opacity: 1, y: 0 }" :delay="300" class="text-5xl md:text-7xl font-extrabold tracking-tight text-slate-900 mb-8 leading-tight">

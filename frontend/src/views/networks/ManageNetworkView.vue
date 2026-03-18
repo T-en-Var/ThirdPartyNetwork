@@ -3,24 +3,26 @@
     <NetworkSidebar />
 
     <div class="flex-1 p-6 overflow-auto">
-      <LoadingErrorComponent :loading="networkState.loading.value"
-        :error="networkState.error.value" button-value="Return to networks"
+      <LoadingErrorComponent :loading="networksState.fetchNetwork.loading.value"
+        :error="networksState.fetchNetwork.error.value"
+        :has-value="!!networksState.fetchNetwork.data"
+        button-value="Return to networks"
         @button-action="router.push(`/networks`)" />
 
-      <RouterView
-        v-if="!networkState.loading.value && !networkState.error.value && networkState.network.value"
-        :network="networkState.network.value" @add-user="showAddUserModal = true"
-        @manage-user="openManageUserModal" @remove-user="confirmRemoveUser"
-        @add-role="showAddRoleModal = true" @manage-role="openManageRoleModal"
-        @remove-role="confirmRemoveRole" @add-access="showAddAccessModal = true"
+      <RouterView v-if="!networksState.fetchNetwork.loading.value && !networksState.fetchNetwork.error.value
+        && networksState.fetchNetwork.data.value"
+        :network="networksState.fetchNetwork.data.value"
+        @add-user="showAddUserModal = true" @manage-user="openManageUserModal"
+        @remove-user="confirmRemoveUser" @add-role="showAddRoleModal = true"
+        @manage-role="openEditRoleModal" @remove-role="confirmRemoveRole"
+        @add-access="showAddAccessModal = true"
         @toggle-access-required="confirmToggleAccessRequired"
         @remove-access="confirmRemoveAccess" @add-file="showAddFileModal = true"
         @edit-file="openEditFileModal" @remove-file="confirmRemoveFile"
         @open-create-custom-page-modal="showCreateCustomPageModal = true"
         @open-create-blog-modal="showCreateBlogModal = true"
         @open-create-configuration-modal="showCreateConfigurationModal = true"
-        @edit-blog="handleEditBlog"
-        @remove-blog="handleRemoveBlog"
+        @edit-blog="handleEditBlog" @remove-blog="handleRemoveBlog"
         @edit-configuration="handleEditConfiguration"
         @update-configuration="handleUpdateConfiguration"
         @remove-configuration="handleRemoveConfiguration"
@@ -33,28 +35,32 @@
         @update-network="handleUpdateNetwork"
         @delete-network="handleDeleteNetwork" />
 
-      <div v-if="networkState.network.value">
-        <AddUserModal v-if="showAddUserModal" :network="networkState.network.value"
+      <div v-if="networksState.fetchNetwork.data.value!">
+        <AddUserModal v-if="showAddUserModal"
+          :network="networksState.fetchNetwork.data.value!"
           :is-submitting="isSubmitting" @close="showAddUserModal = false"
           @add-user="addUserToNetwork" />
 
-        <ManageUserModal v-if="showManageUserModal && selectedUser"
-          :network="networkState.network.value" :selected-user="selectedUser"
-          :is-submitting="isSubmitting" :manage-user-form="manageUserForm"
-          @close="showManageUserModal = false" @update="updateUserSettings" />
+        <EditUserModal v-if="showManageUserModal && selectedUser"
+          :network="networksState.fetchNetwork.data.value!"
+          :selected-user="selectedUser" :is-submitting="isSubmitting"
+          :manage-user-form="manageUserForm" @close="showManageUserModal = false"
+          @update="updateUserSettings" />
 
-        <AddRoleModal v-if="showAddRoleModal" :network="networkState.network.value"
+        <AddRoleModal v-if="showAddRoleModal"
+          :network="networksState.fetchNetwork.data.value!"
           :is-submitting="isSubmitting" @close="showAddRoleModal = false"
           @add-role="addRoleToNetwork" />
 
-        <ManageRoleModal v-if="showManageRoleModal && selectedRole"
-          :network="networkState.network.value" :selected-role="selectedRole"
-          :manage-role-form="manageRoleForm" @close="showManageRoleModal = false"
-          @update="updateRolePermissions" />
+        <EditRoleModal v-if="showEditRoleModal && selectedRole"
+          :network="networksState.fetchNetwork.data.value!"
+          :selected-role="selectedRole" :manage-role-form="manageRoleForm"
+          @close="showEditRoleModal = false" @update="updateRolePermissions" />
 
         <AddAccessModal v-if="showAddAccessModal"
-          :network="networkState.network.value" :is-submitting="isSubmitting"
-          @close="showAddAccessModal = false" @add-access="addAccessToNetwork" />
+          :network="networksState.fetchNetwork.data.value!"
+          :is-submitting="isSubmitting" @close="showAddAccessModal = false"
+          @add-access="addAccessToNetwork" />
 
         <ConfirmationModal v-if="showConfirmationModal" :title="confirmationTitle"
           :message="confirmationMessage" :button-text="confirmButtonText"
@@ -62,20 +68,19 @@
           @close="showConfirmationModal = false" @confirm="confirmAction" />
 
         <AddFileModal v-if="showAddFileModal" media-type="any"
-          :network="networkState.network.value" @close="showAddFileModal = false"
-          @uploaded="openEditFileModal" />
+          :network="networksState.fetchNetwork.data.value!"
+          @close="showAddFileModal = false" @uploaded="openEditFileModal" />
 
-        <EditFileModal v-if="showEditFileModal && fileState.file.value"
-          :file="fileState.file.value" :is-submitting="isSubmitting"
-          @close="showEditFileModal = false" @update-file="editFile"
-          @delete-file="confirmRemoveFile" />
+        <EditFileModal v-if="showEditFileModal && selectedFile" :file="selectedFile"
+          :is-submitting="isSubmitting" @close="showEditFileModal = false"
+          @update-file="editFile" @delete-file="confirmRemoveFile" />
 
         <AddCustomPageModal v-if="showCreateCustomPageModal"
           :is-submitting="isSubmitting" @create-custom-page="handleCreateCustomPage"
           @close="showCreateCustomPageModal = false" />
 
-        <AddBlogModal v-if="showCreateBlogModal"
-          :is-submitting="isSubmitting" :network-id="networkState.network.value!.id" @create-blog="handleCreateBlog"
+        <AddBlogModal v-if="showCreateBlogModal" :is-submitting="isSubmitting"
+          :network-id="networkId" @create-blog="handleCreateBlog"
           @close="showCreateBlogModal = false" />
 
         <AddConfigurationModal v-if="showCreateConfigurationModal"
@@ -94,9 +99,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, onUnmounted, watch, type Ref } from 'vue';
+import { ref, reactive, onMounted, onUnmounted, watch, type Ref, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import useNetwork from '@/composables/useNetwork';
 import usePermissions from '@/composables/usePermissions';
 import { useGlobalStore } from '@/stores/global';
 
@@ -104,15 +108,15 @@ import { useGlobalStore } from '@/stores/global';
 import NetworkSidebar from '@/components/sidebar/NetworkSidebar.vue';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import AddUserModal from '@/components/modals/network/AddUserModal.vue';
-import ManageUserModal from '@/components/modals/network/ManageUserModal.vue';
+import EditUserModal from '@/components/modals/network/EditUserModal.vue';
 import AddRoleModal from '@/components/modals/network/AddRoleModal.vue';
-import ManageRoleModal from '@/components/modals/network/ManageRoleModal.vue';
+import EditRoleModal from '@/components/modals/network/EditRoleModal.vue';
 import AddAccessModal from '@/components/modals/network/AddAccessModal.vue';
 import AddFileModal from '@/components/modals/network/AddFileModal.vue';
 import EditFileModal from '@/components/modals/network/EditFileModal.vue';
 import ConfirmationModal from '@/components/modals/ConfirmationModal.vue';
 
-import type { NetworkUser, Role, NetworkAccess, NetworkFile, CreateRole, UpdateRole, CustomPage, CreateCustomPage, PageBlock, CreatePageBlock, NetworkAccessCreate, Network, NetworkUpdate, CreateConfiguration, Blog, CreateBlog } from '@/types';
+import type { NetworkUser, Role, NetworkAccess, NetworkFile, CustomPage, CreateCustomPage, PageBlock, CreatePageBlock, NetworkAccessCreate, Network, NetworkUpdate, CreateConfiguration, Blog, CreateBlog, UpdateNetworkUser, Configuration } from '@/types';
 import type { RoleForm, ManageUserForm, EditFileForm } from '@/types/forms';
 
 import api from '@/api/api';
@@ -123,21 +127,31 @@ import AddPageBlockModal from '@/components/modals/network/AddPageBlockModal.vue
 import useCustomPages from '@/composables/useCustomPages';
 import AddConfigurationModal from '@/components/modals/network/AddConfigurationModal.vue';
 import useConfigurations from '@/composables/useConfigurations';
+import useRoles from '@/composables/useRoles';
+import useNetworks from '@/composables/useNetworks';
+import useNetworkUsers from '@/composables/useNetworkUsers';
+import useAccesses from '@/composables/useAccesses';
+import useBlogs from '@/composables/useBlogs';
 
 const router = useRouter();
 const route = useRoute();
 
 const globalStore = useGlobalStore();
 const permissionsState = usePermissions();
-const networkState = useNetwork();
-const fileState = useFiles();
-const customPagesState = useCustomPages();
+const accessesState = useAccesses();
+const networkUsersState = useNetworkUsers();
+const networksState = useNetworks();
+const rolesState = useRoles();
+
+const blogsState = useBlogs();
 const configurationsState = useConfigurations();
+const customPagesState = useCustomPages();
+const filesState = useFiles();
 
 const showAddUserModal = ref(false);
 const showManageUserModal = ref(false);
 const showAddRoleModal = ref(false);
-const showManageRoleModal = ref(false);
+const showEditRoleModal = ref(false);
 const showAddAccessModal = ref(false);
 const showConfirmationModal = ref(false);
 const showAddFileModal = ref(false);
@@ -150,6 +164,7 @@ const createPageBlockCustomPage = ref<CustomPage | null>(null);
 
 const selectedUser = ref<NetworkUser | null>(null);
 const selectedRole = ref<Role | null>(null);
+const selectedFile = ref<NetworkFile | null>(null);
 const isSubmitting = ref(false);
 
 const confirmationTitle = ref('');
@@ -158,15 +173,17 @@ const confirmButtonText = ref('');
 const confirmButtonColor = ref('');
 const confirmationAction = ref(() => { });
 
-const manageUserForm = reactive<ManageUserForm>({ roleIds: [] });
+const manageUserForm = reactive<ManageUserForm>({ roleIds: [], entitlements: {} });
 const manageRoleForm = reactive<RoleForm>({
   name: '',
   description: '',
   permissionIds: [],
   isDefault: false,
+  entitlements: {}
 });
 
 const originalFavicon = ref<string | null>(null);
+const networkId = computed(() => networksState.fetchNetwork.data.value!.id);
 
 onMounted(async () => {
   const link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
@@ -174,8 +191,10 @@ onMounted(async () => {
     originalFavicon.value = link.href;
   }
 
+  const { execute: fetchNetwork } = networksState.fetchNetwork;
+
   const networkId = route.params.networkId as string;
-  await networkState.fetchNetwork(networkId);
+  await fetchNetwork(networkId);
 });
 
 onUnmounted(() => {
@@ -187,7 +206,7 @@ onUnmounted(() => {
   }
 });
 
-watch(() => networkState.network.value?.imageFile?.url, (newUrl) => {
+watch(() => networksState.fetchNetwork.data.value?.imageFile?.url, (newUrl) => {
   if (newUrl) {
     let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
     if (!link) {
@@ -203,42 +222,45 @@ watch(() => networkState.network.value?.imageFile?.url, (newUrl) => {
 function openManageUserModal(user: NetworkUser) {
   selectedUser.value = user;
   manageUserForm.roleIds = user.networkUserRoles?.map(nur => nur.role.id) || [];
+  manageUserForm.entitlements = user.entitlements;
 
   showManageUserModal.value = true;
 }
 
-function confirmRemoveUser(user: NetworkUser) {
+function confirmRemoveUser(networkUser: NetworkUser) {
   confirmationTitle.value = 'Remove User';
-  confirmationMessage.value = `Are you sure you want to remove ${user.userProxy.firstName} ${user.userProxy.lastName} from this network?`;
+  confirmationMessage.value = `Are you sure you want to remove ${networkUser.userProxy.firstName} ${networkUser.userProxy.lastName} from this network?`;
   confirmButtonText.value = 'Remove';
   confirmButtonColor.value = 'red';
 
   confirmationAction.value = async () => {
-    globalStore.startFetching();
     isSubmitting.value = true;
+
+    const { execute: deleteNetworkUser } = networkUsersState.deleteNetworkUser;
+
     try {
-      await api.delete(`/networks/${networkState.network.value!.id}/users/${user.id}/`);
-      await networkState.fetchNetwork(networkState.network.value!.id);
+      await deleteNetworkUser(networkId.value, networkUser.id);
     } catch (err) {
-      console.error('Error removing user:', err);
+      console.error('Error removing network user:', err);
     } finally {
       isSubmitting.value = false;
-      globalStore.stopFetching();
     }
   };
   showConfirmationModal.value = true;
 }
 
-async function openManageRoleModal(role: Role) {
+async function openEditRoleModal(role: Role) {
   selectedRole.value = role;
 
-  await permissionsState.fetchPermissions();
+  const { execute: fetchPermissions } = permissionsState.fetchPermissions;
+
+  await fetchPermissions();
   manageRoleForm.name = role.name;
   manageRoleForm.description = role.description;
   manageRoleForm.isDefault = role.isDefault;
   manageRoleForm.permissionIds = role.rolePermissions?.map(rp => rp.permission.id) || [];
 
-  showManageRoleModal.value = true;
+  showEditRoleModal.value = true;
 }
 
 function confirmRemoveRole(role: Role) {
@@ -248,15 +270,14 @@ function confirmRemoveRole(role: Role) {
   confirmButtonColor.value = 'red';
 
   confirmationAction.value = async () => {
-    globalStore.startFetching();
     isSubmitting.value = true;
+    const { execute: deleteRole } = rolesState.deleteRole;
+
     try {
-      await api.delete(`/networks/${networkState.network.value!.id}/roles/${role.id}/`);
-      await networkState.fetchNetwork(networkState.network.value!.id);
+      await deleteRole(networkId.value, role.id);
     } catch (err) {
       console.error('Error removing role:', err);
     } finally {
-      globalStore.stopFetching();
       isSubmitting.value = false;
     }
   };
@@ -272,20 +293,16 @@ function confirmToggleAccessRequired(networkAccess: NetworkAccess) {
   confirmButtonColor.value = 'green';
 
   confirmationAction.value = async () => {
+    const { execute: updateNetworkAccess } = accessesState.updateNetworkAccess;
     isSubmitting.value = true;
-    globalStore.startFetching();
 
-    api.put(`/networks/${networkState.network.value!.id}/accesses/${networkAccess.accessId}?IsRequired=${!networkAccess.isRequired}`, {})
-      .then(() => {
-        networkState.fetchNetwork(networkState.network.value!.id);
-      })
-      .catch(err => {
-        console.error('Error toggling access requirement:', err);
-      })
-      .finally(() => {
-        isSubmitting.value = false;
-        globalStore.stopFetching();
-      });
+    try {
+      await updateNetworkAccess(networkId.value, networkAccess.accessId, !networkAccess.isRequired);
+    } catch (err) {
+      console.error('Error toggling access requirement:', err);
+    } finally {
+      isSubmitting.value = false;
+    }
   };
 
   showConfirmationModal.value = true;
@@ -298,16 +315,16 @@ function confirmRemoveAccess(networkAccess: NetworkAccess) {
   confirmButtonColor.value = 'red';
 
   confirmationAction.value = async () => {
-    globalStore.startFetching();
     isSubmitting.value = true;
+    const { execute: deleteNetworkAccess } = accessesState.deleteNetworkAccess;
+
     try {
-      await api.delete(`/networks/${networkState.network.value!.id}/accesses/${networkAccess.accessId}/`);
-      await networkState.fetchNetwork(networkState.network.value!.id);
+      await deleteNetworkAccess(networkId.value, networkAccess.accessId);
+      showConfirmationModal.value = false;
     } catch (err) {
       console.error('Error removing access requirement:', err);
     } finally {
       isSubmitting.value = false;
-      globalStore.stopFetching();
     }
   };
 
@@ -316,134 +333,109 @@ function confirmRemoveAccess(networkAccess: NetworkAccess) {
 
 async function addUserToNetwork(userData: { userId: string, roleIds: string[]; }) {
   isSubmitting.value = true;
-  globalStore.startFetching();
+  const { execute: createNetworkUser } = networkUsersState.createNetworkUser;
+
   try {
-    await api.post(`/networks/${networkState.network.value!.id}/users/`, {
+    await createNetworkUser(networkId.value, {
       userProxyId: userData.userId,
       roleIds: userData.roleIds
     });
-    await networkState.fetchNetwork(networkState.network.value!.id);
     showAddUserModal.value = false;
   } catch (err) {
-    console.error('Error adding user:', err);
+    console.error('Error removing access requirement:', err);
   } finally {
     isSubmitting.value = false;
-    globalStore.stopFetching();
   }
 }
 
 async function updateUserSettings(localForm: ManageUserForm) {
   if (!selectedUser.value) return;
 
-  globalStore.startFetching();
-  isSubmitting.value = true;
+  const addedRoles = localForm.roleIds.filter(roleId => !manageUserForm.roleIds.includes(roleId));
+  const removedRoles = manageUserForm.roleIds.filter(roleId => !localForm.roleIds.includes(roleId));
+
+  const { execute: updateNetworkUser } = networkUsersState.updateNetworkUser;
+
+  const payload: UpdateNetworkUser = {
+    entitlements: localForm.entitlements,
+  };
+
   try {
-    const networkId = networkState.network.value!.id;
-    const userId = selectedUser.value!.id;
+    await updateNetworkUser(networkId.value, selectedUser.value.id, payload, addedRoles, removedRoles);
 
-    const addedRoles = localForm.roleIds.filter(roleId => !manageUserForm.roleIds.includes(roleId));
-    const removedRoles = manageUserForm.roleIds.filter(roleId => !localForm.roleIds.includes(roleId));
-
-    const hasChanges = addedRoles.length || removedRoles.length;
-
-    if (hasChanges) {
-      await Promise.all([
-        ...addedRoles.map(roleId => api.post(`/networks/${networkId}/users/${userId}/roles/${roleId}/`, {})),
-        ...removedRoles.map(roleId => api.delete(`/networks/${networkId}/users/${userId}/roles/${roleId}/`)),
-      ]);
-
-      await networkState.fetchNetwork(networkState.network.value!.id);
-      manageUserForm.roleIds = localForm.roleIds;
-    }
+    manageUserForm.roleIds = localForm.roleIds;
+    manageUserForm.entitlements = localForm.entitlements;
 
     showManageUserModal.value = false;
   } catch (err) {
     console.error('Error updating user settings:', err);
   } finally {
     isSubmitting.value = false;
-    globalStore.stopFetching();
   }
 }
 
 async function addRoleToNetwork(localForm: Ref<RoleForm>) {
-  globalStore.startFetching();
-  isSubmitting.value = true;
+  const { execute: createRole } = rolesState.createRole;
+
+  const payload = {
+    name: localForm.value.name.trim(),
+    description: localForm.value.description.trim(),
+    isDefault: localForm.value.isDefault,
+  };
+
   try {
-    const networkId = networkState.network.value!.id;
-
-    const response = await api.post<Role, CreateRole>(`/networks/${networkId}/roles/`, {
-      name: localForm.value.name.trim(),
-      description: localForm.value.description.trim(),
-      isDefault: localForm.value.isDefault,
-    });
-
-    const roleId = response.data.id;
-
-    await Promise.all([
-      ...localForm.value.permissionIds.map(permId => api.post(`/networks/${networkId}/roles/${roleId}/permissions/${permId}/`, {})),
-    ]);
-
-    await networkState.fetchNetwork(networkState.network.value!.id);
+    await createRole(networkId.value, payload, localForm.value.permissionIds);
 
     showAddRoleModal.value = false;
   } catch (err) {
     console.error('Error adding role:', err);
   } finally {
     isSubmitting.value = false;
-    globalStore.stopFetching();
   }
 }
 
-async function updateRolePermissions(localForm: Ref<RoleForm>) {
+async function updateRolePermissions(localForm: RoleForm) {
   if (!selectedRole.value) return;
-
-  globalStore.startFetching();
   isSubmitting.value = true;
+
+  const { execute: updateRole } = rolesState.updateRole;
+  const payload = {
+    name: localForm.name.trim(),
+    description: localForm.description.trim(),
+    isDefault: localForm.isDefault,
+    entitlements: localForm.entitlements
+  };
+
   try {
-    const networkId = networkState.network.value!.id;
     const roleId = selectedRole.value!.id;
 
-    const addedPerms = localForm.value.permissionIds.filter(permId => !manageRoleForm.permissionIds.includes(permId));
-    const removedPerms = manageRoleForm.permissionIds.filter(permId => !localForm.value.permissionIds.includes(permId));
+    const addedPerms = localForm.permissionIds.filter(permId => !manageRoleForm.permissionIds.includes(permId));
+    const removedPerms = manageRoleForm.permissionIds.filter(permId => !localForm.permissionIds.includes(permId));
 
-    await api.put<Role, UpdateRole>(`/networks/${networkId}/roles/${roleId}`, {
-      name: localForm.value.name.trim(),
-      description: localForm.value.description.trim(),
-      isDefault: localForm.value.isDefault,
-    });
+    await updateRole(networkId.value, roleId, payload, addedPerms, removedPerms);
 
-    const hasChanges = addedPerms.length || removedPerms.length;
-
-    if (hasChanges) {
-      await Promise.all([
-        ...addedPerms.map(permId => api.post(`/networks/${networkId}/roles/${roleId}/permissions/${permId}/`, {})),
-        ...removedPerms.map(permId => api.delete(`/networks/${networkId}/roles/${roleId}/permissions/${permId}/`)),
-      ]);
-    }
-
-    await networkState.fetchNetwork(networkState.network.value!.id);
-    showManageRoleModal.value = false;
+    showEditRoleModal.value = false;
   } catch (err) {
     console.error('Error updating role permissions:', err);
   } finally {
     isSubmitting.value = false;
-    globalStore.stopFetching();
   }
 }
 
 async function addAccessToNetwork(accessData: NetworkAccessCreate) {
   if (!accessData.access) return;
-  globalStore.startFetching();
   isSubmitting.value = true;
+
+  const { execute: createAccess } = accessesState.createAccess;
+
   try {
-    await api.post(`/networks/${networkState.network.value!.id}/accesses/${accessData.access.id}`, { isRequired: accessData.isRequired });
-    await networkState.fetchNetwork(networkState.network.value!.id);
+    await createAccess(networkId.value, accessData.access.id, accessData.isRequired);
+
     showAddAccessModal.value = false;
   } catch (err) {
     console.error('Error adding access requirement:', err);
   } finally {
     isSubmitting.value = false;
-    globalStore.stopFetching();
   }
 }
 
@@ -457,16 +449,15 @@ function confirmRemoveFile(networkFile: NetworkFile) {
 
   confirmationAction.value = async () => {
     isSubmitting.value = true;
-    globalStore.startFetching();
+
+    const { execute: deleteFile } = filesState.deleteFile;
 
     try {
-      await api.delete(`/networks/${networkState.network.value!.id}/files/${networkFile.id}`);
-      fileState.files.value = fileState.files.value.filter(f => f.id != networkFile.id);
+      await deleteFile(networkId.value, networkFile.id);
     } catch (err) {
       console.error('Error deleting file:', err);
     } finally {
       isSubmitting.value = false;
-      globalStore.stopFetching();
     }
   };
 
@@ -474,64 +465,59 @@ function confirmRemoveFile(networkFile: NetworkFile) {
 }
 
 async function openEditFileModal(file: NetworkFile) {
-  fileState.file.value = file;
-  showAddFileModal.value = false;
+  await filesState.fetchFile.execute(networkId.value, file.id);
+
+  if (showAddFileModal.value) showAddFileModal.value = false;
+
+  selectedFile.value = file;
   showEditFileModal.value = true;
-  fileState.insertFile(file);
 }
 
 async function editFile(id: string, networkId: string, networkFile: EditFileForm) {
   isSubmitting.value = true;
-  globalStore.startFetching();
+
+  const { execute: updateFile } = filesState.updateFile;
 
   try {
-    const response = await api.put<NetworkFile, EditFileForm>(`/networks/${networkId}/files/${id}`, networkFile);
-    fileState.insertFile(response.data);
+    await updateFile(networkId, id, networkFile);
     showEditFileModal.value = false;
   } catch (err) {
     console.error('Error editing file:', err);
   } finally {
     isSubmitting.value = false;
-    globalStore.stopFetching();
   }
 }
 
-// @create-custom-page="handleCreateCustomPage"
 async function handleCreateCustomPage(customPageData: CreateCustomPage) {
   isSubmitting.value = true;
-  globalStore.startFetching();
+  const { execute: createCustomPage } = customPagesState.createCustomPage;
+
   try {
-    await api.post(`/networks/${networkState.network.value!.id}/customPages/`, customPageData);
-    customPagesState.fetchCustomPages(networkState.network.value!.id);
-    showAddUserModal.value = false;
+    await createCustomPage(networkId.value, customPageData);
+    showCreateCustomPageModal.value = false;
   } catch (err) {
     console.error('Error creating custom page:', err);
   } finally {
     isSubmitting.value = false;
-    globalStore.stopFetching();
   }
 }
 
 async function handleCreateBlog(blogCreate: CreateBlog) {
   isSubmitting.value = true;
-  globalStore.startFetching();
+  const { execute: createBlog } = blogsState.createBlog;
+
   try {
-    const response = await api.post<Blog, CreateBlog>(`/networks/${networkState.network.value!.id}/blogs/`, blogCreate);
-    // assume response.data contains created blog with id
-    const created = response.data;
+    await createBlog(networkId.value, blogCreate);
     showCreateBlogModal.value = false;
-    // navigate to edit page
-    router.push(`/networks/${networkState.network.value!.id}/manage/blogs/${created.id}/edit`);
   } catch (err) {
     console.error('Error creating blog:', err);
   } finally {
     isSubmitting.value = false;
-    globalStore.stopFetching();
   }
 }
 
 function handleEditBlog(blog: Blog) {
-  router.push(`/networks/${networkState.network.value!.id}/manage/blogs/${blog.id}/edit`);
+  router.push(`/networks/${networkId.value}/manage/blogs/${blog.id}/edit`);
 }
 
 function handleRemoveBlog(blog: Blog) {
@@ -541,72 +527,75 @@ function handleRemoveBlog(blog: Blog) {
   confirmButtonColor.value = 'red';
 
   confirmationAction.value = async () => {
-    globalStore.startFetching();
     isSubmitting.value = true;
+    const { execute: deleteBlog } = blogsState.deleteBlog;
+
     try {
-      await api.delete(`/networks/${networkState.network.value!.id}/blogs/${blog.id}/`);
-      // refresh page or state
-      router.go(0);
+      await deleteBlog(networkId.value, blog.id);
     } catch (err) {
       console.error('Error removing blog:', err);
     } finally {
       isSubmitting.value = false;
-      globalStore.stopFetching();
     }
   };
   showConfirmationModal.value = true;
 }
 
-async function handleCreateConfiguration(payload: { key: string; value: object; accessLevel: number; }) {
+async function handleCreateConfiguration(payload: CreateConfiguration) {
   isSubmitting.value = true;
-  globalStore.startFetching();
+  const { execute: createConfiguration } = configurationsState.createConfiguration;
+
   try {
-    await api.post(`/networks/${networkState.network.value!.id}/configurations`, payload);
-    configurationsState.fetchNetworkConfigurations(networkState.network.value!.id);
+    await createConfiguration(networkId.value, payload);
     showCreateConfigurationModal.value = false;
-    router.go(0);
   } catch (err) {
     console.error('Error creating configuration:', err);
   } finally {
     isSubmitting.value = false;
-    globalStore.stopFetching();
   }
 }
 
 function handleEditConfiguration(cfg: { id: string; }) {
-  router.push(`/networks/${networkState.network.value?.id}/manage/configurations/${cfg.id}/edit`);
+  router.push(`/networks/${networkId.value}/manage/configurations/${cfg.id}/edit`);
 }
 
-async function handleUpdateConfiguration(cfgId: string, cfg: CreateConfiguration) {
-  await configurationsState.updateConfiguration(networkState.network.value!.id, cfgId, cfg);
-  router.go(0);
+async function handleUpdateConfiguration(cfgId: string, payload: CreateConfiguration) {
+  isSubmitting.value = true;
+  const { execute: updateConfiguration } = configurationsState.updateConfiguration;
+
+  try {
+    await updateConfiguration(networkId.value, cfgId, payload);
+  } catch (err) {
+    console.error('Error updating configuration:', err);
+  } finally {
+    isSubmitting.value = false;
+  }
 }
 
-function handleRemoveConfiguration(cfg: { id: string; key?: string; }) {
+function handleRemoveConfiguration(cfg: Configuration) {
   confirmationTitle.value = 'Remove Configuration';
   confirmationMessage.value = `Are you sure you want to remove configuration ${cfg.key ?? ''}?`;
   confirmButtonText.value = 'Remove';
   confirmButtonColor.value = 'red';
 
   confirmationAction.value = async () => {
-    globalStore.startFetching();
     isSubmitting.value = true;
+    const { execute: deleteConfiguration } = configurationsState.deleteConfiguration;
+
     try {
-      await api.delete(`/networks/${networkState.network.value!.id}/configurations/${cfg.id}/`);
-      await configurationsState.fetchNetworkConfigurations(networkState.network.value!.id);
-      router.push(`/networks/${networkState.network.value?.id}/manage/configurations`);
+      await deleteConfiguration(networkId.value, cfg.id);
+      router.push(`/networks/${networkId.value}/manage/configurations`);
     } catch (err) {
       console.error('Error removing configuration:', err);
     } finally {
       isSubmitting.value = false;
-      globalStore.stopFetching();
     }
   };
   showConfirmationModal.value = true;
 }
 
 function handleEditCustomPage(customPage: CustomPage) {
-  router.push(`/networks/${networkState.network.value?.id}/manage/custom-pages/${customPage.id}/edit`);
+  router.push(`/networks/${networkId.value}/manage/custom-pages/${customPage.id}/edit`);
 }
 
 function handleRemoveCustomPage(customPage: CustomPage) {
@@ -616,16 +605,16 @@ function handleRemoveCustomPage(customPage: CustomPage) {
   confirmButtonColor.value = 'red';
 
   confirmationAction.value = async () => {
-    globalStore.startFetching();
     isSubmitting.value = true;
+    const { execute: deleteCustomPage } = customPagesState.deleteCustomPage;
+
     try {
-      await api.delete(`/networks/${networkState.network.value!.id}/customPages/${customPage.id}/`);
-      await networkState.fetchNetwork(networkState.network.value!.id);
+      await deleteCustomPage(networkId.value, customPage.id);
+      router.push(`/networks/${networkId.value}/manage/custom-pages`);
     } catch (err) {
       console.error('Error removing custom page:', err);
     } finally {
       isSubmitting.value = false;
-      globalStore.stopFetching();
     }
   };
   showConfirmationModal.value = true;
@@ -643,65 +632,59 @@ function handleCloseCreatePageBlockModal() {
 
 async function handleUpdateCustomPage(id: string, customPage: CreateCustomPage) {
   isSubmitting.value = true;
-  globalStore.startFetching();
+  const { execute: updateCustomPage } = customPagesState.updateCustomPage;
 
   try {
-    await api.put<CustomPage, CreateCustomPage>(`/networks/${networkState.network.value!.id}/customPages/${id}`, customPage);
-    await networkState.fetchNetwork(networkState.network.value!.id);
+    await updateCustomPage(networkId.value, id, customPage);
+    router.push(`/networks/${networkId.value}/manage/custom-pages`);
   } catch (err) {
     console.error('Error editing custom page:', err);
   } finally {
     isSubmitting.value = false;
-    globalStore.stopFetching();
   }
 }
 
 async function handleCreatePageBlock(customPageId: string, pageBlock: CreatePageBlock) {
   isSubmitting.value = true;
-  globalStore.startFetching();
+  const { execute: createPageBlock } = customPagesState.createPageBlock;
+
   try {
-    await api.post(`/networks/${networkState.network.value!.id}/customPages/${customPageId}/pageBlocks`, pageBlock);
-    await networkState.fetchNetwork(networkState.network.value!.id);
+    await createPageBlock(networkId.value, customPageId, pageBlock);
     handleCloseCreatePageBlockModal();
   } catch (err) {
-    console.error('Error creating custop page:', err);
+    console.error('Error creating page block:', err);
   } finally {
     isSubmitting.value = false;
-    globalStore.stopFetching();
   }
 }
 
 function handleEditPageBlock(customPage: CustomPage, pageBlock: PageBlock) {
-  router.push(`/networks/${networkState.network.value!.id}/manage/custom-pages/${customPage.id}/blocks/${pageBlock.id}/edit`);
+  router.push(`/networks/${networkId.value}/manage/custom-pages/${customPage.id}/blocks/${pageBlock.id}/edit`);
 }
 
 async function handleUpdatePageBlock(customPageId: string, pageBlock: PageBlock) {
   isSubmitting.value = true;
-  globalStore.startFetching();
+  const { execute: updatePageBlock } = customPagesState.updatePageBlock;
 
   try {
-    await api.put<PageBlock, PageBlock>(`/networks/${networkState.network.value!.id}/customPages/${customPageId}/pageBlocks/${pageBlock.id}`, pageBlock);
-    await networkState.fetchNetwork(networkState.network.value!.id);
+    await updatePageBlock(networkId.value, customPageId, pageBlock.id, pageBlock);
   } catch (err) {
     console.error('Error editing page block:', err);
   } finally {
     isSubmitting.value = false;
-    globalStore.stopFetching();
   }
 }
 
 async function handleUpdateNetwork(networkId: string, networkUpdate: NetworkUpdate) {
   isSubmitting.value = true;
-  globalStore.startFetching();
+  const { execute: updateNetwork } = networksState.updateNetwork;
 
   try {
-    await api.put(`/networks/${networkId}/`, networkUpdate);
-    await networkState.fetchNetwork(networkState.network.value!.id);
+    await updateNetwork(networkId, networkUpdate);
   } catch (err) {
     console.error('Error updating network:', err);
   } finally {
     isSubmitting.value = false;
-    globalStore.stopFetching();
   }
 }
 
@@ -712,24 +695,36 @@ function handleDeleteNetwork(network: Network) {
   confirmButtonColor.value = 'red';
 
   confirmationAction.value = async () => {
-    globalStore.startFetching();
-    isSubmitting.value = true;
-    try {
-      await api.delete(`/networks/${network.id}/`);
-      router.push("/networks");
-    } catch (err) {
-      console.error('Error removing custom page:', err);
-    } finally {
-      isSubmitting.value = false;
-      globalStore.stopFetching();
-    }
+    confirmationTitle.value = 'Delete network';
+    confirmationMessage.value = `Are you REALLY SURE you want to delete ${network.name} permanently?`;
+    confirmButtonText.value = 'DO IT';
+    confirmButtonColor.value = 'red';
+
+    confirmationAction.value = async () => {
+      throw new Error("I am not sure if this fully works so please lets not do this.");
+      globalStore.startFetching();
+      isSubmitting.value = true;
+
+      try {
+        await api.delete(`/networks/${network.id}/`);
+        router.push("/networks");
+      } catch (err) {
+        console.error('Error removing custom page:', err);
+      } finally {
+        isSubmitting.value = false;
+        globalStore.stopFetching();
+      }
+    };
+
+    showConfirmationModal.value = true;
   };
+
   showConfirmationModal.value = true;
 }
 
 function confirmAction() {
-  confirmationAction.value();
   showConfirmationModal.value = false;
+  confirmationAction.value();
 }
 
 </script>

@@ -10,6 +10,9 @@ class ApiClient {
   private auth!: ReturnType<typeof useAuthStore>;
   private route!: RouteLocationNormalizedLoaded;
   private router!: Router;
+  private initResolver?: () => void;
+  private initPromise: Promise<void>;
+  private readonly INIT_TIMEOUT = 5000;
 
   constructor(baseURL: string, config?: AxiosRequestConfig) {
     this.instance = axios.create({
@@ -17,7 +20,25 @@ class ApiClient {
       ...config,
     });
 
+    let resolver: () => void;
+    const signalPromise = new Promise<void>((resolve) => {
+      resolver = resolve;
+    });
+
+    this.initResolver = resolver!;
+
+    const timeoutPromise = new Promise<void>((_, reject) => {
+      setTimeout(
+        () => reject(new Error('Axios init timeout: App failed to initialize')),
+        this.INIT_TIMEOUT,
+      );
+    });
+
+    this.initPromise = Promise.race([signalPromise, timeoutPromise]);
+
     this.instance.interceptors.request.use(async (config) => {
+      await this.initPromise;
+
       if (config.headers['x-skip-auth-headers']) {
         delete config.headers['x-skip-auth-headers'];
         return config;
@@ -32,7 +53,7 @@ class ApiClient {
       (response) => {
         // Automatically convert fields that are string dates
         response.data = this.convertDatesInResponse(response.data);
-        console.log(response.data)
+        // console.log(response.data)
         return response;
       },
       (error) => {
@@ -40,25 +61,25 @@ class ApiClient {
 
         if (statusCode == 401) {
           let uri = this.route.query.redirect;
-          if (this.route.name !== "Terms of Service") uri = btoa(this.route.fullPath);
+          if (this.route.name !== 'Terms of Service') uri = btoa(this.route.fullPath);
 
           this.router.push(`/401?redirect=${uri}`);
           this.auth.setModalOpen(true);
-          this.auth.setModalMode("login");
+          this.auth.setModalMode('login');
         }
 
         if (statusCode == 403) {
           this.auth.setUnauthModalOpen(true);
         }
 
-        return Promise.reject(error)
-      }
+        return Promise.reject(error);
+      },
     );
   }
 
   private convertDatesInResponse<T>(data: T): T {
     if (Array.isArray(data)) {
-      return data.map(d => this.convertDatesInResponse(d)) as T; // Recursively handle arrays
+      return data.map((d) => this.convertDatesInResponse(d)) as T; // Recursively handle arrays
     }
 
     if (data !== null && typeof data === 'object') {
@@ -89,10 +110,16 @@ class ApiClient {
     return !isNaN(date.getTime());
   }
 
-  public initialize(store: ReturnType<typeof useAuthStore>, route: RouteLocationNormalizedLoaded, router: Router) {
+  public initialize(
+    store: ReturnType<typeof useAuthStore>,
+    route: RouteLocationNormalizedLoaded,
+    router: Router,
+  ) {
     this.auth = store;
     this.route = route;
     this.router = router;
+
+    if (this.initResolver) this.initResolver();
   }
 
   public async get<T>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
@@ -100,23 +127,39 @@ class ApiClient {
     return response;
   }
 
-  public async post<T, B>(url: string, data?: B, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+  public async post<T, B>(
+    url: string,
+    data?: B,
+    config?: AxiosRequestConfig,
+  ): Promise<AxiosResponse<T>> {
     const response: AxiosResponse<T> = await this.instance.post(url, data, config);
     return response;
   }
 
   public async refresh(refreshToken: string): Promise<AxiosResponse<TokenPair>> {
     const config = { headers: { 'x-skip-auth-headers': true } };
-    const response: AxiosResponse<TokenPair> = await this.instance.post(`/auth/refresh`, { refreshToken: refreshToken }, config);
+    const response: AxiosResponse<TokenPair> = await this.instance.post(
+      `/auth/refresh`,
+      { refreshToken: refreshToken },
+      config,
+    );
     return response;
   }
 
-  public async put<T, B>(url: string, data?: B, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+  public async put<T, B>(
+    url: string,
+    data?: B,
+    config?: AxiosRequestConfig,
+  ): Promise<AxiosResponse<T>> {
     const response: AxiosResponse<T> = await this.instance.put(url, data, config);
     return response;
   }
 
-  public async patch<T, B>(url: string, data?: B, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+  public async patch<T, B>(
+    url: string,
+    data?: B,
+    config?: AxiosRequestConfig,
+  ): Promise<AxiosResponse<T>> {
     const response: AxiosResponse<T> = await this.instance.patch(url, data, config);
     return response;
   }

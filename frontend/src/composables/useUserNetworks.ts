@@ -1,46 +1,45 @@
-import { ref } from 'vue'
-import api from '@/api/api.ts'
-import type { Ref } from 'vue'
-import type { AxiosError } from 'axios'
-import { useAuthStore } from '@/stores/auth'
-import type { Network } from '@/types'
-import { useGlobalStore } from '@/stores/global';
+import api from '@/api/api';
+import { ref, computed } from 'vue';
+import { useAuthStore } from '@/stores/auth';
+import type { Network } from '@/types';
+import { useCachedApi } from './useApi';
 
 export default function useUsersNetworks() {
-  const networks: Ref<Network[]> = ref([]);
-  const loading: Ref<boolean> = ref(false);
-  const error: Ref<string | null> = ref(null);
-  
-  const global = useGlobalStore();
   const authStore = useAuthStore();
 
-  const fetchUserNetworks = async () => {
-    global.startFetching();
-    loading.value = true;
-    try {
-      const user = await authStore.getUserProxy();
-      if (!user) {
-        loading.value = false;
-        error.value = "No logged in user."
-        return;
-      }
+  const authError = ref<string | null>(null);
 
-      const response = await api.get<Network[]>(`/users/${user.user.id}/proxies/${user.id}/networks`);
+  const {
+    data: networks,
+    isFetching,
+    loading,
+    error: apiError,
+    execute,
+  } = useCachedApi<Network[], [userId: string, proxyId: string]>(
+    (userId, proxyId) => `users_${userId}_proxies_${proxyId}_networks`,
+    async (userId, proxyId) =>
+      await api.get<Network[]>(`/users/${userId}/proxies/${proxyId}/networks`),
+  );
 
-      if (response.status != 200) {
-        loading.value = false;
-        error.value = "Error fetching networks."
-        return;
-      }
+  const _fetchUserNetworks = async () => {
+    authError.value = null;
+    const userProxy = await authStore.getUserProxy();
 
-      networks.value = response.data;
-    } catch (err) {
-      error.value = (err as AxiosError).message;
-    } finally {
-      loading.value = false;
-      global.stopFetching();
+    if (!userProxy) {
+      authError.value = 'No logged in user.';
+      return;
     }
+
+    await execute(userProxy.user.id, userProxy.id);
   };
 
-  return { networks, loading, error, fetchUserNetworks };
+  const fetchUserNetworks = {
+    data: networks,
+    isFetching,
+    loading,
+    error: computed(() => authError.value || apiError.value),
+    execute: _fetchUserNetworks,
+  };
+
+  return { fetchUserNetworks }
 }

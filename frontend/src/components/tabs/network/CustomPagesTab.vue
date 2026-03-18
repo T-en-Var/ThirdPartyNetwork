@@ -162,7 +162,7 @@ const showFilters = ref<boolean>(false);
 const filterSlug = ref<string>("");
 
 const route = useRoute();
-const customPagesState = useCustomPages();
+const customPagesState = useCustomPages().fetchCustomPages;
 
 const filters = ref({
   authors: [] as string[],
@@ -171,7 +171,7 @@ const filters = ref({
 
 onMounted(async () => {
   const networkId = route.params.networkId as string;
-  customPagesState.fetchCustomPages(networkId);
+  customPagesState.execute(networkId);
 });
 
 const clearFilters = () => {
@@ -183,8 +183,9 @@ const clearFilters = () => {
 };
 
 const uniqueAuthors = computed(() => {
+  if (!customPagesState.data.value) return [];
   const seen = new Map<string, { username: string; firstName: string; lastName: string; }>();
-  customPagesState.customPages.value.forEach(p => {
+  customPagesState.data.value.forEach(p => {
     const u = p.author.userProxy;
     if (u && !seen.has(u.username ?? 'Unknown')) {
       seen.set(u.username ?? 'Unknown', { username: u.username ?? 'Unknown', firstName: u.firstName ?? 'Unknown', lastName: u.lastName ?? 'Unknown' });
@@ -194,9 +195,10 @@ const uniqueAuthors = computed(() => {
 });
 
 const filteredPages = computed(() => {
+  if (!customPagesState.data.value) return [];
   const query = filterSlug.value.trim().toLowerCase();
 
-  return customPagesState.customPages.value.filter(page => {
+  return customPagesState.data.value.filter(page => {
     const name = page.name.toLowerCase();
     const slug = page.slug.toLowerCase();
     const author = `${page.author?.userProxy?.username ?? ''} ${page.author?.userProxy?.firstName ?? ''} ${page.author?.userProxy?.lastName ?? ''}`.toLowerCase();

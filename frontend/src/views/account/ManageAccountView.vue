@@ -6,8 +6,9 @@
     <!-- Main Content -->
     <div class="flex-1 p-6 overflow-auto">
       <!-- Loading and Error States -->
-      <LoadingErrorComponent :loading="authStore.loading" :error="authStore.error"
-        button-value="Reload page" @button-action="router.go(0)" />
+      <LoadingErrorComponent :loading="authStore.loading"
+        :error="authStore.error ?? undefined" button-value="Reload page"
+        @button-action="router.go(0)" :has-value="!!authStore.currentUserProxy" />
 
       <!-- Route View (Page Content) -->
       <div v-if="authStore.currentUserProxy">
@@ -16,7 +17,7 @@
           @create-proxy="showAddUserProxyModal = true"
           @edit-proxy="handleEditProxyClick" @switch-proxy="handleSwitchProxyClick"
           @update-user-proxy="handleUpdateProxy" @add-file="handleAddFile"
-          @edit-file="handleEditFile" @remove-file="handleRemoveFile" />
+          @edit-file="handleEditFile" @remove-file="handleRemoveFile" @delete-user-proxy="() => {}" />
       </div>
 
       <div v-if="authStore.currentUserProxy">
@@ -57,16 +58,17 @@ import AccountSidebar from '@/components/sidebar/AccountSidebar.vue';
 import { useAuthStore } from '@/stores/auth';
 import AddUserProxyModal from '@/components/modals/account/AddUserProxyModal.vue';
 import api from '@/api/api';
-import useMainNetwork from '@/composables/useMainNetwork';
 import AddFileModal from '@/components/modals/network/AddFileModal.vue';
 import EditFileModal from '@/components/modals/network/EditFileModal.vue';
+import useNetworks from '@/composables/useNetworks';
+import useUsers from '@/composables/useUsers';
 
 const router = useRouter();
 
 const globalStore = useGlobalStore();
 const authStore = useAuthStore();
 
-const mainNetwork = useMainNetwork();
+const mainNetwork = useNetworks().fetchMainNetwork;
 
 const isSubmitting = ref(false);
 
@@ -83,22 +85,31 @@ const confirmButtonText = ref('');
 const confirmButtonColor = ref('');
 const confirmationAction = ref<() => Promise<void> | void>(() => { });
 const userProxy = ref<UserProxy | null>(null);
+const { execute: fetchUser, data: user } = useUsers().fetchUser;
 
 onMounted(async () => {
   globalStore.startFetching();
-  userProxy.value = await authStore.getUserProxy();
-  await mainNetwork.fetchMainNetwork();
+  const currentUser = await authStore.getUserProxy();
+  if (!currentUser) throw new Error("UserProxy not found");
+
+  await fetchUser(currentUser.user.id);
+  if (!user.value) throw new Error("User not found");
+
+  userProxy.value = user.value.userProxies.find(up => up.id === currentUser.id) ?? null;
+  if (!userProxy.value) throw new Error("UserProxy not found");
+
+  await mainNetwork.execute();
   globalStore.stopFetching();
 });
 
 const allProxies = computed(() => {
-  if (!authStore.currentUserProxy) return [];
-  return [authStore.currentUserProxy, ...authStore.currentUserProxy?.user.userProxies.filter(u => u != null)];
+  if (!user.value) return [];
+  return user.value.userProxies;
 });
 
 const defaultProxy = computed(() => {
   if (!authStore.currentUserProxy) return null;
-  return allProxies.value.find(x => x.isDefault);
+  return allProxies.value.find(x => x.isDefault)!;
 });
 
 // Methods
@@ -108,17 +119,18 @@ async function confirmAction() {
 }
 
 async function createUserProxy(newUserProxy: UserProxyCreate) {
+  if (!user.value) return;
+  
+  const { execute: createUserProxy, error } = useUsers().createUserProxy;
   isSubmitting.value = true;
-  globalStore.startFetching();
   try {
-    await api.post(`/users/${authStore.currentUserProxy?.user.id}/proxies/`, newUserProxy);
+    await createUserProxy(user.value.id, newUserProxy);
     showAddUserProxyModal.value = false;
-    router.go(0);
   } catch (err) {
     console.error('Error adding user proxy:', err);
   } finally {
     isSubmitting.value = false;
-    globalStore.stopFetching();
+    console.log(error)
   }
 }
 

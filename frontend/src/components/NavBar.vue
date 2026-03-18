@@ -16,6 +16,8 @@
         <RouterLink to="/about" class="hover:text-purple-600 transition-colors" active-class="text-purple-600">About</RouterLink>
         <RouterLink v-if="authStore.isAuthenticated" to="/networks" class="hover:text-purple-600 transition-colors" active-class="text-purple-600">Networks
         </RouterLink>
+        <RouterLink v-if="authStore.isAdmin" to="/admin" class="hover:text-purple-600 transition-colors" active-class="text-purple-600">Admin
+        </RouterLink>
       </div>
 
       <!-- Actions -->

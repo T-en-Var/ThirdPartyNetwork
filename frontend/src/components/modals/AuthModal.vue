@@ -12,7 +12,8 @@
           </div>
 
           <!-- Login Form -->
-          <div class="form-panel" :class="{ 'active': authStore.modalMode == 'login' }">
+          <div class="form-panel"
+            :class="{ 'active': authStore.modalMode == 'login' }">
             <div class="form-content">
               <div class="form-header">
                 <h2>Sign In</h2>
@@ -21,31 +22,26 @@
 
               <p v-if="error" class="error-message">{{ error }}</p>
 
+              <div v-if="isInDevelopment" class="flex flex-col items-center text-sm">
+                <span>Log in as</span>
+                <div>
+                  <span class="underline text-blue-500 cursor-pointer"
+                    @click="logInAsAdmin">Admin</span>
+                </div>
+              </div>
+
               <form @submit.prevent="login">
                 <div class="form-group">
                   <label for="email">Email</label>
-                  <input 
-                    id="email" 
-                    name="email" 
-                    v-model="email" 
-                    type="text" 
-                    placeholder="Enter your email" 
-                    autocomplete="username" 
-                    required
-                  >
+                  <input id="email" name="email" v-model="email" type="text"
+                    placeholder="Enter your email" autocomplete="username" required>
                 </div>
 
                 <div class="form-group">
                   <label for="password">Password</label>
-                  <input 
-                    id="password" 
-                    name="password" 
-                    v-model="password" 
-                    type="password"
-                    placeholder="Enter your password" 
-                    autocomplete="username" 
-                    required
-                  >
+                  <input id="password" name="password" v-model="password"
+                    type="password" placeholder="Enter your password"
+                    autocomplete="username" required>
                 </div>
 
                 <button type="submit" class="btn-primary" :disabled="isLoading">
@@ -55,13 +51,15 @@
 
               <div class="form-footer">
                 <p>Don't have an account?</p>
-                <button @click="switchMode('signup')" class="btn-switch">Create Account</button>
+                <button @click="switchMode('signup')" class="btn-switch">Create
+                  Account</button>
               </div>
             </div>
           </div>
 
           <!-- Sign Up Form -->
-          <div class="form-panel" :class="{ 'active': authStore.modalMode == 'signup' }">
+          <div class="form-panel"
+            :class="{ 'active': authStore.modalMode == 'signup' }">
             <div class="form-content">
               <div class="form-header">
                 <h2>Create Account</h2>
@@ -74,49 +72,52 @@
                 <div class="form-row">
                   <div class="form-group">
                     <label for="signup-firstname">Firstname</label>
-                    <input id="signup-firstname" v-model="signupFirstname" type="text" placeholder="Your firstname"
-                      required>
+                    <input id="signup-firstname" v-model="signupFirstname"
+                      type="text" placeholder="Your firstname" required>
                   </div>
 
                   <div class="form-group">
                     <label for="confirm-lastname">Lastname</label>
-                    <input id="confirm-lastname" v-model="signupLastname" type="text" placeholder="Your lastname"
-                      required>
+                    <input id="confirm-lastname" v-model="signupLastname" type="text"
+                      placeholder="Your lastname" required>
                   </div>
                 </div>
 
                 <div class="form-row">
                   <div class="form-group">
                     <label for="signup-username">Username</label>
-                    <input id="signup-username" v-model="signupUsername" type="text" placeholder="Choose a username"
-                      required>
+                    <input id="signup-username" v-model="signupUsername" type="text"
+                      placeholder="Choose a username" required>
                   </div>
 
                   <div class="form-group">
                     <label for="signup-email">Email</label>
-                    <input id="signup-email" v-model="signupEmail" type="email" placeholder="Your email" required>
+                    <input id="signup-email" v-model="signupEmail" type="email"
+                      placeholder="Your email" required>
                   </div>
                 </div>
 
                 <div class="form-row">
                   <div class="form-group">
                     <label for="signup-password">Password</label>
-                    <input id="signup-password" v-model="signupPassword" type="password" placeholder="Create a password"
-                      required>
+                    <input id="signup-password" v-model="signupPassword"
+                      type="password" placeholder="Create a password" required>
                   </div>
 
                   <div class="form-group">
                     <label for="confirm-password">Confirm Password</label>
-                    <input id="confirm-password" v-model="confirmPassword" type="password"
-                      placeholder="Confirm your password" required>
+                    <input id="confirm-password" v-model="confirmPassword"
+                      type="password" placeholder="Confirm your password" required>
                   </div>
                 </div>
 
                 <div class="form-group checkbox-group">
                   <div class="checkbox-container">
-                    <input id="confirm-tos" v-model="confirmToS" type="checkbox" required>
+                    <input id="confirm-tos" v-model="confirmToS" type="checkbox"
+                      required>
                     <label for="confirm-tos">
-                      I accept the <span class="tos-link" @click="redirectToTos">Terms and Conditions</span>.
+                      I accept the <span class="tos-link"
+                        @click="redirectToTos">Terms and Conditions</span>.
                     </label>
                   </div>
                 </div>
@@ -128,7 +129,8 @@
 
               <div class="form-footer">
                 <p>Already have an account?</p>
-                <button @click="switchMode('login')" class="btn-switch">Sign In</button>
+                <button @click="switchMode('login')" class="btn-switch">Sign
+                  In</button>
               </div>
             </div>
           </div>
@@ -139,15 +141,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useRoute, useRouter } from 'vue-router';
 import type { AxiosError } from 'axios';
 import type { ErrorMessage } from '@/types';
 
-const authStore = useAuthStore();
 const router = useRouter();
 const route = useRoute();
+
+const authStore = useAuthStore();
 
 const email = ref('');
 const password = ref('');
@@ -165,11 +168,11 @@ const signupError = ref('');
 const isSigningUp = ref(false);
 
 const modalOpenCallback = () => {
-  signupUsername.value = route.query.s_username as string || ''
-  signupFirstname.value = route.query.s_firstname as string || ''
-  signupLastname.value = route.query.s_lastname as string || ''
-  signupEmail.value = route.query.s_email as string || ''
-}
+  signupUsername.value = route.query.s_username as string || '';
+  signupFirstname.value = route.query.s_firstname as string || '';
+  signupLastname.value = route.query.s_lastname as string || '';
+  signupEmail.value = route.query.s_email as string || '';
+};
 
 authStore.setModalOpenCallback(modalOpenCallback);
 
@@ -179,8 +182,8 @@ const redirectToTos = () => {
   let uri = route.query.redirect;
   if (route.name !== "Terms of Service") uri = btoa(route.fullPath);
 
-  router.push(`/tos?redirect=${uri}&s_username=${signupUsername.value}&s_firstname=${signupFirstname.value}&s_lastname=${signupLastname.value}&s_email=${signupEmail.value}`)
-}
+  router.push(`/tos?redirect=${uri}&s_username=${signupUsername.value}&s_firstname=${signupFirstname.value}&s_lastname=${signupLastname.value}&s_email=${signupEmail.value}`);
+};
 
 // Switch between login and signup modes
 const switchMode = (modalValue: "signup" | "login") => {
@@ -264,7 +267,7 @@ const signUp = async () => {
       signupPassword.value
     );
   } catch (err) {
-    console.error(err)
+    console.error(err);
     isLoading.value = false;
     isSigningUp.value = false;
     signupError.value = (err as AxiosError<ErrorMessage>).response?.data.message || "Something went wrong, please try again.";
@@ -286,6 +289,15 @@ const signUp = async () => {
   isLoading.value = false;
   isSigningUp.value = false;
 };
+
+const isInDevelopment = computed(() => window.location.hostname === 'localhost');
+
+const logInAsAdmin = async () => {
+  email.value = "admin@gmail.com";
+  password.value = "admin@gmail.com";
+  await login();
+}
+
 </script>
 
 <style scoped>

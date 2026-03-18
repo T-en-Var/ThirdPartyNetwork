@@ -10,15 +10,15 @@ const router = createRouter({
       name: 'home',
       component: () => import('@/views/HomeView.vue'),
       meta: {
-        title: 'TrojoNetworks'
-      }
+        title: 'TrojoNetworks',
+      },
     },
     {
       path: '/about',
       name: 'about',
       component: () => import('@/views/AboutView.vue'),
       meta: {
-        title: 'TrojoNetworks | About'
+        title: 'TrojoNetworks | About',
       },
     },
     {
@@ -27,7 +27,7 @@ const router = createRouter({
       component: () => import('@/views/account/ManageAccountView.vue'),
       meta: {
         requiresAuth: true,
-        title: 'Your Account'
+        title: 'Your Account',
       },
       children: [
         {
@@ -36,7 +36,7 @@ const router = createRouter({
           component: () => import('@/components/tabs/account/AccountHomeTab.vue'),
           meta: {
             requiresAuth: true,
-            title: 'Dashboard'
+            title: 'Dashboard',
           },
         },
         {
@@ -45,7 +45,7 @@ const router = createRouter({
           component: () => import('@/components/tabs/account/UserProxyTab.vue'),
           meta: {
             requiresAuth: true,
-            title: 'User Proxies'
+            title: 'User Proxies',
           },
         },
         {
@@ -54,7 +54,7 @@ const router = createRouter({
           component: () => import('@/components/tabs/account/EditUserProxyTab.vue'),
           meta: {
             requiresAuth: true,
-            title: 'Edit User Proxy'
+            title: 'Edit User Proxy',
           },
         },
         {
@@ -63,25 +63,63 @@ const router = createRouter({
           component: () => import('@/components/tabs/account/FilesTab.vue'),
           meta: {
             requiresAuth: true,
-            title: 'User Files'
+            title: 'User Files',
           },
         },
-      ]
+      ],
     },
     {
       path: '/networks',
       name: 'networks',
       component: () => import('@/views/NetworksView.vue'),
       meta: {
-        title: 'Networks'
+        title: 'Networks',
       },
+    },
+    {
+      path: '/admin',
+      name: 'admin',
+      component: () => import('@/views/AdminView.vue'),
+      meta: {
+        requiresAdmin: true,
+        title: 'Networks',
+      },
+      children: [
+        {
+          path: '',
+          name: 'admin-home',
+          component: () => import('@/components/tabs/admin/HomeTab.vue'),
+          meta: {
+            requiresAdmin: true,
+            title: 'Dashboard',
+          },
+        },
+        {
+          path: 'networks',
+          name: 'admin-networks',
+          component: () => import('@/components/tabs/admin/NetworksTab.vue'),
+          meta: {
+            requiresAdmin: true,
+            title: 'Networks',
+          },
+        },
+        {
+          path: 'users',
+          name: 'admin-users',
+          component: () => import('@/components/tabs/admin/UsersTab.vue'),
+          meta: {
+            requiresAdmin: true,
+            title: 'Users',
+          },
+        },
+      ],
     },
     {
       path: '/networks/create',
       name: 'create-network',
       component: () => import('@/views/networks/CreateNetworkView.vue'),
       meta: {
-        title: 'Create new network'
+        title: 'Create new network',
       },
     },
     {
@@ -89,7 +127,7 @@ const router = createRouter({
       name: 'info-network',
       component: () => import('@/views/networks/InfoNetworkView.vue'),
       meta: {
-        title: 'Network details'
+        title: 'Network details',
       },
     },
     {
@@ -97,16 +135,16 @@ const router = createRouter({
       name: 'manage-network',
       component: () => import('@/views/networks/ManageNetworkView.vue'),
       meta: {
-        title: 'Manage network'
+        title: 'Manage network',
       },
       children: [
         {
           path: '',
           name: 'manage-network-home',
-          component: () => import('@/components/tabs/network/NetworkDasboard.vue'),
+          component: () => import('@/components/tabs/network/HomeTab.vue'),
           meta: {
             requiresAuth: true,
-            title: 'Dashboard'
+            title: 'Dashboard',
           },
         },
         {
@@ -115,7 +153,7 @@ const router = createRouter({
           component: () => import('@/components/tabs/network/EditNetworkTab.vue'),
           meta: {
             requiresAuth: true,
-            title: 'Edit Details'
+            title: 'Edit Details',
           },
         },
         {
@@ -124,7 +162,7 @@ const router = createRouter({
           component: () => import('@/components/tabs/network/UsersTab.vue'),
           meta: {
             requiresAuth: true,
-            title: 'Users'
+            title: 'Users',
           },
         },
         {
@@ -133,7 +171,7 @@ const router = createRouter({
           component: () => import('@/components/tabs/network/RolesTab.vue'),
           meta: {
             requiresAuth: true,
-            title: 'Roles'
+            title: 'Roles',
           },
         },
         {
@@ -142,7 +180,7 @@ const router = createRouter({
           component: () => import('@/components/tabs/network/AccessesTab.vue'),
           meta: {
             requiresAuth: true,
-            title: 'Access'
+            title: 'Access',
           },
         },
         {
@@ -151,7 +189,7 @@ const router = createRouter({
           component: () => import('@/components/tabs/network/FilesTab.vue'),
           meta: {
             requiresAuth: true,
-            title: 'Files'
+            title: 'Files',
           },
         },
         {
@@ -160,7 +198,7 @@ const router = createRouter({
           component: () => import('@/components/tabs/network/CustomPagesTab.vue'),
           meta: {
             requiresAuth: true,
-            title: 'Custom Pages'
+            title: 'Custom Pages',
           },
         },
         {
@@ -169,7 +207,7 @@ const router = createRouter({
           component: () => import('@/components/tabs/network/BlogsTab.vue'),
           meta: {
             requiresAuth: true,
-            title: 'Blogs'
+            title: 'Blogs',
           },
         },
         {
@@ -178,7 +216,7 @@ const router = createRouter({
           component: () => import('@/components/tabs/network/EditBlogTab.vue'),
           meta: {
             requiresAuth: true,
-            title: 'Edit Blog'
+            title: 'Edit Blog',
           },
         },
         {
@@ -187,7 +225,7 @@ const router = createRouter({
           component: () => import('@/components/tabs/network/ConfigurationsTab.vue'),
           meta: {
             requiresAuth: true,
-            title: 'Configurations'
+            title: 'Configurations',
           },
         },
         {
@@ -196,7 +234,7 @@ const router = createRouter({
           component: () => import('@/components/tabs/network/EditConfigurationTab.vue'),
           meta: {
             requiresAuth: true,
-            title: 'Edit Configuration'
+            title: 'Edit Configuration',
           },
         },
         {
@@ -205,7 +243,7 @@ const router = createRouter({
           component: () => import('@/components/tabs/network/EditCustomPageTab.vue'),
           meta: {
             requiresAuth: true,
-            title: 'Edit Custom Page'
+            title: 'Edit Custom Page',
           },
         },
         {
@@ -214,17 +252,17 @@ const router = createRouter({
           component: () => import('@/components/tabs/network/EditPageBlockTab.vue'),
           meta: {
             requiresAuth: true,
-            title: 'Edit Page Block'
+            title: 'Edit Page Block',
           },
         },
-      ]
+      ],
     },
     {
       path: '/networks/:networkId/join',
       name: 'join-network',
       component: () => import('@/views/networks/JoinNetworkView.vue'),
       meta: {
-        title: 'Join this network'
+        title: 'Join this network',
       },
     },
     {
@@ -234,7 +272,7 @@ const router = createRouter({
       meta: {
         showNavbar: false,
         requiresAuth: false,
-        title: 'Sign In'
+        title: 'Sign In',
       },
     },
     {
@@ -244,7 +282,7 @@ const router = createRouter({
       meta: {
         showNavbar: false,
         requiresAuth: false,
-        title: 'Create Account'
+        title: 'Create Account',
       },
     },
     {
@@ -254,7 +292,7 @@ const router = createRouter({
       meta: {
         showNavbar: false,
         requiresAuth: false,
-        title: 'Complete Access'
+        title: 'Complete Access',
       },
     },
     {
@@ -262,7 +300,7 @@ const router = createRouter({
       name: 'contact',
       component: () => import('@/views/ContactView.vue'),
       meta: {
-        title: 'TrojoNetworks | Contact'
+        title: 'TrojoNetworks | Contact',
       },
     },
     {
@@ -270,7 +308,7 @@ const router = createRouter({
       name: 'terms-of-service',
       component: () => import('@/views/ToSView.vue'),
       meta: {
-        title: 'TrojoNetworks | Terms of Service'
+        title: 'TrojoNetworks | Terms of Service',
       },
     },
     {
@@ -278,7 +316,7 @@ const router = createRouter({
       name: 'unauthenticated',
       component: () => import('@/views/UnauthenticatedView.vue'),
       meta: {
-        title: 'Unauthenticated'
+        title: 'Unauthenticated',
       },
     },
     {
@@ -286,7 +324,7 @@ const router = createRouter({
       name: 'unauthorized',
       component: () => import('@/views/UnauthorizedView.vue'),
       meta: {
-        title: 'Unauthorized'
+        title: 'Unauthorized',
       },
     },
     {
@@ -294,41 +332,48 @@ const router = createRouter({
       name: 'not-found',
       component: () => import('@/views/NotFoundView.vue'),
       meta: {
-        title: 'Page not found'
+        title: 'Page not found',
       },
     },
+    {
+      path: "/:pathMatch(.*)*",
+      // redirect: '/404',
+      component: () => import('@/views/NotFoundView.vue'),
+    }
   ],
 });
 
-router.beforeEach((to, from, next) => {
-  const authStore = useAuthStore()
+router.beforeEach(async (to, from, next) => {
+  const authStore = useAuthStore();
 
-  if (to.matched.some(record => record.meta.requiresAuth)) {
+  if (to.matched.some((record) => record.meta.requiresAuth)) {
     if (!authStore.isAuthenticated) {
       next({
         path: '/403',
-        query: { redirect: btoa(to.fullPath) }
-      })
-      authStore.setModalOpen(true)
-      authStore.setModalMode("login")
-      return
+        query: { redirect: btoa(to.fullPath) },
+      });
+      authStore.setModalOpen(true);
+      authStore.setModalMode('login');
+      return;
     }
   }
 
-  if (to.matched.some(record => record.meta.requiresAdmin)) {
+  if (to.matched.some((record) => record.meta.requiresAdmin)) {
+    await authStore.initialize();
+
     if (!authStore.isAdmin) {
-      next({ path: '/404' })
-      return
+      next({ path: '/404' });
+      return;
     }
   }
 
-  next()
-})
+  next();
+});
 
 router.afterEach((to) => {
   if (to.meta.title) {
-    document.title = to.meta.title as string
+    document.title = to.meta.title as string;
   }
-})
+});
 
 export default router;
