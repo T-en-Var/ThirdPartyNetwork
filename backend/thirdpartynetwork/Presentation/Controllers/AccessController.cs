@@ -11,7 +11,7 @@ namespace thirdpartynetwork.Presentation.Controllers;
 public class AccessController(IAccessService service, IMapper mapper) : ControllerBase
 {
     [HttpGet]
-    [RequirePermission(Constants.Permissions.ReadAccess)]
+    // [RequirePermission(Constants.Permissions.ReadAccess)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<NetworkDto>))]
     public async Task<IActionResult> GetAccesses()
     {
@@ -20,7 +20,7 @@ public class AccessController(IAccessService service, IMapper mapper) : Controll
     }
 
     [HttpGet("{accessId:guid}")]
-    [RequirePermission(Constants.Permissions.ManageAccess)]
+    // [RequirePermission(Constants.Permissions.ManageAccess)]
     [ProducesResponseType(200, Type = typeof(AccessDto))]
     [ProducesResponseType(404)]
     public async Task<IActionResult> GetAccess(Guid accessId)

@@ -168,7 +168,7 @@ namespace thirdpartynetwork.Core.Data
                 .HasOne(f => f.Network)
                 .WithMany(n => n.Files)
                 .HasForeignKey(f => f.NetworkId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             // One-to-one: Network -> ImageFile
             modelBuilder.Entity<Network>()

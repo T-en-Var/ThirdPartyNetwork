@@ -18,7 +18,7 @@ public class UserProxyManagerService(
 
         var mainNetwork = await networkService.GetMainNetworkAsync();
 
-        if (await networkUserService.GetByNetworkIdAndEmailAsync(mainNetwork.Id, addUserProxy.Email) != null)
+        if (addUserProxy.Email != null && await networkUserService.GetByNetworkIdAndEmailAsync(mainNetwork.Id, addUserProxy.Email) != null)
             throw new ConflictHttpException("Email already used");
 
         var createUserProxyDto = new CreateUserProxyDto()

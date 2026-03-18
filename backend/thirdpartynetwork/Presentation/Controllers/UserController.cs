@@ -22,14 +22,14 @@ public class UserController(IUserService service, INetworkService networkService
 
     [HttpGet("{userId:guid}")]
     [RequirePermission(Constants.Permissions.ReadUser)]
-    [ProducesResponseType(200, Type = typeof(UserDto))]
+    [ProducesResponseType(200, Type = typeof(UserWithNetworksDto))]
     [ProducesResponseType(404)]
     public async Task<IActionResult> Get(Guid userId)
     {
         var user = await service.GetByIdAsync(userId);
         var mainNetwork = await networkService.GetMainNetworkAsync();
         return user != null
-            ? StatusCode(200, mapper.Map<UserDto>(user, opts => { opts.Items["networkId"] = mainNetwork.Id; }))
+            ? StatusCode(200, mapper.Map<UserWithNetworksDto>(user, opts => { opts.Items["networkId"] = mainNetwork.Id; }))
             : NotFound();
     }
 
