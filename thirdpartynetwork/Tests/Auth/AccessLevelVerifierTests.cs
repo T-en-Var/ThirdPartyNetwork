@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.AspNetCore.Http;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using NUnit.Framework;
@@ -74,7 +71,7 @@ public class AccessLevelVerifierTests
 
         var identityServiceMock = new Mock<IIdentityService>();
         identityServiceMock.Setup(s => s.GetUserProxyAsync(true)).ReturnsAsync(new UserProxy
-            { Id = Guid.NewGuid(), IsDefault = true, User = new User { } });
+            { Id = Guid.NewGuid(), IsDefault = true, User = new User() });
 
         var identityVerifierMock = new Mock<IIdentityVerifier>();
 
@@ -86,7 +83,7 @@ public class AccessLevelVerifierTests
 
         // As author
         identityServiceMock.Setup(s => s.GetUserProxyAsync(true)).ReturnsAsync(new UserProxy
-            { Id = authorId, IsDefault = true, User = new User { } });
+            { Id = authorId, IsDefault = true, User = new User() });
         var ok2 = await verifier.CheckFileAccessAsync(file.Id.ToString(), Guid.NewGuid(), "perm");
         Assert.That(ok2, Is.True);
     }
@@ -99,8 +96,8 @@ public class AccessLevelVerifierTests
         var userProxyId = Guid.NewGuid();
         var file = new File
         {
-            Id = Guid.NewGuid(), 
-            AccessLevel = AccessLevel.PublicToNetwork, 
+            Id = Guid.NewGuid(),
+            AccessLevel = AccessLevel.PublicToNetwork,
             NetworkId = networkId,
             Format = "",
             Name = "",
@@ -114,8 +111,8 @@ public class AccessLevelVerifierTests
         var identityServiceMock = new Mock<IIdentityService>();
         identityServiceMock.Setup(s => s.GetUserProxyAsync(true)).ReturnsAsync(new UserProxy
         {
-            Id = userProxyId, NetworkUsers = new System.Collections.Generic.List<NetworkUser>(), IsDefault = true,
-            User = new User { }
+            Id = userProxyId, NetworkUsers = new List<NetworkUser>(), IsDefault = true,
+            User = new User()
         });
 
         var identityVerifierMock = new Mock<IIdentityVerifier>();
@@ -129,9 +126,15 @@ public class AccessLevelVerifierTests
         // Member
         identityServiceMock.Setup(s => s.GetUserProxyAsync(true)).ReturnsAsync(new UserProxy
         {
-            Id = userProxyId, IsDefault = true, User = new User { },
-            NetworkUsers = new System.Collections.Generic.List<NetworkUser>
-                { new NetworkUser { NetworkId = networkId } }
+            Id = userProxyId, IsDefault = true, User = new User(),
+            NetworkUsers = new List<NetworkUser>
+            {
+                new()
+                {
+                    NetworkId = networkId,
+                    Entitlements = JsonDocument.Parse("{}")
+                }
+            }
         });
         var ok2 = await verifier.CheckFileAccessAsync(file.Id.ToString(), networkId, "perm");
         Assert.That(ok2, Is.True);
@@ -143,15 +146,28 @@ public class AccessLevelVerifierTests
         await using var ctx = new DataContext(_options);
         var networkId = Guid.NewGuid();
 
-        var publicFile = new File { Id = Guid.NewGuid(), PublicId = Guid.NewGuid(), AccessLevel = AccessLevel.Public, Name = "", Format = "", MediaType = "", Url = "" };
-        var privateFile = new File { Id = Guid.NewGuid(), PublicId = Guid.NewGuid(), AccessLevel = AccessLevel.Private, AuthorId = Guid.NewGuid(), Name = "", Format = "", MediaType = "", Url = "" };
-        var networkFile = new File { Id = Guid.NewGuid(), PublicId = Guid.NewGuid(), AccessLevel = AccessLevel.PublicToNetwork, NetworkId = networkId, Name = "", Format = "", MediaType = "", Url = "" };
+        var publicFile = new File
+        {
+            Id = Guid.NewGuid(), PublicId = Guid.NewGuid(), AccessLevel = AccessLevel.Public, Name = "", Format = "",
+            MediaType = "", Url = ""
+        };
+        var privateFile = new File
+        {
+            Id = Guid.NewGuid(), PublicId = Guid.NewGuid(), AccessLevel = AccessLevel.Private,
+            AuthorId = Guid.NewGuid(), Name = "", Format = "", MediaType = "", Url = ""
+        };
+        var networkFile = new File
+        {
+            Id = Guid.NewGuid(), PublicId = Guid.NewGuid(), AccessLevel = AccessLevel.PublicToNetwork,
+            NetworkId = networkId, Name = "", Format = "", MediaType = "", Url = ""
+        };
 
         ctx.Files.AddRange(publicFile, privateFile, networkFile);
         await ctx.SaveChangesAsync();
 
         var identityServiceMock = new Mock<IIdentityService>();
-        identityServiceMock.Setup(s => s.GetUserProxyAsync(true)).ReturnsAsync(new UserProxy { User = null, IsDefault = true });
+        identityServiceMock.Setup(s => s.GetUserProxyAsync(true))
+            .ReturnsAsync(new UserProxy { User = null, IsDefault = true });
 
         var identityVerifierMock = new Mock<IIdentityVerifier>();
 
@@ -172,8 +188,16 @@ public class AccessLevelVerifierTests
         var networkId = Guid.NewGuid();
         var userId = Guid.NewGuid();
 
-        var otherPrivate = new File { Id = Guid.NewGuid(), PublicId = Guid.NewGuid(), AccessLevel = AccessLevel.Private, AuthorId = Guid.NewGuid(), Name = "", Format = "", MediaType = "", Url = "" };
-        var myPrivate = new File { Id = Guid.NewGuid(), PublicId = Guid.NewGuid(), AccessLevel = AccessLevel.Private, AuthorId = userId, Name = "", Format = "", MediaType = "", Url = "" };
+        var otherPrivate = new File
+        {
+            Id = Guid.NewGuid(), PublicId = Guid.NewGuid(), AccessLevel = AccessLevel.Private,
+            AuthorId = Guid.NewGuid(), Name = "", Format = "", MediaType = "", Url = ""
+        };
+        var myPrivate = new File
+        {
+            Id = Guid.NewGuid(), PublicId = Guid.NewGuid(), AccessLevel = AccessLevel.Private, AuthorId = userId,
+            Name = "", Format = "", MediaType = "", Url = ""
+        };
 
         ctx.Files.AddRange(otherPrivate, myPrivate);
         await ctx.SaveChangesAsync();
@@ -188,7 +212,8 @@ public class AccessLevelVerifierTests
         });
 
         var identityVerifierMock = new Mock<IIdentityVerifier>();
-        identityVerifierMock.Setup(v => v.IsAllowedAsync(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<string>())).ReturnsAsync(false);
+        identityVerifierMock.Setup(v => v.IsAllowedAsync(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<string>()))
+            .ReturnsAsync(false);
 
         var verifier = new AccessLevelVerifier(ctx, identityServiceMock.Object, identityVerifierMock.Object);
 
@@ -207,8 +232,16 @@ public class AccessLevelVerifierTests
         var otherNetworkId = Guid.NewGuid();
         var userId = Guid.NewGuid();
 
-        var netFile = new File { Id = Guid.NewGuid(), PublicId = Guid.NewGuid(), AccessLevel = AccessLevel.PublicToNetwork, NetworkId = networkId, Name = "", Format = "", MediaType = "", Url = "" };
-        var otherNetFile = new File { Id = Guid.NewGuid(), PublicId = Guid.NewGuid(), AccessLevel = AccessLevel.PublicToNetwork, NetworkId = otherNetworkId, Name = "", Format = "", MediaType = "", Url = "" };
+        var netFile = new File
+        {
+            Id = Guid.NewGuid(), PublicId = Guid.NewGuid(), AccessLevel = AccessLevel.PublicToNetwork,
+            NetworkId = networkId, Name = "", Format = "", MediaType = "", Url = ""
+        };
+        var otherNetFile = new File
+        {
+            Id = Guid.NewGuid(), PublicId = Guid.NewGuid(), AccessLevel = AccessLevel.PublicToNetwork,
+            NetworkId = otherNetworkId, Name = "", Format = "", MediaType = "", Url = ""
+        };
 
         ctx.Files.AddRange(netFile, otherNetFile);
         await ctx.SaveChangesAsync();
@@ -220,13 +253,18 @@ public class AccessLevelVerifierTests
             User = new User(),
             NetworkUsers = new List<NetworkUser>
             {
-                new NetworkUser { NetworkId = networkId }
+                new NetworkUser
+                {
+                    NetworkId = networkId,
+                    Entitlements = JsonDocument.Parse("{}")
+                }
             },
             IsDefault = true
         });
 
         var identityVerifierMock = new Mock<IIdentityVerifier>();
-        identityVerifierMock.Setup(v => v.IsAllowedAsync(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<string>())).ReturnsAsync(false);
+        identityVerifierMock.Setup(v => v.IsAllowedAsync(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<string>()))
+            .ReturnsAsync(false);
 
         var verifier = new AccessLevelVerifier(ctx, identityServiceMock.Object, identityVerifierMock.Object);
 
@@ -244,8 +282,16 @@ public class AccessLevelVerifierTests
         var networkId = Guid.NewGuid();
         var userId = Guid.NewGuid();
 
-        var privateFile = new File { Id = Guid.NewGuid(), PublicId = Guid.NewGuid(), AccessLevel = AccessLevel.Private, AuthorId = Guid.NewGuid(), Name = "", Format = "", MediaType = "", Url = "" };
-        var netFile = new File { Id = Guid.NewGuid(), PublicId = Guid.NewGuid(), AccessLevel = AccessLevel.PublicToNetwork, NetworkId = networkId, Name = "", Format = "", MediaType = "", Url = "" };
+        var privateFile = new File
+        {
+            Id = Guid.NewGuid(), PublicId = Guid.NewGuid(), AccessLevel = AccessLevel.Private,
+            AuthorId = Guid.NewGuid(), Name = "", Format = "", MediaType = "", Url = ""
+        };
+        var netFile = new File
+        {
+            Id = Guid.NewGuid(), PublicId = Guid.NewGuid(), AccessLevel = AccessLevel.PublicToNetwork,
+            NetworkId = networkId, Name = "", Format = "", MediaType = "", Url = ""
+        };
 
         ctx.Files.AddRange(privateFile, netFile);
         await ctx.SaveChangesAsync();

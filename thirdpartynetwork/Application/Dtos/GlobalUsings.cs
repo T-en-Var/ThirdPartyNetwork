@@ -1,9 +1,11 @@
 ﻿global using thirdpartynetwork.Application.Dtos.Auth;
 global using thirdpartynetwork.Application.Dtos.Network;
+global using thirdpartynetwork.Application.Dtos.NetworkEntitlement;
 global using thirdpartynetwork.Application.Dtos.NetworkAccess;
 global using thirdpartynetwork.Application.Dtos.NetworkUser;
 global using thirdpartynetwork.Application.Dtos.NetworkUserAccess;
 global using thirdpartynetwork.Application.Dtos.NetworkUserRole;
+global using thirdpartynetwork.Application.Dtos.Metric;
 global using thirdpartynetwork.Application.Dtos.Access;
 global using thirdpartynetwork.Application.Dtos.Role;
 global using thirdpartynetwork.Application.Dtos.RolePermission;

@@ -1,6 +1,4 @@
-using System;
-using System.Linq;
-using Microsoft.Extensions.Configuration;
+using System.Text.Json;
 using Moq;
 using NUnit.Framework;
 using thirdpartynetwork.Application.Auth;
@@ -37,19 +35,35 @@ public class TokenGeneratorTests
 
         // Build small network/user graph
         var permission = new Permission { Id = Guid.NewGuid(), Name = "perm:x", Description = "x" };
-        var role = new Role { Id = Guid.NewGuid(), Name = "r", Description = "d", Network = new Network
+        var role = new Role
         {
-            Name = "null",
-            IsPublic = false,
-            Description = "",
-            RedirectURI = ""
-        }, IsDefault = false };
+            Id = Guid.NewGuid(), Name = "r", Description = "d", Network = new Network
+            {
+                Name = "null",
+                IsPublic = false,
+                Description = "",
+                RedirectURI = "",
+                Entitlement = new()
+                {
+                    AllowBlogs = true,
+                    AllowConfigurations = true,
+                    AllowFiles = true,
+                    AllowCustomPages = true
+                }
+            },
+            IsDefault = false,
+            Entitlements = JsonDocument.Parse("{}")
+        };
         role.RolePermissions.Add(new RolePermission { Permission = permission, Role = role });
 
         var user = new User();
         var userProxy = new UserProxy { Id = Guid.NewGuid(), Username = "u", IsDefault = true, User = user };
-        
-        var networkUser = new NetworkUser { Id = Guid.NewGuid(), UserProxy = userProxy, UserProxyId = userProxy.Id };
+
+        var networkUser = new NetworkUser
+        {
+            Id = Guid.NewGuid(), UserProxy = userProxy, UserProxyId = userProxy.Id,
+            Entitlements = JsonDocument.Parse("{}")
+        };
         var nur = new NetworkUserRole
         {
             NetworkUserId = networkUser.Id,
@@ -66,6 +80,7 @@ public class TokenGeneratorTests
         Assert.That(tokens.AccessToken, Is.Not.Empty);
         Assert.That(tokens.RefreshToken, Is.Not.Empty);
 
-        jtiServiceMock.Verify(s => s.StoreJti(It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<TimeSpan>()), Times.AtLeastOnce);
+        jtiServiceMock.Verify(s => s.StoreJti(It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<TimeSpan>()),
+            Times.AtLeastOnce);
     }
 }

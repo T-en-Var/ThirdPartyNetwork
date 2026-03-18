@@ -9,9 +9,7 @@ public class UserProxyManagerService(
     IUserService userService,
     INetworkService networkService,
     INetworkUserService networkUserService,
-    IUserProxyService userProxyService,
-    IPasswordHasher passwordHasher,
-    IMapper mapper) : IUserProxyManagerService
+    IUserProxyService userProxyService) : IUserProxyManagerService
 {
     public async Task<UserProxy> AddUserProxyAsync(Guid userId, AddUserProxyDto addUserProxy)
     {
@@ -20,8 +18,7 @@ public class UserProxyManagerService(
 
         var mainNetwork = await networkService.GetMainNetworkAsync();
 
-        if (addUserProxy.Email != null &&
-            await networkUserService.GetByNetworkIdAndEmailAsync(mainNetwork.Id, addUserProxy.Email) != null)
+        if (addUserProxy.Email != null && await networkUserService.GetByNetworkIdAndEmailAsync(mainNetwork.Id, addUserProxy.Email) != null)
             throw new ConflictHttpException("Email already used");
 
         var createUserProxyDto = new CreateUserProxyDto()

@@ -11,6 +11,7 @@ namespace thirdpartynetwork.Core.Data
         public DbSet<File> Files { get; set; }
         public DbSet<Network> Networks { get; set; }
         public DbSet<NetworkAccess> NetworkAccesses { get; set; }
+        public DbSet<NetworkEntitlement> NetworkEntitlements { get; set; }
         public DbSet<NetworkUser> NetworkUsers { get; set; }
         public DbSet<NetworkUserAccess> NetworkUserAccesses { get; set; }
         public DbSet<NetworkUserRole> NetworkUserRoles { get; set; }
@@ -23,7 +24,7 @@ namespace thirdpartynetwork.Core.Data
         public DbSet<Permission> Permissions { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<UserProxy> UserProxies { get; set; }
-
+        
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<NetworkAccess>()
@@ -86,6 +87,41 @@ namespace thirdpartynetwork.Core.Data
                 .WithOne(r => r.Network)
                 .HasForeignKey(r => r.NetworkId);
             
+            modelBuilder.Entity<NetworkEntitlement>()
+                .HasKey(e => e.NetworkId);
+
+            // One-to-one: Network -> NetworkEntitlement
+            modelBuilder.Entity<Network>()
+                .HasOne(n => n.Entitlement)
+                .WithOne()
+                .HasForeignKey<NetworkEntitlement>(e => e.NetworkId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            var entityRole = modelBuilder.Entity<Role>();
+            if (Database.ProviderName == "Microsoft.EntityFrameworkCore.InMemory")
+            {
+                entityRole
+                    .Property(b => b.Entitlements)
+                    .HasConversion(
+                        v => v.RootElement.GetRawText(),
+                        v => JsonDocument.Parse(v, default)
+                    );
+            }
+            entityRole.Property(b => b.Entitlements).HasDefaultValueSql("'{}'");
+            
+            var entityNetworkUser = modelBuilder.Entity<NetworkUser>();
+            if (Database.ProviderName == "Microsoft.EntityFrameworkCore.InMemory")
+            {
+                entityNetworkUser
+                    .Property(b => b.Entitlements)
+                    .HasConversion(
+                        v => v.RootElement.GetRawText(),
+                        v => JsonDocument.Parse(v, default)
+                    );
+            }
+            entityNetworkUser.Property(b => b.Entitlements).HasDefaultValueSql("'{}'");
+            
             // * ----------------------- *
             //         UserContent
             // * ----------------------- *
@@ -101,18 +137,38 @@ namespace thirdpartynetwork.Core.Data
             AuthorToMany<Configuration>();
             AuthorToMany<Blog>();
             AuthorToMany<File>();
-
-            NetworkToMany<CustomPage>();
-            NetworkToMany<Blog>();
-            NetworkToMany<Configuration>();
+            
+            modelBuilder.Entity<CustomPage>()
+                .HasOne(p => p.Network)
+                .WithMany(n => n.CustomPages)
+                .HasForeignKey(m => m.NetworkId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            modelBuilder.Entity<PageBlock>()
+                .HasOne(p => p.Network)
+                .WithMany(n => n.PageBlocks)
+                .HasForeignKey(m => m.NetworkId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            modelBuilder.Entity<Configuration>()
+                .HasOne(p => p.Network)
+                .WithMany(n => n.Configurations)
+                .HasForeignKey(m => m.NetworkId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            modelBuilder.Entity<Blog>()
+                .HasOne(p => p.Network)
+                .WithMany(n => n.Blogs)
+                .HasForeignKey(m => m.NetworkId)
+                .OnDelete(DeleteBehavior.Cascade);
             
             // FILES
             // One-to-many: Network -> Files
             modelBuilder.Entity<File>()
                 .HasOne(f => f.Network)
-                .WithMany()
+                .WithMany(n => n.Files)
                 .HasForeignKey(f => f.NetworkId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             // One-to-one: Network -> ImageFile
             modelBuilder.Entity<Network>()
@@ -147,10 +203,8 @@ namespace thirdpartynetwork.Core.Data
             modelBuilder.Entity<Blog>()
                 .Property(b => b.Body)
                 .HasColumnType("jsonb");
-
-            base.OnModelCreating(modelBuilder);
             
-            if (this.Database.ProviderName == "Microsoft.EntityFrameworkCore.InMemory")
+            if (Database.ProviderName == "Microsoft.EntityFrameworkCore.InMemory")
             {
                 modelBuilder.Entity<Blog>()
                     .Property(b => b.Body)
@@ -180,7 +234,8 @@ namespace thirdpartynetwork.Core.Data
                         jsonString => JsonDocument.Parse(jsonString, default)
                     );
             }
-            
+
+            base.OnModelCreating(modelBuilder);
             return;
 
             void AuthorToMany<T>() where T : UserContentBaseModel
@@ -189,15 +244,6 @@ namespace thirdpartynetwork.Core.Data
                     .HasOne(m => m.Author)
                     .WithMany()
                     .HasForeignKey(m => m.AuthorId)
-                    .OnDelete(DeleteBehavior.Cascade);
-            }
-            
-            void NetworkToMany<T>() where T : UserContentBaseModel
-            {
-                modelBuilder.Entity<T>()
-                    .HasOne(m => m.Network)
-                    .WithMany()
-                    .HasForeignKey(m => m.NetworkId)
                     .OnDelete(DeleteBehavior.Cascade);
             }
         }

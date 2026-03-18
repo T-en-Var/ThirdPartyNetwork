@@ -18,7 +18,7 @@ namespace thirdpartynetwork.Core.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.1")
+                .HasAnnotation("ProductVersion", "9.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -48,7 +48,7 @@ namespace thirdpartynetwork.Core.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Accesses");
+                    b.ToTable("Accesses", (string)null);
                 });
 
             modelBuilder.Entity("thirdpartynetwork.Core.Models.Blog", b =>
@@ -102,7 +102,7 @@ namespace thirdpartynetwork.Core.Migrations
 
                     b.HasIndex("NetworkId");
 
-                    b.ToTable("Blogs");
+                    b.ToTable("Blogs", (string)null);
                 });
 
             modelBuilder.Entity("thirdpartynetwork.Core.Models.Configuration", b =>
@@ -140,7 +140,7 @@ namespace thirdpartynetwork.Core.Migrations
 
                     b.HasIndex("NetworkId");
 
-                    b.ToTable("Configurations");
+                    b.ToTable("Configurations", (string)null);
                 });
 
             modelBuilder.Entity("thirdpartynetwork.Core.Models.CustomPage", b =>
@@ -178,7 +178,7 @@ namespace thirdpartynetwork.Core.Migrations
 
                     b.HasIndex("NetworkId");
 
-                    b.ToTable("CustomPages");
+                    b.ToTable("CustomPages", (string)null);
                 });
 
             modelBuilder.Entity("thirdpartynetwork.Core.Models.File", b =>
@@ -247,7 +247,7 @@ namespace thirdpartynetwork.Core.Migrations
 
                     b.HasIndex("NetworkUserId");
 
-                    b.ToTable("Files");
+                    b.ToTable("Files", (string)null);
                 });
 
             modelBuilder.Entity("thirdpartynetwork.Core.Models.Network", b =>
@@ -287,7 +287,7 @@ namespace thirdpartynetwork.Core.Migrations
 
                     b.HasIndex("ImageFileId");
 
-                    b.ToTable("Networks");
+                    b.ToTable("Networks", (string)null);
                 });
 
             modelBuilder.Entity("thirdpartynetwork.Core.Models.NetworkAccess", b =>
@@ -314,7 +314,59 @@ namespace thirdpartynetwork.Core.Migrations
 
                     b.HasIndex("AccessId");
 
-                    b.ToTable("NetworkAccesses");
+                    b.ToTable("NetworkAccesses", (string)null);
+                });
+
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.NetworkEntitlement", b =>
+                {
+                    b.Property<Guid>("NetworkId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("AllowBlogs")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("AllowConfigurations")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("AllowCustomPages")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("AllowFiles")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("BlogCountLimit")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ConfigurationCountLimit")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("CustomPageBlockCountLimit")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("CustomPageBlockSizeLimit")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("CustomPageCountLimit")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("FileCountLimit")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("FileSizeLimit")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("FileStorageLimit")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("NetworkId");
+
+                    b.ToTable("NetworkEntitlements", (string)null);
                 });
 
             modelBuilder.Entity("thirdpartynetwork.Core.Models.NetworkUser", b =>
@@ -328,6 +380,12 @@ namespace thirdpartynetwork.Core.Migrations
 
                     b.Property<DateTime>("CreatedOn")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<JsonDocument>("Entitlements")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasDefaultValueSql("'{}'");
 
                     b.Property<Guid>("NetworkId")
                         .HasColumnType("uuid");
@@ -344,7 +402,7 @@ namespace thirdpartynetwork.Core.Migrations
 
                     b.HasIndex("UserProxyId");
 
-                    b.ToTable("NetworkUsers");
+                    b.ToTable("NetworkUsers", (string)null);
                 });
 
             modelBuilder.Entity("thirdpartynetwork.Core.Models.NetworkUserAccess", b =>
@@ -368,7 +426,7 @@ namespace thirdpartynetwork.Core.Migrations
 
                     b.HasIndex("AccessId");
 
-                    b.ToTable("NetworkUserAccesses");
+                    b.ToTable("NetworkUserAccesses", (string)null);
                 });
 
             modelBuilder.Entity("thirdpartynetwork.Core.Models.NetworkUserRole", b =>
@@ -389,7 +447,7 @@ namespace thirdpartynetwork.Core.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("NetworkUserRoles");
+                    b.ToTable("NetworkUserRoles", (string)null);
                 });
 
             modelBuilder.Entity("thirdpartynetwork.Core.Models.PageBlock", b =>
@@ -438,7 +496,7 @@ namespace thirdpartynetwork.Core.Migrations
 
                     b.HasIndex("NetworkId");
 
-                    b.ToTable("PageBlocks");
+                    b.ToTable("PageBlocks", (string)null);
                 });
 
             modelBuilder.Entity("thirdpartynetwork.Core.Models.Permission", b =>
@@ -466,7 +524,7 @@ namespace thirdpartynetwork.Core.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Permissions");
+                    b.ToTable("Permissions", (string)null);
                 });
 
             modelBuilder.Entity("thirdpartynetwork.Core.Models.Role", b =>
@@ -481,6 +539,12 @@ namespace thirdpartynetwork.Core.Migrations
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<JsonDocument>("Entitlements")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasDefaultValueSql("'{}'");
 
                     b.Property<bool>("IsDefault")
                         .HasColumnType("boolean");
@@ -502,7 +566,7 @@ namespace thirdpartynetwork.Core.Migrations
 
                     b.HasIndex("NetworkId");
 
-                    b.ToTable("Roles");
+                    b.ToTable("Roles", (string)null);
                 });
 
             modelBuilder.Entity("thirdpartynetwork.Core.Models.RolePermission", b =>
@@ -523,7 +587,7 @@ namespace thirdpartynetwork.Core.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("RolePermissions");
+                    b.ToTable("RolePermissions", (string)null);
                 });
 
             modelBuilder.Entity("thirdpartynetwork.Core.Models.User", b =>
@@ -540,7 +604,7 @@ namespace thirdpartynetwork.Core.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("thirdpartynetwork.Core.Models.UserProxy", b =>
@@ -585,7 +649,7 @@ namespace thirdpartynetwork.Core.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserProxies");
+                    b.ToTable("UserProxies", (string)null);
                 });
 
             modelBuilder.Entity("thirdpartynetwork.Core.Models.Blog", b =>
@@ -702,6 +766,15 @@ namespace thirdpartynetwork.Core.Migrations
                     b.Navigation("Access");
 
                     b.Navigation("Network");
+                });
+
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.NetworkEntitlement", b =>
+                {
+                    b.HasOne("thirdpartynetwork.Core.Models.Network", null)
+                        .WithOne("Entitlement")
+                        .HasForeignKey("thirdpartynetwork.Core.Models.NetworkEntitlement", "NetworkId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("thirdpartynetwork.Core.Models.NetworkUser", b =>
@@ -849,6 +922,9 @@ namespace thirdpartynetwork.Core.Migrations
 
             modelBuilder.Entity("thirdpartynetwork.Core.Models.Network", b =>
                 {
+                    b.Navigation("Entitlement")
+                        .IsRequired();
+
                     b.Navigation("NetworkAccesses");
 
                     b.Navigation("NetworkUsers");

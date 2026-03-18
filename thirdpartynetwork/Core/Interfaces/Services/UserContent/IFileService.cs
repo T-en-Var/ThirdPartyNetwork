@@ -7,7 +7,7 @@ namespace thirdpartynetwork.Core.Interfaces.Services
     {
         Task<ICollection<File>> GetByNetworkIdAsync(Guid networkId);
         Task<File?> GetByIdAsync(Guid networkId, Guid fileId);
-        // File Create(Guid networkId, CreateFileDto createFile);
+        // Task<File> CreateAsync(Guid networkId, CreateFileDto createFile);
         Task<File> UploadFileAsync(Guid networkId, IFormFile file);
         Task<File> UpdateAsync(Guid networkId, Guid fileId, UpdateFileDto updateFile);
         Task DeleteByIdAsync(Guid networkId, Guid fileId);

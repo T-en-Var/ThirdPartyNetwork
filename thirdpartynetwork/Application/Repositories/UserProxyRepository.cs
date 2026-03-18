@@ -13,7 +13,7 @@ namespace thirdpartynetwork.Application.Repositories
     {
         private readonly DataContext _context = context;
 
-        private async Task<IQueryable<UserProxy>> GetQueryableAsync()
+        private Task<IQueryable<UserProxy>> GetQueryableAsync()
         {
             var query = _context.UserProxies.AsQueryable();
 
@@ -26,7 +26,7 @@ namespace thirdpartynetwork.Application.Repositories
                 .Include(x => x.NetworkUsers)
                 .ThenInclude(x => x.Network);
 
-            return query;
+            return Task.FromResult(query);
         }
 
         public async Task<bool> ExistsAsync(Guid userProxyId)
@@ -50,10 +50,10 @@ namespace thirdpartynetwork.Application.Repositories
                     .Include(up => up.User)
                     .ThenInclude(u => u.UserProxies)
                     .ThenInclude(up => up.NetworkUsers)
-                    .ThenInclude(nu => nu.Files)
+                    // .ThenInclude(nu => nu.Files)
                     
                     .Include(up => up.NetworkUsers)
-                    .ThenInclude(nu => nu.Files)
+                    // .ThenInclude(nu => nu.Files)
                     
                     .Include(up => up.ImageFile)
                     

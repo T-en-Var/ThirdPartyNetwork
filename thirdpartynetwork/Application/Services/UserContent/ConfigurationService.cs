@@ -11,6 +11,7 @@ public class ConfigurationService(
     INetworkService networkService,
     IIdentityService identityService,
     INetworkUserService networkUserService,
+    IEntitlementService entitlementService,
     IMapper mapper) : UserContentBaseService<Configuration>(repository, networkUserService), IConfigurationService
 {
     private readonly INetworkUserService _networkUserService = networkUserService;
@@ -34,6 +35,9 @@ public class ConfigurationService(
         var networkUser = await _networkUserService.GetByIdsAsync(networkId, userProxy.Id);
         if (networkUser == null) throw new NotFoundHttpException("NetworkUser not found");
 
+        if (!await entitlementService.CheckUserAddConfigurationEntitlementAsync(networkUser.UserProxyId, networkId))
+            throw new UnauthorizedHttpException("You are exceeding a configuration limit.");
+        
         var configuration = mapper.Map<Configuration>(createConfiguration);
         configuration.Network = network;
         configuration.Author = networkUser;

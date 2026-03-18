@@ -29,7 +29,11 @@ namespace thirdpartynetwork.Application.Repositories
                     .Include(x => x.NetworkUserRoles)
                     .ThenInclude(x => x.NetworkUser)
                     .ThenInclude(x => x.UserProxy)
-                    .ThenInclude(x => x.ImageFile);
+                    .ThenInclude(x => x.ImageFile)
+                    .Include(x => x.NetworkUserRoles)
+                    .ThenInclude(x => x.NetworkUser)
+                    .ThenInclude(x => x.NetworkUserAccesses)
+                    .ThenInclude(x => x.Access);
             
             return query;
         }

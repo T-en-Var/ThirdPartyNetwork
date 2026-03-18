@@ -6,7 +6,7 @@ namespace thirdpartynetwork.Presentation.Controllers;
 
 [Route("me")]
 [ApiController]
-public class MeController(IMeService service, IMapper mapper) : ControllerBase
+public class MeController(IMeService service, INetworkService networkService, IMapper mapper) : ControllerBase
 {
     [HttpGet("")]
     [ProducesResponseType(200, Type = typeof(UserProxyDto))]
@@ -15,6 +15,7 @@ public class MeController(IMeService service, IMapper mapper) : ControllerBase
     public async Task<IActionResult> MainNetworkRegister()
     {
         var userProxy = await service.GetMeAsync();
-        return Ok(mapper.Map<UserProxyDto>(userProxy));
+        var mainNetwork = await networkService.GetMainNetworkAsync();
+        return Ok(mapper.Map<UserProxyDto>(userProxy, opts => opts.Items["networkId"] = mainNetwork.Id));
     }
 }

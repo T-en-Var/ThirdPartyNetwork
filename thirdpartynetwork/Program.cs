@@ -5,19 +5,19 @@ using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.Features;
-using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Http.Json;
 using Microsoft.IdentityModel.Tokens;
-using Swashbuckle.AspNetCore.SwaggerGen;
+using Scalar.AspNetCore;
 using thirdpartynetwork;
 using thirdpartynetwork.Application.Auth;
 using thirdpartynetwork.Application.Helpers;
 using thirdpartynetwork.Core.Data;
-using thirdpartynetwork.Presentation.Swagger;
 using thirdpartynetwork.Application.Repositories;
 using thirdpartynetwork.Application.Services;
 using thirdpartynetwork.Core.Helper;
 using thirdpartynetwork.Core.Interfaces.Auth;
 using thirdpartynetwork.Core.Interfaces.Helpers;
+using Microsoft.AspNetCore.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
@@ -40,9 +40,11 @@ builder.Services.AddAuthentication(o =>
         AudienceValidator = (audiences, securityToken, validationParameters) =>
         {
             var httpContext = httpContextAccessor.HttpContext;
+            
+            if (httpContext == null) throw new NullReferenceException(); 
 
             var defaultAudience = config["JwtSettings:Audience"];
-            var originHeader = httpContext.Request.Headers["Origin"].FirstOrDefault();
+            var originHeader = httpContext.Request.Headers.Origin.FirstOrDefault();
             
             if (originHeader == defaultAudience) return true;
             
@@ -82,18 +84,61 @@ builder.Services.AddCors(options =>
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, DynamicPermissionPolicyProvider>();
 
 // Add services to the container.
-builder.Services.AddControllers()
-    .AddJsonOptions(options =>
+// builder.Services.AddControllers()
+//     .AddJsonOptions(options =>
+//     {
+//         options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+//         // options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+//         options.JsonSerializerOptions.MaxDepth = 32; // Optional: Increase if necessary
+//     });
+
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    options.SerializerOptions.MaxDepth = 128; // Give it some breathing room
+});
+
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    options.JsonSerializerOptions.MaxDepth = 128;
+});
+
+builder.Services.Configure<Microsoft.AspNetCore.Mvc.JsonOptions>(options =>
+{
+    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    options.JsonSerializerOptions.MaxDepth = 128;
+});
+
+builder.Services.Configure<JsonOptions>(options =>
+{
+    options.SerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+    options.SerializerOptions.MaxDepth = 128; 
+});
+
+builder.Services.AddOpenApi(options =>
+{
+    options.AddSchemaTransformer((schema, context, cancellationToken) =>
     {
-        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-        // options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
-        // Increased to 64. Fuck it, we ball
-        options.JsonSerializerOptions.MaxDepth = 32; // Optional: Increase if necessary
+        // This is a "Hammer" fix: it tells the generator to stop 
+        // recursing if the schema gets too complex.
+        if (context.JsonTypeInfo.Type.Name.EndsWith("Repository") || 
+            context.JsonTypeInfo.Type.Name.Contains("Proxy")) 
+        {
+            // Just treat these as objects instead of crawling them
+            schema.Properties.Clear(); 
+        }
+        return Task.CompletedTask;
     });
+});
 
 builder.Services.AddTransient<DatabaseSeeder>();
 
-builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+// builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+builder.Services.AddAutoMapper(cfg =>
+{
+    cfg.LicenseKey = Environment.GetEnvironmentVariable("LUCKY_PENNY_LICENSE");
+}, typeof(Program).Assembly, typeof(UserService).Assembly, typeof(Program).Assembly);
 
 // Other
 builder.Services.AddHttpContextAccessor();
@@ -121,6 +166,7 @@ builder.Services.AddScoped<IConfigurationRepository, ConfigurationRepository>();
 builder.Services.AddScoped<IBlogRepository, BlogRepository>();
 builder.Services.AddScoped<INetworkAccessRepository, NetworkAccessRepository>();
 builder.Services.AddScoped<INetworkRepository, NetworkRepository>();
+builder.Services.AddScoped<INetworkEntitlementRepository, NetworkEntitlementRepository>();
 builder.Services.AddScoped<INetworkUserAccessRepository, NetworkUserAccessRepository>();
 builder.Services.AddScoped<INetworkUserRepository, NetworkUserRepository>();
 builder.Services.AddScoped<INetworkUserRoleRepository, NetworkUserRoleRepository>();
@@ -144,6 +190,7 @@ builder.Services.AddScoped<IAccessLevelVerifier, AccessLevelVerifier>();
 builder.Services.AddScoped<IAccessService, AccessService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICustomPageService, CustomPageService>();
+builder.Services.AddScoped<IEntitlementService, EntitlementService>();
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IConfigurationService, ConfigurationService>();
 builder.Services.AddScoped<IBlogService, BlogService>();
@@ -163,8 +210,34 @@ builder.Services.AddScoped<IUserService, UserService>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
+
+builder.Services.AddOpenApi(options =>
+{
+    // This is where you add your JWT Security Definition now
+    options.AddDocumentTransformer((document, context, cancellationToken) =>
+    {
+        document.Info.Title = "Third Party Network API";
+        document.Info.Version = "v1";
+        
+        // Add Bearer Security Scheme
+        var scheme = new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+        {
+            Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+            Scheme = "bearer",
+            BearerFormat = "JWT",
+            In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+            Description = "Please provide a valid JWT token."
+        };
+        
+        document.Components ??= new Microsoft.OpenApi.Models.OpenApiComponents();
+        document.Components.SecuritySchemes.Add("Bearer", scheme);
+        
+        return Task.CompletedTask;
+    });
+});
+
+// builder.Services.AddSwaggerGen();
+// builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
 builder.Services.AddDbContext<DataContext>(options =>
 {
     options.UseNpgsql(Environment.GetEnvironmentVariable("DB_CONNECTION_STRING"));
@@ -198,12 +271,12 @@ using (var scope = app.Services.CreateScope())
 app.UseMiddleware<CustomExceptionMiddleware>();
 app.UseExceptionHandler();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.MapOpenApi();
+    app.MapScalarApiReference(); 
 }
+
 app.UseCors("AllowAll");
 
 app.UseHttpsRedirection();

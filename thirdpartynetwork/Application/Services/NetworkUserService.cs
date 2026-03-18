@@ -10,6 +10,7 @@ namespace thirdpartynetwork.Application.Services
         INetworkUserRepository repository,
         INetworkService networkService,
         IUserProxyService userProxyService,
+        IFileRepository fileRepository,
         IMapper mapper) : INetworkUserService
     {
         public async Task<ICollection<NetworkUser>> GetAllAsync()
@@ -62,13 +63,7 @@ namespace thirdpartynetwork.Application.Services
         {
             if (await userProxyService.GetByIdAsync(userProxyId) == null) throw new NotFoundHttpException("UserProxy not Found");
 
-            var networkUsers = await repository.GetByUserProxyIdAsync(userProxyId, q => q
-                .Include(nu => nu.Files));
-            
-            var files = networkUsers
-                .SelectMany(nu => nu.Files)
-                .ToList();
-
+            var files = await fileRepository.GetByUserProxyIdAsync(userProxyId);
             return files;
         }
 
@@ -91,20 +86,18 @@ namespace thirdpartynetwork.Application.Services
 
         public async Task<NetworkUser> CreateAsync(Guid networkId, Guid userProxyId, CreateNetworkUserDto createNetworkUser)
         {
+            var mainNetwork = await networkService.GetMainNetworkAsync();
             var network = await networkService.GetByIdAsync(networkId, bypass: true);
             if (network == null) throw new NotFoundHttpException("Network not Found");
 
             var userProxy = await userProxyService.GetByIdAsync(userProxyId);
             if (userProxy == null) throw new NotFoundHttpException("UserProxy not Found");
 
-            var isNotDefaultFlag = userProxy.Email == null;
-            userProxy = userProxy.ApplyDefaults();
-
-            if (await GetByIdsAsync(networkId, userProxyId) != null) throw new ConflictHttpException("Email is already in use.");
-            if (await GetByNetworkIdAndEmailAsync(networkId, userProxy.Email) != null)
+            if (await GetByIdsAsync(networkId, userProxyId) != null) throw new ConflictHttpException("User already joined this network.");
+            if (mainNetwork.Id != networkId && await GetByNetworkIdAndEmailAsync(networkId, userProxy.Email) != null)
                 throw new ConflictHttpException("User with this email already exists" +
-                                                (isNotDefaultFlag
-                                                    ? ". (You email was imported from your default proxy)"
+                                                (!userProxy.IsDefault
+                                                    ? ". (Your email was imported from your default proxy)"
                                                     : ""));
 
             var networkUser = mapper.Map<NetworkUser>(createNetworkUser);
@@ -142,12 +135,14 @@ namespace thirdpartynetwork.Application.Services
 
         public async Task<NetworkUser> UpdateAsync(Guid networkId, Guid networkUserId, UpdateNetworkUserDto updateNetworkUser)
         {
+            var existing = await repository.GetByIdAsync(networkId, networkUserId);
             if (await networkService.GetByIdAsync(networkId) == null) throw new NotFoundHttpException("Network not Found");
-            if (!await repository.ExistsAsync(networkUserId)) throw new NotFoundHttpException();
+            if (existing == null) throw new NotFoundHttpException();
 
             var networkUser = mapper.Map<NetworkUser>(updateNetworkUser);
             networkUser.Id = networkUserId;
             networkUser.NetworkId = networkId;
+            networkUser.UserProxyId = existing.UserProxyId;
 
             networkUser = await repository.UpdateAsync(networkId, networkUser);
             return networkUser;
