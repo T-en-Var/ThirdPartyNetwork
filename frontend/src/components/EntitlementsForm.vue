@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-6">
     <div v-for="group in entitlementGroups" :key="group.title">
-      <section v-if="network.entitlement?.[group.allowKey]"
+      <section v-if="network.entitlement && (autoIncreaseMax || network.entitlement?.[group.allowKey])"
         class="border border-slate-200 rounded-xl overflow-hidden mb-4">
         <div
           class="flex flex-row justify-between bg-slate-50 px-4 py-2 border-b border-slate-200">
