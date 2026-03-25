@@ -251,7 +251,10 @@ export const useAuthStore = defineStore('auth', () => {
   // --- User Data and Proxy ---
 
   async function getUserProxy() {
-    if (currentUserProxy.value) return currentUserProxy.value;
+    if (currentUserProxy.value) {
+      error.value = null;
+      return currentUserProxy.value;
+    }
 
     if (!isAuthenticated.value) return null;
 
@@ -358,8 +361,6 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   function setModalOpen(newModelState: boolean) {
-    console.log(newModelState);
-    console.log(modalCallback);
     isModalOpen.value = newModelState;
     if (newModelState) modalCallback();
   }

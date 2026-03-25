@@ -462,8 +462,6 @@ const highestUserMetrics = computed<Record<string, number>>(() => {
     highest[metricKey] = topVal;
   });
 
-  console.log(highest);
-
   return highest;
 });
 

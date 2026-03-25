@@ -139,8 +139,6 @@ const canSubmit = computed(() => {
 
 onMounted(async () => {
   temporaryAccessToken = localStorage.getItem('temporaryAccessToken') || '';
-  console.log('Temporary Access Token:', temporaryAccessToken);
-
   // Redirect to login if no temporary token is present
   if (!temporaryAccessToken) {
     router.push(`/networks/${networkId.value}/login?redirectUri=${route.query.redirectUri}`);

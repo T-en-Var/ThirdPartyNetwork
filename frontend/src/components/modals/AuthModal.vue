@@ -22,11 +22,20 @@
 
               <p v-if="error" class="error-message">{{ error }}</p>
 
-              <div v-if="isInDevelopment" class="flex flex-col items-center text-sm">
-                <span>Log in as</span>
-                <div>
-                  <span class="underline text-blue-500 cursor-pointer"
-                    @click="logInAsAdmin">Admin</span>
+              <div v-if="isInDevelopment" class="flex flex-row items-center justify-center gap-8 text-sm">
+                <div class="flex flex-col items-center">
+                  <span>Log in as</span>
+                  <div>
+                    <span class="underline text-blue-500 cursor-pointer"
+                      @click="logInAsAdmin">Admin</span>
+                  </div>
+                </div>
+                <div class="flex flex-col items-center">
+                  <span>Log in as</span>
+                  <div>
+                    <span class="underline text-blue-500 cursor-pointer"
+                      @click="logInAsUser">User</span>
+                  </div>
                 </div>
               </div>
 
@@ -296,8 +305,13 @@ const logInAsAdmin = async () => {
   email.value = "admin@gmail.com";
   password.value = "admin@gmail.com";
   await login();
-}
+};
 
+const logInAsUser = async () => {
+  email.value = "normaluser@gmail.com";
+  password.value = "normaluser@gmail.com";
+  await login();
+};
 </script>
 
 <style scoped>

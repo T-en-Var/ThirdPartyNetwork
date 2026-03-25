@@ -12,26 +12,25 @@
       <RouterView v-if="!networksState.fetchNetwork.loading.value && !networksState.fetchNetwork.error.value
         && networksState.fetchNetwork.data.value"
         :network="networksState.fetchNetwork.data.value"
-        @add-user="showAddUserModal = true" @manage-user="openManageUserModal"
-        @remove-user="confirmRemoveUser" @add-role="showAddRoleModal = true"
-        @manage-role="openEditRoleModal" @remove-role="confirmRemoveRole"
+        @confirm="handleConfirmationModal" 
+        
+        @add-user="showAddUserModal = true"
+        @manage-user="openManageUserModal" 
+        @remove-user="confirmRemoveUser"
+        @add-role="showAddRoleModal = true" 
+        @manage-role="openEditRoleModal"
+        @remove-role="confirmRemoveRole" 
         @add-access="showAddAccessModal = true"
         @toggle-access-required="confirmToggleAccessRequired"
-        @remove-access="confirmRemoveAccess" @add-file="showAddFileModal = true"
-        @edit-file="openEditFileModal" @remove-file="confirmRemoveFile"
-        @open-create-custom-page-modal="showCreateCustomPageModal = true"
-        @open-create-blog-modal="showCreateBlogModal = true"
-        @open-create-configuration-modal="showCreateConfigurationModal = true"
-        @edit-blog="handleEditBlog" @remove-blog="handleRemoveBlog"
-        @edit-configuration="handleEditConfiguration"
-        @update-configuration="handleUpdateConfiguration"
-        @remove-configuration="handleRemoveConfiguration"
-        @edit-custom-page="handleEditCustomPage"
-        @remove-custom-page="handleRemoveCustomPage"
-        @update-custom-page="handleUpdateCustomPage"
+        @remove-access="confirmRemoveAccess" 
+
+        @add-file="showAddFileModal = true"
+        @edit-file="openEditFileModal" 
+        @remove-file="confirmRemoveFile"
         @edit-page-block="handleEditPageBlock"
         @create-page-block="handleShowCreatePageBlockModal"
         @update-page-block="handleUpdatePageBlock"
+
         @update-network="handleUpdateNetwork"
         @delete-network="handleDeleteNetwork" />
 
@@ -75,19 +74,6 @@
           :is-submitting="isSubmitting" @close="showEditFileModal = false"
           @update-file="editFile" @delete-file="confirmRemoveFile" />
 
-        <AddCustomPageModal v-if="showCreateCustomPageModal"
-          :is-submitting="isSubmitting" @create-custom-page="handleCreateCustomPage"
-          @close="showCreateCustomPageModal = false" />
-
-        <AddBlogModal v-if="showCreateBlogModal" :is-submitting="isSubmitting"
-          :network-id="networkId" @create-blog="handleCreateBlog"
-          @close="showCreateBlogModal = false" />
-
-        <AddConfigurationModal v-if="showCreateConfigurationModal"
-          :is-submitting="isSubmitting"
-          @create-configuration="handleCreateConfiguration"
-          @close="showCreateConfigurationModal = false" />
-
         <AddPageBlockModal
           v-if="showCreatePageBlockModal && createPageBlockCustomPage"
           :custom-page="createPageBlockCustomPage" :is-submitting="isSubmitting"
@@ -116,22 +102,17 @@ import AddFileModal from '@/components/modals/network/AddFileModal.vue';
 import EditFileModal from '@/components/modals/network/EditFileModal.vue';
 import ConfirmationModal from '@/components/modals/ConfirmationModal.vue';
 
-import type { NetworkUser, Role, NetworkAccess, NetworkFile, CustomPage, CreateCustomPage, PageBlock, CreatePageBlock, NetworkAccessCreate, Network, NetworkUpdate, CreateConfiguration, Blog, CreateBlog, UpdateNetworkUser, Configuration } from '@/types';
-import type { RoleForm, ManageUserForm, EditFileForm } from '@/types/forms';
+import type { NetworkUser, Role, NetworkAccess, NetworkFile, PageBlock, CreatePageBlock, NetworkAccessCreate, Network, NetworkUpdate, UpdateNetworkUser, CustomPage } from '@/types';
+import type { RoleForm, ManageUserForm, EditFileForm, ConfirmForm } from '@/types/forms';
 
 import api from '@/api/api';
 import useFiles from '@/composables/useFiles';
-import AddCustomPageModal from '@/components/modals/network/AddCustomPageModal.vue';
-import AddBlogModal from '@/components/modals/network/AddBlogModal.vue';
 import AddPageBlockModal from '@/components/modals/network/AddPageBlockModal.vue';
 import useCustomPages from '@/composables/useCustomPages';
-import AddConfigurationModal from '@/components/modals/network/AddConfigurationModal.vue';
-import useConfigurations from '@/composables/useConfigurations';
 import useRoles from '@/composables/useRoles';
 import useNetworks from '@/composables/useNetworks';
 import useNetworkUsers from '@/composables/useNetworkUsers';
 import useAccesses from '@/composables/useAccesses';
-import useBlogs from '@/composables/useBlogs';
 
 const router = useRouter();
 const route = useRoute();
@@ -143,8 +124,6 @@ const networkUsersState = useNetworkUsers();
 const networksState = useNetworks();
 const rolesState = useRoles();
 
-const blogsState = useBlogs();
-const configurationsState = useConfigurations();
 const customPagesState = useCustomPages();
 const filesState = useFiles();
 
@@ -156,9 +135,6 @@ const showAddAccessModal = ref(false);
 const showConfirmationModal = ref(false);
 const showAddFileModal = ref(false);
 const showEditFileModal = ref(false);
-const showCreateCustomPageModal = ref(false);
-const showCreateConfigurationModal = ref(false);
-const showCreateBlogModal = ref(false);
 const showCreatePageBlockModal = ref(false);
 const createPageBlockCustomPage = ref<CustomPage | null>(null);
 
@@ -219,6 +195,20 @@ watch(() => networksState.fetchNetwork.data.value?.imageFile?.url, (newUrl) => {
 });
 
 // Methods
+function handleConfirmationModal(form: ConfirmForm) {
+  confirmationTitle.value = form.title;
+  confirmationMessage.value = form.message;
+  confirmButtonText.value = form.buttonText;
+  confirmButtonColor.value = form.buttonColor;
+
+  confirmationAction.value = async () => {
+    await form.action();
+  };
+
+  showConfirmationModal.value = true;
+}
+
+
 function openManageUserModal(user: NetworkUser) {
   selectedUser.value = user;
   manageUserForm.roleIds = user.networkUserRoles?.map(nur => nur.role.id) || [];
@@ -488,138 +478,6 @@ async function editFile(id: string, networkId: string, networkFile: EditFileForm
   }
 }
 
-async function handleCreateCustomPage(customPageData: CreateCustomPage) {
-  isSubmitting.value = true;
-  const { execute: createCustomPage } = customPagesState.createCustomPage;
-
-  try {
-    await createCustomPage(networkId.value, customPageData);
-    showCreateCustomPageModal.value = false;
-  } catch (err) {
-    console.error('Error creating custom page:', err);
-  } finally {
-    isSubmitting.value = false;
-  }
-}
-
-async function handleCreateBlog(blogCreate: CreateBlog) {
-  isSubmitting.value = true;
-  const { execute: createBlog } = blogsState.createBlog;
-
-  try {
-    await createBlog(networkId.value, blogCreate);
-    showCreateBlogModal.value = false;
-  } catch (err) {
-    console.error('Error creating blog:', err);
-  } finally {
-    isSubmitting.value = false;
-  }
-}
-
-function handleEditBlog(blog: Blog) {
-  router.push(`/networks/${networkId.value}/manage/blogs/${blog.id}/edit`);
-}
-
-function handleRemoveBlog(blog: Blog) {
-  confirmationTitle.value = 'Remove Blog';
-  confirmationMessage.value = `Are you sure you want to remove ${blog.title} from this network?`;
-  confirmButtonText.value = 'Remove';
-  confirmButtonColor.value = 'red';
-
-  confirmationAction.value = async () => {
-    isSubmitting.value = true;
-    const { execute: deleteBlog } = blogsState.deleteBlog;
-
-    try {
-      await deleteBlog(networkId.value, blog.id);
-    } catch (err) {
-      console.error('Error removing blog:', err);
-    } finally {
-      isSubmitting.value = false;
-    }
-  };
-  showConfirmationModal.value = true;
-}
-
-async function handleCreateConfiguration(payload: CreateConfiguration) {
-  isSubmitting.value = true;
-  const { execute: createConfiguration } = configurationsState.createConfiguration;
-
-  try {
-    await createConfiguration(networkId.value, payload);
-    showCreateConfigurationModal.value = false;
-  } catch (err) {
-    console.error('Error creating configuration:', err);
-  } finally {
-    isSubmitting.value = false;
-  }
-}
-
-function handleEditConfiguration(cfg: { id: string; }) {
-  router.push(`/networks/${networkId.value}/manage/configurations/${cfg.id}/edit`);
-}
-
-async function handleUpdateConfiguration(cfgId: string, payload: CreateConfiguration) {
-  isSubmitting.value = true;
-  const { execute: updateConfiguration } = configurationsState.updateConfiguration;
-
-  try {
-    await updateConfiguration(networkId.value, cfgId, payload);
-  } catch (err) {
-    console.error('Error updating configuration:', err);
-  } finally {
-    isSubmitting.value = false;
-  }
-}
-
-function handleRemoveConfiguration(cfg: Configuration) {
-  confirmationTitle.value = 'Remove Configuration';
-  confirmationMessage.value = `Are you sure you want to remove configuration ${cfg.key ?? ''}?`;
-  confirmButtonText.value = 'Remove';
-  confirmButtonColor.value = 'red';
-
-  confirmationAction.value = async () => {
-    isSubmitting.value = true;
-    const { execute: deleteConfiguration } = configurationsState.deleteConfiguration;
-
-    try {
-      await deleteConfiguration(networkId.value, cfg.id);
-      router.push(`/networks/${networkId.value}/manage/configurations`);
-    } catch (err) {
-      console.error('Error removing configuration:', err);
-    } finally {
-      isSubmitting.value = false;
-    }
-  };
-  showConfirmationModal.value = true;
-}
-
-function handleEditCustomPage(customPage: CustomPage) {
-  router.push(`/networks/${networkId.value}/manage/custom-pages/${customPage.id}/edit`);
-}
-
-function handleRemoveCustomPage(customPage: CustomPage) {
-  confirmationTitle.value = 'Remove Custom Page';
-  confirmationMessage.value = `Are you sure you want to remove ${customPage.name} from this network?`;
-  confirmButtonText.value = 'Remove';
-  confirmButtonColor.value = 'red';
-
-  confirmationAction.value = async () => {
-    isSubmitting.value = true;
-    const { execute: deleteCustomPage } = customPagesState.deleteCustomPage;
-
-    try {
-      await deleteCustomPage(networkId.value, customPage.id);
-      router.push(`/networks/${networkId.value}/manage/custom-pages`);
-    } catch (err) {
-      console.error('Error removing custom page:', err);
-    } finally {
-      isSubmitting.value = false;
-    }
-  };
-  showConfirmationModal.value = true;
-}
-
 function handleShowCreatePageBlockModal(customPage: CustomPage) {
   showCreatePageBlockModal.value = true;
   createPageBlockCustomPage.value = customPage;
@@ -628,20 +486,6 @@ function handleShowCreatePageBlockModal(customPage: CustomPage) {
 function handleCloseCreatePageBlockModal() {
   showCreatePageBlockModal.value = false;
   createPageBlockCustomPage.value = null;
-}
-
-async function handleUpdateCustomPage(id: string, customPage: CreateCustomPage) {
-  isSubmitting.value = true;
-  const { execute: updateCustomPage } = customPagesState.updateCustomPage;
-
-  try {
-    await updateCustomPage(networkId.value, id, customPage);
-    router.push(`/networks/${networkId.value}/manage/custom-pages`);
-  } catch (err) {
-    console.error('Error editing custom page:', err);
-  } finally {
-    isSubmitting.value = false;
-  }
 }
 
 async function handleCreatePageBlock(customPageId: string, pageBlock: CreatePageBlock) {
@@ -701,7 +545,6 @@ function handleDeleteNetwork(network: Network) {
     confirmButtonColor.value = 'red';
 
     confirmationAction.value = async () => {
-      throw new Error("I am not sure if this fully works so please lets not do this.");
       globalStore.startFetching();
       isSubmitting.value = true;
 

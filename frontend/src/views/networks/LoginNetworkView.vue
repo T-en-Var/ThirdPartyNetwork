@@ -116,10 +116,6 @@ const networkNotFoundError = computed(() => {
 
 const validUrl = computed(() => {
   // Only check URL validity if the network was loaded successfully
-  console.log(networkId.value)
-  console.log(clientId.value)
-  console.log(codeChallenge.value)
-  console.log(state.value)
   return !!networkId.value && !!clientId.value && !!codeChallenge.value && !!state.value;
 });
 

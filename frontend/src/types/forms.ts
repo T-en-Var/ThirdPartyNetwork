@@ -1,4 +1,4 @@
-import type { SettableEntitlement } from "./network";
+import type { SettableEntitlement } from './network';
 
 export type ManageUserForm = {
   roleIds: string[];
@@ -11,18 +11,26 @@ export type RoleForm = {
   permissionIds: string[];
   isDefault: boolean;
   entitlements: SettableEntitlement;
-}
+};
 
 export type NetworkForm = {
   name: string;
   isPublic: boolean;
-  description: string,
-  imageUrl?: string,
-  redirectURI: string,
-}
+  description: string;
+  imageUrl?: string;
+  redirectURI: string;
+};
 
 export type EditFileForm = {
-  name: string; 
+  name: string;
   isPublic: boolean;
   accessLevel?: number;
-}
+};
+
+export type ConfirmForm = {
+  title: string;
+  message: string;
+  buttonText: string;
+  buttonColor: 'red' | 'blue' | 'green' | 'yellow' | 'gray' | 'white';
+  action: () => Promise<void>;
+};

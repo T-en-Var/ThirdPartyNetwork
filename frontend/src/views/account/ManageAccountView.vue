@@ -120,8 +120,9 @@ async function confirmAction() {
 
 async function createUserProxy(newUserProxy: UserProxyCreate) {
   if (!user.value) return;
+
   
-  const { execute: createUserProxy, error } = useUsers().createUserProxy;
+  const { execute: createUserProxy } = useUsers().createUserProxy;
   isSubmitting.value = true;
   try {
     await createUserProxy(user.value.id, newUserProxy);
@@ -130,7 +131,6 @@ async function createUserProxy(newUserProxy: UserProxyCreate) {
     console.error('Error adding user proxy:', err);
   } finally {
     isSubmitting.value = false;
-    console.log(error)
   }
 }
 

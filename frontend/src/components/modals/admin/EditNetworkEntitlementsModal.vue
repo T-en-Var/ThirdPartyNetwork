@@ -88,8 +88,6 @@ const fakeNetwork: ComputedRef<Network> = computed(() => {
 
 onMounted(() => {
   initEntitlements(props.network.entitlement!, false);
-  console.log(fakeNetwork.value)
-  setTimeout(() => console.log(fakeNetwork.value), 1000)
 });
 
 function handleSubmit() {
