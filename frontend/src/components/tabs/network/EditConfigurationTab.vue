@@ -69,10 +69,11 @@ import { useHistoryStore } from '@/stores/history';
 
 const router = useRouter();
 const route = useRoute();
-const historyStore = useHistoryStore();
 
 const networkId = route.params.networkId as string;
 const configurationId = computed(() => route.params.configurationId as string);
+
+const historyStore = useHistoryStore(networkId);
 
 const configurationsState = useConfigurations();
 const { data: configuration, execute: fetchConfiguration, loading, error } = configurationsState.fetchConfiguration;
@@ -90,7 +91,7 @@ const formattedValue = computed(() => {
 async function load() {
   await fetchConfiguration(networkId, configurationId.value);
   if (configuration.value) {
-    historyStore.configurationVisit(configuration.value);
+    historyStore.visit.configurations(configuration.value);
     form.value.key = configuration.value.key;
     form.value.accessLevel = configuration.value.accessLevel;
     form.value.value = configuration.value.value;

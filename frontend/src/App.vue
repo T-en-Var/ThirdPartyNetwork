@@ -22,20 +22,17 @@ import AppFooter from '@/components/AppFooter.vue';
 import { computed, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { initializeApiClient } from './api/api';
-import { useHistoryStore } from './stores/history';
 import { useAuthStore } from './stores/auth';
 // import { globalCache } from './composables/useApi';
 
 const router = useRouter();
 const route = useRoute();
-const historyStore = useHistoryStore();
 const authStore = useAuthStore();
 
 onMounted(async () => {
   initializeApiClient(router, route);
   
   await authStore.initialize();
-  historyStore.initialize();
 });
 
 const showNavbar = computed(() => {

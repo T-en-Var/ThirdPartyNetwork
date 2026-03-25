@@ -23,9 +23,9 @@ import Sidebar from '@/components/sidebar/SideBar.vue';
 import type { NavCategory, SubItem } from '@/types/sidebar';
 
 const route = useRoute();
-const historyStore = useHistoryStore();
-
 const networkId = computed(() => route.params?.networkId as string | undefined);
+
+const historyStore = useHistoryStore(networkId.value ?? "no value");
 
 const navItems: ComputedRef<NavCategory[]> = computed(() => [
   {
@@ -50,19 +50,19 @@ const navItems: ComputedRef<NavCategory[]> = computed(() => [
       {
         page: 'custom-pages',
         label: 'Custom Pages',
-        subItems: historyStore.customPages.map(cp => ({ page: cp.id, label: cp.name })).slice().reverse(),
+        subItems: historyStore.data.customPages.map(cp => ({ page: cp.id, label: cp.name })).slice().reverse(),
         getURI: (sub: SubItem) => `custom-pages/${sub.page}/edit`,
       },
       {
         page: 'configurations',
         label: 'Configurations',
-        subItems: historyStore.configurations.map(cp => ({ page: cp.id, label: cp.key })).slice().reverse(),
+        subItems: historyStore.data.configurations.map(cp => ({ page: cp.id, label: cp.key })).slice().reverse(),
         getURI: (sub: SubItem) => `configurations/${sub.page}/edit`,
       },
       {
         page: 'blogs',
         label: 'Blogs',
-        subItems: historyStore.blogs.map(b => ({ page: b.id, label: b.title })).slice().reverse(),
+        subItems: historyStore.data.blogs.map(b => ({ page: b.id, label: b.title })).slice().reverse(),
         getURI: (sub: SubItem) => `blogs/${sub.page}/edit`,
       },
     ],

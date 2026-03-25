@@ -126,11 +126,12 @@ import { useHistoryStore } from '@/stores/history';
 
 const router = useRouter();
 const route = useRoute();
-const historyStore = useHistoryStore();
 const { data: blog, loading, error, execute: fetchBlog } = useBlogs().fetchBlog;
 
 const blogId = route.params.blogId as string;
 const networkId = route.params.networkId as string;
+
+const historyStore = useHistoryStore(networkId);
 
 // State
 const isPreviewing = ref(false); // Toggle state
@@ -149,7 +150,7 @@ onMounted(async () => {
   await fetchBlog(networkId, blogId);
   if (!blog.value) return;
 
-  historyStore.blogVisit(blog.value);
+  historyStore.visit.blogs(blog.value);
 
   // Hydrate Form
   form.value.title = blog.value.title;

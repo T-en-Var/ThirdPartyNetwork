@@ -25,7 +25,7 @@
 <script setup lang="ts">
 import useConfigurations from '@/composables/useConfigurations';
 import type { Configuration, ConfirmForm, CreateConfiguration } from '@/types';
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import UserContentViewer from '@/components/UserContentViewer.vue';
 import AddConfigurationModal from '@/components/modals/network/AddConfigurationModal.vue';
@@ -33,12 +33,16 @@ import AddConfigurationModal from '@/components/modals/network/AddConfigurationM
 const route = useRoute();
 const router = useRouter();
 
-const { execute: fetchConfigurations, data: configurations } = useConfigurations().fetchNetworkConfigurations;
+const { execute: fetchConfigurations, data: rawConfigurations } = useConfigurations().fetchNetworkConfigurations;
 
 const networkId = route.params.networkId as string;
 
 const showCreateModal = ref(false);
 const isSubmitting = ref(false);
+
+const configurations = computed(() => (rawConfigurations.value ?? []).map(cfg => {
+  return {...cfg, value: previewValue(cfg.value) as unknown as object}
+}))
 
 onMounted(async () => {
   await fetchConfigurations(networkId);
@@ -47,6 +51,17 @@ onMounted(async () => {
 const emit = defineEmits<{
   (e: 'confirm', form: ConfirmForm): void;
 }>();
+
+function previewValue(v: object | string | number | boolean | null): string {
+  try {
+    if (typeof v === 'string') return v;
+    const s = JSON.stringify(v);
+    if (s.length > 80) return s.slice(0, 77) + '...';
+    return s;
+  } catch {
+    return '';
+  }
+}
 
 async function handleCreateConfiguration(configurationCreate: CreateConfiguration) {
   const { execute: createConfiguration } = useConfigurations().createConfiguration;

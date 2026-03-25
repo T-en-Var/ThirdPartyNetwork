@@ -122,11 +122,12 @@ const emit = defineEmits<{
 
 const router = useRouter();
 const route = useRoute();
-const historyStore = useHistoryStore();
 const { data: customPage, loading, error, execute: fetchCustomPage } = useCustomPages().fetchCustomPage;
 
 const customPageId = route.params.customPageId as string;
 const networkId = route.params.networkId as string;
+
+const historyStore = useHistoryStore(networkId);
 
 const form = ref<CreateCustomPage>({ name: '', slug: '', accessLevel: 0 });
 const viewMode = ref<'flat' | 'grouped'>('flat');
@@ -142,7 +143,7 @@ onMounted(async () => {
   form.value.slug = customPage.value.slug;
   form.value.accessLevel = customPage.value.accessLevel ?? 0;
 
-  historyStore.customPageVisit(customPage.value);
+  historyStore.visit.customPages(customPage.value);
 });
 
 const groupedBlocks = computed(() => {

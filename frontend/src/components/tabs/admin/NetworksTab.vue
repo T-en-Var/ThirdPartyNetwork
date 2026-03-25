@@ -403,7 +403,7 @@ import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import EditNetworkEntitlementsModal from '@/components/modals/admin/EditNetworkEntitlementsModal.vue';
 import { entitlementKeys } from '@/composables/useEntitlements';
 import useNetworks from '@/composables/useNetworks';
-import { useHistoryStore } from '@/stores/history';
+import { DEFAULT_STORES, useHistoryStore } from '@/stores/history';
 import type { EntitlementLimits, Network, NetworkEntitlement, NetworkMetrics, SettableEntitlement } from '@/types';
 import { capitalize, computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
@@ -421,7 +421,7 @@ interface EntitlementGroup {
 }
 
 const router = useRouter();
-const historyStore = useHistoryStore();
+const historyStore = useHistoryStore(DEFAULT_STORES.adminPage);
 
 const { execute: fetchNetworks, error, loading, data: networks } = useNetworks().fetchNetworks;
 const { execute: fetchNetworksMetrics, data: networksMetrics } = useNetworks().fetchNetworksMetrics;
@@ -437,9 +437,7 @@ const sortBy = ref<string>('users');
 const sortOrder = ref<'asc' | 'desc'>('desc');
 const showFilters = ref(false);
 
-// activeFilters.booleans: { allowFiles: true | false | null }
 const activeBooleanFilters = ref<Record<string, boolean | null>>({});
-// activeFilters.ranges: { fileCountLimit: [[limit-min, limit-max], [used-min, used-max]] }
 const activeRangeFilters = ref<Record<string, [[number, number], [number, number]]>>({});
 
 const isSubmitting = ref(false);
@@ -454,12 +452,11 @@ const allNetworks = computed<ComboNetwork[]>(() => {
     .map(network => {
       const metrics = networksMetrics.value?.find(n => n.networkId === network.id);
 
-      // If metrics aren't found, we can't make a ComboNetwork
       if (!metrics) return null;
 
       return { ...network, ...metrics };
     })
-    .filter((n): n is ComboNetwork => n !== null); // Remove nulls and type-guard
+    .filter((n): n is ComboNetwork => n !== null);
 });
 const allEntitlementKeys = computed(() => Object.values(entitlementKeys).flat());
 
@@ -657,7 +654,7 @@ const handleUpdateNetwork = async (networkEntitlement: SettableEntitlement) => {
 };
 
 const handleManageNetwork = (network: Network) => {
-  historyStore.networkVisit(network);
+  historyStore.visit.networks(network);
   router.push(`/networks/${network.id}/manage`);
 }
 

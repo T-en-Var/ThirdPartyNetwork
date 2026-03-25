@@ -66,6 +66,33 @@ const router = createRouter({
             title: 'User Files',
           },
         },
+        {
+          path: 'blogs',
+          name: 'manage-account-blogs',
+          component: () => import('@/components/tabs/account/BlogsTab.vue'),
+          meta: {
+            requiresAuth: true,
+            title: 'User Blogs',
+          },
+        },
+        {
+          path: 'configurations',
+          name: 'manage-account-configurations',
+          component: () => import('@/components/tabs/account/ConfigurationsTab.vue'),
+          meta: {
+            requiresAuth: true,
+            title: 'User Configurations',
+          },
+        },
+        {
+          path: 'custom-pages',
+          name: 'manage-account-custom-pages',
+          component: () => import('@/components/tabs/account/CustomPagesTab.vue'),
+          meta: {
+            requiresAuth: true,
+            title: 'User Custom Pages',
+          },
+        },
       ],
     },
     {

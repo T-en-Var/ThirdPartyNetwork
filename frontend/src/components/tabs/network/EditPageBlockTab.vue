@@ -162,12 +162,12 @@
       </div>
 
       <!-- History -->
-      <div v-if="historyStore.pageBlocks.length" class="mt-4">
+      <div v-if="historyStore.data.pageBlocks.length" class="mt-4">
         <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
           Recently Visited
         </h4>
         <div class="flex flex-wrap gap-2">
-          <RouterLink v-for="pb in [...historyStore.pageBlocks].reverse()"
+          <RouterLink v-for="pb in [...historyStore.data.pageBlocks].reverse()"
             :key="pb.id"
             :to="`/networks/${networkId}/manage/custom-pages/${customPageId}/blocks/${pb.id}/edit`"
             class="px-2 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded text-xs transition">
@@ -200,11 +200,12 @@ const emit = defineEmits<{
 
 const router = useRouter();
 const route = useRoute();
-const historyStore = useHistoryStore();
 
 const networkId = route.params.networkId as string;
 const customPageId = route.params.customPageId as string;
 const pageBlockId = computed(() => route.params.pageBlockId as string);
+
+const historyStore = useHistoryStore(networkId);
 
 const form = ref<Partial<PageBlock>>({
   parentPageId: '',
@@ -236,7 +237,7 @@ const handleMounted = async () => {
     jsonEditorValue.value = {};
   }
 
-  historyStore.pageBlockVisit(currentPageBlock.value);
+  historyStore.visit.pageBlocks(currentPageBlock.value);
 };
 
 watch(

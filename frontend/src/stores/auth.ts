@@ -8,7 +8,7 @@ import { useGlobalStore } from './global';
 import { decodeJWT } from '@/lib/utils';
 import { ClaimChecker } from '@/lib/claimChecker';
 import useNetworks from '@/composables/useNetworks';
-import { useHistoryStore } from './history';
+import { clearAllHistoryStores } from './history';
 
 // --- Constants for Local Storage Keys ---
 const ACCESS_TOKEN_KEY = 'access_token';
@@ -72,7 +72,6 @@ export const useAuthStore = defineStore('auth', () => {
   const error = ref<string | null>(null);
 
   const global = useGlobalStore();
-  const historyStore = useHistoryStore();
 
   // --- Computed Properties ---
 
@@ -164,7 +163,7 @@ export const useAuthStore = defineStore('auth', () => {
       if (response.status === 200) {
         saveTokens(response.data.accessToken, response.data.refreshToken);
       }
-      historyStore.reset();
+      clearAllHistoryStores();
       return response;
     } catch (err) {
       const message =
@@ -353,6 +352,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   function logout() {
+    clearAllHistoryStores();
     clearTokens();
   }
 

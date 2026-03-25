@@ -69,8 +69,7 @@
                 <div class="h-6 w-6 flex-shrink-0 mr-2">
                   <ProfileAvatar :userProxy="networkUser.userProxy" :size="6" />
                 </div>
-                <span class="text-xs">{{
-                  getNameDisplayUserProxy(networkUser.userProxy) }}</span>
+                <span class="text-xs">{{ networkUser.userProxy.username ?? 'Unknown User' }}</span>
               </div>
               <span v-if="role.networkUserRoles.length === 0"
                 class="text-sm text-gray-500">
@@ -100,7 +99,6 @@ import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import LoadingSpinner from '@/components/LoadingSpinner.vue';
 import ProfileAvatar from '@/components/ProfileAvatar.vue';
 import useRoles from '@/composables/useRoles';
-import { getNameDisplayUserProxy } from '@/lib/user';
 import type { Network, Role } from '@/types';
 import { onMounted } from 'vue';
 

@@ -134,7 +134,7 @@
                   entry.networkId }}</td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex flex-row gap-2 items-center">
-                  <ProfileAvatar v-if="entry.author.userProxy.imageFile"
+                  <ProfileAvatar
                     :userProxy="entry.author.userProxy" :size="7" />
                   <span class="text-xs text-gray-500">@{{
                     entry.author.userProxy.username }}</span>

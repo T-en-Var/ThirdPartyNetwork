@@ -216,7 +216,6 @@ import useUsers from '@/composables/useUsers';
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
-const historyStore = useHistoryStore();
 
 // const { data: userProxy, loading, error, execute: fetchUserProxy } = useUserProxy().fetchUserProxy;
 const { data: user, loading, error, execute: fetchUser } = useUsers().fetchUser;
@@ -231,6 +230,8 @@ const emit = defineEmits<{
 }>();
 
 const userProxyId = computed(() => route.params.userProxyId as string)
+
+const historyStore = useHistoryStore(userProxyId.value);
 
 watch(
   () => userProxyId.value,
@@ -252,9 +253,7 @@ async function handleMounted() {
   userProxy.value = user.value.userProxies.find(up => up.id == userProxyId.value) ?? null;
   if (!userProxy.value) throw new Error("UserProxy not found");
 
-  console.log(user.value)
-
-  historyStore.userProxyVisit(userProxy.value);
+  historyStore.visit.userProxies(userProxy.value);
 
   form.value = {
     username: userProxy.value.username,

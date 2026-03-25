@@ -8,7 +8,7 @@ import { useHistoryStore } from '@/stores/history';
 import Sidebar from '@/components/sidebar/SideBar.vue';
 import type { NavCategory, SubItem } from '@/types/sidebar';
 
-const historyStore = useHistoryStore();
+const historyStore = useHistoryStore('account');
 
 const navItems: ComputedRef<NavCategory[]> = computed(() => [
   {
@@ -18,7 +18,7 @@ const navItems: ComputedRef<NavCategory[]> = computed(() => [
       {
         page: 'proxies',
         label: 'Proxies',
-        subItems: historyStore.userProxies.map(up => ({ page: up.id, label: up.username ?? 'Unnamed' })),
+        subItems: historyStore.data.userProxies.map(up => ({ page: up.id, label: up.username ?? 'Unnamed' })),
         getURI: (sub: SubItem) => `proxies/${sub.page}/edit`,
       },
     ],
@@ -26,7 +26,25 @@ const navItems: ComputedRef<NavCategory[]> = computed(() => [
   {
     title: 'Content',
     items: [
-      { page: 'files', label: 'Files', subItems: [], getURI: () => `` }
+      { page: 'files', label: 'Files', subItems: [], getURI: () => `` },
+      {
+        page: 'custom-pages',
+        label: 'Custom Pages',
+        subItems: historyStore.data.customPages.map(cp => ({ page: cp.id, label: cp.name })).slice().reverse(),
+        getURI: (sub: SubItem) => `custom-pages/${sub.page}/edit`,
+      },
+      {
+        page: 'configurations',
+        label: 'Configurations',
+        subItems: historyStore.data.configurations.map(cp => ({ page: cp.id, label: cp.key })).slice().reverse(),
+        getURI: (sub: SubItem) => `configurations/${sub.page}/edit`,
+      },
+      {
+        page: 'blogs',
+        label: 'Blogs',
+        subItems: historyStore.data.blogs.map(b => ({ page: b.id, label: b.title })).slice().reverse(),
+        getURI: (sub: SubItem) => `blogs/${sub.page}/edit`,
+      },
     ],
   },
 ]);
