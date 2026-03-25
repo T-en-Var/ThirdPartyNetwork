@@ -3,7 +3,8 @@ import { defineStore } from 'pinia';
 import { reactive } from 'vue';
 
 export const DEFAULT_STORES = {
-  adminPage: 'admin-page'
+  adminPage: 'admin-page',
+  account: 'account'
 }
 
 export interface HistoryModelMap {

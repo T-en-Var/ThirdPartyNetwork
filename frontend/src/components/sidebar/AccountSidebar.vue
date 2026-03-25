@@ -4,11 +4,11 @@
 
 <script setup lang="ts">
 import { computed, type ComputedRef } from 'vue';
-import { useHistoryStore } from '@/stores/history';
+import { DEFAULT_STORES, useHistoryStore } from '@/stores/history';
 import Sidebar from '@/components/sidebar/SideBar.vue';
 import type { NavCategory, SubItem } from '@/types/sidebar';
 
-const historyStore = useHistoryStore('account');
+const historyStore = useHistoryStore(DEFAULT_STORES.account);
 
 const navItems: ComputedRef<NavCategory[]> = computed(() => [
   {

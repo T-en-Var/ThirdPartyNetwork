@@ -16,7 +16,7 @@
       </UserContentViewer>
 
       <AddConfigurationModal v-if="showCreateModal" :is-submitting="isSubmitting"
-        :network-id="networkId" @create-configuration="handleCreateConfiguration"
+        :network-id="networkId" @submit="handleCreateConfiguration"
         @close="showCreateModal = false" />
     </div>
   </div>

@@ -15,7 +15,7 @@
           class="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 text-sm" />
       </div>
 
-      <button @click="$emit('add-new')"
+      <button @click="$emit('add-new')" v-if="!hideAddNew"
         class="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium">
         Add New
       </button>
@@ -192,6 +192,7 @@ const props = defineProps<{
   entries: T[];
   extraColumns: ExtraColumn[];
   showNetwork?: boolean;
+  hideAddNew?: boolean;
 }>();
 
 defineEmits<{

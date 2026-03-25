@@ -11,24 +11,19 @@
         label: 'Value',
         type: 'string',
         filter: false,
-      }]" :show-network="false" @add-new="showCreateModal = true"
+      }]" :show-network="true" @add-new="showCreateModal = true"
         @edit="handleEditCustomPage" @remove="handleRemoveCustomPage">
       </UserContentViewer>
-
-      <AddCustomPageModal v-if="showCreateModal"
-        :is-submitting="isSubmitting" @create-custom-page="handleCreateCustomPage"
-        @close="showCreateModal = false" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import useCustomPages from '@/composables/useCustomPages';
-import type { CustomPage, ConfirmForm, CreateCustomPage } from '@/types';
+import type { CustomPage, ConfirmForm } from '@/types';
 import { onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import UserContentViewer from '@/components/UserContentViewer.vue';
-import AddCustomPageModal from '@/components/modals/network/AddCustomPageModal.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -48,23 +43,8 @@ const emit = defineEmits<{
   (e: 'confirm', form: ConfirmForm): void;
 }>();
 
-
-async function handleCreateCustomPage(customPageCreate: CreateCustomPage) {
-  const { execute: createCustomPage } = useCustomPages().createCustomPage;
-  isSubmitting.value = true;
-
-  try {
-    await createCustomPage(networkId, customPageCreate);
-    showCreateModal.value = false;
-  } catch (err) {
-    console.error('Error creating customPage:', err);
-  } finally {
-    isSubmitting.value = false;
-  }
-}
-
 function handleEditCustomPage(customPage: CustomPage) {
-  router.push(`/networks/${networkId}/manage/custom-pages/${customPage.id}/edit`);
+  router.push(`/account/networks/${networkId}/custom-pages/${customPage.id}/edit`);
 }
 
 function handleRemoveCustomPage(customPage: CustomPage) {

@@ -12,6 +12,16 @@ export default function useBlogs() {
     (networkId, blogId) => `networks_${networkId}_blogs_${blogId}`,
     async (networkId, blogId) => await api.get<Blog>(`/networks/${networkId}/blogs/${blogId}`),
   );
+  
+  const fetchUserBlogs = useCachedApi<Blog[], [userId: string, userProxyId: string]>(
+    (userId, userProxyId) => `users_${userId}_proxies_${userProxyId}_blogs`,
+    async (userId, userProxyId) => await api.get<Blog[]>(`/users/${userId}/proxies/${userProxyId}/blogs`),
+  );
+
+  const fetchUserBlog = useCachedApi<Blog, [userId: string, userProxyId: string, blogId: string]>(
+    (userId, userProxyId, blogId) => `users_${userId}_proxies_${userProxyId}_blogs_${blogId}`,
+    async (userId, userProxyId, blogId) => await api.get<Blog>(`/users/${userId}/proxies/${userProxyId}/blogs/${blogId}`),
+  );
 
   const createBlog = useMutation<Blog, [networkId: string, payload: CreateBlog]>(
     async (networkId, payload) =>
@@ -34,5 +44,5 @@ export default function useBlogs() {
     }
   )
 
-  return { fetchBlogs, fetchBlog, createBlog, deleteBlog };
+  return { fetchBlogs, fetchBlog, fetchUserBlogs, fetchUserBlog, createBlog, deleteBlog };
 }

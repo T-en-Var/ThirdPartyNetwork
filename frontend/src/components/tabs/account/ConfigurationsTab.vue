@@ -1,22 +1,24 @@
 <template>
   <div class="bg-white shadow-md rounded-lg overflow-hidden p-6">
     <div class="flex flex-col gap-6">
-      <UserContentViewer title="Configurations" :entries="configurations || []" :extra-columns="[{
-        key: 'key',
-        label: 'Key',
-        type: 'string',
-        filter: false,
-      }, {
-        key: 'value',
-        label: 'Value',
-        type: 'string',
-        filter: false,
-      }]" :show-network="false" @add-new="showCreateModal = true"
+      <UserContentViewer title="Configurations" :entries="configurations || []"
+        :extra-columns="[{
+          key: 'key',
+          label: 'Key',
+          type: 'string',
+          filter: false,
+        }, {
+          key: 'value',
+          label: 'Value',
+          type: 'string',
+          filter: false,
+        }]" :show-network="true" @add-new="showCreateModal = true"
         @edit="handleEditConfiguration" @remove="handleRemoveConfiguration">
       </UserContentViewer>
 
       <AddConfigurationModal v-if="showCreateModal" :is-submitting="isSubmitting"
-        :network-id="networkId" @create-configuration="handleCreateConfiguration"
+        :network-id="networkId" :network-ids="networkIds"
+        @submit="handleCreateConfiguration"
         @close="showCreateModal = false" />
     </div>
   </div>
@@ -36,13 +38,14 @@ const router = useRouter();
 const { execute: fetchConfigurations, data: rawConfigurations } = useConfigurations().fetchNetworkConfigurations;
 
 const networkId = route.params.networkId as string;
+const networkIds = computed(() => (rawConfigurations.value ?? []).map(cfg => cfg.networkId));
 
 const showCreateModal = ref(false);
 const isSubmitting = ref(false);
 
 const configurations = computed(() => (rawConfigurations.value ?? []).map(cfg => {
-  return {...cfg, value: previewValue(cfg.value) as unknown as object}
-}))
+  return { ...cfg, value: previewValue(cfg.value) as unknown as object };
+}));
 
 onMounted(async () => {
   await fetchConfigurations(networkId);
@@ -63,12 +66,12 @@ function previewValue(v: object | string | number | boolean | null): string {
   }
 }
 
-async function handleCreateConfiguration(configurationCreate: CreateConfiguration) {
+async function handleCreateConfiguration(payload: CreateConfiguration) {
   const { execute: createConfiguration } = useConfigurations().createConfiguration;
   isSubmitting.value = true;
 
   try {
-    await createConfiguration(networkId, configurationCreate);
+    await createConfiguration(networkId, payload);
     showCreateModal.value = false;
   } catch (err) {
     console.error('Error creating configuration:', err);

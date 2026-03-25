@@ -21,7 +21,7 @@
         label: 'Bytes (KB)',
         type: 'number',
         filter: true,
-      }]" :show-network="false" @add-new="() => $emit('add-file')"
+      }]" :show-network="true" @add-new="() => $emit('add-file')"
         @edit="(f) => $emit('edit-file', f)" @remove="(f) => $emit('remove-file', f)">
       </UserContentViewer>
     </div>
@@ -32,21 +32,21 @@
 import useFiles from '@/composables/useFiles';
 import type { NetworkFile, ConfirmForm } from '@/types';
 import { computed, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
 import UserContentViewer from '@/components/UserContentViewer.vue';
+import { useAuthStore } from '@/stores/auth';
 
-const route = useRoute();
+const authStore = useAuthStore();
 
-const { execute: fetchFiles, data: rawFiles } = useFiles().fetchNetworkFiles;
-
-const networkId = route.params.networkId as string;
+const { execute: fetchUserFiles, data: rawFiles } = useFiles().fetchUserFiles;
 
 const files = computed(() => (rawFiles.value ?? [] as NetworkFile[]).map(f => {
   return {...f, sizeBytes: Math.round(f.sizeBytes / 1024)};
 }));
 
 onMounted(async () => {
-  await fetchFiles(networkId);
+  const currentUser = await authStore.getUserProxy();
+  if (!currentUser) throw new Error("Userproxy not found");
+  await fetchUserFiles(currentUser.user.id, currentUser.id);
 });
 
 defineEmits<{

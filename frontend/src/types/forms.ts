@@ -34,3 +34,8 @@ export type ConfirmForm = {
   buttonColor: 'red' | 'blue' | 'green' | 'yellow' | 'gray' | 'white';
   action: () => Promise<void>;
 };
+
+export type CreateUserContentForm = {
+  networkId: string;
+  accessLevel: number;
+}

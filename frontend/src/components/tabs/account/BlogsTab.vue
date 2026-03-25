@@ -16,60 +16,39 @@
         label: 'Summary',
         type: 'string',
         filter: false,
-      }]" :show-network="false" @add-new="showCreateModal = true"
+      }]" :show-network="true" :hide-add-new="true" @add-new="() => {}"
         @edit="handleEditBlog" @remove="handleRemoveBlog">
       </UserContentViewer>
-
-      <AddBlogModal v-if="showCreateModal" :is-submitting="isSubmitting"
-        :network-id="networkId" @create-blog="handleCreateBlog"
-        @close="showCreateModal = false" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import useBlogs from '@/composables/useBlogs';
-import type { Blog, ConfirmForm, CreateBlog } from '@/types';
+import type { Blog, ConfirmForm } from '@/types';
 import { onMounted, ref } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { useRouter } from 'vue-router';
 import UserContentViewer from '@/components/UserContentViewer.vue';
-import AddBlogModal from '@/components/modals/network/AddBlogModal.vue';
+import { useAuthStore } from '@/stores/auth';
 
-const route = useRoute();
 const router = useRouter();
+const authStore = useAuthStore();
 
-const { execute: fetchBlogs, data: blogs } = useBlogs().fetchBlogs;
-
-const networkId = route.params.networkId as string;
-
-const showCreateModal = ref(false);
+const { execute: fetchUserBlogs, data: blogs } = useBlogs().fetchUserBlogs;
 const isSubmitting = ref(false);
 
 onMounted(async () => {
-  await fetchBlogs(networkId);
+  const currentUser = await authStore.getUserProxy();
+  if (!currentUser) throw new Error("Userproxy not found");
+  await fetchUserBlogs(currentUser.user.id, currentUser.id);
 });
 
 const emit = defineEmits<{
   (e: 'confirm', form: ConfirmForm): void;
 }>();
 
-
-async function handleCreateBlog(blogCreate: CreateBlog) {
-  const { execute: createBlog } = useBlogs().createBlog;
-  isSubmitting.value = true;
-
-  try {
-    await createBlog(networkId, blogCreate);
-    showCreateModal.value = false;
-  } catch (err) {
-    console.error('Error creating blog:', err);
-  } finally {
-    isSubmitting.value = false;
-  }
-}
-
 function handleEditBlog(blog: Blog) {
-  router.push(`/networks/${networkId}/manage/blogs/${blog.id}/edit`);
+  router.push(`/account/networks/${blog.networkId}/blogs/${blog.id}/edit`);
 }
 
 function handleRemoveBlog(blog: Blog) {
@@ -84,7 +63,7 @@ function handleRemoveBlog(blog: Blog) {
       const { execute: deleteBlog } = useBlogs().deleteBlog;
 
       try {
-        await deleteBlog(networkId, blog.id);
+        await deleteBlog(blog.networkId, blog.id);
       } catch (err) {
         console.error('Error removing blog:', err);
       } finally {
