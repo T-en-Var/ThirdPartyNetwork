@@ -1,6 +1,8 @@
 <template>
   <modal-container title="Add Page Block" @close="$emit('close')">
-    <form @submit.prevent="handleSubmit" class="space-y-4">
+    <CreateUserContentContainer :is-submitting="isSubmitting"
+      :input-is-valid="inputIsValid" :network-id="customPage.networkId"
+      button-text="Add Blog" @submit="handleSubmit">
       <!-- Name -->
       <div>
         <label for="pageText" class="block text-sm font-semibold text-gray-800 mb-2">
@@ -13,7 +15,8 @@
 
       <!-- Slug -->
       <div>
-        <label for="pagePosition" class="block text-sm font-semibold text-gray-800 mb-2">
+        <label for="pagePosition"
+          class="block text-sm font-semibold text-gray-800 mb-2">
           Page Block Posistion
         </label>
         <input id="pageSlug" v-model="form.position" type="number"
@@ -36,27 +39,27 @@
           <span v-else>Add Page</span>
         </button>
       </div>
-    </form>
+    </CreateUserContentContainer>
   </modal-container>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import ModalContainer from '@/components/modals/ModalContainer.vue';
-import type { CreatePageBlock, CustomPage } from '@/types';
+import type { CreatePageBlock, CustomPage, UserContentCreateBase } from '@/types';
+import CreateUserContentContainer from '../CreateUserContentContainer.vue';
 
-const props = withDefaults(
-  defineProps<{
-    isSubmitting?: boolean;
-    customPage: CustomPage
-  }>(),
-  { isSubmitting: false }
-);
+const props = defineProps<{
+  isSubmitting: boolean;
+  customPage: CustomPage;
+}>();
 
 const emit = defineEmits<{
   (e: 'close'): void;
-  (e: 'createPageBlock', id: string, pageBlock: CreatePageBlock): void;
+  (e: 'submit', id: string, pageBlock: CreatePageBlock): void;
 }>();
+
+const inputIsValid = computed(() => true);
 
 const form = ref({
   text: '',
@@ -65,7 +68,8 @@ const form = ref({
   customPageId: props.customPage.id
 });
 
-function handleSubmit() {
-  emit('createPageBlock', props.customPage.id, { ...form.value });
+function handleSubmit(_: UserContentCreateBase) {
+  void _;
+  emit('submit', props.customPage.id, { ...form.value });
 }
 </script>

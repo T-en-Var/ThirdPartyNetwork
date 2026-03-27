@@ -190,7 +190,7 @@ import JsonEditorVue from 'json-editor-vue';
 import { useHistoryStore } from '@/stores/history';
 import TreeNodeComponent from '@/components/TreeNodeComponent.vue';
 import SearchableSelect from '@/components/SearchableSelect.vue';
-import useCustomPages from '@/composables/useCustomPages';
+import useCustomPages from '@/composables/network/useCustomPages';
 
 defineProps<{ network: Network; }>();
 

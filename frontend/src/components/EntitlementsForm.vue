@@ -44,6 +44,7 @@
                   Range: 0 - {{ Number(network.entitlement[limit.key]) }}
                 </span>
                 <span v-else></span>
+                {{ limit.key }}
 
                 <div
                   class="flex items-center gap-1 bg-white border border-slate-200 rounded px-2 py-0.5 shadow-sm focus-within:border-blue-400 transition-colors">

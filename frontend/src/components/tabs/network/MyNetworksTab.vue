@@ -1,4 +1,3 @@
-<!-- MyNetworksTab.vue -->
 <template>
   <div>
     <h2 class="text-xl font-medium text-gray-800 mb-4">Networks You've Joined</h2>

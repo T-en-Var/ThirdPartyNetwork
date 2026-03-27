@@ -247,7 +247,7 @@
                           <span
                             class="font-normal border-l border-slate-200 pl-1.5 ml-0.5 text-slate-700">
                             <span class="font-bold">{{ (user[key] ||
-                              0).toLocaleString() }}</span>
+                              0).toLocaleString("nl-NL") }}</span>
                           </span>
 
                         </span>

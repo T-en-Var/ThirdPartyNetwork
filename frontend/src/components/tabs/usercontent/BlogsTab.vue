@@ -28,16 +28,24 @@
 </template>
 
 <script setup lang="ts">
-import useBlogs from '@/composables/useBlogs';
 import type { Blog, ConfirmForm, CreateBlog } from '@/types';
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, watch, type Ref } from 'vue';
 import UserContentViewer from '@/components/UserContentViewer.vue';
 import AddBlogModal from '@/components/modals/usercontent/AddBlogModal.vue';
+import { useEventStore } from '@/stores/event';
 
-const { execute: fetchBlogs, data: blogs } = useBlogs().fetchBlogs;
+const events = useEventStore();
+
+const showCreateModal = ref(false);
+const isSubmitting = ref(false);
+
+const blogs = ref<Blog[]>([]);
+
 
 const props = defineProps<{
-  networkId: string;
+  networkId?: string;
+  networkIds?: string[];
+  fetchBlogs: () => Promise<Ref<Blog[] | null>>
 }>();
 
 const emit = defineEmits<{
@@ -45,17 +53,20 @@ const emit = defineEmits<{
   (e: 'blog-edit', blog: Blog): void;
   (e: 'blog-delete', blog: Blog): void;
   (e: 'confirm', form: ConfirmForm): void;
-}>()
-
-const showCreateModal = ref(false);
-const isSubmitting = ref(false);
+}>();
 
 onMounted(async () => {
-  await fetchBlogs(props.networkId);
+  const remoteRef = await props.fetchBlogs();
+
+  watch(remoteRef, (newVal) => blogs.value = newVal ?? [], { immediate: true });
 });
 
 
 async function handleCreateBlog(networkId: string, blogCreate: CreateBlog) {
+  events.listen.blogs.create((blog) => {
+    showCreateModal.value = false;
+    handleEditBlog(blog);
+  });
   emit('blog-create', networkId, blogCreate);
 }
 

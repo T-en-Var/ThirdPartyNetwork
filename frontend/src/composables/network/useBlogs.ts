@@ -1,6 +1,6 @@
 import api from '@/api/api';
 import type { Blog, CreateBlog } from '@/types/userContent/blog';
-import { useCachedApi, useMutation } from './useApi';
+import { useCachedApi, useMutation } from '../useApi';
 
 export default function useBlogs() {
   const fetchBlogs = useCachedApi<Blog[], [networkId: string]>(

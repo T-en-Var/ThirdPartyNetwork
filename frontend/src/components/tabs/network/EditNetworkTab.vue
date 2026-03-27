@@ -124,7 +124,7 @@ import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import CloudinaryFile from '@/components/cdn/CloudinaryFile.vue';
-import AddFileModal from '@/components/modals/network/AddFileModal.vue';
+import AddFileModal from '@/components/modals/usercontent/AddFileModal.vue';
 import type { Network, NetworkFile, NetworkUpdate } from '@/types';
 import useNetworks from '@/composables/useNetworks';
 

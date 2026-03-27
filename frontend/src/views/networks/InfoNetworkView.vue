@@ -156,7 +156,7 @@
               </div>
               <div>
                 <h4 class="text-sm font-medium text-gray-500">Created</h4>
-                <p class="mt-1 text-gray-800">{{ network.createdOn ? new Date(network.createdOn).toLocaleString() :
+                <p class="mt-1 text-gray-800">{{ network.createdOn ? new Date(network.createdOn).toLocaleString("nl-NL") :
                   'Unknown' }}</p>
               </div>
             </div>
@@ -178,7 +178,7 @@
               <div>
                 <h4 class="text-sm font-medium text-gray-500">Joined</h4>
                 <p class="mt-1 text-gray-800">
-                  {{ currentNetworkUser.createdOn ? new Date(currentNetworkUser.createdOn).toLocaleString() : 'Unknown'
+                  {{ currentNetworkUser.createdOn ? new Date(currentNetworkUser.createdOn).toLocaleString("nl-NL") : 'Unknown'
                   }}
                 </p>
               </div>

@@ -1,8 +1,25 @@
 <template>
   <form @submit.prevent="handleSubmit" class="space-y-4">
+    <slot></slot>
+
     <access-level-picker v-model="accessLevel" />
 
-    <slot></slot>
+    <div v-if="showNetworkSelector" class="space-y-2">
+      <label class="block text-sm font-medium text-gray-700">
+        Select a Network to store the image
+      </label>
+      <div class="space-y-2">
+        <label v-for="networkId in props.networkIds" :key="networkId"
+          class="flex items-center space-x-2 cursor-pointer p-2 rounded-lg border transition hover:bg-gray-50"
+          :class="selectedNetwork?.id === networkId ? 'border-indigo-500 bg-indigo-50' : 'border-gray-300'">
+          <input type="radio" class="text-indigo-600 focus:ring-indigo-500"
+            :value="networks[networkId]" v-model="selectedNetwork" />
+          <span class="text-sm text-gray-700">{{ networks[networkId].name }}</span>
+        </label>
+      </div>
+    </div>
+
+    <p v-if="error" class="text-red-600 text-sm mt-2">{{ error }}</p>
 
     <div v-if="warningText"
       class="p-2 text-yellow-600 bg-yellow-200 border-yellow-500 border-[1px] rounded-md">
@@ -14,7 +31,7 @@
         class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
         @click="$emit('close')" :disabled="isSubmitting">Cancel</button>
       <button type="submit"
-        class="rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700"
+        class="rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 disabled:hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed"
         :disabled="isSubmitting || !inputIsValid">
         <span v-if="isSubmitting">Submitted...</span>
         <span v-else>{{ buttonText }}</span>
@@ -24,9 +41,12 @@
 </template>
 
 <script setup lang="ts">
-import type { CreateUserContentForm } from '@/types';
-import { onMounted, ref } from 'vue';
-import AccessLevelPicker from '../fields/AccessLevelPicker.vue';
+import type { CreateUserContentForm, Network } from '@/types';
+import { computed, onMounted, ref, watch } from 'vue';
+import AccessLevelPicker from '@/components/fields/AccessLevelPicker.vue';
+import useNetworks from '@/composables/useNetworks';
+
+const networkState = useNetworks();
 
 const props = defineProps<{
   buttonText: string;
@@ -34,16 +54,25 @@ const props = defineProps<{
   inputIsValid: boolean;
   networkId?: string;
   networkIds?: string[];
+  error?: string | null;
+}>();
+
+const emit = defineEmits<{
+  (e: 'close'): void;
+  (e: 'submit', form: CreateUserContentForm): void;
 }>();
 
 const accessLevel = ref(0);
 const warningText = ref('');
 let warningTextTimeout: ReturnType<typeof setTimeout> | null = null;
 
+const showNetworkSelector = computed(() => !!props.networkIds );
+const selectedNetwork = ref<Network | null>(null);
+const networks = ref<Record<string, Network>>({});
+
 
 onMounted(() => {
   if (props.networkId === undefined && props.networkIds === undefined) throw new Error("'props.networkId === undefined && props.networkIds === undefined' Define either one or both");
-
 });
 
 const handleSubmit = () => {
@@ -58,6 +87,24 @@ const handleSubmit = () => {
   emit('submit', form);
 };
 
+watch(
+  () => props.networkIds,
+  async (newIds) => {
+    if (!showNetworkSelector.value || !newIds?.length) return;
+    const uniqueNetworkIds = [...new Set(newIds)];
+
+    await Promise.all(
+      uniqueNetworkIds.map(async (id) => {
+        if (networks.value[id]) return;
+
+        const network = await getNetwork(id);
+        if (network) networks.value[id] = network;
+      })
+    );
+  },
+  { immediate: true }
+);
+
 const showWarning = (message: string) => {
   if (warningTextTimeout) clearTimeout(warningTextTimeout);
   warningTextTimeout = null;
@@ -66,9 +113,10 @@ const showWarning = (message: string) => {
   warningTextTimeout = setTimeout(() => warningText.value = '', 3000);
 };
 
-const emit = defineEmits<{
-  (e: 'close'): void;
-  (e: 'submit', form: CreateUserContentForm): void;
-}>();
 
+async function getNetwork(networkId: string) {
+  const { execute: fetchNetworkDetails, data: network } = networkState.fetchNetworkDetails;
+  await fetchNetworkDetails(networkId);
+  return network.value;
+};
 </script>

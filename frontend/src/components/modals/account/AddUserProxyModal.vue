@@ -129,7 +129,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import ModalContainer from '@/components/modals/ModalContainer.vue';
-import AddFileModal from '@/components/modals/network/AddFileModal.vue';
+import AddFileModal from '@/components/modals/usercontent/AddFileModal.vue';
 import CloudinaryFile from '@/components/cdn/CloudinaryFile.vue';
 import type { UserProxy, UserProxyCreate, NetworkFile, Network, UserProxyForm } from '@/types';
 

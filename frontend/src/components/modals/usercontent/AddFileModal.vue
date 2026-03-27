@@ -1,84 +1,64 @@
 <template>
   <modal-container title="Add File to Network (50MB)" @close="$emit('close')"
     :close-on-escape="!loading">
-    <form @submit.prevent="handleUpload" class="space-y-4">
+    <div class="border-b border-gray-200 mb-4">
+      <nav class="-mb-px flex space-x-6" aria-label="Tabs">
+        <button type="button" @click="activeTab = 'upload'" :disabled="loading"
+          :class="[
+            'whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm',
+            loading
+              ? 'text-gray-300 cursor-not-allowed'
+              : activeTab === 'upload'
+                ? 'border-indigo-500 text-indigo-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+          ]">
+          Upload Image
+        </button>
+        <button type="button" @click="activeTab = 'existing'" :disabled="loading"
+          :class="[
+            'whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm',
+            loading
+              ? 'text-gray-300 cursor-not-allowed'
+              : activeTab === 'existing'
+                ? 'border-indigo-500 text-indigo-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+          ]">
+          My Files
+        </button>
+      </nav>
+    </div>
 
-      <!-- Tabs -->
-      <div class="border-b border-gray-200">
-        <nav class="-mb-px flex space-x-6" aria-label="Tabs">
-          <button type="button" @click="activeTab = 'upload'" :disabled="loading"
-            :class="[
-              'whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm',
-              loading
-                ? 'text-gray-300 cursor-not-allowed'
-                : activeTab === 'upload'
-                  ? 'border-indigo-500 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            ]">
-            Upload Image
-          </button>
-          <button type="button" @click="activeTab = 'existing'" :disabled="loading"
-            :class="[
-              'whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm',
-              loading
-                ? 'text-gray-300 cursor-not-allowed'
-                : activeTab === 'existing'
-                  ? 'border-indigo-500 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            ]">
-            My Files
-          </button>
-        </nav>
-      </div>
+    <CreateUserContentContainer v-if="activeTab === 'upload'"
+      :is-submitting="isSubmitting" :input-is-valid="inputIsValid"
+      :network-id="networkId" :network-ids="networkIds" :error="error"
+      button-text="Upload File" @submit="handleSubmit">
 
-      <!-- Upload Tab -->
-      <div v-if="activeTab === 'upload'" class="space-y-4">
-        <!-- Network Selection -->
-        <div v-if="showNetworkSelector" class="space-y-2">
-          <label class="block text-sm font-medium text-gray-700">
-            Select a Network to store the image
-          </label>
-          <div class="space-y-2">
-            <label v-for="n in allNetworks" :key="n.id"
-              class="flex items-center space-x-2 cursor-pointer p-2 rounded-lg border transition hover:bg-gray-50"
-              :class="selectedNetwork?.id === n.id ? 'border-indigo-500 bg-indigo-50' : 'border-gray-300'">
-              <input type="radio" class="text-indigo-600 focus:ring-indigo-500"
-                :value="n" v-model="selectedNetwork" />
-              <span class="text-sm text-gray-700">{{ n.name }}</span>
-            </label>
-          </div>
+      <div @dragover.prevent="handleDragOver" @dragenter.prevent="handleDragEnter"
+        @dragleave.prevent="handleDragLeave" @drop.prevent="handleDrop"
+        class="border-dashed border-2 rounded-lg p-6 text-center cursor-pointer transition-colors"
+        :class="[dragging ? 'border-indigo-500 bg-indigo-50' : 'border-gray-300 hover:bg-gray-50']"
+        @click="triggerFileInput">
+        <input ref="fileInput" type="file" class="hidden"
+          :accept="mapMediaType[mediaType]" @change="handleFileChange"
+          :disabled="loading" />
+
+        <div v-if="selectedFile">
+          <p class="text-gray-800 font-semibold">{{ selectedFile.name }}</p>
+          <p class="text-sm text-gray-500">{{ readableSize(selectedFile.size) }}
+          </p>
         </div>
-
-        <!-- Drag & Drop / File Upload -->
-        <div @dragover.prevent="handleDragOver" @dragenter.prevent="handleDragEnter"
-          @dragleave.prevent="handleDragLeave" @drop.prevent="handleDrop"
-          class="border-dashed border-2 rounded-lg p-6 text-center cursor-pointer transition-colors"
-          :class="[dragging ? 'border-indigo-500 bg-indigo-50' : 'border-gray-300 hover:bg-gray-50']"
-          @click="triggerFileInput">
-          <input ref="fileInput" type="file" class="hidden"
-            :accept="mapMediaType[mediaType]" @change="handleFileChange"
-            :disabled="loading" />
-
-          <div v-if="selectedFile">
-            <p class="text-gray-800 font-semibold">{{ selectedFile.name }}</p>
-            <p class="text-sm text-gray-500">{{ readableSize(selectedFile.size) }}
-            </p>
-          </div>
-          <div v-else class="text-gray-500">
-            Drag & drop a file here or click to select
-          </div>
+        <div v-else class="text-gray-500">
+          Drag & drop a file here or click to select
         </div>
-
-        <!-- Access Level -->
-        <AccessLevelPicker v-model="selectedAccessLevel" />
       </div>
+    </CreateUserContentContainer>
 
-      <!-- Existing Tab -->
-      <div v-if="activeTab === 'existing'" class="space-y-2">
+    <div v-if="activeTab === 'existing'">
+      <div class="space-y-2">
         <label class="block text-sm font-medium text-gray-700">
           Choose one of your images
         </label>
-        <div class="grid grid-cols-3 gap-3 max-h-64 overflow-y-auto p-2">
+        <div class="grid grid-cols-3 gap-3 max-h-96 overflow-y-auto p-2">
           <label v-for="f in files" :key="f.id"
             class="relative cursor-pointer rounded-lg border transition hover:shadow-sm"
             :class="selectedExistingFile?.id === f.id
@@ -103,23 +83,19 @@
         </p>
       </div>
 
-      <!-- Action Buttons -->
-      <div class="flex justify-end space-x-3">
-        <button type="button" @click="$emit('close')" :disabled="loading"
-          class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
-          Cancel
-        </button>
-        <button type="submit" :disabled="submitDisabled"
-          class="rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed">
-          <span v-if="loading && activeTab === 'upload'">Uploading...</span>
-          <span v-else-if="activeTab === 'upload'">Upload</span>
-          <span v-else>Select</span>
+      <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+        <button type="button"
+          class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
+          @click="$emit('close')" :disabled="isSubmitting">Cancel</button>
+        <button type="submit"
+          class="rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700"
+          :disabled="isSubmitting || !inputIsValid">
+          <span v-if="isSubmitting">Submitted...</span>
+          <span v-else>Choose File</span>
         </button>
       </div>
+    </div>
 
-      <!-- Error Message -->
-      <p v-if="error" class="text-red-600 text-sm mt-2">{{ error }}</p>
-    </form>
     <ForceLoadModal v-if="loading" :title="'Uploading file'" :progress="progress" />
   </modal-container>
 </template>
@@ -127,13 +103,13 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import ModalContainer from '@/components/modals/ModalContainer.vue';
-import AccessLevelPicker from '@/components/fields/AccessLevelPicker.vue';
-import useFiles from '@/composables/useFiles';
+import useFiles from '@/composables/network/useFiles';
 import { mapMediaType, readableSize } from '@/lib/utils';
-import type { UserProxy, Network, NetworkFile } from '@/types';
+import type { UserProxy, NetworkFile, CreateUserContentForm } from '@/types';
 import { useAuthStore } from '@/stores/auth';
 import CloudinaryFile from '@/components/cdn/CloudinaryFile.vue';
 import ForceLoadModal from '../ForceWaitModal.vue';
+import CreateUserContentContainer from '../CreateUserContentContainer.vue';
 
 const filesState = useFiles();
 const { progress } = filesState;
@@ -146,11 +122,13 @@ const error = computed(() => {
 
 const loading = computed(() => filesState.uploadFile.loading.value || filesState.uploadFile.loading.value);
 
-const props = withDefaults(defineProps<{
-  network?: Network;
-  networks?: Network[];
+withDefaults(defineProps<{
+  networkId?: string;
+  networkIds?: string[];
   mediaType?: string;
-}>(), { mediaType: 'any' });
+  canUpload?: boolean;
+  canChoose?: boolean;
+}>(), { mediaType: 'any', canUpload: true, canChoose: true,  });
 
 const emit = defineEmits<{
   (e: 'close'): void;
@@ -162,32 +140,16 @@ const userProxy = ref<UserProxy | null>(null);
 const activeTab = ref<'upload' | 'existing'>('upload');
 
 onMounted(async () => {
-  if (!props.network && !props.networks) {
-    throw new Error('Define either network or networks.');
-  }
-  if (props.network) {
-    selectedNetwork.value = props.network;
-  }
   userProxy.value = await authStore.getUserProxy();
 
   if (userProxy.value) {
     await fetchUserFiles(userProxy.value.user.id, userProxy.value.id);
   }
-
 });
 
 const fileInput = ref<HTMLInputElement | null>(null);
 const selectedFile = ref<File | null>(null);
 const selectedAccessLevel = ref<number>(0);
-
-const allNetworks = computed(() => {
-  if (props.networks) return props.networks;
-  return props.network ? [props.network] : [];
-});
-const selectedNetwork = ref<Network | null>(null);
-const showNetworkSelector = computed(() => {
-  return props.networks || (props.network && props.networks);
-});
 
 const dragging = ref(false);
 function handleDragEnter() { dragging.value = true; }
@@ -210,30 +172,29 @@ function handleFileChange(e: Event) {
 
 const selectedExistingFile = ref<NetworkFile | null>(null);
 
-const submitDisabled = computed(() => {
-  if (loading.value) return true;
+const inputIsValid = computed(() => {
   if (activeTab.value === 'upload') {
-    return !selectedFile.value || !selectedNetwork.value;
+    return !!selectedFile.value;
   }
   if (activeTab.value === 'existing') {
-    return !selectedExistingFile.value;
+    return !!selectedExistingFile.value;
   }
-  return true;
+  return false;
 });
 
-async function handleUpload() {
+const isSubmitting = computed(() => loading.value);
+
+async function handleSubmit(form: CreateUserContentForm) {
+  if (!inputIsValid.value) return;
+
   if (activeTab.value === 'existing') {
-    if (selectedExistingFile.value) {
-      emit('uploaded', selectedExistingFile.value);
-      selectedExistingFile.value = null;
-    }
-    return;
+    emit('uploaded', selectedExistingFile.value!);
+    selectedExistingFile.value = null;
   }
 
   if (activeTab.value === 'upload') {
-    if (!selectedFile.value || !selectedNetwork.value) return;
     try {
-      const file = await uploadFile(selectedNetwork.value.id, selectedFile.value, selectedAccessLevel.value);
+      const file = await uploadFile(form.networkId, selectedFile.value!, selectedAccessLevel.value);
 
       emit('uploaded', file);
       selectedFile.value = null;

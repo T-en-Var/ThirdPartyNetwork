@@ -202,7 +202,7 @@ defineEmits<{
   (e: 'remove', entry: T): void;
 }>();
 
-const showFilters = ref(true);
+const showFilters = ref(false);
 const filterKey = ref('');
 
 const networks = ref<Record<string, Network>>({});
@@ -259,7 +259,10 @@ const formatValue = (val: unknown, type: ExtraColumn['type']): string => {
   if (val === null || val === undefined) return '-';
 
   if (type === 'number') {
-    return (val as number).toLocaleString();
+    return (val as number).toLocaleString("nl-NL", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 1
+    });
   }
 
   if (type === 'date') {

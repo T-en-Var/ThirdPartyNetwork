@@ -46,24 +46,24 @@
                   item.label
                 }}</span>
                 <div class="text-slate-800">
-                  <span class="border-l border-slate-200 pl-2 cursor-help" :title="`${totalMetrics[item.key.replace('Limit', '') as keyof
-                    NetworkMetrics]?.toLocaleString()} used`" :class="{
-                      'text-red-800': totalMetrics[item.key.replace('Limit', '') as keyof NetworkMetrics] as number > totalLimits[item.key],
+                  <span class="border-l border-slate-200 pl-2 cursor-help" :title="`${getEntitlementNumber(totalMetrics, item.key)?.toLocaleString()} used`" :class="{
+                      'text-red-800': getEntitlementNumber(totalMetrics, item.key) as number > totalLimits[item.key],
                     }">{{
-                      (totalMetrics[item.key.replace('Limit', '') as keyof
-                        NetworkMetrics] as number | undefined)?.toLocaleString()
+                      getEntitlementNumber(totalMetrics, item.key)?.toLocaleString("nl-NL")
                     }}</span>
                   <span
-                    :title="`${totalLimits[item.key].toLocaleString()} used limit`"
+                    :title="`${totalLimits[item.key].toLocaleString('nl-NL')} used limit`"
                     class="cursor-help" :class="{
                       'text-orange-400 font-bold': remainingLimits[item.key] < 10 && remainingLimits[item.key] > 0,
                       'text-red-800 font-bold': remainingLimits[item.key] <= 0,
-                    }"> {{ totalMetrics[item.key.replace('Limit', '') as keyof
-                      NetworkMetrics] !== undefined ? " / " : "" }} {{
-                      totalLimits[item.key].toLocaleString() }}</span>
-                  <span :title="`${item.value.toLocaleString()} limit`"
+                    }"> {{
+                      getEntitlementNumber(totalMetrics, item.key) !== undefined
+                        ? ` / ${totalLimits[item.key].toLocaleString("nl-NL")} / `
+                        : ""
+                    }}</span>
+                  <span :title="`${item.value.toLocaleString('nl-NL')} limit`"
                     class="font-bold text-slate-800 text-nowrap cursor-help">
-                    / {{ item.value.toLocaleString() }}
+                    {{ item.value.toLocaleString("nl-NL") }}
                   </span>
                 </div>
               </div>
@@ -265,7 +265,7 @@
                   {{ key.replace('Limit', '').replace(/([A-Z])/g, ' $1') }}
                   <span v-if="sortBy === `used-${key}`">{{ sortOrder === 'asc' ? '↑'
                     : '↓'
-                    }}</span>
+                  }}</span>
                 </button>
               </div>
             </div>
@@ -341,13 +341,13 @@
                             'text-red-500': val === false,
                             'text-slate-700 font-bold': val !== true && val !== false
                           }"><span
-                            :class="{ 'text-red-500': (((network[key.replace('Limit', '') as keyof ComboNetwork] as number | undefined) ?? 0 as number) > (val as number)) }">{{
-                              network[key.replace('Limit', '') as keyof
-                                ComboNetwork]?.toLocaleString() }}</span>{{
-                              network[key.replace('Limit', '') as keyof ComboNetwork] !==
-                                undefined ?
-                                "/" : "" }}<span class="font-bold">{{ val.toLocaleString()
-                          }}</span></span>
+                            :class="{ 'text-red-500': (getEntitlementNumber(network, key) ?? 0) > (val as number) }">{{
+                              getEntitlementNumber(network, key)?.toLocaleString("nl-NL")
+                            }}</span>{{
+                              getEntitlementNumber(network, key) !== undefined
+                                ? "/" : "" }}<span class="font-bold">{{
+                            val.toLocaleString("nl-NL")
+                            }}</span></span>
                       </span>
                     </template>
 
@@ -468,11 +468,13 @@ const groupedEntitlements = computed(() => {
     if (entitlements[parentKey as keyof NetworkEntitlement] === true) {
       const items = childKeys
         .filter(key => entitlements[key] !== undefined)
-        .map(key => ({
-          label: capitalize(key.replace(/([A-Z])/g, ' $1').replace('Limit', '').trim()), // 'fileCountLimit' -> 'File Count'
-          value: entitlements[key],
-          key
-        }));
+        .map(key => {
+          return {
+            label: capitalize(key.replace(/([A-Z])/g, ' $1').replace('Limit', '').trim()), // 'fileCountLimit' -> 'File Count'
+            value: entitlements[key],
+            key
+          };
+        });
 
       if (items.length > 0) {
         groups.push({ name: parentKey.replace('allow', ''), items });
@@ -496,7 +498,6 @@ const totalMetrics = computed<NetworkMetrics>(() => {
   };
 
   return (networksMetrics.value || []).reduce((acc, network) => {
-    // 2. Iterate through the keys of our object (excluding the ID)
     (Object.keys(acc) as Array<keyof NetworkMetrics>).forEach((key) => {
       if (key === 'networkId') return;
 
@@ -604,6 +605,15 @@ onMounted(async () => {
   await fetchNetworksMetrics();
   await fetchNetworks();
 });
+
+const getEntitlementNumber = (input: NetworkMetrics, key: keyof NetworkEntitlement): number | undefined => {
+  const comboKey = key.replace('Limit', '') as keyof NetworkMetrics;
+  let value = input[comboKey] as number;
+
+  if (value && key == 'fileStorageLimit') value = Math.round(value as number / 1024);
+
+  return value;
+};
 
 const toggleSort = (key: string) => {
   if (sortBy.value === key) {

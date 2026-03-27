@@ -1,6 +1,6 @@
 <template>
   <modal-container title="Add Configuration" @close="$emit('close')">
-    <create-user-content-container :is-submitting="isSubmitting"
+    <CreateUserContentContainer :is-submitting="isSubmitting"
       :input-is-valid="inputIsValid" :network-id="networkId"
       :network-ids="networkIds" button-text="Add Configuration"
       @submit="handleSubmit">
@@ -19,7 +19,7 @@
             class="h-64 border rounded-md" />
         </div>
       </div>
-    </create-user-content-container>
+    </CreateUserContentContainer>
   </modal-container>
 </template>
 
@@ -36,8 +36,6 @@ defineProps<{
   networkIds?: string[];
 }>();
 
-const inputIsValid = computed(() => !!key.value);
-
 const emit = defineEmits<{
   (e: 'close'): void;
   (e: 'submit', networkId: string, payload: CreateConfiguration): void;
@@ -45,6 +43,8 @@ const emit = defineEmits<{
 
 const key = ref('');
 const jsonValue = ref<object>({});
+
+const inputIsValid = computed(() => !!key.value);
 
 function handleSubmit(form: CreateUserContentForm) {
   emit('submit',

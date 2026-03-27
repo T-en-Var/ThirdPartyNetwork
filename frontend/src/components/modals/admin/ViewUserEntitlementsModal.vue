@@ -150,7 +150,7 @@ const formatValue = (val?: boolean | number) => {
   if (val === undefined || val === null) return '-';
   if (val === true) return 'Yes';
   if (val === false) return 'No';
-  return val.toLocaleString();
+  return val.toLocaleString("nl-NL");
 };
 
 // Calculates the breakdown per network

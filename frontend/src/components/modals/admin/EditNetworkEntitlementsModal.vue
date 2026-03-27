@@ -72,7 +72,7 @@ const fakeNetwork: ComputedRef<Network> = computed(() => {
       networkId: props.mainNetwork.id,
       allowFiles: props.mainNetwork.entitlement!.allowFiles,
       fileCountLimit: props.mainNetwork.entitlement!.fileCountLimit - props.totalLimits["fileCountLimit"] + props.network.entitlement!.fileCountLimit,
-      fileSizeLimit: props.mainNetwork.entitlement!.fileSizeLimit - props.totalLimits["fileSizeLimit"],
+      fileSizeLimit: props.mainNetwork.entitlement!.fileSizeLimit,
       fileStorageLimit: props.mainNetwork.entitlement!.fileStorageLimit - props.totalLimits["fileStorageLimit"] + props.network.entitlement!.fileStorageLimit,
       allowBlogs: props.mainNetwork.entitlement!.allowBlogs,
       blogCountLimit: props.mainNetwork.entitlement!.blogCountLimit - props.totalLimits["blogCountLimit"] + props.network.entitlement!.blogCountLimit,

@@ -1,42 +1,47 @@
 <template>
   <div class="bg-white shadow-md rounded-lg overflow-hidden p-6">
     <div class="flex flex-col gap-6">
-      <UserContentViewer title="CustomPages" :entries="customPages || []" :extra-columns="[{
-        key: 'name',
-        label: 'Name',
-        type: 'string',
-        filter: false,
-      }, {
-        key: 'value',
-        label: 'Value',
-        type: 'string',
-        filter: false,
-      }]" :show-network="false" @add-new="showCreateModal = true"
+      <UserContentViewer title="CustomPages" :entries="customPages || []"
+        :extra-columns="[{
+          key: 'name',
+          label: 'Name',
+          type: 'string',
+          filter: false,
+        }, {
+          key: 'slug',
+          label: 'Slug',
+          type: 'string',
+          filter: false,
+        }]" :show-network="false" @add-new="showCreateModal = true"
         @edit="handleEditCustomPage" @remove="handleRemoveCustomPage">
       </UserContentViewer>
 
-      <AddCustomPageModal v-if="showCreateModal"
-        :is-submitting="isSubmitting" @create-custom-page="handleCreateCustomPage"
+      <AddCustomPageModal v-if="showCreateModal" :is-submitting="isSubmitting"
+        :network-id="networkId" @submit="handleCreateCustomPage"
         @close="showCreateModal = false" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import useCustomPages from '@/composables/useCustomPages';
 import type { CustomPage, ConfirmForm, CreateCustomPage } from '@/types';
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, watch, type Ref } from 'vue';
 import UserContentViewer from '@/components/UserContentViewer.vue';
 import AddCustomPageModal from '@/components/modals/usercontent/AddCustomPageModal.vue';
+import { useEventStore } from '@/stores/event';
 
-const { execute: fetchCustomPages, data: customPages } = useCustomPages().fetchCustomPages;
+const events = useEventStore();
 
 const showCreateModal = ref(false);
 const isSubmitting = ref(false);
 
+const customPages = ref<CustomPage[]>([]);
+
 
 const props = defineProps<{
-  networkId: string;
+  networkId?: string;
+  networkIds?: string[];
+  fetchCustomPages: () => Promise<Ref<CustomPage[]>>
 }>();
 
 const emit = defineEmits<{
@@ -48,11 +53,17 @@ const emit = defineEmits<{
 
 
 onMounted(async () => {
-  await fetchCustomPages(props.networkId);
+  const remoteRef = await props.fetchCustomPages();
+
+  watch(remoteRef, (newVal) => customPages.value = newVal ?? [], { immediate: true });
 });
 
 
 async function handleCreateCustomPage(networkId: string, customPageCreate: CreateCustomPage) {
+  events.listen.customPages.create((customPage) => {
+    showCreateModal.value = false;
+    handleEditCustomPage(customPage);
+  }, true);
   emit('custom-pages-create', networkId, customPageCreate);
 }
 

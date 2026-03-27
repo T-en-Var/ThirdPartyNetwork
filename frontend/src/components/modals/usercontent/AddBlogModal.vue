@@ -1,13 +1,16 @@
 <template>
   <modal-container title="Create New Blog" @close="$emit('close')">
-    <form @submit.prevent="handleSubmit" class="space-y-6">
+    <CreateUserContentContainer :is-submitting="isSubmitting"
+      :input-is-valid="inputIsValid" :network-id="networkId"
+      :network-ids="networkIds" button-text="Add Blog" @submit="handleSubmit"
+      @selected-network-id="handleNetworkSelect">
 
       <div>
         <label for="title"
           class="block text-xs font-black uppercase tracking-widest text-slate-500 mb-2 ml-1">
           Blog Title
         </label>
-        <input id="title" v-model="form.title" type="text"
+        <input id="title" v-model="title" type="text"
           placeholder="My Awesome Journey..."
           class="block w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
           required />
@@ -53,20 +56,7 @@
         </transition>
       </div>
 
-      <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
-        <button type="button"
-          class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
-          @click="$emit('close')" :disabled="isSubmitting">
-          Cancel
-        </button>
-        <button type="submit"
-          class="rounded-md border border-transparent disabled:bg-gray-500 disabled:cursor-not-allowed bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-          :disabled="isSubmitting || !isValid">
-          <span v-if="isSubmitting">Adding...</span>
-          <span v-else>Add Blog</span>
-        </button>
-      </div>
-    </form>
+    </CreateUserContentContainer>
   </modal-container>
 </template>
 
@@ -76,33 +66,32 @@ import ModalContainer from '@/components/modals/ModalContainer.vue';
 import type { CreateBlog } from '@/types/userContent/blog';
 import api from '@/api/api';
 import LoadingSpinner from '@/components/LoadingSpinner.vue';
+import CreateUserContentContainer from '../CreateUserContentContainer.vue';
+import type { CreateUserContentForm } from '@/types';
 
 const emit = defineEmits<{
   (e: 'close'): void;
-  (e: 'createBlog', payload: CreateBlog): void;
+  (e: 'create-blog', networkId: string, payload: CreateBlog): void;
 }>();
 
 
-const props = defineProps({
-  isSubmitting: {
-    type: Boolean,
-    default: false,
-  },
-  networkId: {
-    type: String,
-    required: false,
-  }
-});
+defineProps<{
+  isSubmitting: boolean;
+  networkId?: string;
+  networkIds?: string[];
+}>();
 
-const form = ref({ title: '' });
+const title = ref('');
 const isChecking = ref(false);
 const slugExists = ref(false);
-const isChanged = ref(false); // Tracks if the user has typed since the last check
+const isChanged = ref(false);
+const selectedNetworkId = ref<string | null>(null);
 
-const slugPreview = computed(() => generateSlug(form.value.title));
+const slugPreview = computed(() => generateSlug(title.value));
+const inputIsValid = computed(() => true);
 
 const isValid = computed(() =>
-  !!form.value.title.trim() &&
+  !!title.value.trim() &&
   !isChecking.value &&
   !isChanged.value &&
   !slugExists.value
@@ -111,6 +100,8 @@ const isValid = computed(() =>
 let debounceTimer: ReturnType<typeof setTimeout>;
 
 watch(slugPreview, (newSlug) => {
+  if (!selectedNetworkId.value) return;
+
   if (!newSlug) {
     slugExists.value = false;
     isChecking.value = false;
@@ -124,10 +115,10 @@ watch(slugPreview, (newSlug) => {
 
   clearTimeout(debounceTimer);
   debounceTimer = setTimeout(async () => {
-    if (!props.networkId) return;
+    if (!selectedNetworkId.value) return;
 
     try {
-      await api.get(`/networks/${props.networkId}/blogs/${newSlug}`);
+      await api.get(`/networks/${selectedNetworkId.value}/blogs/${newSlug}`);
       slugExists.value = true;
     } catch (err) {
       // 404 = available
@@ -153,7 +144,12 @@ function generateSlug(title: string) {
 }
 
 
-function handleSubmit() {
-  emit('createBlog', { title: form.value.title, summary: '', body: {}, accessLevel: 0 });
+function handleNetworkSelect(networkId: string) {
+  selectedNetworkId.value = networkId;
+}
+
+
+function handleSubmit(form: CreateUserContentForm) {
+  emit('create-blog', form.networkId, { title: title.value.trim(), summary: '', body: {}, accessLevel: form.accessLevel });
 }
 </script>

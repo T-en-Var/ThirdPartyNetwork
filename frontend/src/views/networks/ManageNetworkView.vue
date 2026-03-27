@@ -21,16 +21,21 @@
         @create-page-block="handleShowCreatePageBlockModal"
         @update-page-block="handle.pageBlocks.update"
         @update-network="handle.network.update"
-        @delete-network="handle.network.delete" @blog-edit="handle.blog.edit"
-        @blog-create="handle.blog.create" @blog-delete="handle.blog.delete"
+        @delete-network="handle.network.delete" 
+        :fetch-blogs="handle.blog.fetch"
+        @blog-edit="handle.blog.edit" 
+        @blog-create="handle.blog.create"
+        @blog-delete="handle.blog.delete"
+        :fetch-configurations="handle.configuration.fetch"
         @configuration-edit="handle.configuration.edit"
         @configuration-create="handle.configuration.create"
         @configuration-delete="handle.configuration.delete"
+        :fetch-customPages="handle.customPages.fetch"
         @custom-pages-edit="handle.customPages.edit"
         @custom-pages-create="handle.customPages.create"
         @custom-pages-delete="handle.customPages.delete"
-        @add-file="showAddFileModal = true" @file-update="handle.files.update"
-        @file-delete="handle.files.delete" />
+        :fetch-files="handle.files.fetch" @add-file="showAddFileModal = true"
+        @file-update="handle.files.update" @file-delete="handle.files.delete" />
 
       <div v-if="network">
         <EditUserModal v-if="showManageUserModal && selectedUser" :network="network"
@@ -55,8 +60,9 @@
           :color="confirmButtonColor" :is-submitting="isSubmitting"
           @close="showConfirmationModal = false" @confirm="confirmAction" />
 
-        <AddFileModal v-if="showAddFileModal" media-type="any" :network="network"
-          @close="showAddFileModal = false" @uploaded="handle.files.openEdit" />
+        <AddFileModal v-if="showAddFileModal" media-type="any"
+          :network-id="network.id" @close="showAddFileModal = false"
+          @uploaded="handle.files.openEdit" />
 
         <AddPageBlockModal
           v-if="showCreatePageBlockModal && createPageBlockCustomPage"
@@ -86,18 +92,19 @@ import ConfirmationModal from '@/components/modals/ConfirmationModal.vue';
 import type { NetworkUser, Role, NetworkAccess, NetworkFile, PageBlock, CreatePageBlock, NetworkAccessCreate, Network, NetworkUpdate, UpdateNetworkUser, CustomPage, CreateBlog, Blog, CreateConfiguration, Configuration, CreateCustomPage } from '@/types';
 import type { RoleForm, ManageUserForm, UpdateFile, ConfirmForm } from '@/types/forms';
 
-import useFiles from '@/composables/useFiles';
+import useFiles from '@/composables/network/useFiles';
 import AddPageBlockModal from '@/components/modals/usercontent/AddPageBlockModal.vue';
-import useCustomPages from '@/composables/useCustomPages';
+import useCustomPages from '@/composables/network/useCustomPages';
 import useRoles from '@/composables/useRoles';
 import useNetworks from '@/composables/useNetworks';
 import useNetworkUsers from '@/composables/useNetworkUsers';
 import useAccesses from '@/composables/useAccesses';
-import useBlogs from '@/composables/useBlogs';
-import type { UseMutationReturn } from '@/composables/useApi';
-import useConfigurations from '@/composables/useConfigurations';
+import useBlogs from '@/composables/network/useBlogs';
+import type { UseCachedApiReturn, UseMutationReturn } from '@/composables/useApi';
+import useConfigurations from '@/composables/network/useConfigurations';
 import { useEventStore } from '@/stores/event';
 import { getNameDisplayUserProxy } from '@/lib/user';
+import { useHistoryStore } from '@/stores/history';
 
 const router = useRouter();
 const route = useRoute();
@@ -150,8 +157,10 @@ const manageRoleForm = reactive<RoleForm>({
 });
 
 const originalFavicon = ref<string | null>(null);
-const networkId = computed(() => composables.networks.fetchNetwork.data.value!.id);
+const networkId = computed(() => route.params.networkId as string);
 const network = computed(() => composables.networks.fetchNetwork.data.value);
+
+const history = useHistoryStore(networkId.value);
 
 onMounted(async () => {
   const link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
@@ -199,6 +208,37 @@ function confirm(form: ConfirmForm) {
 
   showConfirmationModal.value = true;
 }
+
+const genericFetch = <T, P extends unknown[]>(
+  composable: UseCachedApiReturn<T, P>,
+  options?: {
+    callback?: (result: T, ...args: P) => void;
+    errorHandler?: (err: unknown) => void;
+  }
+) => {
+  const { execute, data } = composable;
+
+  const wrapper = (...args: P) => {
+    const fetchFunction = async () => {
+      try {
+        await execute(...args);
+
+        if (data.value && options?.callback) {
+          options.callback(data.value, ...args);
+        }
+      } catch (err) {
+        options?.errorHandler?.(err);
+        console.error(`Error executing fetch:`, err);
+      }
+
+      return data;
+    };
+
+    return fetchFunction;
+  };
+
+  return wrapper;
+};
 
 const genericMutation = <T, P extends unknown[]>(
   composable: UseMutationReturn<T, P>,
@@ -254,55 +294,79 @@ const handle = {
   },
 
   blog: {
-    create: async (payload: CreateBlog) => await genericMutation(composables.blogs.createBlog)(networkId.value, payload),
+    fetch: genericFetch(composables.blogs.fetchBlogs)(networkId.value),
+
+    create: async (networkId: string, payload: CreateBlog) => await genericMutation(composables.blogs.createBlog, {
+      callback: (result) => events.emit.blogs.create(result),
+    })(networkId, payload),
 
     edit: (blog: Blog) => router.push(`/networks/${networkId.value}/manage/blogs/${blog.id}/edit`),
 
-    delete: (blog: Blog) =>
+    delete: (blog: Blog) => {
       confirm({
         title: 'Remove Blog',
         message: `Are you sure you want to remove '${blog.title}' from this network?`,
         buttonText: 'Remove',
         buttonColor: 'red',
         action: async () => await genericMutation(composables.blogs.deleteBlog)(networkId.value, blog.id),
-      })
+      });
+
+      history.remove.blogs(blog);
+    }
   },
 
   configuration: {
-    create: async (payload: CreateConfiguration) => await genericMutation(composables.configurations.createConfiguration)(networkId.value, payload),
+    fetch: genericFetch(composables.configurations.fetchConfigurations)(networkId.value),
+
+    create: async (networkId: string, payload: CreateConfiguration) => await genericMutation(composables.configurations.createConfiguration, {
+      callback: (result) => events.emit.configurations.create(result),
+    })(networkId, payload),
 
     edit: (configuration: Configuration) => router.push(`/networks/${networkId.value}/manage/configurations/${configuration.id}/edit`),
 
-    delete: (configuration: Configuration) =>
+    delete: (configuration: Configuration) => {
       confirm({
         title: 'Remove Configuration',
         message: `Are you sure you want to remove '${configuration.key}' from this network?`,
         buttonText: 'Remove',
         buttonColor: 'red',
         action: async () => await genericMutation(composables.configurations.deleteConfiguration)(networkId.value, configuration.id),
-      })
+      });
+
+      history.remove.configurations(configuration);
+    }
   },
 
   customPages: {
-    create: async (payload: CreateCustomPage) => await genericMutation(composables.customPages.createCustomPage)(networkId.value, payload),
+    fetch: genericFetch(composables.customPages.fetchCustomPages)(networkId.value),
+
+    create: async (networkId: string, payload: CreateCustomPage) => await genericMutation(composables.customPages.createCustomPage, {
+      callback: (result) => events.emit.customPages.create(result),
+    })(networkId, payload),
 
     edit: (customPage: CustomPage) => router.push(`/networks/${networkId.value}/manage/custom-pages/${customPage.id}/edit`),
 
-    delete: (customPage: CustomPage) =>
+    delete: (customPage: CustomPage) => {
       confirm({
         title: 'Remove CustomPage',
         message: `Are you sure you want to remove '${customPage.name}' from this network?`,
         buttonText: 'Remove',
         buttonColor: 'red',
         action: async () => await genericMutation(composables.customPages.deleteCustomPage)(networkId.value, customPage.id),
-      })
+      });
+
+      history.remove.customPages(customPage);
+    }
   },
 
   files: {
+    fetch: genericFetch(composables.files.fetchFiles)(networkId.value),
+
     update: async (id: string, networkId: string, networkFile: UpdateFile) =>
       await genericMutation(composables.files.updateFile)(networkId, id, networkFile),
 
     delete: (file: NetworkFile) => {
+      console.log('Yes!');
       showEditFileModal.value = false;
       confirm({
         title: 'Delete File',

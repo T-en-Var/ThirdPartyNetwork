@@ -113,14 +113,14 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import useBlogs from '@/composables/useBlogs';
+import useBlogs from '@/composables/network/useBlogs';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import AccessLevelPicker from '@/components/fields/AccessLevelPicker.vue';
 import RichTextEditor from '@/components/fields/RichTextEditor.vue';
 import BlogRenderer from '@/components/fields/BlogRenderer.vue';
 import type { CreateBlog } from '@/types/userContent/blog';
 import api from '@/api/api';
-import AddFileModal from '@/components/modals/network/AddFileModal.vue'; // Import your modal
+import AddFileModal from '@/components/modals/usercontent/AddFileModal.vue';
 import type { Network, NetworkFile } from '@/types';
 import { useHistoryStore } from '@/stores/history';
 

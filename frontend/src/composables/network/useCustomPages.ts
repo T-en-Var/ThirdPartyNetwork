@@ -1,16 +1,11 @@
 import api from '@/api/api.ts';
 import type { CreateCustomPage, CreatePageBlock, CustomPage, PageBlock } from '@/types';
-import { useCachedApi, useMutation } from './useApi';
+import { useCachedApi, useMutation } from '../useApi';
 
 export default function useCustomPages() {
   const fetchCustomPages = useCachedApi<CustomPage[], [networkId: string]>(
     (networkId) => `networks_${networkId}_customPages`,
     async (networkId) => await api.get<CustomPage[]>(`/networks/${networkId}/custompages`),
-  );
-
-  const fetchUserCustomPages = useCachedApi<CustomPage[], [userId: string, userProxyId: string]>(
-    (userId, userProxyId) => `users_${userId}_proxies_${userProxyId}_customPages`,
-    async (userId, userProxyId) => await api.get<CustomPage[]>(`/users/${userId}/proxies/${userProxyId}/customPages`),
   );
 
   const fetchCustomPage = useCachedApi<CustomPage, [networkId: string, customPageId: string]>(
@@ -107,11 +102,11 @@ export default function useCustomPages() {
 
   return {
     fetchCustomPages,
-    fetchUserCustomPages,
     fetchCustomPage,
     createCustomPage,
     updateCustomPage,
     deleteCustomPage,
+    
     createPageBlock,
     updatePageBlock,
   };

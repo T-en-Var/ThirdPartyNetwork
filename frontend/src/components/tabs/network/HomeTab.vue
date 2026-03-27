@@ -50,10 +50,9 @@
           <div
             class="relative overflow-hidden border border-gray-100 p-5 rounded-xl transition-all duration-200"
             :class="{
-              'bg-white shadow-sm hover:shadow-lg hover:-translate-y-1 cursor-pointer border-blue-100': network.entitlement.allowFiles,
-              'bg-gray-50 opacity-75 cursor-not-allowed': !network.entitlement.allowFiles
-            }"
-            @click="network.entitlement.allowFiles && router.push('manage/files')">
+              'bg-white shadow-sm border-blue-100': network.entitlement.allowFiles,
+              'bg-gray-50 opacity-75': !network.entitlement.allowFiles
+            }">
 
             <div class="flex items-center justify-between mb-4">
               <div class="flex items-center gap-3">
@@ -105,10 +104,9 @@
           <div
             class="relative overflow-hidden border border-gray-100 p-5 rounded-xl transition-all duration-200"
             :class="{
-              'bg-white shadow-sm hover:shadow-lg hover:-translate-y-1 cursor-pointer border-blue-100': network.entitlement.allowBlogs,
-              'bg-gray-50 opacity-75 cursor-not-allowed': !network.entitlement.allowBlogs
-            }"
-            @click="network.entitlement.allowBlogs && router.push('manage/blogs')">
+              'bg-white shadow-sm border-blue-100': network.entitlement.allowBlogs,
+              'bg-gray-50 opacity-75': !network.entitlement.allowBlogs
+            }">
 
             <div class="flex items-center justify-between mb-4">
               <div class="flex items-center gap-3">
@@ -151,10 +149,9 @@
           <div
             class="relative overflow-hidden border border-gray-100 p-5 rounded-xl transition-all duration-200"
             :class="{
-              'bg-white shadow-sm hover:shadow-lg hover:-translate-y-1 cursor-pointer border-blue-100': network.entitlement.allowConfigurations,
-              'bg-gray-50 opacity-75 cursor-not-allowed': !network.entitlement.allowConfigurations
-            }"
-            @click="network.entitlement.allowConfigurations && router.push('manage/configurations')">
+              'bg-white shadow-sm border-blue-100': network.entitlement.allowConfigurations,
+              'bg-gray-50 opacity-75': !network.entitlement.allowConfigurations
+            }">
 
             <div class="flex items-center justify-between mb-4">
               <div class="flex items-center gap-3">
@@ -199,10 +196,9 @@
           <div
             class="relative overflow-hidden border border-gray-100 p-5 rounded-xl transition-all duration-200"
             :class="{
-              'bg-white shadow-sm hover:shadow-lg hover:-translate-y-1 cursor-pointer border-blue-100': network.entitlement.allowCustomPages,
-              'bg-gray-50 opacity-75 cursor-not-allowed': !network.entitlement.allowCustomPages
-            }"
-            @click="network.entitlement.allowCustomPages && router.push('manage/custom-pages')">
+              'bg-white shadow-sm  border-blue-100': network.entitlement.allowCustomPages,
+              'bg-gray-50 opacity-75': !network.entitlement.allowCustomPages
+            }">
 
             <div class="flex items-center justify-between mb-4">
               <div class="flex items-center gap-3">
@@ -251,21 +247,18 @@
 
 <script setup lang="ts">
 import { computed, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
 import type { Network } from '@/types';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 
 // Import our new composables
-import useFiles from '@/composables/useFiles';
-import useBlogs from '@/composables/useBlogs';
-import useConfigurations from '@/composables/useConfigurations';
-import useCustomPages from '@/composables/useCustomPages';
+import useFiles from '@/composables/network/useFiles';
+import useBlogs from '@/composables/network/useBlogs';
+import useConfigurations from '@/composables/network/useConfigurations';
+import useCustomPages from '@/composables/network/useCustomPages';
 
 const props = defineProps<{
   network: Network;
 }>();
-
-const router = useRouter();
 
 // --- 1. Files Setup ---
 const { fetchNetworkFiles } = useFiles();

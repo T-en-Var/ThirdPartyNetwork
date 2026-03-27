@@ -1,6 +1,6 @@
 import api from '@/api/api';
 import type { Configuration, CreateConfiguration } from '@/types';
-import { useCachedApi, useMutation } from './useApi';
+import { useCachedApi, useMutation } from '../useApi';
 
 export default function useConfigurations() {
   const fetchNetworkConfigurations = useCachedApi<Configuration[], [networkId: string]>(

@@ -1,17 +1,18 @@
 <template>
   <div class="bg-white shadow-md rounded-lg overflow-hidden p-6">
     <div class="flex flex-col gap-6">
-      <UserContentViewer title="Configurations" :entries="configurations || []" :extra-columns="[{
-        key: 'key',
-        label: 'Key',
-        type: 'string',
-        filter: false,
-      }, {
-        key: 'value',
-        label: 'Value',
-        type: 'string',
-        filter: false,
-      }]" :show-network="false" @add-new="showCreateModal = true"
+      <UserContentViewer title="Configurations" :entries="configurations || []"
+        :extra-columns="[{
+          key: 'key',
+          label: 'Key',
+          type: 'string',
+          filter: false,
+        }, {
+          key: 'value',
+          label: 'Value',
+          type: 'string',
+          filter: false,
+        }]" :show-network="false" @add-new="showCreateModal = true"
         @edit="handleEditConfiguration" @remove="handleRemoveConfiguration">
       </UserContentViewer>
 
@@ -23,23 +24,27 @@
 </template>
 
 <script setup lang="ts">
-import useConfigurations from '@/composables/useConfigurations';
 import type { Configuration, ConfirmForm, CreateConfiguration } from '@/types';
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch, type Ref } from 'vue';
 import UserContentViewer from '@/components/UserContentViewer.vue';
 import AddConfigurationModal from '@/components/modals/usercontent/AddConfigurationModal.vue';
+import { useEventStore } from '@/stores/event';
 
-const { execute: fetchConfigurations, data: rawConfigurations } = useConfigurations().fetchNetworkConfigurations;
+const events = useEventStore();
 
 const showCreateModal = ref(false);
 const isSubmitting = ref(false);
 
+const rawConfigurations = ref<Configuration[]>([]);
 const configurations = computed(() => (rawConfigurations.value ?? []).map(cfg => {
-  return {...cfg, value: previewValue(cfg.value) as unknown as object}
-}))
+  return { ...cfg, value: previewValue(cfg.value) as unknown as object };
+}));
+
 
 const props = defineProps<{
-  networkId: string;
+  networkId?: string;
+  networkIds?: string[];
+  fetchConfigurations: () => Promise<Ref<Configuration[] | null>>
 }>();
 
 const emit = defineEmits<{
@@ -49,9 +54,13 @@ const emit = defineEmits<{
   (e: 'confirm', form: ConfirmForm): void;
 }>();
 
+
 onMounted(async () => {
-  await fetchConfigurations(props.networkId);
+  const remoteRef = await props.fetchConfigurations();
+
+  watch(remoteRef, (newVal) => rawConfigurations.value = newVal ?? [], { immediate: true });
 });
+
 
 function previewValue(v: object | string | number | boolean | null): string {
   try {
@@ -65,7 +74,11 @@ function previewValue(v: object | string | number | boolean | null): string {
 }
 
 async function handleCreateConfiguration(networkId: string, configurationCreate: CreateConfiguration) {
-  emit('configuration-create', networkId, configurationCreate)
+  events.listen.configurations.create((configuration) => {
+    showCreateModal.value = false;
+    handleEditConfiguration(configuration);
+  });
+  emit('configuration-create', networkId, configurationCreate);
 }
 
 function handleEditConfiguration(configuration: Configuration) {

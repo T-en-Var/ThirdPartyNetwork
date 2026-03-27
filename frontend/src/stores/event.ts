@@ -1,10 +1,9 @@
-import type { NetworkFile } from '@/types';
+import type { Blog, Configuration, CustomPage, NetworkFile } from '@/types';
 import { defineStore } from 'pinia';
 
 const defineDomains = <T extends Record<keyof AppEventPayloads, readonly string[]>>(
   domains: T & {
-    [K in keyof AppEventPayloads]: // Check for missing keys
-    Exclude<keyof AppEventPayloads[K], T[K][number]> extends never
+    [K in keyof AppEventPayloads]: Exclude<keyof AppEventPayloads[K], T[K][number]> extends never // Check for missing keys
       ? // Check for extra/invalid keys
         Exclude<T[K][number], keyof AppEventPayloads[K]> extends never
         ? T[K] // Perfect match!
@@ -20,11 +19,23 @@ export interface AppEventPayloads {
   file: {
     openEdit: [file: NetworkFile];
   };
+  blogs: {
+    create: [blog: Blog];
+  };
+  configurations: {
+    create: [configuration: Configuration];
+  };
+  customPages: {
+    create: [customPage: CustomPage];
+  };
 }
 
 const EVENT_DOMAINS = defineDomains({
   test: ['myevent'] as const,
   file: ['openEdit'] as const,
+  blogs: ['create'] as const,
+  configurations: ['create'] as const,
+  customPages: ['create'] as const,
 });
 
 type EmitMap = {
@@ -38,7 +49,10 @@ type EmitMap = {
 type ListenMap = {
   [Domain in keyof AppEventPayloads]: {
     [Action in keyof AppEventPayloads[Domain]]: AppEventPayloads[Domain][Action] extends unknown[]
-      ? (callback: (...args: AppEventPayloads[Domain][Action]) => void) => () => void
+      ? (
+          callback: (...args: AppEventPayloads[Domain][Action]) => void,
+          once?: boolean,
+        ) => () => void
       : never;
   };
 };
@@ -62,26 +76,32 @@ export const useEventStore = defineStore('event', () => {
       const eventKey = `${currentDomain}:${action}`;
 
       // --- EMIT ---
-      // We gather all arguments into the `args` array using the rest operator
       domainEmit[action] = (...args: unknown[]) => {
         const eventListeners = listeners.get(eventKey);
+
         if (eventListeners) {
-          // Spread the arguments back out to the individual callbacks
           eventListeners.forEach((cb) => cb(...args));
         }
       };
 
       // --- LISTEN ---
-      domainListen[action] = (cb: GenericEventListener) => {
+      domainListen[action] = (cb: GenericEventListener, once = false) => {
         if (!listeners.has(eventKey)) {
           listeners.set(eventKey, new Set());
         }
 
-        listeners.get(eventKey)!.add(cb);
-
-        return () => {
-          listeners.get(eventKey)?.delete(cb);
+        const unregister = () => {
+          listeners.get(eventKey)?.delete(finalCallback);
         };
+
+        const finalCallback: GenericEventListener = (...args: unknown[]) => {
+          if (once) unregister();
+          cb(...args);
+        };
+
+        listeners.get(eventKey)!.add(finalCallback);
+
+        return unregister;
       };
     }
 

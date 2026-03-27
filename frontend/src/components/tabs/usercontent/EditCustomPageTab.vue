@@ -102,7 +102,7 @@
 </template>
 
 <script setup lang="ts">
-import useCustomPages from '@/composables/useCustomPages';
+import useCustomPages from '@/composables/network/useCustomPages';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import AccessLevelPicker from '@/components/fields/AccessLevelPicker.vue';
 import type { CreateCustomPage, CustomPage, Network, PageBlock } from '@/types';

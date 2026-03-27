@@ -158,7 +158,7 @@ import api from '@/api/api';
 import { useGlobalStore } from '@/stores/global';
 import type { AxiosError } from 'axios';
 import ErrorAlert from '@/components/ErrorAlert.vue';
-import AddFileModal from '@/components/modals/network/AddFileModal.vue';
+import AddFileModal from '@/components/modals/usercontent/AddFileModal.vue';
 import AddAccessModal from '@/components/modals/network/AddAccessModal.vue';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import CloudinaryFile from '@/components/cdn/CloudinaryFile.vue';

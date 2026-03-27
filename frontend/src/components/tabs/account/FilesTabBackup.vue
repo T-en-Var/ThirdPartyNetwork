@@ -251,7 +251,7 @@
 </template>
 
 <script setup lang="ts">
-import useFiles from '@/composables/useFiles';
+import useFiles from '@/composables/network/useFiles';
 import { readableSize } from '@/lib/utils';
 import type { Network, NetworkFile } from '@/types';
 import { computed, onMounted, ref } from 'vue';

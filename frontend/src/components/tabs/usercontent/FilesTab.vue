@@ -22,7 +22,7 @@
         type: 'number',
         filter: true,
       }]" :show-network="false" @add-new="handleCreateFile"
-        @edit="(f) => $emit('file-edit', f)" @remove="handleRemoveFile">
+        @edit="handleEditFile" @remove="handleRemoveFile">
       </UserContentViewer>
 
       <EditFileModal v-if="showEditModal && selectedFile" :file="selectedFile"
@@ -33,24 +33,31 @@
 </template>
 
 <script setup lang="ts">
-import useFiles from '@/composables/useFiles';
+import useFiles from '@/composables/network/useFiles';
 import type { NetworkFile, ConfirmForm, UpdateFile } from '@/types';
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch, type Ref } from 'vue';
 import UserContentViewer from '@/components/UserContentViewer.vue';
 import { useEventStore } from '@/stores/event';
+import EditFileModal from '@/components/modals/network/EditFileModal.vue';
 
 const events = useEventStore();
 
-const { execute: fetchFiles, data: rawFiles } = useFiles().fetchNetworkFiles;
 const { execute: fetchFile, data: fetchedFile } = useFiles().fetchFile;
 
 const showEditModal = ref(false);
 const isSubmitting = ref(false);
 const selectedFile = ref<NetworkFile | null>(null);
 
-  
+const rawFiles = ref<NetworkFile[]>([]);
+const files = computed(() => (rawFiles.value ?? [] as NetworkFile[]).map(f => {
+  return { ...f, sizeBytes: (f.sizeBytes / 1024) };
+}));
+
+
 const props = defineProps<{
-  networkId: string;
+  networkId?: string;
+  networkIds?: string[];
+  fetchFiles: () => Promise<Ref<NetworkFile[] | null>>
 }>();
 
 const emit = defineEmits<{
@@ -63,15 +70,12 @@ const emit = defineEmits<{
 
 
 onMounted(async () => {
-  await fetchFiles(props.networkId);
+  const remoteRef = await props.fetchFiles();
+
+  watch(remoteRef, (newVal) => rawFiles.value = newVal ?? [], { immediate: true });
 
   events.listen.file.openEdit(handleEditFile);
 });
-
-
-const files = computed(() => (rawFiles.value ?? [] as NetworkFile[]).map(f => {
-  return { ...f, sizeBytes: Math.round(f.sizeBytes / 1024) };
-}));
 
 
 async function handleCreateFile() {

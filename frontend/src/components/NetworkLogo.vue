@@ -27,6 +27,5 @@ const props = defineProps<{
   networkName: string;
 }>();
 
-// Fallback logic for name if it's empty
 const networkName = props.networkName || 'Network';
 </script>

@@ -10,12 +10,6 @@ interface CacheEntry<T> {
   lastFetch: number;
 }
 
-export interface UseMutationReturn<T, P extends unknown[]> {
-  execute: (...args: P) => Promise<T>;
-  loading: Ref<boolean>;
-  error: Ref<string | null>;
-}
-
 // Global "Source of Truth" (Primitive values, not refs, to keep it simple)
 export const globalCache = new Map<string, CacheEntry<unknown>>();
 
@@ -29,6 +23,14 @@ function getOrCreateEntry<T>(key: string): CacheEntry<T> {
     });
   }
   return globalCache.get(key) as CacheEntry<T>;
+}
+
+export interface UseCachedApiReturn<T, P extends unknown[]> {
+  execute: (...args: P) => Promise<void>;
+  isFetching: Ref<boolean>;
+  loading: Ref<boolean>;
+  error: Ref<string | null>;
+  data: Ref<T | null>;
 }
 
 export function useCachedApi<T, P extends unknown[]>(
@@ -92,6 +94,12 @@ export function useCachedApi<T, P extends unknown[]>(
     error: computed(() => currentEntry.value?.error.value ?? null),
     execute,
   };
+}
+
+export interface UseMutationReturn<T, P extends unknown[]> {
+  execute: (...args: P) => Promise<T>;
+  loading: Ref<boolean>;
+  error: Ref<string | null>;
 }
 
 export function useMutation<T, P extends unknown[], TListItem = T>(

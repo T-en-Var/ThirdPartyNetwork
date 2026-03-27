@@ -63,7 +63,7 @@ import JsonEditorVue from 'json-editor-vue';
 import AccessLevelPicker from '@/components/fields/AccessLevelPicker.vue';
 import { ref, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import useConfigurations from '@/composables/useConfigurations';
+import useConfigurations from '@/composables/network/useConfigurations';
 import type { Configuration, CreateConfiguration } from '@/types';
 import { useHistoryStore } from '@/stores/history';
 

@@ -4,8 +4,8 @@ import { reactive } from 'vue';
 
 export const DEFAULT_STORES = {
   adminPage: 'admin-page',
-  account: 'account'
-}
+  account: 'account',
+};
 
 export interface HistoryModelMap {
   userProxies: UserProxy;
@@ -40,7 +40,6 @@ const activeStores = new Set<{ reset: () => void }>();
 
 export const useHistoryStore = (namespace: string) => {
   const store = defineStore(`history-${namespace}`, () => {
-
     const data = reactive(
       (Object.keys(HISTORY_LIMITS) as HistoryType[]).reduce(
         (acc, key) => {
@@ -68,6 +67,23 @@ export const useHistoryStore = (namespace: string) => {
       return acc;
     }, {} as VisitMap);
 
+    type RemoveMap = { [K in HistoryType]: (itemOrId: HistoryModelMap[K] | string) => void };
+
+    const remove = (Object.keys(HISTORY_LIMITS) as HistoryType[]).reduce((acc, key) => {
+      acc[key] = (itemOrId: { id: string } | string) => {
+        const idToRemove = typeof itemOrId === 'string' ? itemOrId : itemOrId.id;
+        const currentList = data[key] as { id: string }[];
+
+        const updatedList = currentList.filter((x) => x.id !== idToRemove);
+
+        (data as Record<HistoryType, unknown[]>)[key] = updatedList;
+
+        localStorage.setItem(getStorageKey(key), JSON.stringify(updatedList));
+      };
+
+      return acc;
+    }, {} as RemoveMap);
+
     function initialize() {
       (Object.keys(HISTORY_LIMITS) as HistoryType[]).forEach((type) => {
         const stored = localStorage.getItem(getStorageKey(type));
@@ -93,6 +109,7 @@ export const useHistoryStore = (namespace: string) => {
     return {
       data,
       visit,
+      remove,
       initialize,
       reset,
     };
@@ -113,6 +130,6 @@ export function clearAllHistoryStores() {
       keysToRemove.push(key);
     }
   }
-  
+
   keysToRemove.forEach((key) => localStorage.removeItem(key));
 }
