@@ -344,7 +344,7 @@ async function handleToggle(accessId: string) {
 }
 
 // Check if user has permission to manage the network
-const canManageNetwork = computed(() => network.value && authStore.claimChecker.canManageNetwork(network.value));
+const canManageNetwork = computed(() => network.value && authStore.canI.manageNetwork(network.value));
 
 const currentNetworkUser = computed(() => {
   if (!authStore.isAuthenticated) return null;

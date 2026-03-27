@@ -386,9 +386,7 @@ router.beforeEach(async (to, from, next) => {
   }
 
   if (to.matched.some((record) => record.meta.requiresAdmin)) {
-    await authStore.initialize();
-
-    if (!authStore.isAdmin) {
+    if (!(await authStore.isSuperAdmin())) {
       next({ path: '/404' });
       return;
     }

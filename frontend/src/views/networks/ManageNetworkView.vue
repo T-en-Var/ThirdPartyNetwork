@@ -3,81 +3,65 @@
     <NetworkSidebar />
 
     <div class="flex-1 p-6 overflow-auto">
-      <LoadingErrorComponent :loading="networksState.fetchNetwork.loading.value"
-        :error="networksState.fetchNetwork.error.value"
-        :has-value="!!networksState.fetchNetwork.data"
+      <LoadingErrorComponent
+        :loading="composables.networks.fetchNetwork.loading.value"
+        :error="composables.networks.fetchNetwork.error.value" :has-value="!!network"
         button-value="Return to networks"
         @button-action="router.push(`/networks`)" />
 
-      <RouterView v-if="!networksState.fetchNetwork.loading.value && !networksState.fetchNetwork.error.value
-        && networksState.fetchNetwork.data.value"
-        :network="networksState.fetchNetwork.data.value"
-        @confirm="handleConfirmationModal" 
-        
-        @add-user="showAddUserModal = true"
-        @manage-user="openManageUserModal" 
-        @remove-user="confirmRemoveUser"
-        @add-role="showAddRoleModal = true" 
-        @manage-role="openEditRoleModal"
-        @remove-role="confirmRemoveRole" 
+      <RouterView v-if="!composables.networks.fetchNetwork.loading.value && !composables.networks.fetchNetwork.error.value
+        && network" :network="network" :network-id="network.id" @confirm="confirm"
+        @add-user="showAddUserModal = true" @manage-user="openManageUserModal"
+        @remove-user="handle.users.delete" @add-role="showAddRoleModal = true"
+        @manage-role="openEditRoleModal" @remove-role="handle.roles.delete"
         @add-access="showAddAccessModal = true"
-        @toggle-access-required="confirmToggleAccessRequired"
-        @remove-access="confirmRemoveAccess" 
-
-        @add-file="showAddFileModal = true"
-        @edit-file="openEditFileModal" 
-        @remove-file="confirmRemoveFile"
-        @edit-page-block="handleEditPageBlock"
+        @toggle-access-required="handle.accesses.toggle"
+        @remove-access="handle.accesses.delete"
+        @edit-page-block="handle.pageBlocks.edit"
         @create-page-block="handleShowCreatePageBlockModal"
-        @update-page-block="handleUpdatePageBlock"
+        @update-page-block="handle.pageBlocks.update"
+        @update-network="handle.network.update"
+        @delete-network="handle.network.delete" @blog-edit="handle.blog.edit"
+        @blog-create="handle.blog.create" @blog-delete="handle.blog.delete"
+        @configuration-edit="handle.configuration.edit"
+        @configuration-create="handle.configuration.create"
+        @configuration-delete="handle.configuration.delete"
+        @custom-pages-edit="handle.customPages.edit"
+        @custom-pages-create="handle.customPages.create"
+        @custom-pages-delete="handle.customPages.delete"
+        @add-file="showAddFileModal = true" @file-update="handle.files.update"
+        @file-delete="handle.files.delete" />
 
-        @update-network="handleUpdateNetwork"
-        @delete-network="handleDeleteNetwork" />
-
-      <div v-if="networksState.fetchNetwork.data.value!">
-        <AddUserModal v-if="showAddUserModal"
-          :network="networksState.fetchNetwork.data.value!"
-          :is-submitting="isSubmitting" @close="showAddUserModal = false"
-          @add-user="addUserToNetwork" />
-
-        <EditUserModal v-if="showManageUserModal && selectedUser"
-          :network="networksState.fetchNetwork.data.value!"
+      <div v-if="network">
+        <EditUserModal v-if="showManageUserModal && selectedUser" :network="network"
           :selected-user="selectedUser" :is-submitting="isSubmitting"
           :manage-user-form="manageUserForm" @close="showManageUserModal = false"
           @update="updateUserSettings" />
 
-        <AddRoleModal v-if="showAddRoleModal"
-          :network="networksState.fetchNetwork.data.value!"
+        <AddRoleModal v-if="showAddRoleModal" :network="network"
           :is-submitting="isSubmitting" @close="showAddRoleModal = false"
           @add-role="addRoleToNetwork" />
 
-        <EditRoleModal v-if="showEditRoleModal && selectedRole"
-          :network="networksState.fetchNetwork.data.value!"
+        <EditRoleModal v-if="showEditRoleModal && selectedRole" :network="network"
           :selected-role="selectedRole" :manage-role-form="manageRoleForm"
           @close="showEditRoleModal = false" @update="updateRolePermissions" />
 
-        <AddAccessModal v-if="showAddAccessModal"
-          :network="networksState.fetchNetwork.data.value!"
+        <AddAccessModal v-if="showAddAccessModal" :network="network"
           :is-submitting="isSubmitting" @close="showAddAccessModal = false"
-          @add-access="addAccessToNetwork" />
+          @add-access="handle.accesses.create" />
 
         <ConfirmationModal v-if="showConfirmationModal" :title="confirmationTitle"
           :message="confirmationMessage" :button-text="confirmButtonText"
           :color="confirmButtonColor" :is-submitting="isSubmitting"
           @close="showConfirmationModal = false" @confirm="confirmAction" />
 
-        <AddFileModal v-if="showAddFileModal" media-type="any"
-          :network="networksState.fetchNetwork.data.value!"
-          @close="showAddFileModal = false" @uploaded="openEditFileModal" />
-
-        <EditFileModal v-if="showEditFileModal && selectedFile" :file="selectedFile"
-          :is-submitting="isSubmitting" @close="showEditFileModal = false"
-          @update-file="editFile" @delete-file="confirmRemoveFile" />
+        <AddFileModal v-if="showAddFileModal" media-type="any" :network="network"
+          @close="showAddFileModal = false" @uploaded="handle.files.openEdit" />
 
         <AddPageBlockModal
           v-if="showCreatePageBlockModal && createPageBlockCustomPage"
           :custom-page="createPageBlockCustomPage" :is-submitting="isSubmitting"
-          @create-page-block="handleCreatePageBlock"
+          @create-page-block="handle.pageBlocks.create"
           @close="handleCloseCreatePageBlockModal" />
       </div>
     </div>
@@ -88,44 +72,52 @@
 import { ref, reactive, onMounted, onUnmounted, watch, type Ref, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import usePermissions from '@/composables/usePermissions';
-import { useGlobalStore } from '@/stores/global';
 
 // Components
 import NetworkSidebar from '@/components/sidebar/NetworkSidebar.vue';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
-import AddUserModal from '@/components/modals/network/AddUserModal.vue';
 import EditUserModal from '@/components/modals/network/EditUserModal.vue';
 import AddRoleModal from '@/components/modals/network/AddRoleModal.vue';
 import EditRoleModal from '@/components/modals/network/EditRoleModal.vue';
 import AddAccessModal from '@/components/modals/network/AddAccessModal.vue';
-import AddFileModal from '@/components/modals/network/AddFileModal.vue';
-import EditFileModal from '@/components/modals/network/EditFileModal.vue';
+import AddFileModal from '@/components/modals/usercontent/AddFileModal.vue';
 import ConfirmationModal from '@/components/modals/ConfirmationModal.vue';
 
-import type { NetworkUser, Role, NetworkAccess, NetworkFile, PageBlock, CreatePageBlock, NetworkAccessCreate, Network, NetworkUpdate, UpdateNetworkUser, CustomPage } from '@/types';
-import type { RoleForm, ManageUserForm, EditFileForm, ConfirmForm } from '@/types/forms';
+import type { NetworkUser, Role, NetworkAccess, NetworkFile, PageBlock, CreatePageBlock, NetworkAccessCreate, Network, NetworkUpdate, UpdateNetworkUser, CustomPage, CreateBlog, Blog, CreateConfiguration, Configuration, CreateCustomPage } from '@/types';
+import type { RoleForm, ManageUserForm, UpdateFile, ConfirmForm } from '@/types/forms';
 
-import api from '@/api/api';
 import useFiles from '@/composables/useFiles';
-import AddPageBlockModal from '@/components/modals/network/AddPageBlockModal.vue';
+import AddPageBlockModal from '@/components/modals/usercontent/AddPageBlockModal.vue';
 import useCustomPages from '@/composables/useCustomPages';
 import useRoles from '@/composables/useRoles';
 import useNetworks from '@/composables/useNetworks';
 import useNetworkUsers from '@/composables/useNetworkUsers';
 import useAccesses from '@/composables/useAccesses';
+import useBlogs from '@/composables/useBlogs';
+import type { UseMutationReturn } from '@/composables/useApi';
+import useConfigurations from '@/composables/useConfigurations';
+import { useEventStore } from '@/stores/event';
+import { getNameDisplayUserProxy } from '@/lib/user';
 
 const router = useRouter();
 const route = useRoute();
 
-const globalStore = useGlobalStore();
-const permissionsState = usePermissions();
-const accessesState = useAccesses();
-const networkUsersState = useNetworkUsers();
-const networksState = useNetworks();
-const rolesState = useRoles();
+const events = useEventStore();
 
-const customPagesState = useCustomPages();
-const filesState = useFiles();
+const composables = {
+  networks: useNetworks(),
+
+  accesses: useAccesses(),
+  networkUsers: useNetworkUsers(),
+  permissions: usePermissions(),
+  roles: useRoles(),
+
+  blogs: useBlogs(),
+  customPages: useCustomPages(),
+  files: useFiles(),
+  configurations: useConfigurations()
+};
+
 
 const showAddUserModal = ref(false);
 const showManageUserModal = ref(false);
@@ -140,7 +132,6 @@ const createPageBlockCustomPage = ref<CustomPage | null>(null);
 
 const selectedUser = ref<NetworkUser | null>(null);
 const selectedRole = ref<Role | null>(null);
-const selectedFile = ref<NetworkFile | null>(null);
 const isSubmitting = ref(false);
 
 const confirmationTitle = ref('');
@@ -159,7 +150,8 @@ const manageRoleForm = reactive<RoleForm>({
 });
 
 const originalFavicon = ref<string | null>(null);
-const networkId = computed(() => networksState.fetchNetwork.data.value!.id);
+const networkId = computed(() => composables.networks.fetchNetwork.data.value!.id);
+const network = computed(() => composables.networks.fetchNetwork.data.value);
 
 onMounted(async () => {
   const link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
@@ -167,7 +159,7 @@ onMounted(async () => {
     originalFavicon.value = link.href;
   }
 
-  const { execute: fetchNetwork } = networksState.fetchNetwork;
+  const { execute: fetchNetwork } = composables.networks.fetchNetwork;
 
   const networkId = route.params.networkId as string;
   await fetchNetwork(networkId);
@@ -182,7 +174,7 @@ onUnmounted(() => {
   }
 });
 
-watch(() => networksState.fetchNetwork.data.value?.imageFile?.url, (newUrl) => {
+watch(() => composables.networks.fetchNetwork.data.value?.imageFile?.url, (newUrl) => {
   if (newUrl) {
     let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
     if (!link) {
@@ -195,7 +187,7 @@ watch(() => networksState.fetchNetwork.data.value?.imageFile?.url, (newUrl) => {
 });
 
 // Methods
-function handleConfirmationModal(form: ConfirmForm) {
+function confirm(form: ConfirmForm) {
   confirmationTitle.value = form.title;
   confirmationMessage.value = form.message;
   confirmButtonText.value = form.buttonText;
@@ -208,6 +200,174 @@ function handleConfirmationModal(form: ConfirmForm) {
   showConfirmationModal.value = true;
 }
 
+const genericMutation = <T, P extends unknown[]>(
+  composable: UseMutationReturn<T, P>,
+  options?: {
+    callback?: (result: T, ...args: P) => void;
+    errorHandler?: (err: unknown) => void;
+  }
+) => {
+  const { execute } = composable;
+
+  const wrapper = async (...args: P) => {
+    isSubmitting.value = true;
+
+    try {
+      const result: T = await execute(...args);
+
+      if (options?.callback) {
+        options.callback(result, ...args);
+      }
+    } catch (err) {
+      if (options?.errorHandler) {
+        options.errorHandler(err);
+        return;
+      }
+      console.error(`Error executing mutation:`, err);
+    } finally {
+      isSubmitting.value = false;
+    }
+  };
+
+  return wrapper;
+};
+
+const handle = {
+  network: {
+    update: async (networkId: string, networkUpdate: NetworkUpdate) => await genericMutation(composables.networks.updateNetwork)(networkId, networkUpdate),
+
+    delete: (network: Network) =>
+      confirm({
+        title: 'Delete network',
+        message: `Are you sure you want to delete ${network.name} permanently?`,
+        buttonText: 'Proceed',
+        buttonColor: 'red',
+        action: async () =>
+          confirm({
+            title: 'Delete network',
+            message: `Are you REALLY SURE you want to delete ${network.name} PERMANENTLY!?`,
+            buttonText: 'DO IT',
+            buttonColor: 'red',
+            action: async () => await genericMutation(composables.networks.deleteNetwork)(network.id),
+          })
+      })
+  },
+
+  blog: {
+    create: async (payload: CreateBlog) => await genericMutation(composables.blogs.createBlog)(networkId.value, payload),
+
+    edit: (blog: Blog) => router.push(`/networks/${networkId.value}/manage/blogs/${blog.id}/edit`),
+
+    delete: (blog: Blog) =>
+      confirm({
+        title: 'Remove Blog',
+        message: `Are you sure you want to remove '${blog.title}' from this network?`,
+        buttonText: 'Remove',
+        buttonColor: 'red',
+        action: async () => await genericMutation(composables.blogs.deleteBlog)(networkId.value, blog.id),
+      })
+  },
+
+  configuration: {
+    create: async (payload: CreateConfiguration) => await genericMutation(composables.configurations.createConfiguration)(networkId.value, payload),
+
+    edit: (configuration: Configuration) => router.push(`/networks/${networkId.value}/manage/configurations/${configuration.id}/edit`),
+
+    delete: (configuration: Configuration) =>
+      confirm({
+        title: 'Remove Configuration',
+        message: `Are you sure you want to remove '${configuration.key}' from this network?`,
+        buttonText: 'Remove',
+        buttonColor: 'red',
+        action: async () => await genericMutation(composables.configurations.deleteConfiguration)(networkId.value, configuration.id),
+      })
+  },
+
+  customPages: {
+    create: async (payload: CreateCustomPage) => await genericMutation(composables.customPages.createCustomPage)(networkId.value, payload),
+
+    edit: (customPage: CustomPage) => router.push(`/networks/${networkId.value}/manage/custom-pages/${customPage.id}/edit`),
+
+    delete: (customPage: CustomPage) =>
+      confirm({
+        title: 'Remove CustomPage',
+        message: `Are you sure you want to remove '${customPage.name}' from this network?`,
+        buttonText: 'Remove',
+        buttonColor: 'red',
+        action: async () => await genericMutation(composables.customPages.deleteCustomPage)(networkId.value, customPage.id),
+      })
+  },
+
+  files: {
+    update: async (id: string, networkId: string, networkFile: UpdateFile) =>
+      await genericMutation(composables.files.updateFile)(networkId, id, networkFile),
+
+    delete: (file: NetworkFile) => {
+      showEditFileModal.value = false;
+      confirm({
+        title: 'Delete File',
+        message: `Are you sure you want to delete the file '${file.name}'?`,
+        buttonText: 'Confirm',
+        buttonColor: 'red',
+        action: async () => await genericMutation(composables.files.deleteFile)(networkId.value, file.id),
+      });
+    },
+
+    openEdit: (file: NetworkFile) => events.emit.file.openEdit(file),
+  },
+
+  users: {
+    delete: (networkUser: NetworkUser) =>
+      confirm({
+        title: 'Remove User',
+        message: `Are you sure you want to remove '${getNameDisplayUserProxy(networkUser.userProxy)}' from this network?`,
+        buttonText: 'Remove',
+        buttonColor: 'red',
+        action: async () => await genericMutation(composables.networkUsers.deleteNetworkUser)(networkId.value, networkUser.id),
+      })
+  },
+
+  accesses: {
+    create: async (accessData: NetworkAccessCreate) => accessData.access && await genericMutation(composables.accesses.createAccess)(networkId.value, accessData.access.id, accessData.isRequired),
+
+    toggle: (networkAccess: NetworkAccess) =>
+      confirm({
+        title: 'Toggle Access Requirement',
+        message: `Are you sure you want to make the Access '${networkAccess.access.name}' ${networkAccess.isRequired ? 'optional' : 'required'}?`,
+        buttonText: 'Confirm',
+        buttonColor: 'green',
+        action: async () => await genericMutation(composables.accesses.updateNetworkAccess)(networkId.value, networkAccess.accessId, !networkAccess.isRequired),
+      }),
+
+    delete: (networkAccess: NetworkAccess) =>
+      confirm({
+        title: 'Remove Access Requirement',
+        message: `Are you sure you want to remove the access requirement "${networkAccess.access.name}" from this network?`,
+        buttonText: 'Remove',
+        buttonColor: 'red',
+        action: async () => await genericMutation(composables.accesses.deleteNetworkAccess)(networkId.value, networkAccess.accessId),
+      })
+  },
+
+  roles: {
+    delete: (role: Role) =>
+      confirm({
+        title: 'Remove Role',
+        message: `Are you sure you want to remove the role "${role.name}" from this network?`,
+        buttonText: 'Remove',
+        buttonColor: 'red',
+        action: async () => await genericMutation(composables.roles.deleteRole)(networkId.value, role.id),
+      })
+  },
+
+  pageBlocks: {
+    create: async (customPageId: string, pageBlock: CreatePageBlock) => await genericMutation(composables.customPages.createPageBlock)(networkId.value, customPageId, pageBlock),
+
+    edit: (customPage: CustomPage, pageBlock: PageBlock) => router.push(`/networks/${networkId.value}/manage/custom-pages/${customPage.id}/blocks/${pageBlock.id}/edit`),
+
+    update: async (customPageId: string, pageBlock: PageBlock) => await genericMutation(composables.customPages.updatePageBlock)(networkId.value, customPageId, pageBlock.id, pageBlock),
+  }
+};
 
 function openManageUserModal(user: NetworkUser) {
   selectedUser.value = user;
@@ -217,32 +377,10 @@ function openManageUserModal(user: NetworkUser) {
   showManageUserModal.value = true;
 }
 
-function confirmRemoveUser(networkUser: NetworkUser) {
-  confirmationTitle.value = 'Remove User';
-  confirmationMessage.value = `Are you sure you want to remove ${networkUser.userProxy.firstName} ${networkUser.userProxy.lastName} from this network?`;
-  confirmButtonText.value = 'Remove';
-  confirmButtonColor.value = 'red';
-
-  confirmationAction.value = async () => {
-    isSubmitting.value = true;
-
-    const { execute: deleteNetworkUser } = networkUsersState.deleteNetworkUser;
-
-    try {
-      await deleteNetworkUser(networkId.value, networkUser.id);
-    } catch (err) {
-      console.error('Error removing network user:', err);
-    } finally {
-      isSubmitting.value = false;
-    }
-  };
-  showConfirmationModal.value = true;
-}
-
 async function openEditRoleModal(role: Role) {
   selectedRole.value = role;
 
-  const { execute: fetchPermissions } = permissionsState.fetchPermissions;
+  const { execute: fetchPermissions } = composables.permissions.fetchPermissions;
 
   await fetchPermissions();
   manageRoleForm.name = role.name;
@@ -253,98 +391,13 @@ async function openEditRoleModal(role: Role) {
   showEditRoleModal.value = true;
 }
 
-function confirmRemoveRole(role: Role) {
-  confirmationTitle.value = 'Remove Role';
-  confirmationMessage.value = `Are you sure you want to remove the role "${role.name}" from this network?`;
-  confirmButtonText.value = 'Remove';
-  confirmButtonColor.value = 'red';
-
-  confirmationAction.value = async () => {
-    isSubmitting.value = true;
-    const { execute: deleteRole } = rolesState.deleteRole;
-
-    try {
-      await deleteRole(networkId.value, role.id);
-    } catch (err) {
-      console.error('Error removing role:', err);
-    } finally {
-      isSubmitting.value = false;
-    }
-  };
-  showConfirmationModal.value = true;
-}
-
-function confirmToggleAccessRequired(networkAccess: NetworkAccess) {
-  confirmationTitle.value = 'Toggle Access Requirement';
-  confirmationMessage.value = networkAccess.isRequired
-    ? `Are you sure you want to make the Access ${networkAccess.access.name} optional?`
-    : `Are you sure you want to make the Access ${networkAccess.access.name} required?`;
-  confirmButtonText.value = 'Confirm';
-  confirmButtonColor.value = 'green';
-
-  confirmationAction.value = async () => {
-    const { execute: updateNetworkAccess } = accessesState.updateNetworkAccess;
-    isSubmitting.value = true;
-
-    try {
-      await updateNetworkAccess(networkId.value, networkAccess.accessId, !networkAccess.isRequired);
-    } catch (err) {
-      console.error('Error toggling access requirement:', err);
-    } finally {
-      isSubmitting.value = false;
-    }
-  };
-
-  showConfirmationModal.value = true;
-}
-
-function confirmRemoveAccess(networkAccess: NetworkAccess) {
-  confirmationTitle.value = 'Remove Access Requirement';
-  confirmationMessage.value = `Are you sure you want to remove the access requirement "${networkAccess.access.name}" from this network?`;
-  confirmButtonText.value = 'Remove';
-  confirmButtonColor.value = 'red';
-
-  confirmationAction.value = async () => {
-    isSubmitting.value = true;
-    const { execute: deleteNetworkAccess } = accessesState.deleteNetworkAccess;
-
-    try {
-      await deleteNetworkAccess(networkId.value, networkAccess.accessId);
-      showConfirmationModal.value = false;
-    } catch (err) {
-      console.error('Error removing access requirement:', err);
-    } finally {
-      isSubmitting.value = false;
-    }
-  };
-
-  showConfirmationModal.value = true;
-}
-
-async function addUserToNetwork(userData: { userId: string, roleIds: string[]; }) {
-  isSubmitting.value = true;
-  const { execute: createNetworkUser } = networkUsersState.createNetworkUser;
-
-  try {
-    await createNetworkUser(networkId.value, {
-      userProxyId: userData.userId,
-      roleIds: userData.roleIds
-    });
-    showAddUserModal.value = false;
-  } catch (err) {
-    console.error('Error removing access requirement:', err);
-  } finally {
-    isSubmitting.value = false;
-  }
-}
-
 async function updateUserSettings(localForm: ManageUserForm) {
   if (!selectedUser.value) return;
 
   const addedRoles = localForm.roleIds.filter(roleId => !manageUserForm.roleIds.includes(roleId));
   const removedRoles = manageUserForm.roleIds.filter(roleId => !localForm.roleIds.includes(roleId));
 
-  const { execute: updateNetworkUser } = networkUsersState.updateNetworkUser;
+  const { execute: updateNetworkUser } = composables.networkUsers.updateNetworkUser;
 
   const payload: UpdateNetworkUser = {
     entitlements: localForm.entitlements,
@@ -365,7 +418,7 @@ async function updateUserSettings(localForm: ManageUserForm) {
 }
 
 async function addRoleToNetwork(localForm: Ref<RoleForm>) {
-  const { execute: createRole } = rolesState.createRole;
+  const { execute: createRole } = composables.roles.createRole;
 
   const payload = {
     name: localForm.value.name.trim(),
@@ -388,7 +441,7 @@ async function updateRolePermissions(localForm: RoleForm) {
   if (!selectedRole.value) return;
   isSubmitting.value = true;
 
-  const { execute: updateRole } = rolesState.updateRole;
+  const { execute: updateRole } = composables.roles.updateRole;
   const payload = {
     name: localForm.name.trim(),
     description: localForm.description.trim(),
@@ -412,72 +465,6 @@ async function updateRolePermissions(localForm: RoleForm) {
   }
 }
 
-async function addAccessToNetwork(accessData: NetworkAccessCreate) {
-  if (!accessData.access) return;
-  isSubmitting.value = true;
-
-  const { execute: createAccess } = accessesState.createAccess;
-
-  try {
-    await createAccess(networkId.value, accessData.access.id, accessData.isRequired);
-
-    showAddAccessModal.value = false;
-  } catch (err) {
-    console.error('Error adding access requirement:', err);
-  } finally {
-    isSubmitting.value = false;
-  }
-}
-
-function confirmRemoveFile(networkFile: NetworkFile) {
-  showEditFileModal.value = false;
-
-  confirmationTitle.value = 'Delete File';
-  confirmationMessage.value = `Are you sure you want to delete the file '${networkFile.name}'?`;
-  confirmButtonText.value = 'Confirm';
-  confirmButtonColor.value = 'red';
-
-  confirmationAction.value = async () => {
-    isSubmitting.value = true;
-
-    const { execute: deleteFile } = filesState.deleteFile;
-
-    try {
-      await deleteFile(networkId.value, networkFile.id);
-    } catch (err) {
-      console.error('Error deleting file:', err);
-    } finally {
-      isSubmitting.value = false;
-    }
-  };
-
-  showConfirmationModal.value = true;
-}
-
-async function openEditFileModal(file: NetworkFile) {
-  await filesState.fetchFile.execute(networkId.value, file.id);
-
-  if (showAddFileModal.value) showAddFileModal.value = false;
-
-  selectedFile.value = file;
-  showEditFileModal.value = true;
-}
-
-async function editFile(id: string, networkId: string, networkFile: EditFileForm) {
-  isSubmitting.value = true;
-
-  const { execute: updateFile } = filesState.updateFile;
-
-  try {
-    await updateFile(networkId, id, networkFile);
-    showEditFileModal.value = false;
-  } catch (err) {
-    console.error('Error editing file:', err);
-  } finally {
-    isSubmitting.value = false;
-  }
-}
-
 function handleShowCreatePageBlockModal(customPage: CustomPage) {
   showCreatePageBlockModal.value = true;
   createPageBlockCustomPage.value = customPage;
@@ -486,83 +473,6 @@ function handleShowCreatePageBlockModal(customPage: CustomPage) {
 function handleCloseCreatePageBlockModal() {
   showCreatePageBlockModal.value = false;
   createPageBlockCustomPage.value = null;
-}
-
-async function handleCreatePageBlock(customPageId: string, pageBlock: CreatePageBlock) {
-  isSubmitting.value = true;
-  const { execute: createPageBlock } = customPagesState.createPageBlock;
-
-  try {
-    await createPageBlock(networkId.value, customPageId, pageBlock);
-    handleCloseCreatePageBlockModal();
-  } catch (err) {
-    console.error('Error creating page block:', err);
-  } finally {
-    isSubmitting.value = false;
-  }
-}
-
-function handleEditPageBlock(customPage: CustomPage, pageBlock: PageBlock) {
-  router.push(`/networks/${networkId.value}/manage/custom-pages/${customPage.id}/blocks/${pageBlock.id}/edit`);
-}
-
-async function handleUpdatePageBlock(customPageId: string, pageBlock: PageBlock) {
-  isSubmitting.value = true;
-  const { execute: updatePageBlock } = customPagesState.updatePageBlock;
-
-  try {
-    await updatePageBlock(networkId.value, customPageId, pageBlock.id, pageBlock);
-  } catch (err) {
-    console.error('Error editing page block:', err);
-  } finally {
-    isSubmitting.value = false;
-  }
-}
-
-async function handleUpdateNetwork(networkId: string, networkUpdate: NetworkUpdate) {
-  isSubmitting.value = true;
-  const { execute: updateNetwork } = networksState.updateNetwork;
-
-  try {
-    await updateNetwork(networkId, networkUpdate);
-  } catch (err) {
-    console.error('Error updating network:', err);
-  } finally {
-    isSubmitting.value = false;
-  }
-}
-
-function handleDeleteNetwork(network: Network) {
-  confirmationTitle.value = 'Delete network';
-  confirmationMessage.value = `Are you sure you want to delete ${network.name} permanently?`;
-  confirmButtonText.value = 'Proceed';
-  confirmButtonColor.value = 'red';
-
-  confirmationAction.value = async () => {
-    confirmationTitle.value = 'Delete network';
-    confirmationMessage.value = `Are you REALLY SURE you want to delete ${network.name} permanently?`;
-    confirmButtonText.value = 'DO IT';
-    confirmButtonColor.value = 'red';
-
-    confirmationAction.value = async () => {
-      globalStore.startFetching();
-      isSubmitting.value = true;
-
-      try {
-        await api.delete(`/networks/${network.id}/`);
-        router.push("/networks");
-      } catch (err) {
-        console.error('Error removing custom page:', err);
-      } finally {
-        isSubmitting.value = false;
-        globalStore.stopFetching();
-      }
-    };
-
-    showConfirmationModal.value = true;
-  };
-
-  showConfirmationModal.value = true;
 }
 
 function confirmAction() {

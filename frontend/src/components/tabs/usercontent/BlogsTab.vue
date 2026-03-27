@@ -31,68 +31,39 @@
 import useBlogs from '@/composables/useBlogs';
 import type { Blog, ConfirmForm, CreateBlog } from '@/types';
 import { onMounted, ref } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
 import UserContentViewer from '@/components/UserContentViewer.vue';
-import AddBlogModal from '@/components/modals/network/AddBlogModal.vue';
-
-const route = useRoute();
-const router = useRouter();
+import AddBlogModal from '@/components/modals/usercontent/AddBlogModal.vue';
 
 const { execute: fetchBlogs, data: blogs } = useBlogs().fetchBlogs;
 
-const networkId = route.params.networkId as string;
+const props = defineProps<{
+  networkId: string;
+}>();
+
+const emit = defineEmits<{
+  (e: 'blog-create', networkId: string, payload: CreateBlog): void;
+  (e: 'blog-edit', blog: Blog): void;
+  (e: 'blog-delete', blog: Blog): void;
+  (e: 'confirm', form: ConfirmForm): void;
+}>()
 
 const showCreateModal = ref(false);
 const isSubmitting = ref(false);
 
 onMounted(async () => {
-  await fetchBlogs(networkId);
+  await fetchBlogs(props.networkId);
 });
 
-const emit = defineEmits<{
-  (e: 'confirm', form: ConfirmForm): void;
-}>();
 
-
-async function handleCreateBlog(blogCreate: CreateBlog) {
-  const { execute: createBlog } = useBlogs().createBlog;
-  isSubmitting.value = true;
-
-  try {
-    await createBlog(networkId, blogCreate);
-    showCreateModal.value = false;
-  } catch (err) {
-    console.error('Error creating blog:', err);
-  } finally {
-    isSubmitting.value = false;
-  }
+async function handleCreateBlog(networkId: string, blogCreate: CreateBlog) {
+  emit('blog-create', networkId, blogCreate);
 }
 
 function handleEditBlog(blog: Blog) {
-  router.push(`/networks/${networkId}/manage/blogs/${blog.id}/edit`);
+  emit('blog-edit', blog);
 }
 
 function handleRemoveBlog(blog: Blog) {
-  const form: ConfirmForm = {
-    title: 'Remove Blog',
-    message: `Are you sure you want to remove ${blog.title} from this network?`,
-    buttonText: 'Remove',
-    buttonColor: 'red',
-
-    action: async () => {
-      isSubmitting.value = true;
-      const { execute: deleteBlog } = useBlogs().deleteBlog;
-
-      try {
-        await deleteBlog(networkId, blog.id);
-      } catch (err) {
-        console.error('Error removing blog:', err);
-      } finally {
-        isSubmitting.value = false;
-      }
-    }
-  };
-
-  emit('confirm', form);
+  emit('blog-delete', blog);
 }
 </script>

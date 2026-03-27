@@ -10,6 +10,12 @@ interface CacheEntry<T> {
   lastFetch: number;
 }
 
+export interface UseMutationReturn<T, P extends unknown[]> {
+  execute: (...args: P) => Promise<T>;
+  loading: Ref<boolean>;
+  error: Ref<string | null>;
+}
+
 // Global "Source of Truth" (Primitive values, not refs, to keep it simple)
 export const globalCache = new Map<string, CacheEntry<unknown>>();
 

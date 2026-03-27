@@ -1,7 +1,8 @@
 <template>
   <modal-container title="Add Configuration" @close="$emit('close')">
     <create-user-content-container :is-submitting="isSubmitting"
-      :input-is-valid="inputIsValid" :network-id="networkId" :network-ids="networkIds" button-text="Add Configuration"
+      :input-is-valid="inputIsValid" :network-id="networkId"
+      :network-ids="networkIds" button-text="Add Configuration"
       @submit="handleSubmit">
       <div>
         <label class="block text-sm font-semibold text-gray-800 mb-2">Key</label>
@@ -30,7 +31,7 @@ import JsonEditorVue from 'json-editor-vue';
 import type { CreateConfiguration, CreateUserContentForm } from '@/types';
 
 defineProps<{
-  isSubmitting?: boolean;
+  isSubmitting: boolean;
   networkId?: string;
   networkIds?: string[];
 }>();
@@ -39,17 +40,20 @@ const inputIsValid = computed(() => !!key.value);
 
 const emit = defineEmits<{
   (e: 'close'): void;
-  (e: 'submit', payload: CreateConfiguration): void;
+  (e: 'submit', networkId: string, payload: CreateConfiguration): void;
 }>();
 
 const key = ref('');
 const jsonValue = ref<object>({});
 
 function handleSubmit(form: CreateUserContentForm) {
-  emit('submit', {
-    key: key.value.trim(),
-    accessLevel: form.accessLevel,
-    value: jsonValue.value
-  });
+  emit('submit',
+    form.networkId,
+    {
+      key: key.value.trim(),
+      accessLevel: form.accessLevel,
+      value: jsonValue.value
+    }
+  );
 }
 </script>

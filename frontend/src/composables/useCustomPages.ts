@@ -8,6 +8,11 @@ export default function useCustomPages() {
     async (networkId) => await api.get<CustomPage[]>(`/networks/${networkId}/custompages`),
   );
 
+  const fetchUserCustomPages = useCachedApi<CustomPage[], [userId: string, userProxyId: string]>(
+    (userId, userProxyId) => `users_${userId}_proxies_${userProxyId}_customPages`,
+    async (userId, userProxyId) => await api.get<CustomPage[]>(`/users/${userId}/proxies/${userProxyId}/customPages`),
+  );
+
   const fetchCustomPage = useCachedApi<CustomPage, [networkId: string, customPageId: string]>(
     (networkId, customPageId) => `networks_${networkId}_customPages_${customPageId}`,
     async (networkId, customPageId) =>
@@ -102,6 +107,7 @@ export default function useCustomPages() {
 
   return {
     fetchCustomPages,
+    fetchUserCustomPages,
     fetchCustomPage,
     createCustomPage,
     updateCustomPage,

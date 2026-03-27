@@ -6,9 +6,9 @@
     <!-- Main Content -->
     <div class="flex-1 p-6 overflow-auto">
       <!-- Loading and Error States -->
-      <LoadingErrorComponent :loading="authStore.loading"
-        :error="authStore.error ?? undefined" button-value="Reload page"
-        @button-action="router.go(0)" :has-value="!!authStore.currentUserProxy" />
+      <LoadingErrorComponent :loading="authStore.loading" :error="authStore.error"
+        button-value="Reload page" @button-action="router.go(0)"
+        :has-value="!!authStore.currentUserProxy" />
 
       <!-- Route View (Page Content) -->
       <div v-if="authStore.currentUserProxy">
@@ -17,7 +17,8 @@
           @create-proxy="showAddUserProxyModal = true"
           @edit-proxy="handleEditProxyClick" @switch-proxy="handleSwitchProxyClick"
           @update-user-proxy="handleUpdateProxy" @add-file="handleAddFile"
-          @edit-file="handleEditFile" @remove-file="handleRemoveFile" @delete-user-proxy="() => {}" />
+          @edit-file="handleEditFile" @remove-file="handleRemoveFile"
+          @delete-user-proxy="() => { }" @confirm="handleConfirmationModal" />
       </div>
 
       <div v-if="authStore.currentUserProxy">
@@ -52,7 +53,7 @@ import { useGlobalStore } from '@/stores/global';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import ConfirmationModal from '@/components/modals/ConfirmationModal.vue';
 
-import type { EditFileForm, NetworkFile, UserProxy, UserProxyCreate, UserProxyUpdate } from '@/types';
+import type { ConfirmForm, UpdateFile, NetworkFile, UserProxy, UserProxyCreate, UserProxyUpdate } from '@/types';
 
 import AccountSidebar from '@/components/sidebar/AccountSidebar.vue';
 import { useAuthStore } from '@/stores/auth';
@@ -113,6 +114,19 @@ const defaultProxy = computed(() => {
 });
 
 // Methods
+function handleConfirmationModal(form: ConfirmForm) {
+  confirmationTitle.value = form.title;
+  confirmationMessage.value = form.message;
+  confirmButtonText.value = form.buttonText;
+  confirmButtonColor.value = form.buttonColor;
+
+  confirmationAction.value = async () => {
+    await form.action();
+  };
+
+  showConfirmationModal.value = true;
+}
+
 async function confirmAction() {
   await confirmationAction.value();
   showConfirmationModal.value = false;
@@ -121,7 +135,7 @@ async function confirmAction() {
 async function createUserProxy(newUserProxy: UserProxyCreate) {
   if (!user.value) return;
 
-  
+
   const { execute: createUserProxy } = useUsers().createUserProxy;
   isSubmitting.value = true;
   try {
@@ -171,7 +185,7 @@ function handleEditFile(file: NetworkFile) {
   showEditFileModal.value = true;
 }
 
-async function updateFile(id: string, networkId: string, file: EditFileForm) {
+async function updateFile(id: string, networkId: string, file: UpdateFile) {
   if (!authStore.currentUserProxy) return;
   isSubmitting.value = true;
   globalStore.startFetching();

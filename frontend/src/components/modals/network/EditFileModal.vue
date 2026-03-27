@@ -57,7 +57,7 @@ import { ref, watch } from 'vue';
 import ModalContainer from '@/components/modals/ModalContainer.vue';
 import AccessLevelPicker from '@/components/fields/AccessLevelPicker.vue';
 import CloudinaryFile from '@/components/cdn/CloudinaryFile.vue';
-import type { EditFileForm, NetworkFile } from '@/types';
+import type { UpdateFile, NetworkFile } from '@/types';
 
 const props = defineProps<{
   file: NetworkFile;
@@ -66,7 +66,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'close'): void;
-  (e: 'update-file', id: string, networkId: string, updated: EditFileForm): void;
+  (e: 'update-file', id: string, networkId: string, updated: UpdateFile): void;
   (e: 'delete-file', file: NetworkFile): void;
 }>();
 

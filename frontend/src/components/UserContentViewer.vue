@@ -62,8 +62,7 @@
           </div>
         </div>
 
-        <div v-for="col in extraColumns" :key="col.key" class=""
-          v-show="col.filter">
+        <div v-for="col in extraColumns" :key="col.key" class="" v-show="col.filter">
           <h3 class="font-semibold text-gray-700 mb-2">{{ col.label }}</h3>
 
           <div v-if="col.type === 'string'" class="max-h-40 overflow-y-auto pr-2">
@@ -101,7 +100,7 @@
             <tr>
               <th v-for="col in extraColumns" :key="col.key"
                 class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase"
-                :class="{'w-min': col.type === 'number'}">
+                :class="{ 'w-min': col.type === 'number' }">
                 {{ col.label }}
               </th>
 
@@ -125,17 +124,16 @@
               class="hover:bg-blue-50/50 transition-colors">
               <td v-for="col in extraColumns" :key="col.key"
                 class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 truncate max-w-[200px]"
-                :class="{'text-right': col.type === 'number'}">
+                :class="{ 'text-right': col.type === 'number' }">
                 {{ formatValue(getEntryValue(entry, col.key), col.type) }}
               </td>
 
               <td v-if="showNetwork"
                 class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{
-                  entry.networkId }}</td>
+                  networks[entry.networkId]?.name || 'Loading...' }}</td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex flex-row gap-2 items-center">
-                  <ProfileAvatar
-                    :userProxy="entry.author.userProxy" :size="7" />
+                  <ProfileAvatar :userProxy="entry.author.userProxy" :size="7" />
                   <span class="text-xs text-gray-500">@{{
                     entry.author.userProxy.username }}</span>
                 </div>
@@ -184,8 +182,11 @@ export default {
 <script setup lang="ts" generic="T extends UserContentBase">
 import { ref, computed, reactive, watch } from 'vue';
 import { ACCESS_LEVELS, getAccessLevel } from '@/lib/accessLevels';
-import type { UserContentBase } from '@/types';
+import type { Network, UserContentBase } from '@/types';
 import ProfileAvatar from './ProfileAvatar.vue';
+import useNetworks from '@/composables/useNetworks';
+
+const networkState = useNetworks();
 
 const props = defineProps<{
   title: string;
@@ -204,10 +205,26 @@ defineEmits<{
 const showFilters = ref(true);
 const filterKey = ref('');
 
-/**
- * We use unknown for dynamic values. It's safer than any because 
- * TS forces us to check the type before using it.
- */
+const networks = ref<Record<string, Network>>({});
+
+watch(
+  () => props.entries,
+  async (newEntries) => {
+    if (!props.showNetwork || !newEntries.length) return;
+    const uniqueNetworkIds = [...new Set(newEntries.map(e => e.networkId))];
+
+    await Promise.all(
+      uniqueNetworkIds.map(async (id) => {
+        if (networks.value[id]) return;
+
+        const network = await getNetwork(id);
+        if (network) networks.value[id] = network;
+      })
+    );
+  },
+  { immediate: true }
+);
+
 const filters = reactive({
   authors: [] as string[],
   accessLevels: [] as number[],
@@ -218,12 +235,11 @@ const filters = reactive({
 const initFilters = () => {
   props.extraColumns.forEach(col => {
     if (!col.filter) return;
+
     if (col.type === 'string') {
-      if (!filters.dynamic[col.key]) filters.dynamic[col.key] = [];
+      filters.dynamic[col.key] = [];
     } else {
-      if (!filters.ranges[col.key]) {
-        filters.ranges[col.key] = { min: null, max: null };
-      }
+      filters.ranges[col.key] = { min: null, max: null };
     }
   });
 };
@@ -252,6 +268,12 @@ const formatValue = (val: unknown, type: ExtraColumn['type']): string => {
   }
 
   return String(val);
+};
+
+async function getNetwork(networkId: string) {
+  const { execute: fetchNetworkDetails, data: network } = networkState.fetchNetworkDetails;
+  await fetchNetworkDetails(networkId);
+  return network.value;
 };
 
 const getUniqueOptions = (key: string): string[] => {

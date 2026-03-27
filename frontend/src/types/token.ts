@@ -1,3 +1,5 @@
+import type { PermissionShort } from "./permission";
+
 export interface TokenPair {
   accessToken: string;
   refreshToken: string;
@@ -14,11 +16,12 @@ export interface AccessTokenClaims {
   nbf: number;
   uid: string;
   AccessIncomplete?: string;
-  networks: NetworkClaims;
 }
 
-export interface NetworkClaims {
-  [networkId: string]: string[];
+export interface NetworkPermissionCollection {
+  id: string,
+  name: string,
+  permissions: PermissionShort[],
 }
 
 

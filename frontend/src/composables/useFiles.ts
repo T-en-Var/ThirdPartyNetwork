@@ -2,7 +2,7 @@ import { ref } from 'vue';
 import api from '@/api/api';
 import type { Ref } from 'vue';
 import type { AxiosProgressEvent } from 'axios';
-import type { EditFileForm, NetworkFile } from '@/types';
+import type { UpdateFile, NetworkFile } from '@/types';
 import { useCachedApi, useMutation } from './useApi';
 
 export default function useFiles() {
@@ -66,10 +66,10 @@ export default function useFiles() {
 
   const updateFile = useMutation<
     NetworkFile,
-    [networkId: string, fileId: string, payload: EditFileForm]
+    [networkId: string, fileId: string, payload: UpdateFile]
   >(
     async (networkId, fileId, payload) =>
-      await api.put<NetworkFile, EditFileForm>(`/networks/${networkId}/files/${fileId}`, payload),
+      await api.put<NetworkFile, UpdateFile>(`/networks/${networkId}/files/${fileId}`, payload),
     {
       itemKeyFactory: (_, networkId, fileId) => `networks_${networkId}_files_${fileId}`,
       listKeyFactory: (networkId) => `networks_${networkId}_files`,

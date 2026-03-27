@@ -8,6 +8,11 @@ export default function useConfigurations() {
     async (networkId) => await api.get<Configuration[]>(`/networks/${networkId}/configurations`),
   );
 
+  const fetchUserConfigurations = useCachedApi<Configuration[], [userId: string, userProxyId: string]>(
+    (userId, userProxyId) => `users_${userId}_proxies_${userProxyId}_configurations`,
+    async (userId, userProxyId) => await api.get<Configuration[]>(`/users/${userId}/proxies/${userProxyId}/configurations`),
+  );
+
   const fetchConfiguration = useCachedApi<Configuration, [networkId: string, configId: string]>(
     (networkId, configId) => `networks_${networkId}_configurations_${configId}`,
     async (networkId, configId) =>
@@ -70,6 +75,7 @@ export default function useConfigurations() {
 
   return {
     fetchNetworkConfigurations,
+    fetchUserConfigurations,
     fetchConfiguration,
     createConfiguration,
     updateConfiguration,

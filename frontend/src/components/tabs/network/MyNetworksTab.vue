@@ -27,5 +27,5 @@ defineProps<{
   networks: Network[];
 }>();
 
-const checkCanManage = (network: Network) => authStore.claimChecker.canManageNetwork(network)
+const checkCanManage = (network: Network) => authStore.canI.manageNetwork(network);
 </script>

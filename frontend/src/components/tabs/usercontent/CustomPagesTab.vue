@@ -26,68 +26,41 @@
 import useCustomPages from '@/composables/useCustomPages';
 import type { CustomPage, ConfirmForm, CreateCustomPage } from '@/types';
 import { onMounted, ref } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
 import UserContentViewer from '@/components/UserContentViewer.vue';
-import AddCustomPageModal from '@/components/modals/network/AddCustomPageModal.vue';
-
-const route = useRoute();
-const router = useRouter();
+import AddCustomPageModal from '@/components/modals/usercontent/AddCustomPageModal.vue';
 
 const { execute: fetchCustomPages, data: customPages } = useCustomPages().fetchCustomPages;
-
-const networkId = route.params.networkId as string;
 
 const showCreateModal = ref(false);
 const isSubmitting = ref(false);
 
-onMounted(async () => {
-  await fetchCustomPages(networkId);
-});
+
+const props = defineProps<{
+  networkId: string;
+}>();
 
 const emit = defineEmits<{
+  (e: 'custom-pages-create', networkId: string, payload: CreateCustomPage): void;
+  (e: 'custom-pages-edit', customPage: CustomPage): void;
+  (e: 'custom-pages-delete', customPage: CustomPage): void;
   (e: 'confirm', form: ConfirmForm): void;
 }>();
 
 
-async function handleCreateCustomPage(customPageCreate: CreateCustomPage) {
-  const { execute: createCustomPage } = useCustomPages().createCustomPage;
-  isSubmitting.value = true;
+onMounted(async () => {
+  await fetchCustomPages(props.networkId);
+});
 
-  try {
-    await createCustomPage(networkId, customPageCreate);
-    showCreateModal.value = false;
-  } catch (err) {
-    console.error('Error creating customPage:', err);
-  } finally {
-    isSubmitting.value = false;
-  }
+
+async function handleCreateCustomPage(networkId: string, customPageCreate: CreateCustomPage) {
+  emit('custom-pages-create', networkId, customPageCreate);
 }
 
 function handleEditCustomPage(customPage: CustomPage) {
-  router.push(`/networks/${networkId}/manage/custom-pages/${customPage.id}/edit`);
+  emit('custom-pages-edit', customPage);
 }
 
 function handleRemoveCustomPage(customPage: CustomPage) {
-  const form: ConfirmForm = {
-    title: 'Remove CustomPage',
-    message: `Are you sure you want to remove ${customPage.name} from this network?`,
-    buttonText: 'Remove',
-    buttonColor: 'red',
-
-    action: async () => {
-      isSubmitting.value = true;
-      const { execute: deleteCustomPage } = useCustomPages().deleteCustomPage;
-
-      try {
-        await deleteCustomPage(networkId, customPage.id);
-      } catch (err) {
-        console.error('Error removing customPage:', err);
-      } finally {
-        isSubmitting.value = false;
-      }
-    }
-  };
-
-  emit('confirm', form);
+  emit('custom-pages-delete', customPage);
 }
 </script>

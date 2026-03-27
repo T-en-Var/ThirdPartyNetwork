@@ -26,16 +26,10 @@
 import useConfigurations from '@/composables/useConfigurations';
 import type { Configuration, ConfirmForm, CreateConfiguration } from '@/types';
 import { computed, onMounted, ref } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
 import UserContentViewer from '@/components/UserContentViewer.vue';
-import AddConfigurationModal from '@/components/modals/network/AddConfigurationModal.vue';
-
-const route = useRoute();
-const router = useRouter();
+import AddConfigurationModal from '@/components/modals/usercontent/AddConfigurationModal.vue';
 
 const { execute: fetchConfigurations, data: rawConfigurations } = useConfigurations().fetchNetworkConfigurations;
-
-const networkId = route.params.networkId as string;
 
 const showCreateModal = ref(false);
 const isSubmitting = ref(false);
@@ -44,13 +38,20 @@ const configurations = computed(() => (rawConfigurations.value ?? []).map(cfg =>
   return {...cfg, value: previewValue(cfg.value) as unknown as object}
 }))
 
-onMounted(async () => {
-  await fetchConfigurations(networkId);
-});
+const props = defineProps<{
+  networkId: string;
+}>();
 
 const emit = defineEmits<{
+  (e: 'configuration-create', networkId: string, payload: CreateConfiguration): void;
+  (e: 'configuration-edit', configuration: Configuration): void;
+  (e: 'configuration-delete', configuration: Configuration): void;
   (e: 'confirm', form: ConfirmForm): void;
 }>();
+
+onMounted(async () => {
+  await fetchConfigurations(props.networkId);
+});
 
 function previewValue(v: object | string | number | boolean | null): string {
   try {
@@ -63,45 +64,15 @@ function previewValue(v: object | string | number | boolean | null): string {
   }
 }
 
-async function handleCreateConfiguration(configurationCreate: CreateConfiguration) {
-  const { execute: createConfiguration } = useConfigurations().createConfiguration;
-  isSubmitting.value = true;
-
-  try {
-    await createConfiguration(networkId, configurationCreate);
-    showCreateModal.value = false;
-  } catch (err) {
-    console.error('Error creating configuration:', err);
-  } finally {
-    isSubmitting.value = false;
-  }
+async function handleCreateConfiguration(networkId: string, configurationCreate: CreateConfiguration) {
+  emit('configuration-create', networkId, configurationCreate)
 }
 
 function handleEditConfiguration(configuration: Configuration) {
-  router.push(`/networks/${networkId}/manage/configurations/${configuration.id}/edit`);
+  emit('configuration-edit', configuration);
 }
 
 function handleRemoveConfiguration(configuration: Configuration) {
-  const form: ConfirmForm = {
-    title: 'Remove Configuration',
-    message: `Are you sure you want to remove ${configuration.key} from this network?`,
-    buttonText: 'Remove',
-    buttonColor: 'red',
-
-    action: async () => {
-      isSubmitting.value = true;
-      const { execute: deleteConfiguration } = useConfigurations().deleteConfiguration;
-
-      try {
-        await deleteConfiguration(networkId, configuration.id);
-      } catch (err) {
-        console.error('Error removing configuration:', err);
-      } finally {
-        isSubmitting.value = false;
-      }
-    }
-  };
-
-  emit('confirm', form);
+  emit('configuration-delete', configuration);
 }
 </script>

@@ -21,7 +21,7 @@ export type NetworkForm = {
   redirectURI: string;
 };
 
-export type EditFileForm = {
+export type UpdateFile = {
   name: string;
   isPublic: boolean;
   accessLevel?: number;
