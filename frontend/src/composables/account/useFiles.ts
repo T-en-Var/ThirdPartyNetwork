@@ -5,27 +5,42 @@ import type { NetworkFile, UpdateFile } from '@/types';
 import { useCachedApi, useMutation } from '../useApi';
 import type { AxiosProgressEvent } from 'axios';
 
+const getKey = (userId: string, userProxyId: string, entryId?: string) => {
+  const entity = 'files';
+  const base = `users_${userId}_proxies_${userProxyId}_${entity}`;
+  if (entryId !== undefined) return base + `_${entryId}`;
+  return base;
+};
+
 export default function useFiles() {
-  // We keep progress here because it's specific to this module's upload functionality.
   const progress: Ref<number> = ref(0);
 
   const fetchFiles = useCachedApi<NetworkFile[], [userId: string, userProxyId: string]>(
-    (userId, userProxyId) => `users_${userId}_proxies_${userProxyId}_files`,
+    (userId, userProxyId) => getKey(userId, userProxyId),
     async (userId, userProxyId) =>
       await api.get<NetworkFile[]>(`/users/${userId}/proxies/${userProxyId}/files/`),
   );
 
-  const fetchFile = useCachedApi<NetworkFile, [userId: string, userProxyId: string, fileId: string]>(
-    (userId, userProxyId, fileId) => `users_${userId}_proxies_${userProxyId}_files_${fileId}`,
+  const fetchFile = useCachedApi<
+    NetworkFile,
+    [userId: string, userProxyId: string, fileId: string]
+  >(
+    (userId, userProxyId, fileId) => getKey(userId, userProxyId, fileId),
     async (userId, userProxyId, fileId) =>
       await api.get<NetworkFile>(`/users/${userId}/proxies/${userProxyId}/files/${fileId}`),
   );
 
   const uploadFile = useMutation<
     NetworkFile,
-    [networkId: string, fileToUpload: File, accessLevel?: number]
+    [
+      networkId: string,
+      userId: string,
+      userProxyId: string,
+      fileToUpload: File,
+      accessLevel?: number,
+    ]
   >(
-    async (networkId, fileToUpload, accessLevel = 0) => {
+    async (networkId, _, __, fileToUpload, accessLevel = 0) => {
       progress.value = 0;
 
       const formData = new FormData();
@@ -50,35 +65,38 @@ export default function useFiles() {
       );
     },
     {
-      itemKeyFactory: (result, networkId) => `networks_${networkId}_files_${result.id}`,
-
-      listKeyFactory: (networkId) => `networks_${networkId}_files`,
+      itemKeyFactory: (result, _, userId, userProxyId) => getKey(userId, userProxyId, result.id),
+      listKeyFactory: (_, userId, userProxyId) => getKey(userId, userProxyId),
       listUpdater: (currentList, result) => {
         return [result, ...currentList];
       },
     },
   );
 
-  const updateFile = useMutation<NetworkFile, [networkId: string, userId: string, userProxyId: string, fileId: string, payload: UpdateFile]>(
+  const updateFile = useMutation<
+    NetworkFile,
+    [networkId: string, userId: string, userProxyId: string, fileId: string, payload: UpdateFile]
+  >(
     async (networkId, _, __, fileId, payload) =>
       await api.put<NetworkFile, UpdateFile>(`/networks/${networkId}/files/${fileId}`, payload),
     {
-      itemKeyFactory: (_, __, userId, userProxyId, fileId) => `users_${userId}_proxies_${userProxyId}_files_${fileId}`,
-      listKeyFactory: (_, userId, userProxyId) => `users_${userId}_proxies_${userProxyId}_files`,
+      itemKeyFactory: (_, __, userId, userProxyId, fileId) => getKey(userId, userProxyId, fileId),
+      listKeyFactory: (_, userId, userProxyId) => getKey(userId, userProxyId),
       listUpdater: (currentList, result, _, __, ___, fileId) =>
         currentList.map((item) => (item.id === fileId ? result : item)),
     },
   );
 
-  const deleteFile = useMutation<void, [networkId: string, userId: string, userProxyId: string, fileId: string], NetworkFile>(
-    async (networkId, fileId) =>
-      await api.delete<void>(`/networks/${networkId}/files/${fileId}`),
-    {
-      itemKeyFactory: (_, __, userId, userProxyId, fileId) => `users_${userId}_proxies_${userProxyId}_files_${fileId}`,
-      listKeyFactory: (_, userId, userProxyId) => `users_${userId}_proxies_${userProxyId}_files`,
-      listUpdater: (currentList, _, __, ___, ____, fileId) => currentList.filter((item) => item.id !== fileId),
-    },
-  );
+  const deleteFile = useMutation<
+    void,
+    [networkId: string, userId: string, userProxyId: string, fileId: string],
+    NetworkFile
+  >(async (networkId, fileId) => await api.delete<void>(`/networks/${networkId}/files/${fileId}`), {
+    itemKeyFactory: (_, __, userId, userProxyId, fileId) => getKey(userId, userProxyId, fileId),
+    listKeyFactory: (_, userId, userProxyId) => getKey(userId, userProxyId),
+    listUpdater: (currentList, _, __, ___, ____, fileId) =>
+      currentList.filter((item) => item.id !== fileId),
+  });
 
   const resetProgress = () => {
     progress.value = 0;

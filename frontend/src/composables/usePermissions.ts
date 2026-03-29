@@ -1,5 +1,5 @@
-import api from '@/api/api.ts'
-import type { Permission } from '@/types'
+import api from '@/api/api.ts';
+import type { Permission } from '@/types';
 import { useCachedApi } from './useApi';
 
 export default function usePermissions() {

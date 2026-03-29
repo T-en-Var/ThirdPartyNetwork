@@ -2,7 +2,7 @@ import type { NetworkPermissionCollection } from '@/types';
 
 export class ClaimChecker {
   permissions = {
-    'Administrator': 'Administrator',
+    Administrator: 'Administrator',
     'Read Network': 'Read Network',
     'Manage Network': 'Manage Network',
     'Read Access': 'Read Access',
@@ -11,9 +11,9 @@ export class ClaimChecker {
     'Manage Permission': 'Manage Permission',
     'Read Role': 'Read Role',
     'Manage Role': 'Manage Role',
-    'IsUserOwner': 'IsUserOwner',
-    'IsNetworkUserOwner': 'IsNetworkUserOwner',
-    'IsUserProxyOwner': 'IsUserProxyOwner',
+    IsUserOwner: 'IsUserOwner',
+    IsNetworkUserOwner: 'IsNetworkUserOwner',
+    IsUserProxyOwner: 'IsUserProxyOwner',
     'Read User': 'Read User',
     'Manage User': 'Manage User',
     'Read CustomPage': 'Read CustomPage',
@@ -30,7 +30,10 @@ export class ClaimChecker {
 
   constructor() {}
 
-  private getNetworkCollection = (collections: NetworkPermissionCollection[], networkId: string) => {
+  private getNetworkCollection = (
+    collections: NetworkPermissionCollection[],
+    networkId: string,
+  ) => {
     return collections.find((collection) => collection.id == networkId);
   };
 

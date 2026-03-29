@@ -105,10 +105,10 @@ export interface UseMutationReturn<T, P extends unknown[]> {
 export function useMutation<T, P extends unknown[], TListItem = T>(
   action: (...args: P) => Promise<AxiosResponse<T>>,
   options?: {
-    itemKeyFactory?: (result: T, ...args: P) => string,
-    listKeyFactory?: (...args: P) => string,
-    listUpdater?: (currentList: TListItem[], result: T, ...args: P) => TListItem[],
-    onSuccess?: (data: T) => void,
+    itemKeyFactory?: (result: T, ...args: P) => string;
+    listKeyFactory?: (...args: P) => string;
+    listUpdater?: (currentList: TListItem[], result: T, ...args: P) => TListItem[];
+    onSuccess?: (data: T) => void;
   },
 ) {
   const loading = ref(false);
@@ -136,7 +136,7 @@ export function useMutation<T, P extends unknown[], TListItem = T>(
       if (options?.itemKeyFactory) {
         const key = options.itemKeyFactory(result.data, ...args);
         const itemEntry = getOrCreateEntry<T>(key);
-        
+
         itemEntry.data.value = result.data;
         itemEntry.lastFetch = Date.now();
       }

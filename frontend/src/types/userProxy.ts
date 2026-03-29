@@ -1,19 +1,19 @@
-import type { NetworkFile, NetworkFileLink } from "./userContent/files";
-import type { NetworkUser } from "./networkUser";
-import type { User } from "./user";
+import type { NetworkFile, NetworkFileLink } from './userContent/files';
+import type { NetworkUser } from './networkUser';
+import type { User } from './user';
 
 export interface UserProxy {
-  id: string,
-  username?: string,
-  firstName?: string,
-  lastName?: string,
-  email?: string,
-  imageFile?: NetworkFile,
-  createdOn: Date,
-  isDefault: boolean,
-  user: User
-  networkUsers: NetworkUser[],
-  hasPassword: boolean,
+  id: string;
+  username?: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  imageFile?: NetworkFile;
+  createdOn: Date;
+  isDefault: boolean;
+  user: User;
+  networkUsers: NetworkUser[];
+  hasPassword: boolean;
 }
 
 export interface UserLogin {

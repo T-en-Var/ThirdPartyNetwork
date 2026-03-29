@@ -38,4 +38,4 @@ export type ConfirmForm = {
 export type CreateUserContentForm = {
   networkId: string;
   accessLevel: number;
-}
+};

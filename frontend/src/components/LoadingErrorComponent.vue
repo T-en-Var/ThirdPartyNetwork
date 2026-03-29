@@ -1,14 +1,23 @@
 <template>
-  <div v-if="showLoader" class="text-center py-12">
+  <div
+    v-if="showLoader"
+    class="py-12 text-center"
+  >
     <LoadingSpinner size="lg" />
     <p class="mt-4 text-gray-600">Loading...</p>
   </div>
 
-  <div v-else-if="error" class="bg-red-50 p-6 rounded-lg text-red-700 mb-6">
-    <h2 class="text-xl font-semibold mb-2">Error</h2>
+  <div
+    v-else-if="error"
+    class="mb-6 rounded-lg bg-red-50 p-6 text-red-700"
+  >
+    <h2 class="mb-2 text-xl font-semibold">Error</h2>
     <p>{{ error }}</p>
-    <button v-if="buttonValue" @click="$emit('buttonAction')"
-      class="mt-4 px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700">
+    <button
+      v-if="buttonValue"
+      @click="$emit('buttonAction')"
+      class="mt-4 rounded-md bg-gray-600 px-4 py-2 text-white hover:bg-gray-700"
+    >
       {{ buttonValue }}
     </button>
   </div>
@@ -26,8 +35,8 @@ const props = withDefaults(
     buttonValue?: string;
   }>(),
   {
-    hasValue: false
-  }
+    hasValue: false,
+  },
 );
 
 defineEmits<{
@@ -36,9 +45,12 @@ defineEmits<{
 
 const hasStarted = ref(false);
 
-watch(() => props.loading, () => {
-  hasStarted.value = true;
-});
+watch(
+  () => props.loading,
+  () => {
+    hasStarted.value = true;
+  },
+);
 
-const showLoader = computed(() => !props.hasValue && !hasStarted.value || props.loading);
+const showLoader = computed(() => (!props.hasValue && !hasStarted.value) || props.loading);
 </script>

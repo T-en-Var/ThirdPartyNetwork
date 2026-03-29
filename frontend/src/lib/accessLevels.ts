@@ -12,18 +12,18 @@ export const ACCESS_LEVELS: AccessLevel[] = [
   {
     value: 0,
     label: 'Private',
-    description: 'Only you can access this'
+    description: 'Only you can access this',
   },
   {
     value: 1,
     label: 'Network Only',
-    description: 'Only network members can access this'
+    description: 'Only network members can access this',
   },
   {
     value: 2,
     label: 'Public',
-    description: 'Everyone can access this'
-  }
+    description: 'Everyone can access this',
+  },
 ];
 
 /**
@@ -31,7 +31,7 @@ export const ACCESS_LEVELS: AccessLevel[] = [
  */
 export function createAccessLevelMap(): Map<number, AccessLevel> {
   const map = new Map<number, AccessLevel>();
-  ACCESS_LEVELS.forEach(level => map.set(level.value, level));
+  ACCESS_LEVELS.forEach((level) => map.set(level.value, level));
   return map;
 }
 
@@ -68,5 +68,5 @@ export function addAccessLevel(level: AccessLevel): void {
  * Get all allowed access level values (for validation)
  */
 export function getAllowedAccessLevels(): number[] {
-  return ACCESS_LEVELS.map(level => level.value);
+  return ACCESS_LEVELS.map((level) => level.value);
 }

@@ -1,40 +1,66 @@
 <template>
-  <modal-container title="Add Page Block" @close="$emit('close')">
-    <CreateUserContentContainer :is-submitting="isSubmitting"
-      :input-is-valid="inputIsValid" :network-id="customPage.networkId"
-      button-text="Add Blog" @submit="handleSubmit">
+  <modal-container
+    title="Add Page Block"
+    @close="$emit('close')"
+  >
+    <CreateUserContentContainer
+      :is-submitting="isSubmitting"
+      :input-is-valid="inputIsValid"
+      :network-id="customPage.networkId"
+      button-text="Add Blog"
+      @submit="handleSubmit"
+    >
       <!-- Name -->
       <div>
-        <label for="pageText" class="block text-sm font-semibold text-gray-800 mb-2">
+        <label
+          for="pageText"
+          class="mb-2 block text-sm font-semibold text-gray-800"
+        >
           Page Block Text
         </label>
-        <input id="pageName" v-model="form.text" type="text" placeholder="Enter text"
-          class="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-600 focus:ring focus:ring-blue-100 disabled:bg-gray-100 disabled:text-gray-500 transition-all"
-          required />
+        <input
+          id="pageName"
+          v-model="form.text"
+          type="text"
+          placeholder="Enter text"
+          class="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-900 shadow-sm transition-all focus:border-blue-600 focus:ring focus:ring-blue-100 disabled:bg-gray-100 disabled:text-gray-500"
+          required
+        />
       </div>
 
       <!-- Slug -->
       <div>
-        <label for="pagePosition"
-          class="block text-sm font-semibold text-gray-800 mb-2">
+        <label
+          for="pagePosition"
+          class="mb-2 block text-sm font-semibold text-gray-800"
+        >
           Page Block Posistion
         </label>
-        <input id="pageSlug" v-model="form.position" type="number"
-          class="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-600 focus:ring focus:ring-blue-100 disabled:bg-gray-100 disabled:text-gray-500 transition-all"
-          required />
+        <input
+          id="pageSlug"
+          v-model="form.position"
+          type="number"
+          class="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-900 shadow-sm transition-all focus:border-blue-600 focus:ring focus:ring-blue-100 disabled:bg-gray-100 disabled:text-gray-500"
+          required
+        />
         <p class="mt-1 text-xs text-gray-500">You can change all this later.</p>
       </div>
 
       <!-- Actions -->
-      <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
-        <button type="button"
+      <div class="flex justify-end space-x-3 border-t border-gray-200 pt-4">
+        <button
+          type="button"
           class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
-          @click="$emit('close')" :disabled="isSubmitting">
+          @click="$emit('close')"
+          :disabled="isSubmitting"
+        >
           Cancel
         </button>
-        <button type="submit"
-          class="rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm disabled:cursor-not-allowed hover:bg-indigo-700 disabled:bg-gray-600 disabled:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-          :disabled="isSubmitting || !form.text || (form.position != 0 && !form.position)">
+        <button
+          type="submit"
+          class="rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-gray-600 disabled:hover:bg-gray-600"
+          :disabled="isSubmitting || !form.text || (form.position != 0 && !form.position)"
+        >
           <span v-if="isSubmitting">Adding...</span>
           <span v-else>Add Page</span>
         </button>
@@ -65,7 +91,7 @@ const form = ref({
   text: '',
   position: 1,
   data: {},
-  customPageId: props.customPage.id
+  customPageId: props.customPage.id,
 });
 
 function handleSubmit(_: UserContentCreateBase) {

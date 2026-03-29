@@ -1,22 +1,35 @@
 <template>
-  <modal-container title="Add Configuration" @close="$emit('close')">
-    <CreateUserContentContainer :is-submitting="isSubmitting"
-      :input-is-valid="inputIsValid" :network-id="networkId"
-      :network-ids="networkIds" button-text="Add Configuration"
-      @submit="handleSubmit">
+  <modal-container
+    title="Add Configuration"
+    @close="$emit('close')"
+  >
+    <CreateUserContentContainer
+      :is-submitting="isSubmitting"
+      :input-is-valid="inputIsValid"
+      :network-id="networkId"
+      :network-ids="networkIds"
+      button-text="Add Configuration"
+      @submit="handleSubmit"
+    >
       <div>
-        <label class="block text-sm font-semibold text-gray-800 mb-2">Key</label>
-        <input v-model="key" type="text" placeholder="Enter unique key"
+        <label class="mb-2 block text-sm font-semibold text-gray-800">Key</label>
+        <input
+          v-model="key"
+          type="text"
+          placeholder="Enter unique key"
           class="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-600 focus:ring focus:ring-blue-100"
-          required />
+          required
+        />
       </div>
 
       <div>
-        <label class="block text-sm font-semibold text-gray-800 mb-2">Value
-          (JSON)</label>
+        <label class="mb-2 block text-sm font-semibold text-gray-800">Value (JSON)</label>
         <div class="overflow-visible">
-          <JsonEditorVue v-model="jsonValue" :stringified="false"
-            class="h-64 border rounded-md" />
+          <JsonEditorVue
+            v-model="jsonValue"
+            :stringified="false"
+            class="h-64 rounded-md border"
+          />
         </div>
       </div>
     </CreateUserContentContainer>
@@ -47,13 +60,10 @@ const jsonValue = ref<object>({});
 const inputIsValid = computed(() => !!key.value);
 
 function handleSubmit(form: CreateUserContentForm) {
-  emit('submit',
-    form.networkId,
-    {
-      key: key.value.trim(),
-      accessLevel: form.accessLevel,
-      value: jsonValue.value
-    }
-  );
+  emit('submit', form.networkId, {
+    key: key.value.trim(),
+    accessLevel: form.accessLevel,
+    value: jsonValue.value,
+  });
 }
 </script>

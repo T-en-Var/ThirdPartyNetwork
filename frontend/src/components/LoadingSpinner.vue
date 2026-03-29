@@ -1,5 +1,8 @@
 <template>
-  <div :class="classes" role="status">
+  <div
+    :class="classes"
+    role="status"
+  >
     <span class="sr-only">Loading...</span>
   </div>
 </template>
@@ -7,13 +10,16 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
-const props = withDefaults(defineProps<{
-  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-  colorClass?: string;
-}>(), {
-  size: 'md',
-  colorClass: 'text-blue-500'
-});
+const props = withDefaults(
+  defineProps<{
+    size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+    colorClass?: string;
+  }>(),
+  {
+    size: 'md',
+    colorClass: 'text-blue-500',
+  },
+);
 
 // Map size props to Tailwind width/height classes
 const sizeClasses = {
@@ -27,7 +33,7 @@ const sizeClasses = {
 const classes = computed(() => [
   'spinner-border inline-block align-middle',
   sizeClasses[props.size],
-  props.colorClass
+  props.colorClass,
 ]);
 </script>
 
@@ -41,6 +47,8 @@ const classes = computed(() => [
 }
 
 @keyframes spinner-border {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>

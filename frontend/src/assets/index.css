@@ -5,7 +5,7 @@
 @layer base {
   :root {
     --primary-color: rgba(190, 149, 230, 0.85); /* Bright cyan */
-    --primary-accent-color: #9A5BA4; /* Bright cyan */
+    --primary-accent-color: #9a5ba4; /* Bright cyan */
     --secondary-color: rgba(255, 240, 170, 0.9); /* Bright magenta */
     --accent-color: #ffcc00; /* Bright yellow */
     --bg-color: #ffffff; /* White background */

@@ -1,5 +1,8 @@
 <template>
-  <header v-if="showNavbar" class="static">
+  <header
+    v-if="showNavbar"
+    class="static"
+  >
     <NavBar />
   </header>
 
@@ -31,7 +34,7 @@ const authStore = useAuthStore();
 
 onMounted(async () => {
   initializeApiClient(router, route);
-  
+
   await authStore.initialize();
 });
 

@@ -12,12 +12,12 @@ export default function useUserProxy() {
   const fetchMe = useCachedApi<UserProxy, []>(
     () => `me`,
     async () => await api.get<UserProxy>(`/me`),
-  )
+  );
 
   const fetchPermissionCollection = useCachedApi<NetworkPermissionCollection[], []>(
     () => `me_permissions`,
     async () => await api.get<NetworkPermissionCollection[]>(`/me/permissions`),
-  )
+  );
 
   const {
     data: userProxy,
@@ -48,7 +48,7 @@ export default function useUserProxy() {
     loading,
     error: apiError,
     execute: _fetchUserProxy,
-  }
+  };
 
   return {
     fetchUserProxy,

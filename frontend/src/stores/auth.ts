@@ -48,7 +48,9 @@ export const useAuthStore = defineStore('auth', () => {
   const refreshToken = ref<string | null>(null);
   const permissionCollection = ref<NetworkPermissionCollection[]>([]);
 
-  watch(permissionCollection.value, (newCollections) => console.log("updated newCollections", newCollections))
+  watch(permissionCollection.value, (newCollections) =>
+    console.log('updated newCollections', newCollections),
+  );
 
   // --- Auth properties ---
   const isAuthenticated = computed(() => {
@@ -58,27 +60,132 @@ export const useAuthStore = defineStore('auth', () => {
   });
 
   const canI = {
-    bypassEverything: (network: Network) => claimChecker.hasPermission(permissionCollection.value, network.id, claimChecker.permissions.Administrator),
-    readNetwork: (network: Network) => claimChecker.hasPermission(permissionCollection.value, network.id, claimChecker.permissions['Read Network']),
-    manageNetwork: (network: Network) => claimChecker.hasPermission(permissionCollection.value, network.id, claimChecker.permissions['Manage Network']),
-    readAccess: (network: Network) => claimChecker.hasPermission(permissionCollection.value, network.id, claimChecker.permissions['Read Access']),
-    manageAccess: (network: Network) => claimChecker.hasPermission(permissionCollection.value, network.id, claimChecker.permissions['Manage Access']),
-    readPermission: (network: Network) => claimChecker.hasPermission(permissionCollection.value, network.id, claimChecker.permissions['Read Permission']),
-    managePermission: (network: Network) => claimChecker.hasPermission(permissionCollection.value, network.id, claimChecker.permissions['Manage Permission']),
-    readRole: (network: Network) => claimChecker.hasPermission(permissionCollection.value, network.id, claimChecker.permissions['Read Role']),
-    manageRole: (network: Network) => claimChecker.hasPermission(permissionCollection.value, network.id, claimChecker.permissions['Manage Role']),
-    readUser: (network: Network) => claimChecker.hasPermission(permissionCollection.value, network.id, claimChecker.permissions['Read User']),
-    manageUser: (network: Network) => claimChecker.hasPermission(permissionCollection.value, network.id, claimChecker.permissions['Manage User']),
-    readCustomPage: (network: Network) => claimChecker.hasPermission(permissionCollection.value, network.id, claimChecker.permissions['Read CustomPage']),
-    manageCustomPage: (network: Network) => claimChecker.hasPermission(permissionCollection.value, network.id, claimChecker.permissions['Manage CustomPage']),
-    readPageBlock: (network: Network) => claimChecker.hasPermission(permissionCollection.value, network.id, claimChecker.permissions['Read PageBlock']),
-    managePageBlock: (network: Network) => claimChecker.hasPermission(permissionCollection.value, network.id, claimChecker.permissions['Manage PageBlock']),
-    readFile: (network: Network) => claimChecker.hasPermission(permissionCollection.value, network.id, claimChecker.permissions['Read File']),
-    manageFile: (network: Network) => claimChecker.hasPermission(permissionCollection.value, network.id, claimChecker.permissions['Manage File']),
-    readConfiguration: (network: Network) => claimChecker.hasPermission(permissionCollection.value, network.id, claimChecker.permissions['Read Configuration']),
-    manageConfiguration: (network: Network) => claimChecker.hasPermission(permissionCollection.value, network.id, claimChecker.permissions['Manage Configuration']),
-    readBlog: (network: Network) => claimChecker.hasPermission(permissionCollection.value, network.id, claimChecker.permissions['Read Blog']),
-    manageBlog: (network: Network) => claimChecker.hasPermission(permissionCollection.value, network.id, claimChecker.permissions['Manage Blog']),
+    bypassEverything: (network: Network) =>
+      claimChecker.hasPermission(
+        permissionCollection.value,
+        network.id,
+        claimChecker.permissions.Administrator,
+      ),
+    readNetwork: (network: Network) =>
+      claimChecker.hasPermission(
+        permissionCollection.value,
+        network.id,
+        claimChecker.permissions['Read Network'],
+      ),
+    manageNetwork: (network: Network) =>
+      claimChecker.hasPermission(
+        permissionCollection.value,
+        network.id,
+        claimChecker.permissions['Manage Network'],
+      ),
+    readAccess: (network: Network) =>
+      claimChecker.hasPermission(
+        permissionCollection.value,
+        network.id,
+        claimChecker.permissions['Read Access'],
+      ),
+    manageAccess: (network: Network) =>
+      claimChecker.hasPermission(
+        permissionCollection.value,
+        network.id,
+        claimChecker.permissions['Manage Access'],
+      ),
+    readPermission: (network: Network) =>
+      claimChecker.hasPermission(
+        permissionCollection.value,
+        network.id,
+        claimChecker.permissions['Read Permission'],
+      ),
+    managePermission: (network: Network) =>
+      claimChecker.hasPermission(
+        permissionCollection.value,
+        network.id,
+        claimChecker.permissions['Manage Permission'],
+      ),
+    readRole: (network: Network) =>
+      claimChecker.hasPermission(
+        permissionCollection.value,
+        network.id,
+        claimChecker.permissions['Read Role'],
+      ),
+    manageRole: (network: Network) =>
+      claimChecker.hasPermission(
+        permissionCollection.value,
+        network.id,
+        claimChecker.permissions['Manage Role'],
+      ),
+    readUser: (network: Network) =>
+      claimChecker.hasPermission(
+        permissionCollection.value,
+        network.id,
+        claimChecker.permissions['Read User'],
+      ),
+    manageUser: (network: Network) =>
+      claimChecker.hasPermission(
+        permissionCollection.value,
+        network.id,
+        claimChecker.permissions['Manage User'],
+      ),
+    readCustomPage: (network: Network) =>
+      claimChecker.hasPermission(
+        permissionCollection.value,
+        network.id,
+        claimChecker.permissions['Read CustomPage'],
+      ),
+    manageCustomPage: (network: Network) =>
+      claimChecker.hasPermission(
+        permissionCollection.value,
+        network.id,
+        claimChecker.permissions['Manage CustomPage'],
+      ),
+    readPageBlock: (network: Network) =>
+      claimChecker.hasPermission(
+        permissionCollection.value,
+        network.id,
+        claimChecker.permissions['Read PageBlock'],
+      ),
+    managePageBlock: (network: Network) =>
+      claimChecker.hasPermission(
+        permissionCollection.value,
+        network.id,
+        claimChecker.permissions['Manage PageBlock'],
+      ),
+    readFile: (network: Network) =>
+      claimChecker.hasPermission(
+        permissionCollection.value,
+        network.id,
+        claimChecker.permissions['Read File'],
+      ),
+    manageFile: (network: Network) =>
+      claimChecker.hasPermission(
+        permissionCollection.value,
+        network.id,
+        claimChecker.permissions['Manage File'],
+      ),
+    readConfiguration: (network: Network) =>
+      claimChecker.hasPermission(
+        permissionCollection.value,
+        network.id,
+        claimChecker.permissions['Read Configuration'],
+      ),
+    manageConfiguration: (network: Network) =>
+      claimChecker.hasPermission(
+        permissionCollection.value,
+        network.id,
+        claimChecker.permissions['Manage Configuration'],
+      ),
+    readBlog: (network: Network) =>
+      claimChecker.hasPermission(
+        permissionCollection.value,
+        network.id,
+        claimChecker.permissions['Read Blog'],
+      ),
+    manageBlog: (network: Network) =>
+      claimChecker.hasPermission(
+        permissionCollection.value,
+        network.id,
+        claimChecker.permissions['Manage Blog'],
+      ),
   };
 
   const isSuperAdmin = async () => {
@@ -87,7 +194,11 @@ export const useAuthStore = defineStore('auth', () => {
     if (!mainNetwork.value) return false;
 
     const coll = await getPermissions();
-    return claimChecker.hasPermission(coll, mainNetwork.value.id, claimChecker.permissions.Administrator);
+    return claimChecker.hasPermission(
+      coll,
+      mainNetwork.value.id,
+      claimChecker.permissions.Administrator,
+    );
   };
 
   async function getPermissions() {
@@ -134,7 +245,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   // --- Authentication Flow ---
   async function login(form: UserLogin) {
-    console.log("Logging in!")
+    console.log('Logging in!');
     await auth.login(form.email, form.password);
     handleAuthenticated();
   }

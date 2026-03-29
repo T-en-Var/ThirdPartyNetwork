@@ -1,6 +1,7 @@
 export interface SubItem {
   page: string;
   label: string;
+  networkId?: string;
 }
 
 export interface NavItem {

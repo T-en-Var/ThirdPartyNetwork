@@ -64,7 +64,11 @@ export default function useNetworkUsers() {
     },
   );
 
-  const deleteNetworkUser = useMutation<void, [networkId: string, networkUserId: string], NetworkUser>(
+  const deleteNetworkUser = useMutation<
+    void,
+    [networkId: string, networkUserId: string],
+    NetworkUser
+  >(
     async (networkId, networkUserId) =>
       await api.delete(`/networks/${networkId}/users/${networkUserId}/`),
     {

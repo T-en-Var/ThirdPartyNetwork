@@ -1,55 +1,100 @@
 <template>
   <div class="space-y-6">
     <div class="flex justify-start">
-      <RouterLink :to="`/networks/${networkId}/manage/configurations`"
-        class="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md transition">
-        ← Back to Configurations</RouterLink>
+      <RouterLink
+        :to="`/networks/${networkId}/manage/configurations`"
+        class="inline-flex items-center gap-2 rounded-md bg-gray-100 px-3 py-1.5 text-sm text-gray-700 transition hover:bg-gray-200"
+      >
+        ← Back to Configurations</RouterLink
+      >
     </div>
 
-    <div class="bg-white shadow-md rounded-lg p-6">
-      <LoadingErrorComponent :loading="loading" :error="error ?? undefined" button-value="Go back"
-        @button-action="router.go(-1)" :has-value="!!cfg" />
+    <div class="rounded-lg bg-white p-6 shadow-md">
+      <LoadingErrorComponent
+        :loading="loading"
+        :error="error ?? undefined"
+        button-value="Go back"
+        @button-action="router.go(-1)"
+        :has-value="!!cfg"
+      />
 
-      <div v-if="!loading && !error && cfg" class="space-y-6">
-        <h2 class="text-xl font-semibold text-gray-800 mb-4">Edit Configuration</h2>
+      <div
+        v-if="!loading && !error && cfg"
+        class="space-y-6"
+      >
+        <h2 class="mb-4 text-xl font-semibold text-gray-800">Edit Configuration</h2>
 
-        <form @submit.prevent="handleUpdate" class="space-y-4">
+        <form
+          @submit.prevent="handleUpdate"
+          class="space-y-4"
+        >
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Key</label>
-            <input v-model="form.key" disabled
-              class="block w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-2 text-sm text-gray-700" />
+            <label class="mb-1 block text-sm font-medium text-gray-700">Key</label>
+            <input
+              v-model="form.key"
+              disabled
+              class="block w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-2 text-sm text-gray-700"
+            />
           </div>
 
-          <AccessLevelPicker v-model="form.accessLevel" label="Access Level" />
+          <AccessLevelPicker
+            v-model="form.accessLevel"
+            label="Access Level"
+          />
 
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Value</label>
+            <label class="mb-1 block text-sm font-medium text-gray-700">Value</label>
             <div v-if="!editMode">
-              <pre
-                class="bg-gray-50 border rounded-md p-2 text-xs overflow-x-auto">{{ formattedValue }}</pre>
-              <button type="button"
-                class="mt-2 px-3 py-1 bg-blue-600 text-white rounded-md text-sm"
-                @click="editMode = true">Edit JSON</button>
+              <pre class="overflow-x-auto rounded-md border bg-gray-50 p-2 text-xs">{{
+                formattedValue
+              }}</pre>
+              <button
+                type="button"
+                class="mt-2 rounded-md bg-blue-600 px-3 py-1 text-sm text-white"
+                @click="editMode = true"
+              >
+                Edit JSON
+              </button>
             </div>
             <div v-else>
-              <JsonEditorVue v-model="jsonValue" :stringified="false"
-                class="h-64 border rounded-md" />
-              <div class="flex justify-end mt-2 space-x-2">
-                <button type="button"
-                  class="px-3 py-1 bg-gray-200 text-gray-700 rounded-md text-sm"
-                  @click="cancelEdit">Cancel</button>
-                <button type="button"
-                  class="px-3 py-1 bg-green-600 text-white rounded-md text-sm"
-                  @click="saveJson">Save JSON</button>
+              <JsonEditorVue
+                v-model="jsonValue"
+                :stringified="false"
+                class="h-64 rounded-md border"
+              />
+              <div class="mt-2 flex justify-end space-x-2">
+                <button
+                  type="button"
+                  class="rounded-md bg-gray-200 px-3 py-1 text-sm text-gray-700"
+                  @click="cancelEdit"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  class="rounded-md bg-green-600 px-3 py-1 text-sm text-white"
+                  @click="saveJson"
+                >
+                  Save JSON
+                </button>
               </div>
             </div>
           </div>
 
           <div class="flex justify-end space-x-2">
-            <button type="button" class="px-4 py-2 bg-red-600 text-white rounded-md"
-              @click="confirmDelete">Delete</button>
-            <button type="submit"
-              class="px-4 py-2 bg-blue-600 text-white rounded-md">Save</button>
+            <button
+              type="button"
+              class="rounded-md bg-red-600 px-4 py-2 text-white"
+              @click="confirmDelete"
+            >
+              Delete
+            </button>
+            <button
+              type="submit"
+              class="rounded-md bg-blue-600 px-4 py-2 text-white"
+            >
+              Save
+            </button>
           </div>
         </form>
       </div>
@@ -65,7 +110,6 @@ import { ref, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import useConfigurations from '@/composables/network/useConfigurations';
 import type { Configuration, CreateConfiguration } from '@/types';
-import { useHistoryStore } from '@/stores/history';
 
 const router = useRouter();
 const route = useRoute();
@@ -73,10 +117,13 @@ const route = useRoute();
 const networkId = route.params.networkId as string;
 const configurationId = computed(() => route.params.configurationId as string);
 
-const historyStore = useHistoryStore(networkId);
-
 const configurationsState = useConfigurations();
-const { data: configuration, execute: fetchConfiguration, loading, error } = configurationsState.fetchConfiguration;
+const {
+  data: configuration,
+  execute: fetchConfiguration,
+  loading,
+  error,
+} = configurationsState.fetchConfiguration;
 
 const form = ref<CreateConfiguration>({ key: '', accessLevel: 0, value: {} });
 const editMode = ref(false);
@@ -90,12 +137,16 @@ const formattedValue = computed(() => {
 
 async function load() {
   await fetchConfiguration(networkId, configurationId.value);
+
   if (configuration.value) {
-    historyStore.visit.configurations(configuration.value);
     form.value.key = configuration.value.key;
     form.value.accessLevel = configuration.value.accessLevel;
     form.value.value = configuration.value.value;
-    try { jsonValue.value = configuration.value.value ?? {}; } catch { jsonValue.value = {}; }
+    try {
+      jsonValue.value = configuration.value.value ?? {};
+    } catch {
+      jsonValue.value = {};
+    }
   }
 }
 
@@ -106,11 +157,16 @@ watch(
       await load();
     }
   },
-  { immediate: true }  // basically onMounted
+  { immediate: true }, // basically onMounted
 );
 
-function cancelEdit() { editMode.value = false; }
-function saveJson() { form.value.value = jsonValue.value; editMode.value = false; }
+function cancelEdit() {
+  editMode.value = false;
+}
+function saveJson() {
+  form.value.value = jsonValue.value;
+  editMode.value = false;
+}
 
 async function handleUpdate() {
   if (!configuration.value) return;

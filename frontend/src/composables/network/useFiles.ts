@@ -72,13 +72,12 @@ export default function useFiles() {
   );
 
   const deleteFile = useMutation<void, [networkId: string, fileId: string], NetworkFile>(
-    async (networkId, fileId) =>
-      await api.delete<void>(`/networks/${networkId}/files/${fileId}`),
+    async (networkId, fileId) => await api.delete<void>(`/networks/${networkId}/files/${fileId}`),
     {
       itemKeyFactory: (_, networkId, fileId) => `networks_${networkId}_files_${fileId}`,
       listKeyFactory: (networkId) => {
-        console.log('deleting file!')
-        return `networks_${networkId}_files`
+        console.log('deleting file!');
+        return `networks_${networkId}_files`;
       },
       listUpdater: (currentList, _, __, fileId) => currentList.filter((item) => item.id !== fileId),
     },

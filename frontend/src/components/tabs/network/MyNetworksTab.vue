@@ -1,14 +1,17 @@
 <template>
   <div>
-    <h2 class="text-xl font-medium text-gray-800 mb-4">Networks You've Joined</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <h2 class="mb-4 text-xl font-medium text-gray-800">Networks You've Joined</h2>
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
       <NetworkCard
         v-for="network in networks"
         :key="network.id"
         :network="network"
         :can-manage="checkCanManage(network)"
       />
-      <div v-if="!networks.length" class="col-span-full text-center p-10 text-gray-500">
+      <div
+        v-if="!networks.length"
+        class="col-span-full p-10 text-center text-gray-500"
+      >
         You haven't joined any networks yet. Browse available networks to join.
       </div>
     </div>

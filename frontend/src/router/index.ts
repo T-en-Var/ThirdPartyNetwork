@@ -76,6 +76,15 @@ const router = createRouter({
           },
         },
         {
+          path: 'networks/:networkId/blogs/:blogId/edit',
+          name: 'manage-account-blogs-edit',
+          component: () => import('@/components/tabs/usercontent/EditBlogTab.vue'),
+          meta: {
+            requiresAuth: true,
+            title: 'Edit Blog',
+          },
+        },
+        {
           path: 'configurations',
           name: 'manage-account-configurations',
           component: () => import('@/components/tabs/usercontent/ConfigurationsTab.vue'),
@@ -85,12 +94,30 @@ const router = createRouter({
           },
         },
         {
+          path: 'networks/:networkId/configurations/:configurationId/edit',
+          name: 'manage-account-configurations-edit',
+          component: () => import('@/components/tabs/usercontent/EditConfigurationTab.vue'),
+          meta: {
+            requiresAuth: true,
+            title: 'Edit Configuration',
+          },
+        },
+        {
           path: 'custom-pages',
           name: 'manage-account-custom-pages',
           component: () => import('@/components/tabs/usercontent/CustomPagesTab.vue'),
           meta: {
             requiresAuth: true,
             title: 'User Custom Pages',
+          },
+        },
+        {
+          path: 'networks/:networkId/custom-pages/:customPageId/edit',
+          name: 'manage-account-custom-pages-edit',
+          component: () => import('@/components/tabs/usercontent/EditCustomPageTab.vue'),
+          meta: {
+            requiresAuth: true,
+            title: 'Edit Custom Page',
           },
         },
       ],
@@ -363,10 +390,10 @@ const router = createRouter({
       },
     },
     {
-      path: "/:pathMatch(.*)*",
+      path: '/:pathMatch(.*)*',
       // redirect: '/404',
       component: () => import('@/views/NotFoundView.vue'),
-    }
+    },
   ],
 });
 

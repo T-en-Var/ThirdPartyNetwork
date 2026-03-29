@@ -1,24 +1,37 @@
 <template>
-  <div class="bg-white shadow-md rounded-lg overflow-hidden p-6">
+  <div class="overflow-hidden rounded-lg bg-white p-6 shadow-md">
     <div class="flex flex-col gap-6">
-      <UserContentViewer title="Configurations" :entries="configurations || []"
-        :extra-columns="[{
-          key: 'key',
-          label: 'Key',
-          type: 'string',
-          filter: false,
-        }, {
-          key: 'value',
-          label: 'Value',
-          type: 'string',
-          filter: false,
-        }]" :show-network="false" @add-new="showCreateModal = true"
-        @edit="handleEditConfiguration" @remove="handleRemoveConfiguration">
+      <UserContentViewer
+        title="Configurations"
+        :entries="configurations || []"
+        :extra-columns="[
+          {
+            key: 'key',
+            label: 'Key',
+            type: 'string',
+            filter: false,
+          },
+          {
+            key: 'value',
+            label: 'Value',
+            type: 'string',
+            filter: false,
+          },
+        ]"
+        :show-network="false"
+        @add-new="showCreateModal = true"
+        @edit="handleEditConfiguration"
+        @remove="handleRemoveConfiguration"
+      >
       </UserContentViewer>
 
-      <AddConfigurationModal v-if="showCreateModal" :is-submitting="isSubmitting"
-        :network-id="networkId" @submit="handleCreateConfiguration"
-        @close="showCreateModal = false" />
+      <AddConfigurationModal
+        v-if="showCreateModal"
+        :is-submitting="isSubmitting"
+        :network-id="networkId"
+        @submit="handleCreateConfiguration"
+        @close="showCreateModal = false"
+      />
     </div>
   </div>
 </template>
@@ -36,15 +49,16 @@ const showCreateModal = ref(false);
 const isSubmitting = ref(false);
 
 const rawConfigurations = ref<Configuration[]>([]);
-const configurations = computed(() => (rawConfigurations.value ?? []).map(cfg => {
-  return { ...cfg, value: previewValue(cfg.value) as unknown as object };
-}));
-
+const configurations = computed(() =>
+  (rawConfigurations.value ?? []).map((cfg) => {
+    return { ...cfg, value: previewValue(cfg.value) as unknown as object };
+  }),
+);
 
 const props = defineProps<{
   networkId?: string;
   networkIds?: string[];
-  fetchConfigurations: () => Promise<Ref<Configuration[] | null>>
+  fetchConfigurations: () => Promise<Ref<Configuration[] | null>>;
 }>();
 
 const emit = defineEmits<{
@@ -54,13 +68,11 @@ const emit = defineEmits<{
   (e: 'confirm', form: ConfirmForm): void;
 }>();
 
-
 onMounted(async () => {
   const remoteRef = await props.fetchConfigurations();
 
-  watch(remoteRef, (newVal) => rawConfigurations.value = newVal ?? [], { immediate: true });
+  watch(remoteRef, (newVal) => (rawConfigurations.value = newVal ?? []), { immediate: true });
 });
-
 
 function previewValue(v: object | string | number | boolean | null): string {
   try {
@@ -73,7 +85,10 @@ function previewValue(v: object | string | number | boolean | null): string {
   }
 }
 
-async function handleCreateConfiguration(networkId: string, configurationCreate: CreateConfiguration) {
+async function handleCreateConfiguration(
+  networkId: string,
+  configurationCreate: CreateConfiguration,
+) {
   events.listen.configurations.create((configuration) => {
     showCreateModal.value = false;
     handleEditConfiguration(configuration);

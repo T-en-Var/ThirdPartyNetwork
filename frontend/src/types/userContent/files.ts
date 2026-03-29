@@ -1,4 +1,4 @@
-import type { UserContentBase, UserContentCreateBase } from "./userContentBase";
+import type { UserContentBase, UserContentCreateBase } from './userContentBase';
 
 export interface NetworkFile extends UserContentBase {
   id: string;
@@ -15,7 +15,11 @@ export interface NetworkFile extends UserContentBase {
   isSystemProtected: boolean;
 }
 
-export type NetworkFileCreate = Pick<NetworkFile, 'url' | 'format' | 'sizeBytes' | 'mediaType' | 'name' | 'isPublic'> & UserContentCreateBase;
+export type NetworkFileCreate = Pick<
+  NetworkFile,
+  'url' | 'format' | 'sizeBytes' | 'mediaType' | 'name' | 'isPublic'
+> &
+  UserContentCreateBase;
 
 export interface NetworkFileLink {
   id: string;

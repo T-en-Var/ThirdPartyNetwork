@@ -1,10 +1,9 @@
-import type { PermissionShort } from "./permission";
+import type { PermissionShort } from './permission';
 
 export interface TokenPair {
   accessToken: string;
   refreshToken: string;
 }
-
 
 export interface AccessTokenClaims {
   aud: string;
@@ -19,11 +18,10 @@ export interface AccessTokenClaims {
 }
 
 export interface NetworkPermissionCollection {
-  id: string,
-  name: string,
-  permissions: PermissionShort[],
+  id: string;
+  name: string;
+  permissions: PermissionShort[];
 }
-
 
 export interface AuthorizationCode {
   code: string;

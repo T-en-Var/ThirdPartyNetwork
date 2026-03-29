@@ -4,50 +4,72 @@
     <AccountSidebar />
 
     <!-- Main Content -->
-    <div class="flex-1 p-6 overflow-auto">
+    <div class="flex-1 overflow-auto p-6">
       <!-- Loading and Error States -->
-      <LoadingErrorComponent :loading="authStore.loading" :error="authStore.error"
-        button-value="Reload page" @button-action="router.go(0)"
-        :has-value="!!authStore.currentUserProxy" />
+      <LoadingErrorComponent
+        :loading="authStore.loading"
+        :error="authStore.error"
+        button-value="Reload page"
+        @button-action="router.go(0)"
+        :has-value="!!authStore.currentUserProxy"
+      />
 
       <!-- Route View (Page Content) -->
-      <div v-if="authStore.currentUserProxy">
+      <div v-if="authStore.currentUserProxy && !isLoading && !!userId && !!userProxyId">
         <RouterView
           v-if="!authStore.loading && !authStore.error && authStore.currentUserProxy"
           @create-proxy="showAddUserProxyModal = true"
-          @edit-proxy="handleEditProxyClick" 
+          @edit-proxy="handleEditProxyClick"
           @switch-proxy="handleSwitchProxyClick"
-          @update-user-proxy="handleUpdateProxy" 
-          @delete-user-proxy="() => { }"
-          @confirm="confirm" 
+          @update-user-proxy="handleUpdateProxy"
+          @delete-user-proxy="() => {}"
+          @confirm="confirm"
+          :fetch-blogs="handle.blog.fetch"
           @blog-edit="handle.blog.edit"
-          @blog-create="handle.blog.create" 
+          @blog-create="handle.blog.create"
           @blog-delete="handle.blog.delete"
+          :fetch-configurations="handle.configuration.fetch"
           @configuration-edit="handle.configuration.edit"
           @configuration-create="handle.configuration.create"
           @configuration-delete="handle.configuration.delete"
+          :fetch-customPages="handle.customPages.fetch"
           @custom-pages-edit="handle.customPages.edit"
           @custom-pages-create="handle.customPages.create"
           @custom-pages-delete="handle.customPages.delete"
-          @add-file="showAddFileModal = true" 
+          :fetch-files="handle.files.fetch"
+          @add-file="showAddFileModal = true"
           @file-update="handle.files.update"
-          @file-delete="handle.files.delete" />
+          @file-delete="handle.files.delete"
+        />
       </div>
 
       <div v-if="authStore.currentUserProxy">
         <!-- Modals -->
-        <ConfirmationModal v-if="showConfirmationModal" :title="confirmationTitle"
-          :message="confirmationMessage" :button-text="confirmButtonText"
-          :color="confirmButtonColor" :is-submitting="isSubmitting"
-          @close="showConfirmationModal = false" @confirm="confirmAction" />
+        <ConfirmationModal
+          v-if="showConfirmationModal"
+          :title="confirmationTitle"
+          :message="confirmationMessage"
+          :button-text="confirmButtonText"
+          :color="confirmButtonColor"
+          :is-submitting="isSubmitting"
+          @close="showConfirmationModal = false"
+          @confirm="confirmAction"
+        />
 
-        <AddUserProxyModal v-if="showAddUserProxyModal && defaultProxy"
-          :is-submitting="isSubmitting" :default-proxy="defaultProxy"
-          @close="showAddUserProxyModal = false" @create-proxy="createUserProxy" />
+        <AddUserProxyModal
+          v-if="showAddUserProxyModal && defaultProxy"
+          :is-submitting="isSubmitting"
+          :default-proxy="defaultProxy"
+          @close="showAddUserProxyModal = false"
+          @create-proxy="createUserProxy"
+        />
 
-        <AddFileModal v-if="showAddFileModal"
-          :network-ids="userProxy!.networkUsers.map(nu => nu.network.id)"
-          @close="showAddFileModal = false" @uploaded="handle.files.openEdit" />
+        <AddFileModal
+          v-if="showAddFileModal"
+          :network-ids="userProxy!.networkUsers.map((nu) => nu.network.id)"
+          @close="showAddFileModal = false"
+          @uploaded="handle.files.openEdit"
+        />
       </div>
     </div>
   </div>
@@ -62,7 +84,22 @@ import { useGlobalStore } from '@/stores/global';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import ConfirmationModal from '@/components/modals/ConfirmationModal.vue';
 
-import type { ConfirmForm, UpdateFile, NetworkFile, UserProxy, UserProxyCreate, UserProxyUpdate, CreateBlog, Blog, CreateConfiguration, Configuration, CreateCustomPage, CustomPage, CreatePageBlock, PageBlock } from '@/types';
+import type {
+  ConfirmForm,
+  UpdateFile,
+  NetworkFile,
+  UserProxy,
+  UserProxyCreate,
+  UserProxyUpdate,
+  CreateBlog,
+  Blog,
+  CreateConfiguration,
+  Configuration,
+  CreateCustomPage,
+  CustomPage,
+  CreatePageBlock,
+  PageBlock,
+} from '@/types';
 
 import AccountSidebar from '@/components/sidebar/AccountSidebar.vue';
 import { useAuthStore } from '@/stores/auth';
@@ -71,22 +108,25 @@ import api from '@/api/api';
 import AddFileModal from '@/components/modals/usercontent/AddFileModal.vue';
 import useNetworks from '@/composables/useNetworks';
 import useUsers from '@/composables/useUsers';
-import type { UseMutationReturn } from '@/composables/useApi';
-import useBlogs from '@/composables/network/useBlogs';
-import useCustomPages from '@/composables/network/useCustomPages';
-import useFiles from '@/composables/network/useFiles';
-import useConfigurations from '@/composables/network/useConfigurations';
+import type { UseCachedApiReturn, UseMutationReturn } from '@/composables/useApi';
+import useBlogs from '@/composables/account/useBlogs';
+import useCustomPages from '@/composables/account/useCustomPages';
+import useFiles from '@/composables/account/useFiles';
+import useConfigurations from '@/composables/account/useConfigurations';
 import { useEventStore } from '@/stores/event';
+import { DEFAULT_STORES, useHistoryStore } from '@/stores/history';
 
 const router = useRouter();
 
 const globalStore = useGlobalStore();
 const authStore = useAuthStore();
 const events = useEventStore();
+const history = useHistoryStore(DEFAULT_STORES.account);
 
 const mainNetwork = useNetworks().fetchMainNetwork;
 
 const isSubmitting = ref(false);
+const isLoading = ref(true);
 
 const showConfirmationModal = ref(false);
 const showAddUserProxyModal = ref(false);
@@ -97,24 +137,32 @@ const confirmationTitle = ref('');
 const confirmationMessage = ref('');
 const confirmButtonText = ref('');
 const confirmButtonColor = ref('');
-const confirmationAction = ref<() => Promise<void> | void>(() => { });
+const confirmationAction = ref<() => Promise<void> | void>(() => {});
 const userProxy = ref<UserProxy | null>(null);
 const { execute: fetchUser, data: user } = useUsers().fetchUser;
 
 onMounted(async () => {
   globalStore.startFetching();
   const currentUser = await authStore.getUserProxy();
-  if (!currentUser) throw new Error("UserProxy not found");
+  if (!currentUser) throw new Error('UserProxy not found');
 
   await fetchUser(currentUser.user.id);
-  if (!user.value) throw new Error("User not found");
+  if (!user.value) throw new Error('User not found');
 
-  userProxy.value = user.value.userProxies.find(up => up.id === currentUser.id) ?? null;
-  if (!userProxy.value) throw new Error("UserProxy not found");
+  userProxy.value = user.value.userProxies.find((up) => up.id === currentUser.id) ?? null;
+  if (!userProxy.value) throw new Error('UserProxy not found');
 
   await mainNetwork.execute();
   globalStore.stopFetching();
+
+  initHandle();
+
+  isLoading.value = false;
+  console.log(userId.value, userProxyId.value);
 });
+
+const userId = computed(() => (user.value ? user.value.id : null));
+const userProxyId = computed(() => (userProxy.value ? userProxy.value.id : null));
 
 const allProxies = computed(() => {
   if (!user.value) return [];
@@ -123,7 +171,7 @@ const allProxies = computed(() => {
 
 const defaultProxy = computed(() => {
   if (!authStore.currentUserProxy) return null;
-  return allProxies.value.find(x => x.isDefault)!;
+  return allProxies.value.find((x) => x.isDefault)!;
 });
 
 // Methods
@@ -134,7 +182,6 @@ async function confirmAction() {
 
 async function createUserProxy(newUserProxy: UserProxyCreate) {
   if (!user.value) return;
-
 
   const { execute: createUserProxy } = useUsers().createUserProxy;
   isSubmitting.value = true;
@@ -154,14 +201,17 @@ function handleEditProxyClick(id: string) {
 
 function handleSwitchProxyClick(id: string) {
   void id;
-  alert("not implemented");
+  alert('not implemented');
 }
 
 async function handleUpdateProxy(userProxy: UserProxyUpdate) {
   isSubmitting.value = true;
   globalStore.startFetching();
   try {
-    await api.put(`/users/${authStore.currentUserProxy!.user.id}/proxies/${userProxy.id}`, userProxy);
+    await api.put(
+      `/users/${authStore.currentUserProxy!.user.id}/proxies/${userProxy.id}`,
+      userProxy,
+    );
   } catch (err) {
     console.error('Error adding user proxy:', err);
   } finally {
@@ -176,9 +226,8 @@ const composables = {
   blogs: useBlogs(),
   customPages: useCustomPages(),
   files: useFiles(),
-  configurations: useConfigurations()
+  configurations: useConfigurations(),
 };
-
 
 function confirm(form: ConfirmForm) {
   confirmationTitle.value = form.title;
@@ -193,12 +242,43 @@ function confirm(form: ConfirmForm) {
   showConfirmationModal.value = true;
 }
 
+const genericFetch = <T, P extends unknown[]>(
+  composable: UseCachedApiReturn<T, P>,
+  options?: {
+    callback?: (result: T, ...args: P) => void;
+    errorHandler?: (err: unknown) => void;
+  },
+) => {
+  const { execute, data } = composable;
+
+  const wrapper = (...args: P) => {
+    const fetchFunction = async () => {
+      try {
+        await execute(...args);
+
+        if (data.value && options?.callback) {
+          options.callback(data.value, ...args);
+        }
+      } catch (err) {
+        options?.errorHandler?.(err);
+        console.error(`Error executing fetch:`, err);
+      }
+
+      return data;
+    };
+
+    return fetchFunction;
+  };
+
+  return wrapper;
+};
+
 const genericMutation = <T, P extends unknown[]>(
   composable: UseMutationReturn<T, P>,
   options?: {
     callback?: (result: T, ...args: P) => void;
     errorHandler?: (err: unknown) => void;
-  }
+  },
 ) => {
   const { execute } = composable;
 
@@ -225,13 +305,36 @@ const genericMutation = <T, P extends unknown[]>(
   return wrapper;
 };
 
+function initHandle() {
+  console.log(userId.value, userProxyId.value);
+  if (!userId.value || !userProxyId.value) return;
+  handle.blog.fetch = genericFetch(composables.blogs.fetchBlogs)(userId.value, userProxyId.value);
+  handle.configuration.fetch = genericFetch(composables.configurations.fetchConfigurations)(
+    userId.value,
+    userProxyId.value,
+  );
+  handle.customPages.fetch = genericFetch(composables.customPages.fetchCustomPages)(
+    userId.value,
+    userProxyId.value,
+  );
+  handle.files.fetch = genericFetch(composables.files.fetchFiles)(userId.value, userProxyId.value);
+}
+
 const handle = {
   blog: {
-    create: async (networkId: string, payload: CreateBlog) => await genericMutation(composables.blogs.createBlog, {
-      callback: (result) => events.emit.blogs.create(result),
-    })(networkId, payload),
+    fetch: () => {
+      console.error('function was not initialized');
+    },
 
-    edit: (blog: Blog) => router.push(`/account/blogs/${blog.id}/edit`),
+    create: async (networkId: string, payload: CreateBlog) =>
+      await genericMutation(composables.blogs.createBlog, {
+        callback: (result) => events.emit.blogs.create(result),
+      })(networkId, userId.value!, userProxyId.value!, payload),
+
+    edit: (blog: Blog) => {
+      history.visit.blogs(blog);
+      router.push(`/account/networks/${blog.networkId}/blogs/${blog.id}/edit`);
+    },
 
     delete: (blog: Blog) =>
       confirm({
@@ -239,16 +342,29 @@ const handle = {
         message: `Are you sure you want to delete '${blog.title}'?`,
         buttonText: 'Remove',
         buttonColor: 'red',
-        action: async () => await genericMutation(composables.blogs.deleteBlog)(blog.networkId, blog.id),
-      })
+        action: async () =>
+          await genericMutation(composables.blogs.deleteBlog, {
+            callback: () => history.remove.blogs(blog),
+          })(blog.networkId, userId.value!, userProxyId.value!, blog.id),
+      }),
   },
 
   configuration: {
-    create: async (networkId: string, payload: CreateConfiguration) => await genericMutation(composables.configurations.createConfiguration, {
-      callback: (result) => events.emit.configurations.create(result),
-    })(networkId, payload),
+    fetch: () => {
+      console.error('function was not initialized');
+    },
 
-    edit: (configuration: Configuration) => router.push(`/account/configurations/${configuration.id}/edit`),
+    create: async (networkId: string, payload: CreateConfiguration) =>
+      await genericMutation(composables.configurations.createConfiguration, {
+        callback: (result) => events.emit.configurations.create(result),
+      })(networkId, userId.value!, userProxyId.value!, payload),
+
+    edit: (configuration: Configuration) => {
+      history.visit.configurations(configuration);
+      router.push(
+        `/account/networks/${configuration.networkId}/configurations/${configuration.id}/edit`,
+      );
+    },
 
     delete: (configuration: Configuration) =>
       confirm({
@@ -256,16 +372,27 @@ const handle = {
         message: `Are you sure you want to delete '${configuration.key}'?`,
         buttonText: 'Remove',
         buttonColor: 'red',
-        action: async () => await genericMutation(composables.configurations.deleteConfiguration)(configuration.networkId, configuration.id),
-      })
+        action: async () =>
+          await genericMutation(composables.configurations.deleteConfiguration, {
+            callback: () => history.remove.configurations(configuration),
+          })(configuration.networkId, userId.value!, userProxyId.value!, configuration.id),
+      }),
   },
 
   customPages: {
-    create: async (networkId: string, payload: CreateCustomPage) => await genericMutation(composables.customPages.createCustomPage, {
-      callback: (result) => events.emit.customPages.create(result),
-    })(networkId, payload),
+    fetch: () => {
+      console.error('function was not initialized');
+    },
 
-    edit: (customPage: CustomPage) => router.push(`/account/custom-pages/${customPage.id}/edit`),
+    create: async (networkId: string, payload: CreateCustomPage) =>
+      await genericMutation(composables.customPages.createCustomPage, {
+        callback: (result) => events.emit.customPages.create(result),
+      })(networkId, userId.value!, userProxyId.value!, payload),
+
+    edit: (customPage: CustomPage) => {
+      history.visit.customPages(customPage);
+      router.push(`/account/networks/${customPage.networkId}/custom-pages/${customPage.id}/edit`);
+    },
 
     delete: (customPage: CustomPage) =>
       confirm({
@@ -273,13 +400,22 @@ const handle = {
         message: `Are you sure you want to delete '${customPage.name}'?`,
         buttonText: 'Remove',
         buttonColor: 'red',
-        action: async () => await genericMutation(composables.customPages.deleteCustomPage)(customPage.networkId, customPage.id),
-      })
+        action: async () =>
+          await genericMutation(composables.customPages.deleteCustomPage, {
+            callback: () => history.remove.customPages(customPage),
+          })(customPage.networkId, userId.value!, userProxyId.value!, customPage.id),
+      }),
   },
 
   files: {
+    fetch: () => {
+      console.error('function was not initialized');
+    },
+
     update: async (id: string, networkId: string, networkFile: UpdateFile) =>
-      await genericMutation(composables.files.updateFile)(networkId, id, networkFile),
+      await genericMutation(composables.files.updateFile, {
+        callback: (result) => events.emit.file.update(result),
+      })(networkId, userId.value!, userProxyId.value!, id, networkFile),
 
     delete: (file: NetworkFile) => {
       showEditFileModal.value = false;
@@ -288,7 +424,13 @@ const handle = {
         message: `Are you sure you want to delete the file '${file.name}'?`,
         buttonText: 'Confirm',
         buttonColor: 'red',
-        action: async () => await genericMutation(composables.files.deleteFile)(file.networkId, file.id),
+        action: async () =>
+          await genericMutation(composables.files.deleteFile)(
+            file.networkId,
+            userId.value!,
+            userProxyId.value!,
+            file.id,
+          ),
       });
     },
 
@@ -296,11 +438,29 @@ const handle = {
   },
 
   pageBlocks: {
-    create: async (networkId: string, customPageId: string, pageBlock: CreatePageBlock) => await genericMutation(composables.customPages.createPageBlock)(networkId, customPageId, pageBlock),
+    create: async (networkId: string, customPageId: string, pageBlock: CreatePageBlock) =>
+      await genericMutation(composables.customPages.createPageBlock)(
+        networkId,
+        userId.value!,
+        userProxyId.value!,
+        customPageId,
+        pageBlock,
+      ),
 
-    edit: (customPage: CustomPage, pageBlock: PageBlock) => router.push(`/account/custom-pages/${customPage.id}/blocks/${pageBlock.id}/edit`),
+    edit: (customPage: CustomPage, pageBlock: PageBlock) =>
+      router.push(
+        `/account/networks/${customPage.networkId}/custom-pages/${customPage.id}/blocks/${pageBlock.id}/edit`,
+      ),
 
-    update: async (customPageId: string, pageBlock: PageBlock) => await genericMutation(composables.customPages.updatePageBlock)(pageBlock.networkId, customPageId, pageBlock.id, pageBlock),
-  }
+    update: async (customPageId: string, pageBlock: PageBlock) =>
+      await genericMutation(composables.customPages.updatePageBlock)(
+        pageBlock.networkId,
+        userId.value!,
+        userProxyId.value!,
+        customPageId,
+        pageBlock.id,
+        pageBlock,
+      ),
+  },
 };
 </script>

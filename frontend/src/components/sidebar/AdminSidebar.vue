@@ -1,7 +1,10 @@
 <template>
-  <Sidebar :nav-items="navItems" base-path="" sub-label-key="name">
-    <template #header>
-    </template>
+  <Sidebar
+    :nav-items="navItems"
+    base-path=""
+    sub-label-key="name"
+  >
+    <template #header> </template>
   </Sidebar>
 </template>
 
@@ -22,16 +25,22 @@ const navItems: ComputedRef<NavCategory[]> = computed(() => [
       {
         page: 'admin/networks',
         label: 'Networks',
-        subItems: historyStore.data.networks.map(cp => ({ page: cp.id, label: cp.name })).slice().reverse(),
+        subItems: historyStore.data.networks
+          .map((cp) => ({ page: cp.id, label: cp.name }))
+          .slice()
+          .reverse(),
         getURI: (sub: SubItem) => `networks/${sub.page}/manage`,
       },
       {
         page: 'admin/users',
         label: 'Users',
-        subItems: historyStore.data.users.map(user => {
-          const up = defaultProxy(user);
-          return ({ page: user.id, label: getNameDisplayUserProxy(up) });
-        }).slice().reverse(),
+        subItems: historyStore.data.users
+          .map((user) => {
+            const up = defaultProxy(user);
+            return { page: user.id, label: getNameDisplayUserProxy(up) };
+          })
+          .slice()
+          .reverse(),
         getURI: (sub: SubItem) => `admin/networks/${sub.page}`,
       },
     ],

@@ -1,4 +1,4 @@
-import type { NetworkUser } from "../networkUser";
+import type { NetworkUser } from '../networkUser';
 
 export interface UserContentBase {
   id: string;

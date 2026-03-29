@@ -1,5 +1,10 @@
 <template>
-  <Sidebar :nav-items="navItems" base-path="/account" sub-label-key="username" sub-reverse />
+  <Sidebar
+    :nav-items="navItems"
+    base-path="/account"
+    sub-label-key="username"
+    sub-reverse
+  />
 </template>
 
 <script setup lang="ts">
@@ -18,7 +23,10 @@ const navItems: ComputedRef<NavCategory[]> = computed(() => [
       {
         page: 'proxies',
         label: 'Proxies',
-        subItems: historyStore.data.userProxies.map(up => ({ page: up.id, label: up.username ?? 'Unnamed' })),
+        subItems: historyStore.data.userProxies.map((up) => ({
+          page: up.id,
+          label: up.username ?? 'Unnamed',
+        })),
         getURI: (sub: SubItem) => `proxies/${sub.page}/edit`,
       },
     ],
@@ -30,20 +38,29 @@ const navItems: ComputedRef<NavCategory[]> = computed(() => [
       {
         page: 'custom-pages',
         label: 'Custom Pages',
-        subItems: historyStore.data.customPages.map(cp => ({ page: cp.id, label: cp.name })).slice().reverse(),
-        getURI: (sub: SubItem) => `custom-pages/${sub.page}/edit`,
+        subItems: historyStore.data.customPages
+          .map((cp) => ({ page: cp.id, label: cp.name, networkId: cp.networkId }))
+          .slice()
+          .reverse(),
+        getURI: (sub: SubItem) => `networks/${sub.networkId}/custom-pages/${sub.page}/edit`,
       },
       {
         page: 'configurations',
         label: 'Configurations',
-        subItems: historyStore.data.configurations.map(cp => ({ page: cp.id, label: cp.key })).slice().reverse(),
-        getURI: (sub: SubItem) => `configurations/${sub.page}/edit`,
+        subItems: historyStore.data.configurations
+          .map((c) => ({ page: c.id, label: c.key, networkId: c.networkId }))
+          .slice()
+          .reverse(),
+        getURI: (sub: SubItem) => `networks/${sub.networkId}/configurations/${sub.page}/edit`,
       },
       {
         page: 'blogs',
         label: 'Blogs',
-        subItems: historyStore.data.blogs.map(b => ({ page: b.id, label: b.title })).slice().reverse(),
-        getURI: (sub: SubItem) => `blogs/${sub.page}/edit`,
+        subItems: historyStore.data.blogs
+          .map((b) => ({ page: b.id, label: b.title, networkId: b.networkId }))
+          .slice()
+          .reverse(),
+        getURI: (sub: SubItem) => `networks/${sub.networkId}/blogs/${sub.page}/edit`,
       },
     ],
   },

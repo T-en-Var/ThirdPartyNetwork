@@ -1,61 +1,88 @@
 <template>
-  <modal-container title="Create New Blog" @close="$emit('close')">
-    <CreateUserContentContainer :is-submitting="isSubmitting"
-      :input-is-valid="inputIsValid" :network-id="networkId"
-      :network-ids="networkIds" button-text="Add Blog" @submit="handleSubmit"
-      @selected-network-id="handleNetworkSelect">
-
+  <modal-container
+    title="Create New Blog"
+    @close="$emit('close')"
+  >
+    <CreateUserContentContainer
+      :is-submitting="isSubmitting"
+      :input-is-valid="inputIsValid"
+      :network-id="networkId"
+      :network-ids="networkIds"
+      button-text="Add Blog"
+      @submit="handleSubmit"
+      @selected-network-id="handleNetworkSelect"
+    >
       <div>
-        <label for="title"
-          class="block text-xs font-black uppercase tracking-widest text-slate-500 mb-2 ml-1">
+        <label
+          for="title"
+          class="mb-2 ml-1 block text-xs font-black uppercase tracking-widest text-slate-500"
+        >
           Blog Title
         </label>
-        <input id="title" v-model="title" type="text"
+        <input
+          id="title"
+          v-model="title"
+          type="text"
           placeholder="My Awesome Journey..."
-          class="block w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
-          required />
+          class="block w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
+          required
+        />
       </div>
 
-      <div class="rounded-xl border border-slate-100 bg-slate-50 p-4 space-y-3">
-        <label
-          class="block text-[10px] font-black uppercase tracking-tighter text-slate-400">
+      <div class="space-y-3 rounded-xl border border-slate-100 bg-slate-50 p-4">
+        <label class="block text-[10px] font-black uppercase tracking-tighter text-slate-400">
           Permanent URL Preview
         </label>
 
-        <div class="flex items-center gap-2 font-mono text-sm overflow-hidden">
-          <span class="text-slate-400 shrink-0">.../blogs/</span>
-          <span :class="[
-            'font-bold truncate',
-            slugExists ? 'text-amber-600' : 'text-blue-600',
-            !slugPreview ? 'italic text-slate-300' : ''
-          ]">
+        <div class="flex items-center gap-2 overflow-hidden font-mono text-sm">
+          <span class="shrink-0 text-slate-400">.../blogs/</span>
+          <span
+            :class="[
+              'truncate font-bold',
+              slugExists ? 'text-amber-600' : 'text-blue-600',
+              !slugPreview ? 'italic text-slate-300' : '',
+            ]"
+          >
             {{ slugPreview || 'your-slug-here' }}
           </span>
 
           <div class="ml-auto shrink-0">
-            <LoadingSpinner v-if="isChecking" size="sm" />
-            <div v-else-if="slugExists" class="text-amber-500" title="Slug Taken">
+            <LoadingSpinner
+              v-if="isChecking"
+              size="sm"
+            />
+            <div
+              v-else-if="slugExists"
+              class="text-amber-500"
+              title="Slug Taken"
+            >
               ⚠️
             </div>
-            <div v-else-if="isValid" class="text-emerald-500" title="Available">
+            <div
+              v-else-if="isValid"
+              class="text-emerald-500"
+              title="Available"
+            >
               ✓
             </div>
           </div>
         </div>
 
         <transition name="fade">
-          <div v-if="slugExists"
-            class="text-[11px] text-amber-700 bg-amber-100/50 p-2 rounded-lg border border-amber-200">
-            This URL is already taken. The system will append a unique ID to your
-            link.
+          <div
+            v-if="slugExists"
+            class="rounded-lg border border-amber-200 bg-amber-100/50 p-2 text-[11px] text-amber-700"
+          >
+            This URL is already taken. The system will append a unique ID to your link.
           </div>
-          <div v-else-if="isChanged && slugPreview"
-            class="text-[11px] text-slate-400 italic">
+          <div
+            v-else-if="isChanged && slugPreview"
+            class="text-[11px] italic text-slate-400"
+          >
             Verifying availability...
           </div>
         </transition>
       </div>
-
     </CreateUserContentContainer>
   </modal-container>
 </template>
@@ -74,7 +101,6 @@ const emit = defineEmits<{
   (e: 'create-blog', networkId: string, payload: CreateBlog): void;
 }>();
 
-
 defineProps<{
   isSubmitting: boolean;
   networkId?: string;
@@ -90,11 +116,8 @@ const selectedNetworkId = ref<string | null>(null);
 const slugPreview = computed(() => generateSlug(title.value));
 const inputIsValid = computed(() => true);
 
-const isValid = computed(() =>
-  !!title.value.trim() &&
-  !isChecking.value &&
-  !isChanged.value &&
-  !slugExists.value
+const isValid = computed(
+  () => !!title.value.trim() && !isChecking.value && !isChanged.value && !slugExists.value,
 );
 
 let debounceTimer: ReturnType<typeof setTimeout>;
@@ -143,13 +166,16 @@ function generateSlug(title: string) {
   return str.replace(/^-+|-+$/g, '');
 }
 
-
 function handleNetworkSelect(networkId: string) {
   selectedNetworkId.value = networkId;
 }
 
-
 function handleSubmit(form: CreateUserContentForm) {
-  emit('create-blog', form.networkId, { title: title.value.trim(), summary: '', body: {}, accessLevel: form.accessLevel });
+  emit('create-blog', form.networkId, {
+    title: title.value.trim(),
+    summary: '',
+    body: {},
+    accessLevel: form.accessLevel,
+  });
 }
 </script>

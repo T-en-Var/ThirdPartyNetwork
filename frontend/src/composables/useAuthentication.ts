@@ -27,13 +27,13 @@ export default function useAuthentication() {
     console.log('err.toJSON', err.toJSON());
 
     if (err.code == AxiosError.ERR_NETWORK) {
-      error.value = "Network Error. Either you are not connected, or the server is offline.";
+      error.value = 'Network Error. Either you are not connected, or the server is offline.';
       return;
     }
 
     if (err.code == AxiosError.ERR_BAD_REQUEST) {
       error.value = err.response?.data.message || err.message || defaultMessage;
-      return
+      return;
     }
 
     // Im thinking of adding different handlers if needed.

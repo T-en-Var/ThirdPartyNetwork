@@ -18,6 +18,7 @@ export interface AppEventPayloads {
   };
   file: {
     openEdit: [file: NetworkFile];
+    update: [file: NetworkFile];
   };
   blogs: {
     create: [blog: Blog];
@@ -32,7 +33,7 @@ export interface AppEventPayloads {
 
 const EVENT_DOMAINS = defineDomains({
   test: ['myevent'] as const,
-  file: ['openEdit'] as const,
+  file: ['openEdit', 'update'] as const,
   blogs: ['create'] as const,
   configurations: ['create'] as const,
   customPages: ['create'] as const,

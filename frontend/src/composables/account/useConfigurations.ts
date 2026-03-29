@@ -2,35 +2,41 @@ import api from '@/api/api';
 import type { Configuration, CreateConfiguration } from '@/types';
 import { useCachedApi, useMutation } from '../useApi';
 
+const getKey = (userId: string, userProxyId: string, entryId?: string) => {
+  const entity = 'configurations';
+  const base = `users_${userId}_proxies_${userProxyId}_${entity}`;
+  if (entryId !== undefined) return base + `_${entryId}`;
+  return base;
+};
+
 export default function useConfigurations() {
-  const fetchNetworkConfigurations = useCachedApi<Configuration[], [networkId: string]>(
-    (networkId) => `networks_${networkId}_configurations`,
-    async (networkId) => await api.get<Configuration[]>(`/networks/${networkId}/configurations`),
+  const fetchConfigurations = useCachedApi<Configuration[], [userId: string, userProxyId: string]>(
+    (userId, userProxyId) => getKey(userId, userProxyId),
+    async (userId, userProxyId) =>
+      await api.get<Configuration[]>(`/users/${userId}/proxies/${userProxyId}/configurations`),
   );
 
-  const fetchUserConfigurations = useCachedApi<Configuration[], [userId: string, userProxyId: string]>(
-    (userId, userProxyId) => `users_${userId}_proxies_${userProxyId}_configurations`,
-    async (userId, userProxyId) => await api.get<Configuration[]>(`/users/${userId}/proxies/${userProxyId}/configurations`),
-  );
-
-  const fetchConfiguration = useCachedApi<Configuration, [networkId: string, configId: string]>(
-    (networkId, configId) => `networks_${networkId}_configurations_${configId}`,
+  const fetchConfiguration = useCachedApi<
+    Configuration,
+    [networkId: string, userId: string, userProxyId: string, configId: string]
+  >(
+    (_, userId, userProxyId, cfgId) => getKey(userId, userProxyId, cfgId),
     async (networkId, configId) =>
       await api.get<Configuration>(`/networks/${networkId}/configurations/${configId}`),
   );
 
   const createConfiguration = useMutation<
     Configuration,
-    [networkId: string, payload: CreateConfiguration]
+    [networkId: string, userId: string, userProxyId: string, payload: CreateConfiguration]
   >(
-    async (networkId, payload) =>
+    async (networkId, _, __, payload) =>
       await api.post<Configuration, CreateConfiguration>(
         `/networks/${networkId}/configurations`,
         payload,
       ),
     {
-      itemKeyFactory: (result, networkId) => `networks_${networkId}_configurations_${result.id}`,
-      listKeyFactory: (networkId) => `networks_${networkId}_configurations`,
+      itemKeyFactory: (result, _, userId, userProxyId) => getKey(userId, userProxyId, result.id),
+      listKeyFactory: (_, userId, userProxyId) => getKey(userId, userProxyId),
       listUpdater: (currentList, result) => {
         return [result, ...currentList];
       },
@@ -39,19 +45,23 @@ export default function useConfigurations() {
 
   const updateConfiguration = useMutation<
     Configuration,
-    [networkId: string, configurationId: string, payload: Partial<Configuration>]
+    [
+      networkId: string,
+      userId: string,
+      userProxyId: string,
+      configurationId: string,
+      payload: Partial<Configuration>,
+    ]
   >(
-    async (networkId, configurationId, payload) =>
+    async (networkId, _, __, configurationId, payload) =>
       await api.put<Configuration, Partial<Configuration>>(
         `/networks/${networkId}/configurations/${configurationId}`,
         payload,
       ),
     {
-      itemKeyFactory: (_, networkId, configurationId) =>
-        `networks_${networkId}_configurations_${configurationId}`,
-
-      listKeyFactory: (networkId) => `networks_${networkId}_configurations`,
-      listUpdater: (currentList, result, networkId, configurationId) => {
+      itemKeyFactory: (_, __, userId, userProxyId, cfgId) => getKey(userId, userProxyId, cfgId),
+      listKeyFactory: (_, userId, userProxyId) => getKey(userId, userProxyId),
+      listUpdater: (currentList, result, _, __, ___, configurationId) => {
         return currentList.map((item) => (item.id === configurationId ? result : item));
       },
     },
@@ -59,23 +69,21 @@ export default function useConfigurations() {
 
   const deleteConfiguration = useMutation<
     void,
-    [networkId: string, configurationId: string],
+    [networkId: string, userId: string, userProxyId: string, configurationId: string],
     Configuration
   >(
-    async (networkId, configurationId) =>
+    async (networkId, _, __, configurationId) =>
       await api.delete<void>(`/networks/${networkId}/configurations/${configurationId}`),
     {
-      itemKeyFactory: (_, networkId, configurationId) =>
-        `networks_${networkId}_configurations_${configurationId}`,
-      listKeyFactory: (networkId) => `networks_${networkId}_configurations`,
-      listUpdater: (currentList, _, __, configurationId) =>
+      itemKeyFactory: (_, __, userId, userProxyId, cfgId) => getKey(userId, userProxyId, cfgId),
+      listKeyFactory: (_, userId, userProxyId) => getKey(userId, userProxyId),
+      listUpdater: (currentList, _, __, ___, ____, configurationId) =>
         currentList.filter((item) => item.id !== configurationId),
     },
   );
 
   return {
-    fetchNetworkConfigurations,
-    fetchUserConfigurations,
+    fetchConfigurations,
     fetchConfiguration,
     createConfiguration,
     updateConfiguration,

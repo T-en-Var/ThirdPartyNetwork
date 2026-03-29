@@ -87,17 +87,17 @@ export default function useCustomPages() {
         `/networks/${networkId}/customPages/${customPageId}/pageBlocks/${pageBlockId}`,
         payload,
       ),
-      {
+    {
       itemKeyFactory: (_, networkId, customPageId, pageBlockId) =>
         `networks_${networkId}_customPages_${customPageId}_pageBlocks_${pageBlockId}`,
       listKeyFactory: (networkId, customPageId) =>
         `networks_${networkId}_customPages_${customPageId}`,
       listUpdater: (currentList, result) => {
         const customPage = currentList as unknown as CustomPage;
-        customPage.pages = customPage.pages.map((item) => item.id === result.id ? result : item);
+        customPage.pages = customPage.pages.map((item) => (item.id === result.id ? result : item));
         return customPage as unknown as unknown[];
       },
-      }
+    },
   );
 
   return {
@@ -106,7 +106,7 @@ export default function useCustomPages() {
     createCustomPage,
     updateCustomPage,
     deleteCustomPage,
-    
+
     createPageBlock,
     updatePageBlock,
   };
