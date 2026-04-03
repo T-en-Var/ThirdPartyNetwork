@@ -127,15 +127,12 @@ onMounted(async () => {
   loadingUsers.value = true;
 
   try {
-    // Get all users that aren't already in the network
     const response = await api.get<UserProxy[]>('/users/');
     const allUsers = response.data || [];
 
-    // Filter out users that are already in the network
     const networkUserIds = props.network.networkUsers.map((nu) => nu.userProxy.id);
     availableUsers.value = allUsers.filter((user) => !networkUserIds.includes(user.id));
 
-    // Get roles from the network
     availableRoles.value = props.network.roles;
   } catch (error) {
     console.error('Error fetching users:', error);

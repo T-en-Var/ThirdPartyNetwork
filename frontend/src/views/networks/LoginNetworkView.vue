@@ -152,20 +152,17 @@ import { decodeJWT } from '@/lib/utils';
 import { useGlobalStore } from '@/stores/global';
 import rawApi from '@/api/rawApi';
 
-// Reusable Components (Assuming these paths are correct in the project structure)
 import AuthLayout from '@/components/AuthLayout.vue';
 import AuthFormCard from '@/components/AuthFormCard.vue';
 import ConfirmationModal from '@/components/modals/ConfirmationModal.vue';
 import NetworkNotFound from '@/components/NetworkNotFound.vue';
 import useNetworks from '@/composables/useNetworks';
 
-// --- Setup ---
 const global = useGlobalStore();
 const router = useRouter();
 const route = useRoute();
 const networkDetails = useNetworks().fetchNetworkDetails;
 
-// --- State Management ---
 const email = ref('');
 const password = ref('');
 const error = ref('');
@@ -173,7 +170,6 @@ const pageLoading = ref(false);
 
 let temporaryAccessToken = '';
 
-// Modal State
 const showConfirmationModal = ref(false);
 const confirmationTitle = ref('');
 const confirmationMessage = ref('');
@@ -182,7 +178,6 @@ const confirmButtonColor = ref('');
 const isSubmitting = ref(false);
 const confirmationAction = ref(() => {});
 
-// --- Computed Route Params/Queries (Vue Style-Guide C) ---
 const networkId = computed(() => route.params.networkId as string);
 const clientId = computed(() => route.query.clientId as string);
 const codeChallenge = computed(() => route.query.codeChallenge as string);
@@ -194,19 +189,14 @@ const networkNotFoundError = computed(() => {
 });
 
 const validUrl = computed(() => {
-  // Only check URL validity if the network was loaded successfully
   return !!networkId.value && !!clientId.value && !!codeChallenge.value && !!state.value;
 });
 
-// --- Lifecycle Hooks ---
 onMounted(async () => {
   localStorage.removeItem('temporaryAccessToken');
-  // Fetch details, error handling is handled by the `networkNotFoundError` computed property
   await networkDetails.execute(networkId.value);
   pageLoading.value = false;
 });
-
-// --- Methods ---
 
 const navigateToSignup = () => {
   router.push(
@@ -215,7 +205,7 @@ const navigateToSignup = () => {
 };
 
 const login = async () => {
-  error.value = ''; // Clear previous errors
+  error.value = '';
 
   const network = networkDetails.data.value;
   if (!network) {
@@ -242,7 +232,6 @@ const login = async () => {
     const accessToken = response.data.accessToken;
     const jwt = decodeJWT<AccessTokenClaims>(accessToken);
 
-    // Check for incomplete access
     if (jwt.AccessIncomplete === 'true') {
       temporaryAccessToken = accessToken;
       const redirectUrl = `${network.redirectURI}?code=${response.data.code}&state=${state.value}`;
@@ -250,13 +239,11 @@ const login = async () => {
       return;
     }
 
-    // Final Redirect
     const redirectUrl = `${network.redirectURI}?code=${response.data.code}&state=${state.value}`;
     window.location.href = redirectUrl;
   } catch (err) {
     const axiosError = err as AxiosError<ErrorMessage>;
 
-    // Handle specific Axios status codes for better error messages
     if (axiosError.response?.status === 400 || axiosError.response?.status === 401) {
       error.value = 'Invalid credentials. Please check your username and password.';
     } else if (axiosError.response?.data?.message) {
@@ -281,7 +268,6 @@ function handleIncompleteAccess(redirectUri: string) {
 
   confirmationAction.value = () => {
     localStorage.setItem('temporaryAccessToken', temporaryAccessToken);
-    // Navigate to a dedicated page to complete access consent
     router.push(`/networks/${networkId.value}/complete-access?redirectUri=${btoa(redirectUri)}`);
   };
 }

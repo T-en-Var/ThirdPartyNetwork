@@ -36,8 +36,6 @@ export default function useAuthentication() {
       return;
     }
 
-    // Im thinking of adding different handlers if needed.
-
     const message = err.response?.data.message || err.message || defaultMessage;
     error.value = message;
   };

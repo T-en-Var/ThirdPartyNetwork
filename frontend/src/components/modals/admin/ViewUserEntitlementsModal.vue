@@ -170,7 +170,6 @@ defineEmits<{
 const proxy = computed(() => defaultProxy(props.user));
 const allEntitlementKeys = computed(() => Object.values(entitlementKeys).flat());
 
-// Helper to clean out undefined/null values for accurate merging
 const cleanObj = (obj: object) =>
   Object.fromEntries(
     Object.entries(obj || {}).filter(([_, v]) => {
@@ -179,7 +178,6 @@ const cleanObj = (obj: object) =>
     }),
   );
 
-// Formats 'fileCountLimit' into 'File Count'
 const formatKey = (key: string) => {
   return capitalize(key.replace(/([A-Z])/g, ' $1').trim());
 };
@@ -191,7 +189,6 @@ const formatValue = (val?: boolean | number) => {
   return val.toLocaleString('nl-NL');
 };
 
-// Calculates the breakdown per network
 const breakdown = computed(() => {
   if (!proxy.value || !proxy.value.networkUsers) return [];
 
@@ -199,29 +196,25 @@ const breakdown = computed(() => {
     const networkName = nu.network?.name || 'Unknown Network';
     const baseEnt = nu.network?.entitlement || ({} as Record<string, number | boolean>);
 
-    // 1. Calculate Role Aggregate (Max of all roles)
     const roleEnt: Record<string, number | boolean> = {};
     if (nu.networkUserRoles) {
       nu.networkUserRoles.forEach((nur) => {
         if (nur.role?.entitlements) {
           Object.entries(cleanObj(nur.role.entitlements)).forEach(([k, v]) => {
             if (typeof v === 'boolean') {
-              roleEnt[k] = roleEnt[k] || v; // True wins
+              roleEnt[k] = roleEnt[k] || v;
             } else if (typeof v === 'number') {
-              roleEnt[k] = Math.max((roleEnt[k] as number) || 0, v); // Max wins
+              roleEnt[k] = Math.max((roleEnt[k] as number) || 0, v);
             }
           });
         }
       });
     }
 
-    // 2. User Override
     const userEnt = cleanObj(nu.entitlements) || {};
 
-    // 3. Merge: Base < Role < User
     const effective = { ...baseEnt, ...roleEnt, ...userEnt };
 
-    // Find all keys that have *any* value in this network to show in the table
     const activeKeys = allEntitlementKeys.value.filter(
       (key) =>
         baseEnt[key] !== undefined || roleEnt[key] !== undefined || userEnt[key] !== undefined,
@@ -241,7 +234,6 @@ const breakdown = computed(() => {
 </script>
 
 <style scoped>
-/* Optional styling to make the modal scrollbar subtle */
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
 }

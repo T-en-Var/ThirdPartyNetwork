@@ -6,7 +6,6 @@ import type { UpdateFile, NetworkFile } from '@/types';
 import { useCachedApi, useMutation } from '../useApi';
 
 export default function useFiles() {
-  // We keep progress here because it's specific to this module's upload functionality.
   const progress: Ref<number> = ref(0);
 
   const fetchFiles = useCachedApi<NetworkFile[], [networkId: string]>(
@@ -25,7 +24,7 @@ export default function useFiles() {
     [networkId: string, fileToUpload: File, accessLevel?: number]
   >(
     async (networkId, fileToUpload, accessLevel = 0) => {
-      progress.value = 0; // Reset progress on start
+      progress.value = 0;
 
       const formData = new FormData();
       formData.append('file', fileToUpload);

@@ -46,7 +46,6 @@ import { ref, watch } from 'vue';
 const global = useGlobalStore();
 const isExiting = ref(false);
 
-// Add the jump animation before exiting
 watch(
   () => global.isFetching,
   (newValue, oldValue) => {
@@ -54,7 +53,7 @@ watch(
       isExiting.value = true;
       setTimeout(() => {
         isExiting.value = false;
-      }, 300); // Duration of bounce animation
+      }, 300);
     }
   },
 );

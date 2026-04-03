@@ -27,9 +27,7 @@
 
 <script setup lang="ts">
 import ModalContainer from '@/components/modals/ModalContainer.vue';
-// import { onMounted, watch } from 'vue'
 
-// const props =
 defineProps({
   title: {
     type: String,
@@ -44,10 +42,6 @@ defineProps({
     default: 'Please hold on while we process the request...',
   },
 });
-
-// onMounted(() => console.log("Forcing!", props.progress))
-
-// watch(props, (props) => console.log(props.progress))
 
 defineEmits(['close', 'confirm']);
 </script>

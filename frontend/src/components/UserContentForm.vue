@@ -5,7 +5,10 @@
   >
     <slot></slot>
 
-    <access-level-picker v-model="accessLevel" />
+    <access-level-picker
+      v-if="!hideAccessPicker"
+      v-model="accessLevel"
+    />
 
     <div
       v-if="showNetworkSelector"
@@ -43,7 +46,7 @@
 
     <div
       v-if="warningText"
-      class="rounded-md border-[1px] border-yellow-500 bg-yellow-200 p-2 text-yellow-600"
+      class="rounded-md border border-yellow-500 bg-yellow-200 p-2 text-yellow-600"
     >
       <span>{{ warningText }}</span>
     </div>
@@ -81,6 +84,7 @@ const props = defineProps<{
   buttonText: string;
   isSubmitting: boolean;
   inputIsValid: boolean;
+  hideAccessPicker?: boolean;
   networkId?: string;
   networkIds?: string[];
   error?: string | null;

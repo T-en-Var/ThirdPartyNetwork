@@ -123,25 +123,21 @@ import type { ErrorMessage, NetworkUser, UserProxy } from '@/types';
 import { useGlobalStore } from '@/stores/global';
 import type { AxiosError } from 'axios';
 
-// Reusable Components
 import ContentLayout from '@/components/ContentLayout.vue';
 import NetworkAccessList from '@/components/NetworkAccessList.vue';
 import LoadingSpinner from '@/components/LoadingSpinner.vue';
 import NetworkLogo from '@/components/NetworkLogo.vue';
 
-// Existing Components
 import ErrorAlert from '@/components/ErrorAlert.vue';
 import UserProxyDisplay from '@/components/UserProxyDisplay.vue';
 import api from '@/api/api';
 import useNetworks from '@/composables/useNetworks';
 
-// --- Types ---
 interface UserAccessState {
   value: boolean;
   userChecked: boolean;
 }
 
-// --- Setup ---
 const router = useRouter();
 const route = useRoute();
 const global = useGlobalStore();
@@ -149,7 +145,6 @@ const global = useGlobalStore();
 const networksState = useNetworks();
 const { data: network, loading, execute: fetchNetworkDetails } = networksState.fetchNetworkDetails;
 
-// --- State ---
 const isSubmitting = ref(false);
 const submitError = ref('');
 const currentUser = ref<UserProxy | null>(null);
@@ -159,8 +154,6 @@ const pageLoading = ref(true);
 const accessListRef = ref<InstanceType<typeof NetworkAccessList> | null>(null);
 
 let temporaryAccessToken = '';
-
-// --- Computed Properties ---
 
 const networkId = computed(() => route.params.networkId as string);
 
@@ -174,11 +167,8 @@ const canSubmit = computed(() => {
   return requiredAccesses.every((na) => accessesRecord[na.accessId]?.value);
 });
 
-// --- Initialization ---
-
 onMounted(async () => {
   temporaryAccessToken = localStorage.getItem('temporaryAccessToken') || '';
-  // Redirect to login if no temporary token is present
   if (!temporaryAccessToken) {
     router.push(`/networks/${networkId.value}/login?redirectUri=${route.query.redirectUri}`);
     pageLoading.value = false;
@@ -207,7 +197,6 @@ onMounted(async () => {
       }
       currentNetworkUser.value = networkUser;
 
-      // Initialize the access state based on current accepted status
       const initialAccessState: Record<string, UserAccessState> = {};
       for (const na of network.value.networkAccesses) {
         const isAccepted = networkUser.networkUserAccesses.some(
@@ -225,12 +214,6 @@ onMounted(async () => {
   pageLoading.value = false;
 });
 
-// --- Methods ---
-
-/**
- * Updates the local access state, primarily used for validation of required fields.
- * This is triggered by the NetworkAccessList component.
- */
 function updateAccessConsent(accessId: string, isChecked: boolean, isRequired: boolean) {
   void isRequired;
   if (!network.value) return;
@@ -238,9 +221,6 @@ function updateAccessConsent(accessId: string, isChecked: boolean, isRequired: b
   userAccesses.value[accessId] = { value: isChecked, userChecked: true };
 }
 
-/**
- * Handles the final submission, updating accepted and rejected accesses.
- */
 async function handleUpdateAccesses() {
   if (!currentUser.value || !network.value || !currentNetworkUser.value) return;
 

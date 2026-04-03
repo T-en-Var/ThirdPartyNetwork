@@ -38,7 +38,7 @@ const props = withDefaults(
     max?: number;
   }>(),
   {
-    modelValue: () => [0, 100], // Defaults for types must be wrapped in withDefaults
+    modelValue: () => [0, 100],
     min: 0,
     max: 100,
   },
@@ -46,13 +46,11 @@ const props = withDefaults(
 
 const emit = defineEmits(['update:modelValue']);
 
-// Local computed for easier access and validation
 const values = computed({
   get: () => props.modelValue,
   set: (val) => emit('update:modelValue', val),
 });
 
-// Calculate percentages for the colored track
 const getPercent = (value: number) => {
   return ((value - props.min) / (props.max - props.min)) * 100;
 };

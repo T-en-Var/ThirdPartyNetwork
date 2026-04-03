@@ -1,12 +1,12 @@
 <template>
   <div class="space-y-6">
     <div class="flex justify-start">
-      <RouterLink
-        :to="`/networks/${networkId}/manage/configurations`"
-        class="inline-flex items-center gap-2 rounded-md bg-gray-100 px-3 py-1.5 text-sm text-gray-700 transition hover:bg-gray-200"
+      <div
+        @click="handleReturn"
+        class="inline-flex cursor-pointer items-center gap-2 rounded-md bg-gray-100 px-3 py-1.5 text-sm text-gray-700 transition hover:bg-gray-200"
       >
-        ← Back to Configurations</RouterLink
-      >
+        ← Back to Configurations
+      </div>
     </div>
 
     <div class="rounded-lg bg-white p-6 shadow-md">
@@ -106,24 +106,36 @@
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import JsonEditorVue from 'json-editor-vue';
 import AccessLevelPicker from '@/components/fields/AccessLevelPicker.vue';
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, type Ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import useConfigurations from '@/composables/network/useConfigurations';
 import type { Configuration, CreateConfiguration } from '@/types';
+import { useEventStore } from '@/stores/event';
 
 const router = useRouter();
 const route = useRoute();
+const events = useEventStore();
+
+const emit = defineEmits<{
+  (
+    e: 'configurations-update',
+    networkId: string,
+    cfgId: string,
+    payload: CreateConfiguration,
+  ): void;
+  (e: 'configurations-delete', payload: Configuration): void;
+  (e: 'return', section: string): void;
+}>();
+
+const props = defineProps<{
+  fetchConfiguration: (customPageId: string) => Promise<Ref<Configuration | null>>;
+}>();
 
 const networkId = route.params.networkId as string;
 const configurationId = computed(() => route.params.configurationId as string);
 
-const configurationsState = useConfigurations();
-const {
-  data: configuration,
-  execute: fetchConfiguration,
-  loading,
-  error,
-} = configurationsState.fetchConfiguration;
+const configuration = ref<Configuration | null>(null);
+const loading = ref(false);
+const error = ref<string | null>(null);
 
 const form = ref<CreateConfiguration>({ key: '', accessLevel: 0, value: {} });
 const editMode = ref(false);
@@ -135,29 +147,34 @@ const formattedValue = computed(() => {
   return JSON.stringify(form.value.value ?? {}, null, 2);
 });
 
-async function load() {
-  await fetchConfiguration(networkId, configurationId.value);
+async function load(configurationId: string) {
+  configuration.value = null;
+  loading.value = true;
 
-  if (configuration.value) {
-    form.value.key = configuration.value.key;
-    form.value.accessLevel = configuration.value.accessLevel;
-    form.value.value = configuration.value.value;
-    try {
-      jsonValue.value = configuration.value.value ?? {};
-    } catch {
-      jsonValue.value = {};
-    }
+  const data = await props.fetchConfiguration(configurationId);
+  loading.value = false;
+
+  if (!data.value) throw new Error('CustomPage not found');
+  watch(data, (newEntry) => (configuration.value = newEntry), { immediate: true });
+
+  form.value.key = configuration.value!.key;
+  form.value.accessLevel = configuration.value!.accessLevel;
+  form.value.value = configuration.value!;
+  try {
+    jsonValue.value = configuration.value! ?? {};
+  } catch {
+    jsonValue.value = {};
   }
 }
 
 watch(
-  () => configurationId.value,
+  configurationId,
   async (newId) => {
     if (newId) {
-      await load();
+      await load(newId);
     }
   },
-  { immediate: true }, // basically onMounted
+  { immediate: true },
 );
 
 function cancelEdit() {
@@ -168,18 +185,22 @@ function saveJson() {
   editMode.value = false;
 }
 
+function handleReturn() {
+  emit('return', 'configurations');
+}
+
 async function handleUpdate() {
   if (!configuration.value) return;
-  emit('updateConfiguration', configuration.value.id, form.value);
+
+  events.listen.configurations.update(() => {
+    handleReturn();
+  }, true);
+
+  emit('configurations-update', networkId, configuration.value.id, form.value);
 }
 
 function confirmDelete() {
   if (!configuration.value) return;
-  emit('removeConfiguration', configuration.value);
+  emit('configurations-delete', configuration.value);
 }
-
-const emit = defineEmits<{
-  (e: 'updateConfiguration', cfgId: string, payload: CreateConfiguration): void;
-  (e: 'removeConfiguration', payload: Configuration): void;
-}>();
 </script>

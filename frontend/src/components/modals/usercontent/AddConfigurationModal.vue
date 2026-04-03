@@ -3,7 +3,7 @@
     title="Add Configuration"
     @close="$emit('close')"
   >
-    <CreateUserContentContainer
+    <UserContentForm
       :is-submitting="isSubmitting"
       :input-is-valid="inputIsValid"
       :network-id="networkId"
@@ -32,13 +32,13 @@
           />
         </div>
       </div>
-    </CreateUserContentContainer>
+    </UserContentForm>
   </modal-container>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import CreateUserContentContainer from '@/components/modals/CreateUserContentContainer.vue';
+import UserContentForm from '@/components/UserContentForm.vue';
 import ModalContainer from '@/components/modals/ModalContainer.vue';
 import JsonEditorVue from 'json-editor-vue';
 import type { CreateConfiguration, CreateUserContentForm } from '@/types';

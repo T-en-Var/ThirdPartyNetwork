@@ -90,7 +90,6 @@ export default function useRoles() {
       itemKeyFactory: (_, networkId, roleId) => `networks_${networkId}_roles_${roleId}`,
       listKeyFactory: (networkId) => `networks_${networkId}_roles`,
       listUpdater: (currentList, result) => {
-        // Map over the list to replace the updated item, keeping the sort
         const newList = currentList.map((item) => (item.id === result.id ? result : item));
         return newList.sort((a, b) => a.name.localeCompare(b.name));
       },

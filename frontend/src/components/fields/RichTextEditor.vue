@@ -125,7 +125,6 @@ import { useEditor, EditorContent, VueNodeViewRenderer } from '@tiptap/vue-3';
 import { Editor as CoreEditor } from '@tiptap/core';
 import { BubbleMenu } from '@tiptap/vue-3/menus';
 
-// 4. Import Extensions
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import Highlight from '@tiptap/extension-highlight';
@@ -135,19 +134,13 @@ import TextAlign from '@tiptap/extension-text-align';
 import BubbleMenuExtension from '@tiptap/extension-bubble-menu';
 import Underline from '@tiptap/extension-underline';
 
-// 5. Local Imports
 import ImageNode from './ImageNode.vue';
 import EditorMenu from './EditorMenu.vue';
 
 const props = defineProps<{ modelValue?: object | string }>();
 const emit = defineEmits(['update:modelValue', 'request-image']);
 
-// No reactive UI state required for font-size/line-height
-
 // --- CUSTOM EXTENSIONS ---
-
-// LineHeight extension removed
-
 const editor = useEditor({
   extensions: [
     StarterKit.configure({
@@ -159,15 +152,12 @@ const editor = useEditor({
         },
       },
     }),
-    BubbleMenuExtension, // Required for the menu logic to work
+    BubbleMenuExtension,
     Underline,
     Highlight,
     TextStyle,
-    // Align: Allow alignment on images too!
     TextAlign.configure({ types: ['heading', 'paragraph', 'image'] }),
-    // Link configured via starter kit / core; avoid duplicate registration
     Image.extend({
-      // 1. Add the "width" attribute so it saves to JSON/HTML
       addAttributes() {
         return {
           src: {},
@@ -175,16 +165,13 @@ const editor = useEditor({
           title: { default: null },
           width: {
             default: '100%',
-            // Parse width from existing HTML styles or attributes
             parseHTML: (element) => element.getAttribute('width') || element.style.width,
-            // Render width to HTML
             renderHTML: (attributes) => ({
               width: attributes.width,
             }),
           },
         };
       },
-      // 2. Register the Vue component to render this node
       addNodeView() {
         return VueNodeViewRenderer(ImageNode);
       },
@@ -199,7 +186,6 @@ const editor = useEditor({
 });
 
 // --- HELPERS ---
-
 const linkMenuUrl = ref('');
 const isEditingLink = ref(false);
 
@@ -212,12 +198,10 @@ const shouldShowMainBubble = ({
   from: number;
   to: number;
 }) => {
-  // Show main bubble menu only when text is selected and it's NOT a link
   return !editor.isActive('link') && from !== to;
 };
 
 const shouldShowLinkBubble = ({ editor }: { editor: CoreEditor }) => {
-  // Show link bubble menu whenever a link is active
   return editor.isActive('link');
 };
 
@@ -248,17 +232,10 @@ const cancelLinkEdit = () => {
   isEditingLink.value = false;
 };
 
-// const shouldShowLinkMenu = ({ editor }: { editor: Editor; }) => {
-//   return editor.isActive('link');
-// };
-
-// line-height sync and handlers removed
-
 function setLink() {
   const previousUrl = editor.value?.getAttributes('link').href;
   linkMenuUrl.value = previousUrl || '';
 
-  // If no link exists, create an empty one to trigger the bubble menu
   if (!previousUrl) {
     editor.value?.chain().focus().extendMarkRange('link').setLink({ href: '' }).run();
   }
@@ -266,16 +243,9 @@ function setLink() {
   isEditingLink.value = true;
 }
 
-// function unsetLink() {
-//   editor.value?.chain().focus().extendMarkRange('link').unsetLink().run();
-// }
-
 // --- EXPOSED METHODS FOR PARENT ---
-// The parent component calls this after the modal uploads the file
 function insertImage(url: string) {
   if (editor.value) {
-    // We prompt for width here to keep the editor "Simple"
-    // Real drag-to-resize requires complex custom NodeViews
     const width = window.prompt('Image Width? (e.g. 100%, 500px, 50%)', '100%');
 
     editor.value
@@ -290,7 +260,6 @@ function insertImage(url: string) {
   }
 }
 
-// Expose this function so the parent can access it via Template Ref
 defineExpose({ insertImage });
 
 watch(
@@ -311,12 +280,10 @@ onBeforeUnmount(() => editor.value?.destroy());
 /* Force images to respect Text Align in the editor view */
 :deep(.ProseMirror img) {
   display: inline-block;
-  /* Default Max Width for better UX */
   max-width: 100%;
   height: auto;
 }
 
-/* Alignment Classes applied by Tiptap */
 :deep(.ProseMirror p[style*='text-align: center']),
 :deep(.ProseMirror h1[style*='text-align: center']),
 :deep(.ProseMirror h2[style*='text-align: center']),

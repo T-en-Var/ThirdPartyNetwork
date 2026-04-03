@@ -191,10 +191,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
-// No specific script logic needed for this static presentation,
-// but v-motion directives are used in template.
-</script>
+<script setup lang="ts"></script>
 
 <style scoped>
 .animate-blob {

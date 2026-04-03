@@ -65,7 +65,6 @@ import { ref, watch } from 'vue';
 import LoadingSpinner from '@/components/LoadingSpinner.vue';
 import type { NetworkAccess, NetworkUserAccess } from '@/types';
 
-// Define types for component props
 interface UserAccessState {
   value: boolean;
   userChecked: boolean;
@@ -80,10 +79,8 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:modelValue', 'access-change']);
 
-// Internal state for checkboxes
 const internalAccesses = ref<Record<string, UserAccessState>>({ ...props.initialUserAccesses });
 
-// Watch for initial data load or changes from the parent
 watch(
   () => props.initialUserAccesses,
   (newAccesses) => {
@@ -92,29 +89,23 @@ watch(
   { deep: true },
 );
 
-// Function to check if an access was already accepted by the network user
 const isAlreadyAccepted = (accessId: string) => {
   return props.networkUserAccesses?.some((nua) => nua.accessId === accessId && nua.isAccepted);
 };
 
-// Handle local change and emit event for validation/final submission
 const handleAccessChange = (e: Event) => {
   const currentElementId = (e.target as HTMLInputElement).id;
   const isChecked = (e.target as HTMLInputElement).checked;
 
-  // Find the corresponding access definition
   const accessDefinition = props.networkAccesses.find((a) => a.accessId === currentElementId);
 
   if (accessDefinition) {
-    // Update internal state and mark as user-checked
     internalAccesses.value[currentElementId] = { value: isChecked, userChecked: true };
 
-    // Emit the change for parent validation (especially for required fields)
     emit('access-change', currentElementId, isChecked, accessDefinition.isRequired);
   }
 };
 
-// Expose the final state for the parent to read on submission
 defineExpose({
   userAccesses: internalAccesses,
 });

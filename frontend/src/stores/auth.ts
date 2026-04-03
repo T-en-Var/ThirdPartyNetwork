@@ -24,7 +24,6 @@ function isTokenExpired(token: string): boolean {
   return decodedPayload.exp < Math.floor(Date.now() / 1000);
 }
 
-// --- Pinia Auth Store Definition ---
 export const useAuthStore = defineStore('auth', () => {
   const auth = useAuthentication();
   const proxyState = useUserProxy();
@@ -48,9 +47,10 @@ export const useAuthStore = defineStore('auth', () => {
   const refreshToken = ref<string | null>(null);
   const permissionCollection = ref<NetworkPermissionCollection[]>([]);
 
-  watch(permissionCollection.value, (newCollections) =>
-    console.log('updated newCollections', newCollections),
-  );
+  watch(permissionCollection, (newCollections) => {
+    console.log('updated newCollections', newCollections);
+    alert('updated newCollections');
+  });
 
   // --- Auth properties ---
   const isAuthenticated = computed(() => {

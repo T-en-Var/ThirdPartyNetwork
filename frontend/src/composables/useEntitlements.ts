@@ -1,12 +1,5 @@
-// @/composables/useEntitlements.ts
 import { capitalize, ref } from 'vue';
 import type { Network, SettableEntitlementForm, SettableEntitlement } from '@/types';
-
-// function expectAllKeys<T>() {
-//   return <U extends readonly (keyof T)[]>(
-//     array: U & ([keyof T] extends [U[number]] ? unknown : never),
-//   ) => array;
-// }
 
 export const entitlementKeys = {
   allowFiles: ['fileCountLimit', 'fileSizeLimit', 'fileStorageLimit'],
@@ -21,32 +14,6 @@ export const entitlementKeys = {
 
 export function useEntitlements(network: Network) {
   const entitlementsData = ref<SettableEntitlementForm>({});
-
-  // const keys = expectAllKeys<SettableEntitlement>()([
-  //   'allowFiles',
-  //   'fileCountLimit',
-  //   'fileSizeLimit',
-  //   'fileStorageLimit',
-  //   'allowBlogs',
-  //   'blogCountLimit',
-  //   'allowConfigurations',
-  //   'configurationCountLimit',
-  //   'allowCustomPages',
-  //   'customPageCountLimit',
-  //   'customPageBlockCountLimit',
-  //   'customPageBlockSizeLimit',
-
-  //   // 'setAllowFiles',
-  //   // 'setFileCountLimit',
-  //   // 'setFileSizeLimit',
-  //   // 'setFileStorageLimit',
-  //   // 'setAllowBlogs',
-  //   // 'setBlogCountLimit',
-  //   // 'setAllowConfigurations',
-  //   // 'setConfigurationCountLimit',
-  //   // 'setAllowCustomPages',
-  //   // 'setCustomPageCountLimit',
-  // ] as const);
 
   const initEntitlements = (
     sourceEntitlements: SettableEntitlement,

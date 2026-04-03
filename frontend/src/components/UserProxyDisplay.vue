@@ -24,7 +24,9 @@
       <div class="flex-1">
         <div class="flex items-center justify-between">
           <div>
-            <h3 class="text-xl font-semibold text-gray-900">{{ getDisplayName() }}</h3>
+            <h3 class="text-xl font-semibold text-gray-900">
+              {{ userProxy ? getNameDisplayUserProxy(userProxy) : 'Unknown User' }}
+            </h3>
             <span
               v-if="userProxy?.isDefault"
               class="mt-1 inline-block rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700"
@@ -78,6 +80,7 @@ import { ref, computed } from 'vue';
 import type { UserProxy } from '@/types';
 import SecurableField from '@/components/fields/SecurableField.vue';
 import ProfileAvatar from '@/components/ProfileAvatar.vue';
+import { getNameDisplayUserProxy } from '@/lib/user';
 
 const props = defineProps({
   userProxy: {
@@ -88,12 +91,10 @@ const props = defineProps({
     type: Boolean,
     default: () => true,
   },
-  // Object defining which fields are sensitive
   sensitiveFields: {
     type: Array as () => string[],
     default: () => ['email', 'lastName'],
   },
-  // Fields to display (if not specified, show all available)
   fieldsToDisplay: {
     type: Array as () => string[],
     default: () => [],
@@ -102,32 +103,27 @@ const props = defineProps({
 
 const emit = defineEmits(['switch-account']);
 
-// State for field visibility
 const visibleFields = ref<Record<string, boolean>>({});
 
-// Compute fields to display based on userProxy and fieldsToDisplay props
 const displayFields = computed(() => {
   if (!props.userProxy) return {};
 
   const fields: Record<string, { value: string; sensitive: boolean }> = {};
 
-  // Get all available fields from userProxy
   const allFields = Object.keys(props.userProxy).filter(
     (key) =>
-      key !== 'id' && // Skip ID
-      key !== 'user' && // Skip user object
-      key !== 'isDefault' && // Handled separately
-      key !== 'imageUrl' && // Handled separately
-      key !== 'createdOn', // Skip or format differently if needed
+      key !== 'id' &&
+      key !== 'user' &&
+      key !== 'isDefault' &&
+      key !== 'imageUrl' &&
+      key !== 'createdOn',
   );
 
-  // Use specified fields or all available fields
   const fieldsToUse =
     props.fieldsToDisplay.length > 0
       ? props.fieldsToDisplay.filter((f) => allFields.includes(f))
       : allFields;
 
-  // Build fields object
   fieldsToUse.forEach((key) => {
     const value = props.userProxy?.[key as keyof UserProxy] as string;
     if (value !== undefined) {
@@ -138,7 +134,6 @@ const displayFields = computed(() => {
     }
   });
 
-  // Add formatted date if we want to show it
   if (props.fieldsToDisplay.includes('createdOn') || props.fieldsToDisplay.length === 0) {
     fields['createdOn'] = {
       value: formatDate(props.userProxy.createdOn),
@@ -149,38 +144,15 @@ const displayFields = computed(() => {
   return fields;
 });
 
-// Format field names for display
 function formatFieldName(key: string): string {
-  // Convert camelCase to Title Case with spaces
   return key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase());
 }
 
-// Format date for display
 function formatDate(date: Date): string {
   if (!date) return 'Unknown';
   return new Date(date).toLocaleDateString();
 }
 
-// Get user's display name
-function getDisplayName(): string {
-  if (!props.userProxy) return 'User';
-
-  // if (props.userProxy.firstName && props.userProxy.lastName) {
-  //   return `${props.userProxy.firstName} ${props.userProxy.lastName}`;
-  // }
-
-  // if (props.userProxy.firstName) {
-  //   return props.userProxy.firstName;
-  // }
-
-  if (props.userProxy.username) {
-    return props.userProxy.username;
-  }
-
-  return 'User';
-}
-
-// Get user's initials for avatar fallback
 function getInitials(): string {
   if (!props.userProxy) return 'U';
 
@@ -199,7 +171,6 @@ function getInitials(): string {
   return 'U';
 }
 
-// Toggle field visibility
 function toggleFieldVisibility(key: string): void {
   visibleFields.value[key] = !visibleFields.value[key];
 }

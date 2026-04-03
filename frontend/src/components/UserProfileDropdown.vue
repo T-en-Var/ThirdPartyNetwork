@@ -122,7 +122,6 @@ const handleLogout = () => {
   router.push('/');
 };
 
-// Close dropdown when clicking outside
 const handleClickOutside = (event: MouseEvent) => {
   const dropdown = document.querySelector('.user-profile-dropdown');
   if (dropdown && !dropdown.contains(event.target as Node) && isOpen.value) {
@@ -130,13 +129,11 @@ const handleClickOutside = (event: MouseEvent) => {
   }
 };
 
-// Listen for clicks outside the dropdown
 onMounted(async () => {
   document.addEventListener('click', handleClickOutside);
   user.value = await authStore.getUserProxy();
 });
 
-// Clean up the event listener
 onBeforeUnmount(() => {
   document.removeEventListener('click', handleClickOutside);
 });

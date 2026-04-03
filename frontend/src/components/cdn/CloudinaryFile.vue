@@ -108,11 +108,6 @@ function downloadFile(fileUrl: string, filename: string) {
 }
 
 function cloudinaryVideoThumbnail(fileUrl: string) {
-  // Cloudinary "video -> image" transformation
   return fileUrl.replace('/upload/', '/upload/w_300,h_200,c_fill/').replace(/\.[^.]+$/, '.jpg');
 }
 </script>
-
-<style scoped>
-/* optional custom styles */
-</style>

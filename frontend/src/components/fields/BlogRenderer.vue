@@ -45,7 +45,6 @@ const CustomImage = Image.extend({
         parseHTML: (element) => element.getAttribute('width') || element.style.width,
         renderHTML: (attributes) => ({
           width: attributes.width,
-          // We explicitly keep the style here to ensure render consistency
           style: `width: ${attributes.width}`,
         }),
       },
@@ -61,7 +60,6 @@ const editor = useEditor({
       heading: { levels: [1, 2, 3, 4] },
       link: {
         HTMLAttributes: {
-          // target="_blank" is often good for blogs so users don't leave your site
           target: '_blank',
           rel: 'noopener noreferrer',
           class: 'text-blue-600 underline hover:text-blue-800 cursor-pointer',

@@ -16,10 +16,10 @@ export default function useBlogs() {
       await api.get<Blog[]>(`/users/${userId}/proxies/${userProxyId}/blogs`),
   );
 
-  const fetchBlog = useCachedApi<Blog, [userId: string, userProxyId: string, blogId: string]>(
+  const fetchBlog = useCachedApi<Blog, [networkId: string, userId: string, userProxyId: string, blogId: string]>(
     (userId, userProxyId, blogId) => getKey(userId, userProxyId, blogId),
-    async (userId, userProxyId, blogId) =>
-      await api.get<Blog>(`/users/${userId}/proxies/${userProxyId}/blogs/${blogId}`),
+    async (networkId, _, __, blogId) =>
+      await api.get<Blog>(`/networks/${networkId}/blogs/${blogId}`),
   );
 
   const createBlog = useMutation<

@@ -129,7 +129,6 @@ const form = ref<NetworkAccessCreate>({
 
 const availableAccesses = computed(() => {
   if (!accessesState.data.value) return [];
-  // Filter out accesses that are already in the network
   const networkAccessIds = props.network.networkAccesses.map((na) => na.access.id);
   return accessesState.data.value.filter((access) => !networkAccessIds.includes(access.id));
 });

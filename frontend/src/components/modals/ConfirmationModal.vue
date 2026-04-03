@@ -55,7 +55,7 @@ const props = defineProps({
   },
   color: {
     type: String,
-    default: 'red', // fallback to red if not provided
+    default: 'red',
   },
 });
 

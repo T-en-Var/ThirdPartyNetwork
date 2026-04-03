@@ -74,8 +74,6 @@ export interface Network {
   roles: Role[];
   networkUsers: NetworkUser[];
   isSystemProtected: boolean;
-  // files: NetworkFile[],
-  // customPages: CustomPage[]
   entitlement?: NetworkEntitlement;
 }
 

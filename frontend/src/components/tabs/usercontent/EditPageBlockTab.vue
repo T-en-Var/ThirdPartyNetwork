@@ -2,12 +2,12 @@
   <div class="space-y-6">
     <!-- Back button -->
     <div class="flex justify-start">
-      <RouterLink
-        :to="`/networks/${networkId}/manage/custom-pages/${customPageId}/edit`"
+      <button
+        @click="handleReturn"
         class="inline-flex items-center gap-2 rounded-md bg-gray-100 px-3 py-1.5 text-sm text-gray-700 transition hover:bg-gray-200"
       >
         ← Back to Custom Page
-      </RouterLink>
+      </button>
     </div>
 
     <div class="rounded-lg bg-white p-6 shadow-md">
@@ -24,11 +24,7 @@
         class="space-y-6"
       >
         <h2 class="mb-4 text-xl font-semibold text-gray-800">Edit Page Block</h2>
-        <form
-          @submit.prevent="handleUpdate"
-          class="space-y-4"
-        >
-          <!-- Parent block selector -->
+        <div class="space-y-4">
           <div>
             <label class="mb-1 block text-sm font-medium text-gray-700">Parent Block</label>
             <SearchableSelect
@@ -39,7 +35,6 @@
             />
           </div>
 
-          <!-- Text -->
           <div>
             <label class="mb-1 block text-sm font-medium text-gray-700">Text</label>
             <input
@@ -49,7 +44,6 @@
             />
           </div>
 
-          <!-- Position -->
           <div>
             <label class="mb-1 block text-sm font-medium text-gray-700">Position</label>
             <input
@@ -59,7 +53,6 @@
             />
           </div>
 
-          <!-- JSON Block Data Editor -->
           <div>
             <label class="mb-2 block text-sm font-medium text-gray-700">Block Data</label>
 
@@ -104,19 +97,24 @@
             </div>
           </div>
 
-          <div class="flex justify-end">
+          <div class="flex justify-end gap-4">
             <button
-              type="submit"
+              @click="handleDelete"
+              class="rounded-md bg-red-600 px-4 py-2 text-white hover:bg-red-700"
+            >
+              Delete Block
+            </button>
+            <button
+              @click="handleUpdate"
               class="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
             >
               Update Block
             </button>
           </div>
-        </form>
+        </div>
       </div>
     </div>
 
-    <!-- Footer navigation -->
     <div class="rounded-lg bg-white p-4 shadow">
       <h3 class="mb-3 text-sm font-semibold text-gray-700">Navigate Page Blocks</h3>
 
@@ -204,14 +202,14 @@
               :current-id="pageBlockId"
               :network-id="networkId"
               :custom-page-id="customPageId"
+              @navigate-to-block="handleEdit"
             />
           </div>
         </div>
       </div>
 
-      <!-- History -->
       <div
-        v-if="historyStore.data.pageBlocks.length"
+        v-if="history.data.pageBlocks.length"
         class="mt-4"
       >
         <h4 class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
@@ -219,7 +217,7 @@
         </h4>
         <div class="flex flex-wrap gap-2">
           <RouterLink
-            v-for="pb in [...historyStore.data.pageBlocks].reverse()"
+            v-for="pb in [...history.data.pageBlocks].reverse()"
             :key="pb.id"
             :to="`/networks/${networkId}/manage/custom-pages/${customPageId}/blocks/${pb.id}/edit`"
             class="rounded bg-blue-50 px-2 py-1 text-xs text-blue-700 transition hover:bg-blue-100"
@@ -236,27 +234,38 @@
 
 <script setup lang="ts">
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
-import type { PageBlock, TreeNode } from '@/types';
+import type { CustomPage, PageBlock, TreeNode } from '@/types';
 import { ref, computed, watch, type Ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import JsonEditorVue from 'json-editor-vue';
-import { useHistoryStore } from '@/stores/history';
 import TreeNodeComponent from '@/components/TreeNodeComponent.vue';
 import SearchableSelect from '@/components/SearchableSelect.vue';
-import useCustomPages from '@/composables/network/useCustomPages';
-
-const emit = defineEmits<{
-  (e: 'updatePageBlock', customPageId: string, block: PageBlock): void;
-}>();
+import type { useHistoryStore } from '@/stores/history';
+import { useGlobalStore } from '@/stores/global';
 
 const router = useRouter();
 const route = useRoute();
+const global = useGlobalStore();
 
-const networkId = route.params.networkId as string;
-const customPageId = route.params.customPageId as string;
+const emit = defineEmits<{
+  (e: 'page-blocks-edit', block: PageBlock): void;
+  (e: 'page-blocks-update', networkId: string, customPageId: string, block: PageBlock): void;
+  (e: 'page-blocks-delete', block: PageBlock): void;
+  (e: 'nav-to-custom-pages', networkId: string, customPageId: string): void;
+}>();
+
+const props = defineProps<{
+  fetchCustomPage: (customPageId: string) => Promise<Ref<CustomPage | null>>;
+  history: ReturnType<typeof useHistoryStore>;
+}>();
+
+const networkId = computed(() => route.params.networkId as string);
+const customPageId = computed(() => route.params.customPageId as string);
 const pageBlockId = computed(() => route.params.pageBlockId as string);
 
-const historyStore = useHistoryStore(networkId);
+const customPage = ref<CustomPage | null>(null);
+const loading = ref(false);
+const error = ref<string | null>();
 
 const form = ref<Partial<PageBlock>>({
   parentPageId: '',
@@ -268,42 +277,34 @@ const form = ref<Partial<PageBlock>>({
 const editDataMode = ref(false);
 const jsonEditorValue = ref<object>({});
 
-const {
-  data: customPage,
-  loading,
-  error,
-  execute: fetchCustomPage,
-} = useCustomPages().fetchCustomPage;
-
-const handleMounted = async () => {
-  await fetchCustomPage(networkId, customPageId);
-
-  if (!currentPageBlock.value) throw new Error('PageBlock not found');
-
-  form.value = {
-    parentPageId: currentPageBlock.value.parentPageId || '',
-    text: currentPageBlock.value.text,
-    position: currentPageBlock.value.position,
-    data: currentPageBlock.value.data,
-  };
-
-  try {
-    jsonEditorValue.value = currentPageBlock.value.data;
-  } catch {
-    jsonEditorValue.value = {};
-  }
-
-  historyStore.visit.pageBlocks(currentPageBlock.value);
-};
-
 watch(
-  () => pageBlockId.value,
-  async (newId) => {
-    if (newId) {
-      await handleMounted();
+  pageBlockId,
+  async () => {
+    customPage.value = null;
+    loading.value = true;
+
+    const data = await props.fetchCustomPage(customPageId.value);
+    loading.value = false;
+
+    if (!data.value) throw new Error('CustomPage not found');
+    watch(data, (newEntry) => (customPage.value = newEntry), { immediate: true });
+
+    if (!currentPageBlock.value) throw new Error('PageBlock not found');
+
+    form.value = {
+      parentPageId: currentPageBlock.value.parentPageId || '',
+      text: currentPageBlock.value.text,
+      position: currentPageBlock.value.position,
+      data: currentPageBlock.value.data,
+    };
+
+    try {
+      jsonEditorValue.value = currentPageBlock.value.data;
+    } catch {
+      jsonEditorValue.value = {};
     }
   },
-  { immediate: true }, // basically onMounted
+  { immediate: true },
 );
 
 const currentPageBlock = computed(() =>
@@ -316,34 +317,30 @@ const childBlocks = computed(
   () => customPage.value?.pages.filter((p) => p.parentPageId === pageBlockId.value) ?? [],
 );
 
-const sortedBlocks = computed(() =>
-  customPage.value?.pages
-    ? [
-        ...customPage.value.pages.filter(
-          (p) => p.parentPageId == currentPageBlock.value?.parentPageId,
-        ),
-      ].sort((a, b) => a.position - b.position)
-    : [],
-);
-
-const currentIndex = computed(() =>
-  sortedBlocks.value.findIndex((b) => b.id === pageBlockId.value),
-);
-
-const previousBlock = computed(() =>
-  currentIndex.value > 0 ? sortedBlocks.value[currentIndex.value - 1] : null,
-);
-const nextBlock = computed(() =>
-  currentIndex.value >= 0 && currentIndex.value < sortedBlocks.value.length - 1
-    ? sortedBlocks.value[currentIndex.value + 1]
-    : null,
-);
-
 const parentBlock = computed(() =>
   currentPageBlock.value?.parentPageId
     ? customPage.value?.pages.find((p) => p.id === currentPageBlock.value?.parentPageId)
     : null,
 );
+const siblings = computed(() => {
+  if (!parentBlock.value) {
+    return customPage.value?.pages.filter((p) => !p.parentPageId);
+  }
+  return customPage.value?.pages.filter((p) => p.parentPageId == parentBlock.value!.id);
+});
+
+const previousBlock = computed(() => {
+  if (!currentPageBlock.value || !siblings.value) return null;
+  const currentPos = currentPageBlock.value.position;
+
+  return siblings.value.find((p) => p.position == currentPos - 1);
+});
+const nextBlock = computed(() => {
+  if (!currentPageBlock.value || !siblings.value) return null;
+  const currentPos = currentPageBlock.value.position;
+
+  return siblings.value.find((p) => p.position == currentPos + 1);
+});
 
 const formattedJson = computed(() => {
   return form.value.data;
@@ -355,7 +352,6 @@ function cancelEditData() {
 
 function saveJsonData() {
   try {
-    // form.value.data = JSON.stringify(jsonEditorValue.value, null, 2)
     form.value.data = jsonEditorValue.value;
     editDataMode.value = false;
   } catch (_) {
@@ -364,40 +360,68 @@ function saveJsonData() {
   }
 }
 
+function handleReturn() {
+  emit('nav-to-custom-pages', networkId.value, customPageId.value);
+}
+
+function handleEdit(pageBlockId: string) {
+  if (currentPageBlock.value?.id == pageBlockId) return;
+
+  const pageBlock = customPage.value?.pages.find((page) => page.id == pageBlockId);
+  if (!pageBlock) {
+    global.addToast({ message: 'PageBlock not found.', type: 'error', duration: 5000 });
+    return;
+  }
+  emit('page-blocks-edit', pageBlock);
+}
+
 function handleUpdate() {
   if (!currentPageBlock.value) return;
-  emit('updatePageBlock', customPageId, {
+  emit('page-blocks-update', networkId.value, customPageId.value, {
     ...currentPageBlock.value,
     ...form.value,
     parentPageId: form.value.parentPageId || null,
   } as PageBlock);
 }
 
+function handleDelete() {
+  if (!currentPageBlock.value) return;
+  emit('page-blocks-delete', currentPageBlock.value);
+}
+
 function buildTree(blocks: PageBlock[]): TreeNode[] {
   const map = new Map<string, TreeNode>();
   const roots: TreeNode[] = [];
 
-  // Initialize nodes
   blocks.forEach((b) => map.set(b.id, { ...b, children: [], visited: false, recursive: false }));
 
   function addChildren(node: TreeNode) {
     if (node.visited) return;
     node.visited = true;
 
-    // path.add(node.id)
+    blocks.forEach((block) => {
+      if (block.parentPageId !== node.id) return;
 
-    blocks.forEach((b) => {
-      if (b.parentPageId !== node.id) return;
-
-      const childNode = map.get(b.id)!;
-      if (childNode.visited) node.children.push({ ...childNode, recursive: true });
-      else if (!childNode.recursive) node.children.push(childNode);
-
-      addChildren(childNode);
+      const childNode = map.get(block.id)!;
+      if (childNode.visited) {
+        node.children.push({ ...childNode, recursive: true });
+      } else {
+        if (!childNode.recursive) node.children.push(childNode);
+        addChildren(childNode);
+      }
     });
   }
 
-  // Build tree
+  blocks.forEach((block) => {
+    const node = map.get(block.id)!;
+    const isRoot = !block.parentPageId || !map.has(block.parentPageId);
+
+    if (isRoot && !node.visited) {
+      addChildren(node);
+      roots.push(node);
+    }
+  });
+
   blocks.forEach((b) => {
     const node = map.get(b.id)!;
     if (!node.visited) {

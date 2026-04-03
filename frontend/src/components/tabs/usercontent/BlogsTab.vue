@@ -35,6 +35,7 @@
         v-if="showCreateModal"
         :is-submitting="isSubmitting"
         :network-id="networkId"
+        :fetch-blogs="fetchBlogs"
         @create-blog="handleCreateBlog"
         @close="showCreateModal = false"
       />
@@ -79,7 +80,8 @@ async function handleCreateBlog(networkId: string, blogCreate: CreateBlog) {
   events.listen.blogs.create((blog) => {
     showCreateModal.value = false;
     handleEditBlog(blog);
-  });
+  }, true);
+
   emit('blog-create', networkId, blogCreate);
 }
 

@@ -66,20 +66,19 @@ const props = defineProps({
 
 const emit = defineEmits(['close']);
 
-// Map size prop to Tailwind classes
 const sizeClasses = computed(() => {
   switch (props.size) {
     case 'lg':
-      return 'sm:max-w-[95vw] sm:min-h-[95vh]'; // Almost full screen
+      return 'sm:max-w-[95vw] sm:min-h-[95vh]';
     case 'md':
-      return 'sm:max-w-3xl'; // Medium width
+      return 'sm:max-w-3xl';
     case 'sm':
     default:
-      return 'sm:max-w-lg'; // Original default size
+      return 'sm:max-w-lg';
   }
 });
 
-const id = Math.random().toString(36).slice(2); // simple unique ID
+const id = Math.random().toString(36).slice(2);
 const { open, close: closeStack, isTop } = useModalStack(id);
 
 function onKeydown(e: KeyboardEvent) {

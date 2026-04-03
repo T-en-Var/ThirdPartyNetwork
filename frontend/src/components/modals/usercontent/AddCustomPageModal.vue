@@ -3,7 +3,7 @@
     title="Add Custom Page"
     @close="$emit('close')"
   >
-    <CreateUserContentContainer
+    <UserContentForm
       :is-submitting="isSubmitting"
       :input-is-valid="inputIsValid"
       :network-id="networkId"
@@ -48,7 +48,7 @@
           Information which should make it easier to look up.
         </p>
       </div>
-    </CreateUserContentContainer>
+    </UserContentForm>
   </modal-container>
 </template>
 
@@ -56,7 +56,7 @@
 import { computed, ref } from 'vue';
 import ModalContainer from '@/components/modals/ModalContainer.vue';
 import type { CreateCustomPage, CreateUserContentForm } from '@/types';
-import CreateUserContentContainer from '../CreateUserContentContainer.vue';
+import UserContentForm from '../../UserContentForm.vue';
 
 defineProps<{
   isSubmitting: boolean;

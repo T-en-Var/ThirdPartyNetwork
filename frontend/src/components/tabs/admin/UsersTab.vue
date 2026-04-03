@@ -589,7 +589,6 @@ async function handleUpdateNetworkUser(localForm: ManageUserForm) {
   }
 }
 
-// Toggles for Entitlement Overrides
 const includeRoleEntitlements = ref(true);
 const includeUserEntitlements = ref(true);
 
@@ -614,7 +613,6 @@ onMounted(async () => {
 
 const allEntitlementKeys = computed(() => Object.values(entitlementKeys).flat());
 
-// Create the unified data object
 type ComboUser = User & UserMetrics;
 
 const allComboUsers = computed<ComboUser[]>(() => {
@@ -646,7 +644,6 @@ const highestUserMetrics = computed<Record<string, number>>(() => {
   return highest;
 });
 
-// Calculate global maximum bounds dynamically for the dual sliders
 const maxSliderLimits = computed<Record<string, number>>(() => {
   const limits: Record<string, number> = {};
 
@@ -676,7 +673,6 @@ const filteredUsers = computed(() => {
         return false;
       }
 
-      // Check Ranges
       for (const [key, range] of Object.entries(activeRangeFilters.value)) {
         const limitVal = (user[key as keyof UserMetrics] as number) || 0;
         if (limitVal < range[0] || limitVal > range[1]) return false;
@@ -711,7 +707,6 @@ const filteredUsers = computed(() => {
     });
 });
 
-// Actions
 const getNetworksForUser = (user: User): Network[] =>
   defaultProxy(user).networkUsers?.map((nu) => nu.network) || [];
 

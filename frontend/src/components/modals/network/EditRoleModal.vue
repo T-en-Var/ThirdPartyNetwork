@@ -225,6 +225,5 @@ function handleSubmit() {
   emit('update', localForm.value);
 }
 
-// Create a local reactive copy
 const localForm = ref({ ...props.manageRoleForm });
 </script>

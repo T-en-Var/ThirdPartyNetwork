@@ -226,7 +226,6 @@
                 :key="key"
                 class="rounded-lg border border-slate-200 bg-white p-3 shadow-sm"
                 :class="[
-                  // 'transition-all duration-300',
                   !!activeRangeFilters[key]
                     ? 'basis-[calc(33.333%-1rem)]'
                     : 'basis-[calc(16.666%-1rem)]',
@@ -728,11 +727,8 @@ const remainingLimits = computed(() => {
 
 const activeFilterCount = computed(() => {
   let count = 0;
-  // Count boolean filters that aren't null
   count += Object.values(activeBooleanFilters.value).filter((v) => v !== null).length;
-  // Count active range filters
   count += Object.keys(activeRangeFilters.value).length;
-  // Count search if it's not empty
   if (searchQuery.value.trim()) count++;
   return count;
 });
@@ -767,7 +763,7 @@ const filteredNetworks = computed(() => {
     })
     .sort((a, b) => {
       let valA: string | number, valB: string | number;
-      // Check if sorting by a top-level property or a nested entitlement
+
       if (sortBy.value === 'users') {
         valA = a.networkUsers.length;
         valB = b.networkUsers.length;

@@ -10,7 +10,6 @@ interface CacheEntry<T> {
   lastFetch: number;
 }
 
-// Global "Source of Truth" (Primitive values, not refs, to keep it simple)
 export const globalCache = new Map<string, CacheEntry<unknown>>();
 
 function getOrCreateEntry<T>(key: string): CacheEntry<T> {
@@ -85,7 +84,6 @@ export function useCachedApi<T, P extends unknown[]>(
   return {
     data: computed(() => currentEntry.value?.data.value ?? null),
     isFetching: computed(() => currentEntry.value?.isFetching.value ?? false),
-    /** Is fetching and has no data */
     loading: computed(() => {
       const isNetworkActive = currentEntry.value?.isFetching.value ?? false;
       const hasNoData = currentEntry.value?.data.value === null;
@@ -153,7 +151,6 @@ export function useMutation<T, P extends unknown[], TListItem = T>(
         'API Error';
       error.value = msg;
 
-      // Re-throw so the component can handle specific logic
       throw err;
     } finally {
       loading.value = false;

@@ -302,7 +302,6 @@ import { computed, ref, watch } from 'vue';
 import CloudinaryFile from '@/components/cdn/CloudinaryFile.vue';
 import type { Network, NetworkFile, UserProxy, UserProxyForm, UserProxyUpdate } from '@/types';
 import { useHistoryStore } from '@/stores/history';
-// import useUserProxy from '@/composables/useUserProxy';
 import { useRoute, useRouter } from 'vue-router';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import NetworkCard from '@/components/NetworkCard.vue';
@@ -314,7 +313,6 @@ const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
 
-// const { data: userProxy, loading, error, execute: fetchUserProxy } = useUserProxy().fetchUserProxy;
 const { data: user, loading, error, execute: fetchUser } = useUsers().fetchUser;
 
 const uploadedFile = ref<NetworkFile | null>(null);
@@ -331,13 +329,13 @@ const userProxyId = computed(() => route.params.userProxyId as string);
 const historyStore = useHistoryStore(userProxyId.value);
 
 watch(
-  () => userProxyId.value,
+  userProxyId,
   async (newId) => {
     if (newId) {
       await handleMounted();
     }
   },
-  { immediate: true }, // basically onMounted
+  { immediate: true },
 );
 
 async function handleMounted() {
@@ -369,7 +367,6 @@ async function handleMounted() {
   original = JSON.stringify(form.value);
 }
 
-// form state
 const form = ref<UserProxyForm>({ keepPassword: true, isDefault: false });
 
 let original = '';
@@ -379,7 +376,6 @@ const networks = computed<Network[]>(
   () => userProxy.value?.networkUsers.map((nu) => nu.network) ?? [],
 );
 
-// actions
 function resetForm() {
   Object.assign(form.value, JSON.parse(original));
 }
@@ -400,13 +396,6 @@ function saveChanges() {
   };
 
   emit('updateUserProxy', payload);
-
-  // too lazy..
-  // surely you'd fix this ;)
-  // async function save(proxy: UserProxyUpdate) {
-  //   await props.onUpdateUserProxy(proxy)
-  //   console.log("done saving!") // now runs after parent is done
-  // }
 
   setTimeout(async () => {
     await handleMounted();

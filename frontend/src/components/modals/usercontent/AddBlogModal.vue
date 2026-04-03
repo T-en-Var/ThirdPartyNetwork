@@ -3,7 +3,7 @@
     title="Create New Blog"
     @close="$emit('close')"
   >
-    <CreateUserContentContainer
+    <UserContentForm
       :is-submitting="isSubmitting"
       :input-is-valid="inputIsValid"
       :network-id="networkId"
@@ -47,19 +47,15 @@
           </span>
 
           <div class="ml-auto shrink-0">
-            <LoadingSpinner
-              v-if="isChecking"
-              size="sm"
-            />
             <div
-              v-else-if="slugExists"
+              v-if="slugExists"
               class="text-amber-500"
               title="Slug Taken"
             >
               ⚠️
             </div>
             <div
-              v-else-if="isValid"
+              v-else
               class="text-emerald-500"
               title="Available"
             >
@@ -75,25 +71,17 @@
           >
             This URL is already taken. The system will append a unique ID to your link.
           </div>
-          <div
-            v-else-if="isChanged && slugPreview"
-            class="text-[11px] italic text-slate-400"
-          >
-            Verifying availability...
-          </div>
         </transition>
       </div>
-    </CreateUserContentContainer>
+    </UserContentForm>
   </modal-container>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted, type Ref } from 'vue';
 import ModalContainer from '@/components/modals/ModalContainer.vue';
-import type { CreateBlog } from '@/types/userContent/blog';
-import api from '@/api/api';
-import LoadingSpinner from '@/components/LoadingSpinner.vue';
-import CreateUserContentContainer from '../CreateUserContentContainer.vue';
+import type { Blog, CreateBlog } from '@/types/userContent/blog';
+import UserContentForm from '../../UserContentForm.vue';
 import type { CreateUserContentForm } from '@/types';
 
 const emit = defineEmits<{
@@ -101,67 +89,37 @@ const emit = defineEmits<{
   (e: 'create-blog', networkId: string, payload: CreateBlog): void;
 }>();
 
-defineProps<{
+const props = defineProps<{
   isSubmitting: boolean;
   networkId?: string;
   networkIds?: string[];
+  fetchBlogs: () => Promise<Ref<Blog[] | null>>;
 }>();
 
 const title = ref('');
-const isChecking = ref(false);
-const slugExists = ref(false);
-const isChanged = ref(false);
 const selectedNetworkId = ref<string | null>(null);
+
+const blogs = ref<Blog[]>([]);
 
 const slugPreview = computed(() => generateSlug(title.value));
 const inputIsValid = computed(() => true);
 
-const isValid = computed(
-  () => !!title.value.trim() && !isChecking.value && !isChanged.value && !slugExists.value,
-);
+onMounted(async () => {
+  if (!!props.networkId && !props.networkIds) handleNetworkSelect(props.networkId);
 
-let debounceTimer: ReturnType<typeof setTimeout>;
+  const remoteRef = await props.fetchBlogs();
 
-watch(slugPreview, (newSlug) => {
-  if (!selectedNetworkId.value) return;
-
-  if (!newSlug) {
-    slugExists.value = false;
-    isChecking.value = false;
-    isChanged.value = false;
-    return;
-  }
-
-  isChanged.value = true;
-  isChecking.value = true;
-  slugExists.value = false;
-
-  clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(async () => {
-    if (!selectedNetworkId.value) return;
-
-    try {
-      await api.get(`/networks/${selectedNetworkId.value}/blogs/${newSlug}`);
-      slugExists.value = true;
-    } catch (err) {
-      // 404 = available
-      void err;
-      slugExists.value = false;
-    } finally {
-      isChecking.value = false;
-      isChanged.value = false;
-    }
-  }, 500);
+  watch(remoteRef, (newVal) => (blogs.value = newVal ?? []), { immediate: true });
 });
+
+const slugExists = computed(() => blogs.value.find(b => b.slug == slugPreview.value))
+
 
 function generateSlug(title: string) {
   if (!title) return '';
   let str = title.toLowerCase();
-  // remove diacritics
   str = str.normalize('NFD').replace(/\p{Diacritic}/gu, '');
-  // remove invalid chars
   str = str.replace(/[^a-z0-9\s-]/g, '');
-  // replace whitespace and dashes with single dash
   str = str.replace(/[\s-]+/g, '-');
   return str.replace(/^-+|-+$/g, '');
 }

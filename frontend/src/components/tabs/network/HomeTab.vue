@@ -304,7 +304,6 @@ import { computed, onMounted } from 'vue';
 import type { Network } from '@/types';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 
-// Import our new composables
 import useFiles from '@/composables/network/useFiles';
 import useBlogs from '@/composables/network/useBlogs';
 import useConfigurations from '@/composables/network/useConfigurations';
@@ -314,7 +313,7 @@ const props = defineProps<{
   network: Network;
 }>();
 
-// --- 1. Files Setup ---
+// --- Files Setup ---
 const { fetchFiles } = useFiles();
 const { data: files, loading: filesLoading, error: filesError, execute: loadFiles } = fetchFiles;
 
@@ -323,7 +322,7 @@ const fileStorage = computed(
   () => files.value?.reduce((acc, file) => acc + (file.sizeBytes || 0), 0) ?? 0,
 );
 
-// --- 2. Blogs Setup ---
+// --- Blogs Setup ---
 const {
   data: blogs,
   loading: blogsLoading,
@@ -333,7 +332,7 @@ const {
 
 const blogCount = computed(() => blogs.value?.length ?? 0);
 
-// --- 3. Configurations Setup ---
+// --- Configurations Setup ---
 const { fetchConfigurations } = useConfigurations();
 const {
   data: configs,
@@ -344,7 +343,7 @@ const {
 
 const configCount = computed(() => configs.value?.length ?? 0);
 
-// --- 4. Custom Pages Setup ---
+// --- Custom Pages Setup ---
 const {
   data: pages,
   loading: pagesLoading,
@@ -354,12 +353,10 @@ const {
 
 const pageCount = computed(() => pages.value?.length ?? 0);
 
-// --- Lifecycle ---
 onMounted(async () => {
   const { id, entitlement } = props.network;
   if (!entitlement) return;
 
-  // Fire requests in parallel (background) if allowed
   if (entitlement.allowFiles) loadFiles(id);
   if (entitlement.allowBlogs) loadBlogs(id);
   if (entitlement.allowConfigurations) loadConfigs(id);

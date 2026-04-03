@@ -23,10 +23,10 @@ export default function useFiles() {
 
   const fetchFile = useCachedApi<
     NetworkFile,
-    [userId: string, userProxyId: string, fileId: string]
+    [networkId: string, userId: string, userProxyId: string, fileId: string]
   >(
-    (userId, userProxyId, fileId) => getKey(userId, userProxyId, fileId),
-    async (userId, userProxyId, fileId) =>
+    (_, userId, userProxyId, fileId) => getKey(userId, userProxyId, fileId),
+    async (_, userId, userProxyId, fileId) =>
       await api.get<NetworkFile>(`/users/${userId}/proxies/${userProxyId}/files/${fileId}`),
   );
 

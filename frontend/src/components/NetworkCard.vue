@@ -85,7 +85,6 @@
 <script setup lang="ts">
 import type { Network } from '@/types';
 import CloudinaryFile from '@/components/cdn/CloudinaryFile.vue';
-// import { isValidHttpUrl } from '@/lib/utils';
 
 defineProps<{
   network: Network;

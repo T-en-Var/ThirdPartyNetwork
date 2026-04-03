@@ -132,6 +132,34 @@ export default function useCustomPages() {
     },
   );
 
+  const deletePageBlock = useMutation<
+    void,
+    [
+      networkId: string,
+      userId: string,
+      userProxyId: string,
+      customPageId: string,
+      pageBlockId: string,
+    ],
+    unknown
+  >(
+    async (networkId, _, __, customPageId, pageBlockId) =>
+      await api.delete(
+        `/networks/${networkId}/customPages/${customPageId}/pageBlocks/${pageBlockId}`,
+      ),
+    {
+      itemKeyFactory: (_, __, userId, userProxyId, customPageId, pageBlockId) =>
+        getKey(userId, userProxyId, customPageId) + `_pageBlocks_${pageBlockId}`,
+      listKeyFactory: (_, userId, userProxyId, customPageId) =>
+        getKey(userId, userProxyId, customPageId),
+      listUpdater: (currentList, _, __, ___, ____, _____, pageBlockId) => {
+        const customPage = currentList as unknown as CustomPage;
+        customPage.pages = customPage.pages.filter((item) => item.id !== pageBlockId);
+        return customPage as unknown as unknown[];
+      },
+    },
+  );
+
   return {
     fetchCustomPages,
     fetchCustomPage,
@@ -140,5 +168,6 @@ export default function useCustomPages() {
     deleteCustomPage,
     createPageBlock,
     updatePageBlock,
+    deletePageBlock,
   };
 }

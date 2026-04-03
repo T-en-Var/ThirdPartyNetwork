@@ -64,7 +64,6 @@ const emit = defineEmits<{
 const search = ref('');
 const open = ref(false);
 
-// Compute filtered options
 const filteredOptions = computed(() =>
   props.options.filter(
     (opt) =>
@@ -86,7 +85,6 @@ function closeDropdown() {
   }, 100);
 }
 
-// Keep input in sync if external modelValue changes
 watch(
   () => props.modelValue,
   (newVal) => {

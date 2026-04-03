@@ -364,7 +364,6 @@ import type { AxiosError } from 'axios';
 import api from '@/api/api';
 import rawApi from '@/api/rawApi';
 
-// Reusable Components
 import AuthLayout from '@/components/AuthLayout.vue';
 import AuthFormCard from '@/components/AuthFormCard.vue';
 import LoadingSpinner from '@/components/LoadingSpinner.vue';
@@ -373,20 +372,17 @@ import UserProxyDisplay from '@/components/UserProxyDisplay.vue';
 import NetworkNotFound from '@/components/NetworkNotFound.vue';
 import useNetworks from '@/composables/useNetworks';
 
-// --- Setup ---
 const router = useRouter();
 const route = useRoute();
 const global = useGlobalStore();
 const networkDetails = useNetworks().fetchNetworkDetails;
 
-// --- Computed Route Params/Queries (Vue Style-Guide C: Keep complex logic in script) ---
 const networkId = computed(() => route.params.networkId as string);
 const clientId = computed(() => route.query.clientId as string);
 const codeChallenge = computed(() => route.query.codeChallenge as string);
 const state = computed(() => route.query.state as string);
 const backUrlQuery = computed(() => route.query.back as string);
 
-// --- State Management ---
 const signupUsername = ref('');
 const signupFirstname = ref('');
 const signupLastname = ref('');
@@ -395,24 +391,20 @@ const signupPassword = ref('');
 const confirmPassword = ref('');
 const confirmToS = ref(false);
 
-const signUpStep = ref(1); // 1: Form, 2: Access, 3: Loading
+const signUpStep = ref(1);
 const error = ref('');
 const isLoading = ref(false);
-const isSigningUp = ref(false); // Used for the step 1 button state
+const isSigningUp = ref(false);
 
-// Accesses: Map<AccessId, {value: consent, userChecked: flag}>
 const userAccesses = ref<Record<string, { value: boolean; userChecked: boolean }>>({});
 
-// Modal State
 const showConfirmationModal = ref(false);
 const confirmationTitle = ref('');
 const confirmationMessage = ref('');
 const confirmButtonText = ref('');
 const confirmButtonColor = ref('');
 const confirmationAction = ref(() => {});
-const isSubmitting = ref(false); // Used for the final step 2 button state
-
-// --- Computed Properties ---
+const isSubmitting = ref(false);
 
 const networkNotFoundError = computed(() => {
   return !!networkId.value && !networkDetails.data.value;
@@ -421,35 +413,25 @@ const networkNotFoundError = computed(() => {
 const canSubmit = computed(() => {
   if (!networkDetails.data.value || isSubmitting.value) return false;
 
-  // Check if all required accesses have been consented to
   const requiredAccesses = networkDetails.data.value.networkAccesses.filter(
     (na: NetworkAccess) => na.isRequired,
   );
   return requiredAccesses.every((na: NetworkAccess) => userAccesses.value[na.accessId]?.value);
 });
 
-// --- Lifecycle Hooks ---
 onMounted(async () => {
   await networkDetails.execute(networkId.value);
 
-  // Initialize userAccesses state only if network is loaded successfully
   for (const access of networkDetails.data.value?.networkAccesses || []) {
     userAccesses.value[access.accessId] = { value: false, userChecked: false };
   }
 
-  // Pre-fill form from query params
   if (route.query.uname) signupUsername.value = route.query.uname as string;
   if (route.query.fname) signupFirstname.value = route.query.fname as string;
   if (route.query.lname) signupLastname.value = route.query.lname as string;
   if (route.query.email) signupEmail.value = route.query.email as string;
 });
 
-// --- Methods ---
-
-/**
- * Handles going back one step in the multi-step signup process.
- * Used by AuthLayout's @go-back-step event.
- */
 const goBackStep = () => {
   if (signUpStep.value > 1) {
     signUpStep.value--;
@@ -462,7 +444,6 @@ const navigateToLogin = () => {
   );
 };
 
-// DRY: Helper function for query string building
 function buildQueryString(queryObj: typeof route.query) {
   const entries = Object.entries(queryObj);
   if (entries.length === 0) return '';
@@ -475,7 +456,6 @@ function buildQueryString(queryObj: typeof route.query) {
 }
 
 const redirectToTos = () => {
-  // Logic to build a redirect URL with current form data and existing query params
   const currentQuery = { ...route.query };
   delete currentQuery.uname;
   delete currentQuery.fname;
@@ -489,14 +469,13 @@ const redirectToTos = () => {
 };
 
 const signUp = async () => {
-  error.value = ''; // Clear previous errors
+  error.value = '';
 
   if (!networkDetails.data.value) {
     error.value = 'Network details are not available yet.';
     return;
   }
 
-  // Basic form validation
   if (
     !signupUsername.value ||
     !signupPassword.value ||
@@ -519,11 +498,9 @@ const signUp = async () => {
     return;
   }
 
-  // Proceed to the next step: Access Consent
   signUpStep.value = 2;
 };
 
-// Function called on final submit in Step 2
 async function handleSubmit() {
   if (!canSubmit.value) {
     error.value = 'Please accept all required accesses.';
@@ -531,7 +508,7 @@ async function handleSubmit() {
   }
 
   isSubmitting.value = true;
-  signUpStep.value = 3; // Switch to loading screen
+  signUpStep.value = 3;
   global.startFetching();
 
   const network = networkDetails.data.value;
@@ -540,14 +517,13 @@ async function handleSubmit() {
     error.value = 'Network details missing.';
     global.stopFetching();
     isSubmitting.value = false;
-    signUpStep.value = 2; // Go back to access step
+    signUpStep.value = 2;
     return;
   }
 
   const signupUrl = `/auth/${networkId.value}/register?clientId=${clientId.value}&redirectUri=${network.redirectURI}&codeChallenge=${codeChallenge.value}`;
 
   try {
-    // 1. Register User
     const response = await rawApi.post<AuthorizationCode>(signupUrl, {
       username: signupUsername.value.trim(),
       firstName: signupFirstname.value.trim(),
@@ -558,16 +534,13 @@ async function handleSubmit() {
 
     const accessToken = response.data.accessToken;
 
-    // 2. Fetch User Proxy (to get networkUserId for access updates)
     const userResponse = await api.get<UserProxy>(`/me`, {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
     const networkUserId = userResponse.data.networkUsers[0].id;
 
-    // 3. Update Accesses
     await handleUpdateAccesses(networkUserId, accessToken);
 
-    // 4. Decode JWT and check for incomplete access
     const jwt = decodeJWT<AccessTokenClaims>(accessToken);
 
     if (jwt.AccessIncomplete === 'true') {
@@ -577,7 +550,6 @@ async function handleSubmit() {
       return;
     }
 
-    // 5. Final Redirect
     const redirectUrl = `${network.redirectURI}?code=${response.data.code}&state=${state.value}`;
     window.location.href = redirectUrl;
   } catch (err) {
@@ -586,16 +558,15 @@ async function handleSubmit() {
 
     const axiosError = err as AxiosError<ErrorMessage>;
 
-    // Handle specific Axios status codes
     if (axiosError.response?.status === 409) {
       error.value = 'An account with this username or email already exists. Please sign in.';
-      signUpStep.value = 1; // Go back to form to encourage login
+      signUpStep.value = 1;
     } else if (axiosError.response?.status === 400) {
       error.value = axiosError.response.data?.message || 'Invalid registration data provided.';
-      signUpStep.value = 1; // Go back to form
+      signUpStep.value = 1;
     } else if (axiosError.response?.data?.message) {
       error.value = axiosError.response.data.message;
-      signUpStep.value = 2; // Default to access step to show error
+      signUpStep.value = 2;
     } else {
       error.value = 'An unexpected error occurred during account creation. Please try again.';
       signUpStep.value = 2;
@@ -603,9 +574,6 @@ async function handleSubmit() {
   }
 }
 
-/**
- * Sends PUT requests to update user access consent.
- */
 async function handleUpdateAccesses(networkUserId: string, temporaryAccessToken: string) {
   if (!networkDetails.data.value) return;
 
@@ -627,7 +595,7 @@ async function handleUpdateAccesses(networkUserId: string, temporaryAccessToken:
     );
   } catch (err) {
     console.error('Failed to update accesses:', err);
-    throw err; // Re-throw to be caught in handleSubmit
+    throw err;
   }
 }
 
@@ -640,14 +608,10 @@ function handleIncompleteAccess(redirectUri: string) {
   confirmButtonColor.value = 'blue';
 
   confirmationAction.value = () => {
-    // Navigate to a dedicated page to complete access consent
     router.push(`/networks/${networkId.value}/complete-access?redirectUri=${btoa(redirectUri)}`);
   };
 }
 
-/**
- * Validation for required accesses on checkbox change.
- */
 function validateRequiredAccesses(e: Event) {
   if (!networkDetails.data.value) return;
 
@@ -659,8 +623,6 @@ function validateRequiredAccesses(e: Event) {
   );
 
   if (access && access.isRequired) {
-    // For required fields, we track if the user has explicitly checked/unchecked
-    // This maintains the 'required' status validation logic in `canSubmit`
     userAccesses.value[currentElementId].value = isChecked;
     userAccesses.value[currentElementId].userChecked = true;
   } else if (access) {

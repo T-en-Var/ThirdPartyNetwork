@@ -15,6 +15,7 @@ export * from './userContent/pageBlock.ts';
 export * from './permission.ts';
 export * from './role.ts';
 export * from './rolePermission.ts';
+export * from './toast.ts';
 export * from './token.ts';
 export * from './user.ts';
 export * from './userProxy.ts';

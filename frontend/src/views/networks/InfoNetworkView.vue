@@ -394,18 +394,12 @@ const {
   execute: fetchNetworkDetails,
 } = useNetworks().fetchNetworkDetails;
 
-// Simulated connected websites - in a real app, you would fetch this from API
 const connectedWebsites = ref([
   {
     name: 'Vue Login Test',
     url: 'http://localhost:5174',
     icon: 'https://ui-avatars.com/api/?name=VT&size=32&background=random',
   },
-  // {
-  //   name: 'Example Support System',
-  //   url: 'https://support.example.com',
-  //   icon: 'https://ui-avatars.com/api/?name=ES&size=32&background=random'
-  // }
 ]);
 
 const showConfirmationModal = ref(false);
@@ -476,7 +470,6 @@ async function handleToggle(accessId: string) {
   };
 }
 
-// Check if user has permission to manage the network
 const canManageNetwork = computed(
   () => network.value && authStore.canI.manageNetwork(network.value),
 );
@@ -487,11 +480,9 @@ const currentNetworkUser = computed(() => {
   const userProxyId = authStore.getUserProxyId();
   if (!network.value || !userProxyId) return null;
 
-  // Check if user exists in the network's users
   return network.value.networkUsers?.find((networkUser) => networkUser.userProxyId === userProxyId);
 });
 
-// Check if user is already in the network
 const isUserInNetwork = computed(() => {
   return currentNetworkUser.value != null;
 });

@@ -1,4 +1,4 @@
-import type { Blog, Configuration, CustomPage, NetworkFile } from '@/types';
+import type { Blog, Configuration, CustomPage, NetworkFile, PageBlock } from '@/types';
 import { defineStore } from 'pinia';
 
 const defineDomains = <T extends Record<keyof AppEventPayloads, readonly string[]>>(
@@ -6,7 +6,7 @@ const defineDomains = <T extends Record<keyof AppEventPayloads, readonly string[
     [K in keyof AppEventPayloads]: Exclude<keyof AppEventPayloads[K], T[K][number]> extends never // Check for missing keys
       ? // Check for extra/invalid keys
         Exclude<T[K][number], keyof AppEventPayloads[K]> extends never
-        ? T[K] // Perfect match!
+        ? T[K] // match
         : readonly ['❌ EXTRA EVENT DETECTED:', Exclude<T[K][number], keyof AppEventPayloads[K]>]
       : readonly ['❌ MISSING EVENT:', Exclude<keyof AppEventPayloads[K], T[K][number]>];
   },
@@ -22,21 +22,29 @@ export interface AppEventPayloads {
   };
   blogs: {
     create: [blog: Blog];
+    update: [blog: Blog];
   };
   configurations: {
     create: [configuration: Configuration];
+    update: [configuration: Configuration];
   };
   customPages: {
     create: [customPage: CustomPage];
+    update: [customPage: CustomPage];
+  };
+  pageBlocks: {
+    create: [pageBlock: PageBlock];
+    delete: [pageBlock: PageBlock];
   };
 }
 
 const EVENT_DOMAINS = defineDomains({
   test: ['myevent'] as const,
   file: ['openEdit', 'update'] as const,
-  blogs: ['create'] as const,
-  configurations: ['create'] as const,
-  customPages: ['create'] as const,
+  blogs: ['create', 'update'] as const,
+  configurations: ['create', 'update'] as const,
+  customPages: ['create', 'update'] as const,
+  pageBlocks: ['create', 'delete'] as const,
 });
 
 type EmitMap = {
@@ -76,7 +84,6 @@ export const useEventStore = defineStore('event', () => {
     for (const action of actions) {
       const eventKey = `${currentDomain}:${action}`;
 
-      // --- EMIT ---
       domainEmit[action] = (...args: unknown[]) => {
         const eventListeners = listeners.get(eventKey);
 
@@ -85,7 +92,6 @@ export const useEventStore = defineStore('event', () => {
         }
       };
 
-      // --- LISTEN ---
       domainListen[action] = (cb: GenericEventListener, once = false) => {
         if (!listeners.has(eventKey)) {
           listeners.set(eventKey, new Set());
@@ -101,6 +107,12 @@ export const useEventStore = defineStore('event', () => {
         };
 
         listeners.get(eventKey)!.add(finalCallback);
+        
+        let totalEverywhere = 0;
+        for (const eventSet of listeners.values()) {
+          totalEverywhere += eventSet.size;
+        }
+        console.log(`Registering listener on ${eventKey}. Total of ${totalEverywhere}`);
 
         return unregister;
       };

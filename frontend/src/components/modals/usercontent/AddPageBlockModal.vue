@@ -3,14 +3,15 @@
     title="Add Page Block"
     @close="$emit('close')"
   >
-    <CreateUserContentContainer
+    <UserContentForm
       :is-submitting="isSubmitting"
       :input-is-valid="inputIsValid"
       :network-id="customPage.networkId"
-      button-text="Add Blog"
+      :hide-access-picker="true"
+      button-text="Add Page Block"
       @submit="handleSubmit"
+      @close="emit('close')"
     >
-      <!-- Name -->
       <div>
         <label
           for="pageText"
@@ -28,7 +29,6 @@
         />
       </div>
 
-      <!-- Slug -->
       <div>
         <label
           for="pagePosition"
@@ -43,37 +43,20 @@
           class="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-900 shadow-sm transition-all focus:border-blue-600 focus:ring focus:ring-blue-100 disabled:bg-gray-100 disabled:text-gray-500"
           required
         />
-        <p class="mt-1 text-xs text-gray-500">You can change all this later.</p>
+        <p class="mt-1 text-xs text-gray-500">You can change all this later as well.</p>
       </div>
-
-      <!-- Actions -->
-      <div class="flex justify-end space-x-3 border-t border-gray-200 pt-4">
-        <button
-          type="button"
-          class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
-          @click="$emit('close')"
-          :disabled="isSubmitting"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          class="rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-gray-600 disabled:hover:bg-gray-600"
-          :disabled="isSubmitting || !form.text || (form.position != 0 && !form.position)"
-        >
-          <span v-if="isSubmitting">Adding...</span>
-          <span v-else>Add Page</span>
-        </button>
-      </div>
-    </CreateUserContentContainer>
+    </UserContentForm>
   </modal-container>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import ModalContainer from '@/components/modals/ModalContainer.vue';
-import type { CreatePageBlock, CustomPage, UserContentCreateBase } from '@/types';
-import CreateUserContentContainer from '../CreateUserContentContainer.vue';
+import type { CreatePageBlock, CreateUserContentForm, CustomPage } from '@/types';
+import UserContentForm from '../../UserContentForm.vue';
+import { useEventStore } from '@/stores/event';
+
+const events = useEventStore();
 
 const props = defineProps<{
   isSubmitting: boolean;
@@ -82,7 +65,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'close'): void;
-  (e: 'submit', id: string, pageBlock: CreatePageBlock): void;
+  (e: 'submit', networkId: string, customPageId: string, pageBlock: CreatePageBlock): void;
 }>();
 
 const inputIsValid = computed(() => true);
@@ -94,8 +77,8 @@ const form = ref({
   customPageId: props.customPage.id,
 });
 
-function handleSubmit(_: UserContentCreateBase) {
-  void _;
-  emit('submit', props.customPage.id, { ...form.value });
+function handleSubmit(userContentFrom: CreateUserContentForm) {
+  events.listen.pageBlocks.create(() => emit('close'), true);
+  emit('submit', userContentFrom.networkId, props.customPage.id, { ...form.value });
 }
 </script>

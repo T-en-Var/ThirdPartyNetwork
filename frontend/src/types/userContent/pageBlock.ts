@@ -21,6 +21,7 @@ export interface TreeNode {
   text: string;
   parentPageId?: string;
   children: TreeNode[];
+  position: number;
   recursive: boolean;
   visited: boolean;
 }

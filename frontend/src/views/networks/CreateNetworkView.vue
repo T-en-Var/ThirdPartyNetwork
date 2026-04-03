@@ -302,7 +302,6 @@ const fakeNetwork = ref<Network>({
 
 function addAccessToNetwork(networkAccess: NetworkAccessCreate) {
   if (!networkAccess.access) return;
-  // Mock new access (replace with modal/selection logic later)
   fakeNetwork.value.networkAccesses.push({
     accessId: networkAccess.access.id,
     network: {} as Network,

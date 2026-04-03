@@ -64,7 +64,6 @@
                   Range: 0 - {{ Number(network.entitlement[limit.key]) }}
                 </span>
                 <span v-else></span>
-                {{ limit.key }}
 
                 <div
                   class="flex items-center gap-1 rounded border border-slate-200 bg-white px-2 py-0.5 shadow-sm transition-colors focus-within:border-blue-400"
@@ -196,9 +195,6 @@ const entitlementGroups: EntitlementGroup[] = [
   },
 ];
 
-/**
- * Ensures the value stays within 0 and the network max.
- */
 function clamp(key: keyof SettableEntitlementForm, max: number) {
   const val = props.modelValue[key];
   if (typeof val !== 'number') return;

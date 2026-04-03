@@ -222,8 +222,6 @@ async function handleJoinNetwork() {
   isSubmitting.value = true;
 
   try {
-    // We assume in the backend, when joining a network, all accesses
-    // which are required are accepted and which are not are not.
     const { data: networkUser } = await api.post<NetworkUser, CreateNetworkUser>(
       `/networks/${networkId}/users/${userProxyId}`,
       {},

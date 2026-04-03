@@ -1,5 +1,5 @@
-// apiClient.ts
 import { useAuthStore } from '@/stores/auth';
+import type { useGlobalStore } from '@/stores/global';
 import type { ErrorMessage, TokenPair } from '@/types';
 import axios from 'axios';
 import type { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
@@ -10,6 +10,7 @@ class ApiClient {
   private auth!: ReturnType<typeof useAuthStore>;
   private route!: RouteLocationNormalizedLoaded;
   private router!: Router;
+  private global!: ReturnType<typeof useGlobalStore>;
   private initResolver?: () => void;
   private initPromise: Promise<void>;
   private readonly INIT_TIMEOUT = 5000;
@@ -51,13 +52,11 @@ class ApiClient {
 
     this.instance.interceptors.response.use(
       (response) => {
-        // Automatically convert fields that are string dates
         response.data = this.convertDatesInResponse(response.data);
-        // console.log(response.data)
         return response;
       },
-      (error) => {
-        const statusCode = (error as AxiosError<ErrorMessage>).response?.status;
+      (error: AxiosError<ErrorMessage>) => {
+        const statusCode = error.response?.status;
 
         if (statusCode == 401) {
           let uri = this.route.query.redirect;
@@ -72,6 +71,12 @@ class ApiClient {
           this.auth.setUnauthModalOpen(true);
         }
 
+        this.global.addToast({
+          message: error.response?.data.message || error.message || 'Something went wrong.',
+          type: 'error',
+          duration: 5000,
+        });
+
         return Promise.reject(error);
       },
     );
@@ -79,25 +84,24 @@ class ApiClient {
 
   private convertDatesInResponse<T>(data: T): T {
     if (Array.isArray(data)) {
-      return data.map((d) => this.convertDatesInResponse(d)) as T; // Recursively handle arrays
+      return data.map((d) => this.convertDatesInResponse(d)) as T;
     }
 
     if (data !== null && typeof data === 'object') {
       const convertedData: { [key: string]: unknown } = {};
       for (const key in data) {
         if (data.hasOwnProperty(key)) {
-          // Check if the value is a valid date string
           if (typeof data[key] === 'string' && this.isValidDateString(data[key])) {
-            convertedData[key] = new Date(data[key]); // Convert to Date
+            convertedData[key] = new Date(data[key]);
           } else {
-            convertedData[key] = this.convertDatesInResponse(data[key]); // Recurse through nested objects
+            convertedData[key] = this.convertDatesInResponse(data[key]);
           }
         }
       }
       return convertedData as T;
     }
 
-    return data; // Return the data as-is if it's neither an object nor an array
+    return data;
   }
 
   private isValidDateString(dateString: string): boolean {
@@ -114,10 +118,12 @@ class ApiClient {
     store: ReturnType<typeof useAuthStore>,
     route: RouteLocationNormalizedLoaded,
     router: Router,
+    global: ReturnType<typeof useGlobalStore>,
   ) {
     this.auth = store;
     this.route = route;
     this.router = router;
+    this.global = global;
 
     if (this.initResolver) this.initResolver();
   }

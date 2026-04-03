@@ -324,7 +324,6 @@ function getAvatarSrc(proxy: UserProxy): string {
 }
 
 function getNetworksForProxy(proxy: UserProxy): Network[] {
-  // assuming networks[].networkUsers contains userProxy relation
   return proxy.networkUsers.map((nu) => nu.network);
 }
 </script>

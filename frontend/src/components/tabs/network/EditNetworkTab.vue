@@ -193,7 +193,7 @@ const emit = defineEmits<{
 const networkId = computed(() => route.params.networkId as string);
 
 watch(
-  () => networkId.value,
+  networkId,
   async (newId) => {
     if (newId) {
       await handleMounted();
@@ -219,12 +219,10 @@ async function handleMounted() {
   original = JSON.stringify(form.value);
 }
 
-// form state
 const form = ref<NetworkUpdate>({ name: '', description: '', isPublic: false, redirectURI: '' });
 let original = '';
 const hasChanges = computed(() => JSON.stringify(form.value) !== original);
 
-// actions
 function resetForm() {
   Object.assign(form.value, JSON.parse(original));
 }

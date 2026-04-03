@@ -109,6 +109,7 @@ async function handleEditFile(file: NetworkFile) {
 
 function handleUpdateFile(id: string, networkId: string, networkFile: UpdateFile) {
   events.listen.file.update(() => (showEditModal.value = false), true);
+
   emit('file-update', id, networkId, networkFile);
 }
 

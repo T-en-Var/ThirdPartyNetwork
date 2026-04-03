@@ -42,7 +42,7 @@
       </nav>
     </div>
 
-    <CreateUserContentContainer
+    <UserContentForm
       v-if="activeTab === 'upload'"
       :is-submitting="isSubmitting"
       :input-is-valid="inputIsValid"
@@ -81,7 +81,7 @@
           Drag & drop a file here or click to select
         </div>
       </div>
-    </CreateUserContentContainer>
+    </UserContentForm>
 
     <div v-if="activeTab === 'existing'">
       <div class="space-y-2">
@@ -164,7 +164,7 @@ import type { UserProxy, NetworkFile, CreateUserContentForm } from '@/types';
 import { useAuthStore } from '@/stores/auth';
 import CloudinaryFile from '@/components/cdn/CloudinaryFile.vue';
 import ForceLoadModal from '../ForceWaitModal.vue';
-import CreateUserContentContainer from '../CreateUserContentContainer.vue';
+import UserContentForm from '../../UserContentForm.vue';
 
 const filesState = useFiles();
 const { progress } = filesState;

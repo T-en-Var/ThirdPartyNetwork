@@ -39,13 +39,12 @@ export default function useAccesses() {
   const updateNetworkAccess = useMutation<
     NetworkAccess,
     [networkId: string, accessId: string, isRequired: boolean],
-    unknown // we change a list in a single item of Network, not list, so type does not work
+    unknown
   >(
     async (networkId, accessId, isRequired) =>
       await api.put(`/networks/${networkId}/accesses/${accessId}?IsRequired=${!isRequired}`, {}),
     {
       itemKeyFactory: (_, networkId, accessId) => `networks_${networkId}_accesses_${accessId}`,
-      // listKeyFactory: (networkId) => `networks_${networkId}_accesses`,
       listKeyFactory: (networkId) => `networks_${networkId}`,
       listUpdater: (currentList, result) => {
         const network = currentList as unknown as Network;
@@ -57,11 +56,7 @@ export default function useAccesses() {
     },
   );
 
-  const deleteNetworkAccess = useMutation<
-    void,
-    [networkId: string, accessId: string],
-    unknown // we change a list in a single item of Network, not list, so type does not work
-  >(
+  const deleteNetworkAccess = useMutation<void, [networkId: string, accessId: string], unknown>(
     async (networkId, accessId) => await api.delete(`/networks/${networkId}/accesses/${accessId}/`),
     {
       itemKeyFactory: (_, networkId, accessId) => `networks_${networkId}_accesses_${accessId}`,

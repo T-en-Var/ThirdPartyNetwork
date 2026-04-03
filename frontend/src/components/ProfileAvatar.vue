@@ -22,12 +22,12 @@ import CloudinaryFile from '@/components/cdn/CloudinaryFile.vue';
 
 interface Props {
   userProxy: UserProxy;
-  size?: number; // in pixels
+  size?: number;
 }
 
 const props = defineProps<Props>();
 
-const sizeValue = computed(() => props.size || 80); // default size 80px
+const sizeValue = computed(() => props.size || 80);
 
 const sizeClasses = computed(() => {
   return `h-${sizeValue.value} w-${sizeValue.value}`;

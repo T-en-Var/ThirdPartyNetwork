@@ -210,7 +210,7 @@
               >
                 {{ networks[entry.networkId]?.name || 'Loading...' }}
               </td>
-              <td class="whitespace-nowrap px-6 py-4">
+              <td class="w-40 whitespace-nowrap px-6 py-4">
                 <div class="flex flex-row items-center gap-2">
                   <ProfileAvatar
                     :userProxy="entry.author.userProxy"
@@ -219,14 +219,14 @@
                   <span class="text-xs text-gray-500">@{{ entry.author.userProxy.username }}</span>
                 </div>
               </td>
-              <td class="whitespace-nowrap px-6 py-4">
+              <td class="w-28 whitespace-nowrap px-6 py-4">
                 <span class="rounded-full border bg-gray-100 px-2 py-1 text-xs text-gray-700">
                   {{ getAccessLevel(entry.accessLevel).label }}
                 </span>
               </td>
 
               <td
-                class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium"
+                class="w-32 whitespace-nowrap px-6 py-4 text-right text-sm font-medium"
                 @click.stop
               >
                 <button
@@ -339,10 +339,6 @@ const initFilters = () => {
 initFilters();
 watch(() => props.extraColumns, initFilters, { deep: true });
 
-/**
- * HELPER: The "No-Any" Indexer
- * We cast the entry to a Record where keys are strings and values are unknown.
- */
 const getEntryValue = (entry: T, key: string): unknown => {
   return (entry as Record<string, unknown>)[key];
 };
@@ -399,7 +395,6 @@ const filteredEntries = computed(() => {
   const search = filterKey.value.toLowerCase().trim();
 
   return props.entries.filter((entry) => {
-    // 1. Search Logic
     const dynamicValues = props.extraColumns.map((col) =>
       String(getEntryValue(entry, col.key) ?? ''),
     );
@@ -409,7 +404,6 @@ const filteredEntries = computed(() => {
 
     if (search && !searchFields.includes(search)) return false;
 
-    // 2. Standard Filters
     if (
       filters.authors.length > 0 &&
       entry.author.userProxy.username &&
@@ -419,7 +413,6 @@ const filteredEntries = computed(() => {
     if (filters.accessLevels.length > 0 && !filters.accessLevels.includes(entry.accessLevel))
       return false;
 
-    // 3. Dynamic Filters
     for (const col of props.extraColumns) {
       if (!col.filter) continue;
       const val = getEntryValue(entry, col.key);

@@ -110,7 +110,6 @@ const form = ref({
   accessLevel: props.file.accessLevel ?? 0,
 });
 
-// Update form if props.file changes
 watch(
   () => props.file,
   (newFile) => {

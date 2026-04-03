@@ -35,22 +35,16 @@ const startX = ref(0);
 const startWidth = ref(0);
 
 const currentWidth = computed(() => {
-  // Return the width, ensuring it has 'px' or '%' if missing, or default to 100%
   const w = props.node.attrs.width;
   if (!w) return '100%';
-  // If it's just a number, assume pixels (legacy support)
   if (typeof w === 'number') return w + 'px';
   return w;
 });
 
-// --- THE FIX IS HERE ---
 function handleClick(event: MouseEvent) {
   void event;
-  // 1. Get the current position of this node in the document
-  // getPos() is a function provided by nodeViewProps
   const pos = props.getPos();
 
-  // 2. Set the selection to this specific node
   if (typeof pos === 'number') {
     props.editor.commands.setNodeSelection(pos);
   }
@@ -74,9 +68,8 @@ function onMouseMove(event: MouseEvent) {
   if (!resizing.value) return;
 
   const dx = event.clientX - startX.value;
-  const newWidth = Math.max(50, startWidth.value + dx); // Minimum 50px
+  const newWidth = Math.max(50, startWidth.value + dx);
 
-  // Update the actual attributes
   props.updateAttributes({
     width: `${newWidth}px`,
   });

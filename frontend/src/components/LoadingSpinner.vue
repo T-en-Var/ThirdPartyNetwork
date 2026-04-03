@@ -21,7 +21,6 @@ const props = withDefaults(
   },
 );
 
-// Map size props to Tailwind width/height classes
 const sizeClasses = {
   xs: 'w-3 h-3 border-[2px]',
   sm: 'w-4 h-4 border-[2px]',

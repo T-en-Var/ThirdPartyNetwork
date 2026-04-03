@@ -306,7 +306,6 @@ const redirectToTos = () => {
   );
 };
 
-// Switch between login and signup modes
 const switchMode = (modalValue: 'signup' | 'login') => {
   authStore.setModalMode(modalValue);
   error.value = '';

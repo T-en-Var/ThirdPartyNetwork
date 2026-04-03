@@ -62,9 +62,9 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  (e: 'configuration-create', networkId: string, payload: CreateConfiguration): void;
-  (e: 'configuration-edit', configuration: Configuration): void;
-  (e: 'configuration-delete', configuration: Configuration): void;
+  (e: 'configurations-create', networkId: string, payload: CreateConfiguration): void;
+  (e: 'configurations-edit', configuration: Configuration): void;
+  (e: 'configurations-delete', configuration: Configuration): void;
   (e: 'confirm', form: ConfirmForm): void;
 }>();
 
@@ -92,15 +92,16 @@ async function handleCreateConfiguration(
   events.listen.configurations.create((configuration) => {
     showCreateModal.value = false;
     handleEditConfiguration(configuration);
-  });
-  emit('configuration-create', networkId, configurationCreate);
+  }, true);
+
+  emit('configurations-create', networkId, configurationCreate);
 }
 
 function handleEditConfiguration(configuration: Configuration) {
-  emit('configuration-edit', configuration);
+  emit('configurations-edit', configuration);
 }
 
 function handleRemoveConfiguration(configuration: Configuration) {
-  emit('configuration-delete', configuration);
+  emit('configurations-delete', configuration);
 }
 </script>

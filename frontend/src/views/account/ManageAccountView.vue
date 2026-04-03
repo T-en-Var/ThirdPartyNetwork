@@ -15,35 +15,46 @@
       />
 
       <!-- Route View (Page Content) -->
-      <div v-if="authStore.currentUserProxy && !isLoading && !!userId && !!userProxyId">
+      <div v-if="authStore.currentUserProxy && handle">
         <RouterView
           v-if="!authStore.loading && !authStore.error && authStore.currentUserProxy"
+          :network-ids="network.id"
+          :history="history"
+          @confirm="confirm"
+          @return="handleReturn"
+          :fetch-blogs="handle.blog.fetchAll"
+          :fetch-blog="handle.blog.fetch"
+          @blog-edit="handle.blog.edit"
+          @blog-create="handle.blog.create"
+          @blog-delete="handle.blog.delete"
+          :fetch-configurations="handle.configuration.fetchAll"
+          :fetch-configuration="handle.configuration.fetch"
+          @configurations-edit="handle.configuration.edit"
+          @configurations-create="handle.configuration.create"
+          @configurations-update="handle.configuration.update"
+          @configurations-delete="handle.configuration.delete"
+          :fetch-custom-pages="handle.customPages.fetchAll"
+          :fetch-custom-page="handle.customPages.fetch"
+          @custom-pages-edit="handle.customPages.edit"
+          @custom-pages-create="handle.customPages.create"
+          @custom-pages-update="handle.customPages.update"
+          @custom-pages-delete="handle.customPages.delete"
+          @nav-to-custom-pages="handle.customPages.nav"
+          @page-blocks-edit="handle.pageBlocks.edit"
+          @page-blocks-create="handle.pageBlocks.create"
+          @page-blocks-update="handle.pageBlocks.update"
+          @page-blocks-delete="handle.pageBlocks.delete"
+          :fetch-files="handle.files.fetchAll"
+          :fetch-file="handle.files.fetch"
           @create-proxy="showAddUserProxyModal = true"
           @edit-proxy="handleEditProxyClick"
           @switch-proxy="handleSwitchProxyClick"
           @update-user-proxy="handleUpdateProxy"
           @delete-user-proxy="() => {}"
-          @confirm="confirm"
-          :fetch-blogs="handle.blog.fetch"
-          @blog-edit="handle.blog.edit"
-          @blog-create="handle.blog.create"
-          @blog-delete="handle.blog.delete"
-          :fetch-configurations="handle.configuration.fetch"
-          @configuration-edit="handle.configuration.edit"
-          @configuration-create="handle.configuration.create"
-          @configuration-delete="handle.configuration.delete"
-          :fetch-customPages="handle.customPages.fetch"
-          @custom-pages-edit="handle.customPages.edit"
-          @custom-pages-create="handle.customPages.create"
-          @custom-pages-delete="handle.customPages.delete"
-          :fetch-files="handle.files.fetch"
-          @add-file="showAddFileModal = true"
-          @file-update="handle.files.update"
-          @file-delete="handle.files.delete"
         />
       </div>
 
-      <div v-if="authStore.currentUserProxy">
+      <div v-if="authStore.currentUserProxy && handle">
         <!-- Modals -->
         <ConfirmationModal
           v-if="showConfirmationModal"
@@ -80,7 +91,6 @@ import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useGlobalStore } from '@/stores/global';
 
-// Components
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import ConfirmationModal from '@/components/modals/ConfirmationModal.vue';
 
@@ -126,7 +136,6 @@ const history = useHistoryStore(DEFAULT_STORES.account);
 const mainNetwork = useNetworks().fetchMainNetwork;
 
 const isSubmitting = ref(false);
-const isLoading = ref(true);
 
 const showConfirmationModal = ref(false);
 const showAddUserProxyModal = ref(false);
@@ -155,14 +164,8 @@ onMounted(async () => {
   await mainNetwork.execute();
   globalStore.stopFetching();
 
-  initHandle();
-
-  isLoading.value = false;
-  console.log(userId.value, userProxyId.value);
+  handle.value = buildHandle(user.value.id, userProxy.value.id)
 });
-
-const userId = computed(() => (user.value ? user.value.id : null));
-const userProxyId = computed(() => (userProxy.value ? userProxy.value.id : null));
 
 const allProxies = computed(() => {
   if (!user.value) return [];
@@ -174,7 +177,6 @@ const defaultProxy = computed(() => {
   return allProxies.value.find((x) => x.isDefault)!;
 });
 
-// Methods
 async function confirmAction() {
   await confirmationAction.value();
   showConfirmationModal.value = false;
@@ -242,7 +244,42 @@ function confirm(form: ConfirmForm) {
   showConfirmationModal.value = true;
 }
 
+function handleReturn(section: string) {
+  router.push(`/account/${section}`);
+}
+
 const genericFetch = <T, P extends unknown[]>(
+  composable: UseCachedApiReturn<T, [string, ...P, string]>,
+  options?: {
+    callback?: (result: T, ...args: [string, ...P, string]) => void;
+    errorHandler?: (err: unknown) => void;
+  },
+) => {
+  const { execute, data } = composable;
+
+  const wrapper = (...args: P) => {
+    const fetchFunction = async (networkId: string, entryId: string) => {
+      try {
+        await execute(networkId, ...args, entryId);
+
+        if (data.value && options?.callback) {
+          options.callback(data.value, networkId, ...args, entryId);
+        }
+      } catch (err) {
+        options?.errorHandler?.(err);
+        console.error(`Error executing fetch:`, err);
+      }
+
+      return data;
+    };
+
+    return fetchFunction;
+  };
+
+  return wrapper;
+};
+
+const genericFetchAll = <T, P extends unknown[]>(
   composable: UseCachedApiReturn<T, P>,
   options?: {
     callback?: (result: T, ...args: P) => void;
@@ -305,162 +342,189 @@ const genericMutation = <T, P extends unknown[]>(
   return wrapper;
 };
 
-function initHandle() {
-  console.log(userId.value, userProxyId.value);
-  if (!userId.value || !userProxyId.value) return;
-  handle.blog.fetch = genericFetch(composables.blogs.fetchBlogs)(userId.value, userProxyId.value);
-  handle.configuration.fetch = genericFetch(composables.configurations.fetchConfigurations)(
-    userId.value,
-    userProxyId.value,
-  );
-  handle.customPages.fetch = genericFetch(composables.customPages.fetchCustomPages)(
-    userId.value,
-    userProxyId.value,
-  );
-  handle.files.fetch = genericFetch(composables.files.fetchFiles)(userId.value, userProxyId.value);
-}
+const handle = ref<ReturnType<typeof buildHandle> | null>(null);
 
-const handle = {
-  blog: {
-    fetch: () => {
-      console.error('function was not initialized');
+const buildHandle = (userId: string, userProxyId: string) => {
+  return {
+    blog: {
+      fetch: genericFetch(composables.blogs.fetchBlog)(userId, userProxyId),
+      fetchAll: genericFetchAll(composables.blogs.fetchBlogs)(userId, userProxyId),
+
+      edit: (blog: Blog) => {
+        history.visit.blogs(blog);
+        router.push(`/networks/${blog.networkId}/manage/blogs/${blog.id}/edit`);
+      },
+
+      create: async (networkId: string, payload: CreateBlog) =>
+        await genericMutation(composables.blogs.createBlog, {
+          callback: (result) => events.emit.blogs.create(result),
+        })(networkId, userId, userProxyId, payload),
+
+      delete: (blog: Blog) =>
+        confirm({
+          title: 'Remove Blog',
+          message: `Are you sure you want to remove '${blog.title}'?`,
+          buttonText: 'Remove',
+          buttonColor: 'red',
+          action: async () =>
+            await genericMutation(composables.blogs.deleteBlog, {
+              callback: () => history.remove.blogs(blog),
+            })(blog.networkId, userId, userProxyId, blog.id),
+        }),
     },
 
-    create: async (networkId: string, payload: CreateBlog) =>
-      await genericMutation(composables.blogs.createBlog, {
-        callback: (result) => events.emit.blogs.create(result),
-      })(networkId, userId.value!, userProxyId.value!, payload),
-
-    edit: (blog: Blog) => {
-      history.visit.blogs(blog);
-      router.push(`/account/networks/${blog.networkId}/blogs/${blog.id}/edit`);
-    },
-
-    delete: (blog: Blog) =>
-      confirm({
-        title: 'Remove Blog',
-        message: `Are you sure you want to delete '${blog.title}'?`,
-        buttonText: 'Remove',
-        buttonColor: 'red',
-        action: async () =>
-          await genericMutation(composables.blogs.deleteBlog, {
-            callback: () => history.remove.blogs(blog),
-          })(blog.networkId, userId.value!, userProxyId.value!, blog.id),
-      }),
-  },
-
-  configuration: {
-    fetch: () => {
-      console.error('function was not initialized');
-    },
-
-    create: async (networkId: string, payload: CreateConfiguration) =>
-      await genericMutation(composables.configurations.createConfiguration, {
-        callback: (result) => events.emit.configurations.create(result),
-      })(networkId, userId.value!, userProxyId.value!, payload),
-
-    edit: (configuration: Configuration) => {
-      history.visit.configurations(configuration);
-      router.push(
-        `/account/networks/${configuration.networkId}/configurations/${configuration.id}/edit`,
-      );
-    },
-
-    delete: (configuration: Configuration) =>
-      confirm({
-        title: 'Remove Configuration',
-        message: `Are you sure you want to delete '${configuration.key}'?`,
-        buttonText: 'Remove',
-        buttonColor: 'red',
-        action: async () =>
-          await genericMutation(composables.configurations.deleteConfiguration, {
-            callback: () => history.remove.configurations(configuration),
-          })(configuration.networkId, userId.value!, userProxyId.value!, configuration.id),
-      }),
-  },
-
-  customPages: {
-    fetch: () => {
-      console.error('function was not initialized');
-    },
-
-    create: async (networkId: string, payload: CreateCustomPage) =>
-      await genericMutation(composables.customPages.createCustomPage, {
-        callback: (result) => events.emit.customPages.create(result),
-      })(networkId, userId.value!, userProxyId.value!, payload),
-
-    edit: (customPage: CustomPage) => {
-      history.visit.customPages(customPage);
-      router.push(`/account/networks/${customPage.networkId}/custom-pages/${customPage.id}/edit`);
-    },
-
-    delete: (customPage: CustomPage) =>
-      confirm({
-        title: 'Remove CustomPage',
-        message: `Are you sure you want to delete '${customPage.name}'?`,
-        buttonText: 'Remove',
-        buttonColor: 'red',
-        action: async () =>
-          await genericMutation(composables.customPages.deleteCustomPage, {
-            callback: () => history.remove.customPages(customPage),
-          })(customPage.networkId, userId.value!, userProxyId.value!, customPage.id),
-      }),
-  },
-
-  files: {
-    fetch: () => {
-      console.error('function was not initialized');
-    },
-
-    update: async (id: string, networkId: string, networkFile: UpdateFile) =>
-      await genericMutation(composables.files.updateFile, {
-        callback: (result) => events.emit.file.update(result),
-      })(networkId, userId.value!, userProxyId.value!, id, networkFile),
-
-    delete: (file: NetworkFile) => {
-      showEditFileModal.value = false;
-      confirm({
-        title: 'Delete File',
-        message: `Are you sure you want to delete the file '${file.name}'?`,
-        buttonText: 'Confirm',
-        buttonColor: 'red',
-        action: async () =>
-          await genericMutation(composables.files.deleteFile)(
-            file.networkId,
-            userId.value!,
-            userProxyId.value!,
-            file.id,
-          ),
-      });
-    },
-
-    openEdit: (file: NetworkFile) => events.emit.file.openEdit(file),
-  },
-
-  pageBlocks: {
-    create: async (networkId: string, customPageId: string, pageBlock: CreatePageBlock) =>
-      await genericMutation(composables.customPages.createPageBlock)(
-        networkId,
-        userId.value!,
-        userProxyId.value!,
-        customPageId,
-        pageBlock,
+    configuration: {
+      fetch: genericFetch(composables.configurations.fetchConfiguration)(userId, userProxyId),
+      fetchAll: genericFetchAll(composables.configurations.fetchConfigurations)(
+        userId,
+        userProxyId,
       ),
 
-    edit: (customPage: CustomPage, pageBlock: PageBlock) =>
-      router.push(
-        `/account/networks/${customPage.networkId}/custom-pages/${customPage.id}/blocks/${pageBlock.id}/edit`,
-      ),
+      edit: (configuration: Configuration) => {
+        history.visit.configurations(configuration);
+        router.push(`/networks/${configuration.networkId}/manage/configurations/${configuration.id}/edit`);
+      },
 
-    update: async (customPageId: string, pageBlock: PageBlock) =>
-      await genericMutation(composables.customPages.updatePageBlock)(
-        pageBlock.networkId,
-        userId.value!,
-        userProxyId.value!,
-        customPageId,
-        pageBlock.id,
-        pageBlock,
-      ),
-  },
+      create: async (networkId: string, payload: CreateConfiguration) =>
+        await genericMutation(composables.configurations.createConfiguration, {
+          callback: (result) => events.emit.configurations.create(result),
+        })(networkId, userId, userProxyId, payload),
+
+      update: async (networkId: string, customPageId: string, payload: Configuration) =>
+        await genericMutation(composables.configurations.updateConfiguration, {
+          callback: (result) => events.emit.configurations.update(result),
+        })(networkId, userId, userProxyId, customPageId, payload),
+
+      delete: (configuration: Configuration) =>
+        confirm({
+          title: 'Remove Configuration',
+          message: `Are you sure you want to remove '${configuration.key}'?`,
+          buttonText: 'Remove',
+          buttonColor: 'red',
+          action: async () =>
+            await genericMutation(composables.configurations.deleteConfiguration, {
+              callback: () => {
+                history.remove.configurations(configuration);
+                handleReturn('configurations');
+              },
+            })(configuration.networkId, userId, userProxyId, configuration.id),
+        }),
+    },
+
+    customPages: {
+      fetch: genericFetch(composables.customPages.fetchCustomPage)(userId, userProxyId),
+      fetchAll: genericFetchAll(composables.customPages.fetchCustomPages)(userId, userProxyId),
+
+      edit: (customPage: CustomPage) => {
+        history.visit.customPages(customPage);
+        router.push(`/networks/${customPage.networkId}/manage/custom-pages/${customPage.id}/edit`);
+      },
+
+      create: async (networkId: string, payload: CreateCustomPage) =>
+        await genericMutation(composables.customPages.createCustomPage, {
+          callback: (result) => events.emit.customPages.create(result),
+        })(networkId, userId, userProxyId, payload),
+
+      update: async (networkId: string, customPageId: string, payload: CreateCustomPage) =>
+        await genericMutation(composables.customPages.updateCustomPage, {
+          callback: (result) => events.emit.customPages.update(result),
+        })(networkId, userId, userProxyId, customPageId, payload),
+
+      delete: (customPage: CustomPage) =>
+        confirm({
+          title: 'Remove Custom Page',
+          message: `Are you sure you want to remove '${customPage.name}'?`,
+          buttonText: 'Remove',
+          buttonColor: 'red',
+          action: async () =>
+            await genericMutation(composables.customPages.deleteCustomPage, {
+              callback: () => history.remove.customPages(customPage),
+            })(customPage.networkId, userId, userProxyId, customPage.id),
+        }),
+
+      nav: (networkId: string, customPageId: string) =>
+        router.push(`/networks/${networkId}/manage/custom-pages/${customPageId}/edit`),
+    },
+
+    pageBlocks: {
+      edit: (pageBlock: PageBlock) => {
+        history.visit.pageBlocks(pageBlock);
+        router.push(
+          `/networks/${pageBlock.networkId}/manage/custom-pages/${pageBlock.customPageId}/blocks/${pageBlock.id}/edit`,
+        );
+      },
+
+      create: async (networkId: string, customPageId: string, pageBlock: CreatePageBlock) =>
+        await genericMutation(composables.customPages.createPageBlock, {
+          callback: (result) => events.emit.pageBlocks.create(result),
+        })(networkId, userId, userProxyId, customPageId, pageBlock),
+
+      update: async (networkId: string, customPageId: string, pageBlock: PageBlock) =>
+        await genericMutation(composables.customPages.updatePageBlock)(
+          networkId,
+          userId,
+          userProxyId,
+          customPageId,
+          pageBlock.id,
+          pageBlock,
+        ),
+
+      delete: (pageBlock: PageBlock) =>
+        confirm({
+          title: 'Remove Page Block',
+          message: `Are you sure you want to remove '${pageBlock.text}'?`,
+          buttonText: 'Remove',
+          buttonColor: 'red',
+          action: async () =>
+            await genericMutation(composables.customPages.deletePageBlock, {
+              callback: (_, __, customPageId, pageBlockId) => {
+                history.remove.pageBlocks(pageBlock);
+                cleanUpPageBlockOrphans(pageBlock.networkId, customPageId, pageBlockId);
+              },
+            })(pageBlock.networkId, userId, userProxyId, pageBlock.customPageId, pageBlock.id),
+        }),
+    },
+
+    files: {
+      fetch: genericFetch(composables.files.fetchFile)(userId, userProxyId),
+      fetchAll: genericFetchAll(composables.files.fetchFiles)(userId, userProxyId),
+
+      update: async (id: string, networkId: string, networkFile: UpdateFile) =>
+        await genericMutation(composables.files.updateFile, {
+          callback: (result) => events.emit.file.update(result),
+        })(networkId, userId, userProxyId, id, networkFile),
+
+      delete: (file: NetworkFile) => {
+        console.log('Yes!');
+        showEditFileModal.value = false;
+        confirm({
+          title: 'Delete File',
+          message: `Are you sure you want to delete the file '${file.name}'?`,
+          buttonText: 'Confirm',
+          buttonColor: 'red',
+          action: async () =>
+            await genericMutation(composables.files.deleteFile)(file.networkId, userId, userProxyId, file.id),
+        });
+      },
+
+      openEdit: (file: NetworkFile) => events.emit.file.openEdit(file),
+    },
+  };
 };
+
+async function cleanUpPageBlockOrphans(networkId: string, customPageId: string, pageBlockId: string) {
+  if (!handle.value) return;
+
+  const customPage = await handle.value.customPages.fetch(networkId, customPageId);
+  if (!customPage.value) return;
+
+  customPage.value.pages.forEach((block) => {
+    if (block.parentPageId !== pageBlockId) return;
+
+    handle.value!.pageBlocks.update(block.networkId, block.customPageId, {
+      ...block,
+      parentPageId: undefined,
+    });
+  });
+}
 </script>
