@@ -16,7 +16,7 @@ public class PageBlockController(IPageBlockService service, IMapper mapper) : Co
     public async Task<IActionResult> GetPageBlock(Guid networkId, Guid customPageId, Guid pageBlockId)
     {
         var pageBlock = await service.GetByIdAsync(networkId, pageBlockId);
-        return pageBlock != null ? Ok(mapper.Map<PageBlockDto>(pageBlock)) : NotFound();
+        return pageBlock != null ? Ok(mapper.Map<PageBlockDto>(pageBlock, opts => { opts.Items["networkId"] = networkId; })) : NotFound();
     }
 
     [HttpPost]
@@ -25,7 +25,7 @@ public class PageBlockController(IPageBlockService service, IMapper mapper) : Co
     public async Task<IActionResult> CreatePageBlock(Guid networkId, Guid customPageId, [FromBody] CreatePageBlockDto pageBlock)
     {
         var uploadedPageBlock = await service.CreateAsync(networkId, customPageId, pageBlock);
-        return Ok(mapper.Map<PageBlockDto>(uploadedPageBlock));
+        return Ok(mapper.Map<PageBlockDto>(uploadedPageBlock, opts => { opts.Items["networkId"] = networkId; }));
     }
 
     [HttpPut("{pageBlockId:guid}")]
@@ -36,7 +36,7 @@ public class PageBlockController(IPageBlockService service, IMapper mapper) : Co
         [FromBody] UpdatePageBlockDto updatePageBlock)
     {
         var pageBlock = await service.UpdateAsync(networkId, customPageId, pageBlockId, updatePageBlock);
-        return Ok(mapper.Map<PageBlockDto>(pageBlock));
+        return Ok(mapper.Map<PageBlockDto>(pageBlock, opts => { opts.Items["networkId"] = networkId; }));
     }
 
     [HttpDelete("{pageBlockId:guid}")]

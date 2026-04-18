@@ -1,4 +1,4 @@
-﻿﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using thirdpartynetwork.Core;
 using thirdpartynetwork.Core.Data;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
@@ -7,23 +7,23 @@ using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Application.Repositories
 {
-    public class RoleRepository(DataContext context, IIdentityVerifier identityVerifier, IIdentityService identityService) : BaseRepository(context), IRoleRepository
+    public class RoleRepository(
+        DataContext context,
+        IIdentityVerifier identityVerifier,
+        IIdentityService identityService) : BaseRepository(context), IRoleRepository
     {
         private readonly DataContext _context = context;
 
         private async Task<IQueryable<Role>> GetQueryableAsync(Guid networkId)
         {
             var query = _context.Roles
-                .Where(r => r.NetworkId == networkId)
+                .Include(x => x.RolePermissions)
+                .ThenInclude(x => x.Permission)
                 .AsQueryable();
-            
+
             var currentUser = await identityService.GetUserProxyAsync(true);
-            
-            if (await identityVerifier.IsAllowedAsync(networkId, currentUser.Id, Constants.Permissions.ReadPermission))
-                query = query
-                    .Include(x => x.RolePermissions)
-                    .ThenInclude(x => x.Permission);
-            
+
+
             if (await identityVerifier.IsAllowedAsync(networkId, currentUser.Id, Constants.Permissions.ReadUser))
                 query = query
                     .Include(x => x.NetworkUserRoles)
@@ -34,7 +34,8 @@ namespace thirdpartynetwork.Application.Repositories
                     .ThenInclude(x => x.NetworkUser)
                     .ThenInclude(x => x.NetworkUserAccesses)
                     .ThenInclude(x => x.Access);
-            
+
+
             return query;
         }
 
@@ -45,12 +46,22 @@ namespace thirdpartynetwork.Application.Repositories
 
         public async Task<ICollection<Role>> GetAllAsync()
         {
-            return await _context.Roles.AsNoTracking().ToListAsync();
+            return await _context.Roles.ToListAsync();
         }
 
         public async Task<ICollection<Role>> GetByNetworkIdAsync(Guid networkId)
         {
-            return await (await GetQueryableAsync(networkId)).AsNoTracking().ToListAsync();
+            return await (await GetQueryableAsync(networkId))
+                .Where(r => r.NetworkId == networkId)
+                .ToListAsync();
+        }
+
+        public async Task<ICollection<Role>> GetByUserProxyIdAsync(Guid userProxyId)
+        {
+            return await (await GetQueryableAsync(userProxyId))
+                .Include(x => x.Network)
+                .Where(r => r.NetworkUserRoles.Any(nur => nur.NetworkUser.UserProxyId == userProxyId))
+                .ToListAsync();
         }
 
         public async Task<Role?> GetByIdAsync(Guid networkId, Guid id)
@@ -69,7 +80,7 @@ namespace thirdpartynetwork.Application.Repositories
         {
             var existing = await GetByIdAsync(networkId, role.Id);
             if (existing == null) throw new Exception("Role not found");
-            
+
             if (existing.IsSystemProtected) throw new UnauthorizedHttpException("Role is system protected");
 
             _context.Entry(existing).CurrentValues.SetValues(role);

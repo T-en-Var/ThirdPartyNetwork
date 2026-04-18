@@ -17,7 +17,6 @@ using thirdpartynetwork.Application.Services;
 using thirdpartynetwork.Core.Helper;
 using thirdpartynetwork.Core.Interfaces.Auth;
 using thirdpartynetwork.Core.Interfaces.Helpers;
-using Microsoft.AspNetCore.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;

@@ -28,7 +28,7 @@ namespace thirdpartynetwork.Application.Repositories
 
         public async Task<ICollection<NetworkUserAccess>> GetAllAsync()
         {
-            return await GetQueryable().AsNoTracking().ToListAsync();
+            return await GetQueryable().ToListAsync();
         }
 
         public async Task PopulateAsync(Guid networkId, Guid accessId)
@@ -69,14 +69,14 @@ namespace thirdpartynetwork.Application.Repositories
         public async Task<ICollection<NetworkUserAccess>> GetByNetworkUserIdAsync(Guid id)
         {
             return await GetQueryable()
-                .AsNoTracking()
+                
                 .Where(nup => nup.NetworkUserId == id).ToListAsync();
         }
 
         public async Task<ICollection<NetworkUserAccess>> GetByAccessIdAsync(Guid accessId)
         {
             return await GetQueryable()
-                .AsNoTracking()
+                
                 .Where(nup => nup.AccessId == accessId).ToListAsync();
         }
 

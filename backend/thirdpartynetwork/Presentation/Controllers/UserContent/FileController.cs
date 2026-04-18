@@ -12,20 +12,21 @@ public class FileController(IFileService service, IMapper mapper) : ControllerBa
     [HttpGet]
     [RequirePermission(Constants.Permissions.ReadFile)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<FileDto>))]
-    public async Task<IActionResult> GetNetworkFile(Guid networkId)
+    public async Task<IActionResult> GetNetworkFiles(Guid networkId)
     {
-        var file = await service.GetByNetworkIdAsync(networkId);
-        return Ok(mapper.Map<IEnumerable<FileDto>>(file));
+        var files = await service.GetByNetworkIdAsync(networkId);
+        var result = mapper.Map<IEnumerable<FileDto>>(files, opts => { opts.Items["networkId"] = networkId; });
+        return Ok(result);
     }
 
     [HttpGet("{fileId:guid}")]
     [RequirePermission(Constants.Permissions.ManageFile)]
     [ProducesResponseType(200, Type = typeof(FileDto))]
     [ProducesResponseType(404)]
-    public async Task<IActionResult> GetFile(Guid networkId, Guid fileId)
+    public async Task<IActionResult> GetNetworkFile(Guid networkId, Guid fileId)
     {
         var file = await service.GetByIdAsync(networkId, fileId);
-        return file != null ? Ok(mapper.Map<FileDto>(file)) : NotFound();
+        return file != null ? Ok(mapper.Map<FileDto>(file, opts => { opts.Items["networkId"] = networkId; })) : NotFound();
     }
 
     [HttpPost]
@@ -37,7 +38,7 @@ public class FileController(IFileService service, IMapper mapper) : ControllerBa
             return BadRequest("No file provided.");
 
         var uploadedFile = await service.UploadFileAsync(networkId, file);
-        return Ok(mapper.Map<FileDto>(uploadedFile));
+        return Ok(mapper.Map<FileDto>(uploadedFile, opts => { opts.Items["networkId"] = networkId; }));
     }
 
     [HttpPut("{fileId:guid}")]
@@ -47,7 +48,7 @@ public class FileController(IFileService service, IMapper mapper) : ControllerBa
     public async Task<IActionResult> UpdateFile(Guid networkId, Guid fileId, [FromBody] UpdateFileDto updateFile)
     {
         var file = await service.UpdateAsync(networkId, fileId, updateFile);
-        return Ok(mapper.Map<FileDto>(file));
+        return Ok(mapper.Map<FileDto>(file, opts => { opts.Items["networkId"] = networkId; }));
     }
 
     [HttpDelete("{fileId:guid}")]

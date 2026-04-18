@@ -51,6 +51,11 @@ public class IdentityService(
         return userProxy;
     }
 
+    public Guid GetUserProxyId(bool omitThrow = false)
+    {
+        return _ExtractUserProxyId(omitThrow);
+    }
+
     public ClaimsPrincipal? GetClaimsPrincipal()
     {
         var httpContext = httpContextAccessor.HttpContext;
@@ -72,7 +77,6 @@ public class IdentityService(
         return await dataContext.UserProxies
             .Include(up => up.NetworkUsers)
             .Include(up => up.User)
-            .AsNoTracking()
             .FirstOrDefaultAsync(up => up.Id == userProxyId);
     }
 

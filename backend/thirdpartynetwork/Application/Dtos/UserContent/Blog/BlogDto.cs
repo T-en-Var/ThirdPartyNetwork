@@ -3,9 +3,8 @@ using thirdpartynetwork.Application.Dtos.UserContent.UserContentBase;
 
 namespace thirdpartynetwork.Application.Dtos.UserContent.Blog
 {
-    public class BlogDto : CustomUserContentBaseDto
+    public class BlogDto : UserContentBaseDto
     {
-        public Guid Id { get; set; }
         public required string Title { get; set; }
         public required string Slug { get; set; }
         public required string Summary { get; set; }
@@ -14,9 +13,8 @@ namespace thirdpartynetwork.Application.Dtos.UserContent.Blog
         public DateTime? PublishedAt { get; set; }
     }
     
-    public class BlogLightDto : CustomUserContentBaseLightDto
+    public class BlogLightDto : UserContentBaseLightDto
     {
-        public Guid Id { get; set; }
         public required string Title { get; set; }
         public required string Slug { get; set; }
         public required string Summary { get; set; }
