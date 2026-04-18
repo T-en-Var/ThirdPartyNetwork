@@ -36,12 +36,6 @@ namespace thirdpartynetwork.Application.Repositories
             return await (await GetQueryableAsync()).FirstOrDefaultAsync(c => c.Id == id);
         }
 
-        public async Task<ICollection<CustomPage>> GetByNetworkIdAsync(Guid networkId)
-        {
-            return await (await GetAccessibleQueryableAsync(networkId))
-                .AsNoTracking().Where(c => c.Network.Id == networkId).ToListAsync();
-        }
-
         public async Task<CustomPage> CreateAsync(CustomPage customPage)
         {
             await _context.CustomPages.AddAsync(customPage);

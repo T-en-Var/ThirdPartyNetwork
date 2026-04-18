@@ -33,7 +33,6 @@ namespace thirdpartynetwork.Application.Repositories
         public async Task<ICollection<PageBlock>> GetByCustomPageIdAsync(Guid networkId, Guid customPageId)
         {
             return await (await GetQueryableAsync())
-                .AsNoTracking()
                 .Where(p => p.CustomPageId == customPageId).ToListAsync();
         }
 

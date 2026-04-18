@@ -27,7 +27,7 @@ namespace thirdpartynetwork.Application.Repositories
 
         public async Task<ICollection<Access>> GetAllAsync()
         {
-            return await GetQueryable().AsNoTracking().ToListAsync();
+            return await GetQueryable().ToListAsync();
         }
 
         public async Task<Access?> GetByIdAsync(Guid id)

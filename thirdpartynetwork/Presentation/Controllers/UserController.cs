@@ -21,15 +21,14 @@ public class UserController(IUserService service, INetworkService networkService
     }
 
     [HttpGet("{userId:guid}")]
-    [RequirePermission(Constants.Permissions.ReadUser)]
+    [RequirePermission(Constants.Permissions.ReadUser, Constants.Permissions.IsUserOwner)]
     [ProducesResponseType(200, Type = typeof(UserWithNetworksDto))]
     [ProducesResponseType(404)]
     public async Task<IActionResult> Get(Guid userId)
     {
         var user = await service.GetByIdAsync(userId);
-        var mainNetwork = await networkService.GetMainNetworkAsync();
         return user != null
-            ? StatusCode(200, mapper.Map<UserWithNetworksDto>(user, opts => { opts.Items["networkId"] = mainNetwork.Id; }))
+            ? StatusCode(200, mapper.Map<UserWithNetworksDto>(user, opts => { opts.Items["bypass"] = true; }))
             : NotFound();
     }
 
@@ -39,8 +38,7 @@ public class UserController(IUserService service, INetworkService networkService
     public async Task<IActionResult> Create([FromBody] CreateUserDto createUserDto)
     {
         var user = await service.CreateAsync(createUserDto);
-        var mainNetwork = await networkService.GetMainNetworkAsync();
-        return StatusCode(200, mapper.Map<UserDto>(user, opts => { opts.Items["networkId"] = mainNetwork.Id; }));
+        return StatusCode(200, mapper.Map<UserDto>(user, opts => { opts.Items["bypass"] = true; }));
     }
 
     [HttpPut("{userId:guid}")]
@@ -50,8 +48,7 @@ public class UserController(IUserService service, INetworkService networkService
     public async Task<IActionResult> Update(Guid userId, [FromBody] UpdateUserDto updateUserDto)
     {
         var user = await service.UpdateAsync(userId, updateUserDto);
-        var mainNetwork = await networkService.GetMainNetworkAsync();
-        return StatusCode(200, mapper.Map<UserDto>(user, opts => { opts.Items["networkId"] = mainNetwork.Id; }));
+        return StatusCode(200, mapper.Map<UserDto>(user, opts => { opts.Items["bypass"] = true; }));
     }
 
     [HttpDelete("{userId:guid}")]

@@ -14,7 +14,7 @@ namespace thirdpartynetwork.Application.Dtos.UserProxy
         public required bool HasPassword { get; set; }
         public DateTime CreatedOn { get; set; }
         public required UserLightDto User { get; set; }
-        public ICollection<NetworkUserLightDto> NetworkUsers { get; set; } = [];
+        public ICollection<NetworkUserLightWithNetworkDto> NetworkUsers { get; set; } = [];
     }
     
     public class UserProxyLightDto
@@ -34,7 +34,7 @@ namespace thirdpartynetwork.Application.Dtos.UserProxy
     {
         public Guid Id { get; set; }
         public string? Username { get; set; }
-        public FileDto? ImageFile { get; set; }
+        public FileLightDto? ImageFile { get; set; }
         public required bool IsDefault { get; set; }
         public DateTime CreatedOn { get; set; }
     }

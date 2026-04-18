@@ -39,7 +39,7 @@ public class UserProxyController(
     public async Task<IActionResult> Create(Guid userId, AddUserProxyDto addUserProxy)
     {
         var userProxy = await managerService.AddUserProxyAsync(userId, addUserProxy);
-        return Ok(mapper.Map<UserProxyDto>(userProxy));
+        return Ok(mapper.Map<UserProxyDto>(userProxy, opts => { opts.Items["bypass"] = true; }));
     }
 
     [HttpPut("{userProxyId:guid}")]

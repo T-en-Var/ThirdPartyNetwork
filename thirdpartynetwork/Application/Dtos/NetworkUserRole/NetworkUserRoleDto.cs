@@ -17,6 +17,6 @@ namespace thirdpartynetwork.Application.Dtos.NetworkUserRole
     
     public class NetworkUserRoleRtNDto
     {
-        public required NetworkUserLightDto Role { get; set; }
+        public required NetworkUserLightDto NetworkUser { get; set; }
     }
 }

@@ -18,9 +18,6 @@ namespace thirdpartynetwork.Application.Repositories
             var query = _context.UserProxies.AsQueryable();
 
             query = query
-                // .AsNoTracking()  // Assume it doesnt break anything
-                                    // because the issue arises as
-                                    // UserProxy -> NetworkUsers is loaded into memory
                 .Include(x => x.User)
                 .ThenInclude(x => x.UserProxies)
                 .Include(x => x.NetworkUsers)
@@ -36,7 +33,7 @@ namespace thirdpartynetwork.Application.Repositories
 
         public async Task<ICollection<UserProxy>> GetAllAsync()
         {
-            return await (await GetQueryableAsync()).AsNoTracking().ToListAsync();
+            return await (await GetQueryableAsync()).ToListAsync();
         }
 
         public async Task<UserProxy?> GetByIdAsync(Guid userProxyId)
@@ -89,7 +86,7 @@ namespace thirdpartynetwork.Application.Repositories
         public async Task<ICollection<UserProxy>> GetByUserIdAsync(Guid userId)
         {
             return await (await GetQueryableAsync())
-                    .AsNoTracking()
+                    
                     .Where(up => up.User.Id == userId)
                     .ToListAsync();
         }

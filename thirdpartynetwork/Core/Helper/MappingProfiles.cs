@@ -2,6 +2,7 @@
 using AutoMapper;
 using thirdpartynetwork.Core.Models;
 using thirdpartynetwork.Application.Dtos.UserContent.Blog;
+using thirdpartynetwork.Core.Interfaces.Auth;
 using File = thirdpartynetwork.Core.Models.File;
 
 namespace thirdpartynetwork.Core.Helper;
@@ -153,8 +154,7 @@ public class MappingProfiles : Profile
                         s => s.ImageFile)));
         CreateMap<UserProxy, UserProxyLightShortProfileDto>()
             .ForMember(dest => dest.Username, opt =>
-                opt.MapFrom((src, _, _, context) =>
-                    MapFieldIfAccessGranted(src, context, Constants.Access.AccessUsername, s => s.Username)))
+                opt.MapFrom((src, _, _, context) => MapFieldIfAccessGranted(src, context, Constants.Access.AccessUsername, s => s.Username)))
             .ForMember(dest => dest.ImageFile, opt =>
                 opt.MapFrom((src, _, _, context) =>
                     MapFieldIfAccessGranted(src, context, Constants.Access.AccessProfilePicture,
@@ -169,8 +169,8 @@ public class MappingProfiles : Profile
         CreateMap<CreateFileDto, File>();
         CreateMap<UpdateFileDto, File>();
 
-        CreateMap<CustomPage, CustomPageDto>();
-        CreateMap<CustomPage, CustomPageLightDto>();
+        CreateMap<CustomPage, PageDto>();
+        CreateMap<CustomPage, PageLightDto>();
         CreateMap<CreateCustomPageDto, CustomPage>();
         CreateMap<UpdateCustomPageDto, CustomPage>();
 
@@ -218,25 +218,34 @@ public class MappingProfiles : Profile
         CreateMap<UpdateNetworkEntitlementDto, NetworkEntitlement>();
     }
 
-    private static T? MapFieldIfAccessGranted<T>(
+    private T? MapFieldIfAccessGranted<T>(
         UserProxy src,
         ResolutionContext context,
         string accessName,
         Func<UserProxy, T?> fieldSelector)
     {
+        if (context.TryGetItems(out var i) &&
+            i.TryGetValue("bypass", out var bypassObj) &&
+            bypassObj is true)
+        {
+            return fieldSelector(src);
+        }
+        
         if (!context.TryGetItems(out var items) ||
             !items.TryGetValue("networkId", out var networkIdObj) ||
             networkIdObj is not Guid networkId)
         {
             return default;
         }
+        
+        // Console.WriteLine($"NetworkId: {networkId}");
 
         var access = src.NetworkUsers
             .FirstOrDefault(nu => nu.NetworkId == networkId)?
             .NetworkUserAccesses
             .FirstOrDefault(a => a.Access.Name == accessName);
 
-        // Console.WriteLine($"{src.Username} | {fieldSelector(src)}: {accessName} - IsAccepted: {access?.IsAccepted}");
+        // Console.WriteLine($"{src.Username} | {fieldSelector(src)}: {accessName} - IsAccepted: {access?.IsAccepted}\n");
 
         return access?.IsAccepted == true ? fieldSelector(src) : default;
     }

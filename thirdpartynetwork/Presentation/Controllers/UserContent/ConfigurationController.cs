@@ -16,7 +16,7 @@ public class ConfigurationController(IConfigurationService service, IMapper mapp
     public async Task<IActionResult> GetNetworkConfigurations(Guid networkId)
     {
         var list = await service.GetByNetworkIdAsync(networkId);
-        return Ok(mapper.Map<IEnumerable<ConfigurationDto>>(list));
+        return Ok(mapper.Map<IEnumerable<ConfigurationDto>>(list, opts => { opts.Items["networkId"] = networkId; }));
     }
 
     [HttpGet("{configurationId:guid}")]
@@ -26,7 +26,7 @@ public class ConfigurationController(IConfigurationService service, IMapper mapp
     public async Task<IActionResult> GetConfiguration(Guid networkId, Guid configurationId)
     {
         var cfg = await service.GetByIdAsync(networkId, configurationId);
-        return cfg != null ? Ok(mapper.Map<ConfigurationDto>(cfg)) : NotFound();
+        return cfg != null ? Ok(mapper.Map<ConfigurationDto>(cfg, opts => { opts.Items["networkId"] = networkId; })) : NotFound();
     }
 
     [HttpPost]
@@ -35,8 +35,7 @@ public class ConfigurationController(IConfigurationService service, IMapper mapp
     public async Task<IActionResult> CreateConfiguration(Guid networkId, [FromBody] CreateConfigurationDto configuration)
     {
         var created = await service.CreateAsync(networkId, configuration);
-        return CreatedAtAction(nameof(GetConfiguration), new { networkId = networkId, configurationId = created.Id },
-            mapper.Map<ConfigurationDto>(created));
+        return Ok(mapper.Map<ConfigurationDto>(created, opts => { opts.Items["networkId"] = networkId; }));
     }
 
     [HttpPut("{configurationId:guid}")]
@@ -47,7 +46,7 @@ public class ConfigurationController(IConfigurationService service, IMapper mapp
         [FromBody] UpdateConfigurationDto updateConfiguration)
     {
         var updated = await service.UpdateAsync(networkId, configurationId, updateConfiguration);
-        return Ok(mapper.Map<ConfigurationDto>(updated));
+        return Ok(mapper.Map<ConfigurationDto>(updated, opts => { opts.Items["networkId"] = networkId; }));
     }
 
     [HttpDelete("{configurationId:guid}")]
