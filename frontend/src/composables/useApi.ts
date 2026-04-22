@@ -10,7 +10,6 @@ interface CacheEntry<T> {
   lastFetch: number;
 }
 
-// Global "Source of Truth" (Primitive values, not refs, to keep it simple)
 export const globalCache = new Map<string, CacheEntry<unknown>>();
 
 function getOrCreateEntry<T>(key: string): CacheEntry<T> {
@@ -23,6 +22,14 @@ function getOrCreateEntry<T>(key: string): CacheEntry<T> {
     });
   }
   return globalCache.get(key) as CacheEntry<T>;
+}
+
+export interface UseCachedApiReturn<T, P extends unknown[]> {
+  execute: (...args: P) => Promise<void>;
+  isFetching: Ref<boolean>;
+  loading: Ref<boolean>;
+  error: Ref<string | null>;
+  data: Ref<T | null>;
 }
 
 export function useCachedApi<T, P extends unknown[]>(
@@ -77,7 +84,6 @@ export function useCachedApi<T, P extends unknown[]>(
   return {
     data: computed(() => currentEntry.value?.data.value ?? null),
     isFetching: computed(() => currentEntry.value?.isFetching.value ?? false),
-    /** Is fetching and has no data */
     loading: computed(() => {
       const isNetworkActive = currentEntry.value?.isFetching.value ?? false;
       const hasNoData = currentEntry.value?.data.value === null;
@@ -88,13 +94,19 @@ export function useCachedApi<T, P extends unknown[]>(
   };
 }
 
+export interface UseMutationReturn<T, P extends unknown[]> {
+  execute: (...args: P) => Promise<T>;
+  loading: Ref<boolean>;
+  error: Ref<string | null>;
+}
+
 export function useMutation<T, P extends unknown[], TListItem = T>(
   action: (...args: P) => Promise<AxiosResponse<T>>,
   options?: {
-    itemKeyFactory?: (result: T, ...args: P) => string,
-    listKeyFactory?: (...args: P) => string,
-    listUpdater?: (currentList: TListItem[], result: T, ...args: P) => TListItem[],
-    onSuccess?: (data: T) => void,
+    itemKeyFactory?: (result: T, ...args: P) => string;
+    listKeyFactory?: (...args: P) => string;
+    listUpdater?: (currentList: TListItem[], result: T, ...args: P) => TListItem[];
+    onSuccess?: (data: T) => void;
   },
 ) {
   const loading = ref(false);
@@ -122,7 +134,7 @@ export function useMutation<T, P extends unknown[], TListItem = T>(
       if (options?.itemKeyFactory) {
         const key = options.itemKeyFactory(result.data, ...args);
         const itemEntry = getOrCreateEntry<T>(key);
-        
+
         itemEntry.data.value = result.data;
         itemEntry.lastFetch = Date.now();
       }
@@ -139,7 +151,6 @@ export function useMutation<T, P extends unknown[], TListItem = T>(
         'API Error';
       error.value = msg;
 
-      // Re-throw so the component can handle specific logic
       throw err;
     } finally {
       loading.value = false;

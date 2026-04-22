@@ -1,8 +1,18 @@
 <template>
-  <modal-container title="Add User to Network" @close="$emit('close')">
-    <form @submit.prevent="handleSubmit" class="space-y-4">
+  <modal-container
+    title="Add User to Network"
+    @close="$emit('close')"
+  >
+    <form
+      @submit.prevent="handleSubmit"
+      class="space-y-4"
+    >
       <div>
-        <label for="user" class="block text-sm font-medium text-gray-700">Select User</label>
+        <label
+          for="user"
+          class="block text-sm font-medium text-gray-700"
+          >Select User</label
+        >
         <div class="relative mt-1">
           <select
             id="user"
@@ -10,23 +20,41 @@
             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
             required
           >
-            <option value="" disabled selected>Select a user</option>
-            <option v-for="user in availableUsers" :key="user.id" :value="user.id">
+            <option
+              value=""
+              disabled
+              selected
+            >
+              Select a user
+            </option>
+            <option
+              v-for="user in availableUsers"
+              :key="user.id"
+              :value="user.id"
+            >
               {{ user.firstName }} {{ user.lastName }} ({{ user.email }})
             </option>
           </select>
         </div>
-        <p v-if="loadingUsers" class="mt-1 text-sm text-gray-500">Loading users...</p>
+        <p
+          v-if="loadingUsers"
+          class="mt-1 text-sm text-gray-500"
+        >
+          Loading users...
+        </p>
       </div>
 
       <div>
         <label class="block text-sm font-medium text-gray-700">Assign Roles</label>
-        <div class="mt-2 max-h-48 overflow-y-auto border rounded-md p-2">
-          <div v-if="availableRoles.length === 0" class="text-sm text-gray-500">
+        <div class="mt-2 max-h-48 overflow-y-auto rounded-md border p-2">
+          <div
+            v-if="availableRoles.length === 0"
+            class="text-sm text-gray-500"
+          >
             No roles available in this network
           </div>
-          <div 
-            v-for="role in availableRoles" 
+          <div
+            v-for="role in availableRoles"
             :key="role.id"
             class="flex items-center py-1"
           >
@@ -37,14 +65,17 @@
               v-model="form.roleIds"
               class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
             />
-            <label :for="`role-${role.id}`" class="ml-2 block text-sm text-gray-700">
+            <label
+              :for="`role-${role.id}`"
+              class="ml-2 block text-sm text-gray-700"
+            >
               {{ role.name }}
             </label>
           </div>
         </div>
       </div>
 
-      <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+      <div class="flex justify-end space-x-3 border-t border-gray-200 pt-4">
         <button
           type="button"
           class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
@@ -84,7 +115,7 @@ const emit = defineEmits(['close', 'add-user']);
 
 const form = ref({
   userId: '',
-  roleIds: [] as string[]
+  roleIds: [] as string[],
 });
 
 const availableUsers = ref<UserProxy[]>([]);
@@ -94,30 +125,27 @@ const loadingUsers = ref(true);
 onMounted(async () => {
   global.startFetching();
   loadingUsers.value = true;
-  
+
   try {
-    // Get all users that aren't already in the network
     const response = await api.get<UserProxy[]>('/users/');
     const allUsers = response.data || [];
-    
-    // Filter out users that are already in the network
-    const networkUserIds = props.network.networkUsers.map(nu => nu.userProxy.id);
-    availableUsers.value = allUsers.filter(user => !networkUserIds.includes(user.id));
-    
-    // Get roles from the network
+
+    const networkUserIds = props.network.networkUsers.map((nu) => nu.userProxy.id);
+    availableUsers.value = allUsers.filter((user) => !networkUserIds.includes(user.id));
+
     availableRoles.value = props.network.roles;
   } catch (error) {
     console.error('Error fetching users:', error);
   } finally {
     loadingUsers.value = false;
-  global.stopFetching();
-}
+    global.stopFetching();
+  }
 });
 
 function handleSubmit() {
   emit('add-user', {
     userId: form.value.userId,
-    roleIds: form.value.roleIds
+    roleIds: form.value.roleIds,
   });
 }
 </script>

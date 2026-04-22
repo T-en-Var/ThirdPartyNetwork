@@ -1,6 +1,6 @@
 import api from '@/api/api';
 import type { Blog, CreateBlog } from '@/types/userContent/blog';
-import { useCachedApi, useMutation } from './useApi';
+import { useCachedApi, useMutation } from '../useApi';
 
 export default function useBlogs() {
   const fetchBlogs = useCachedApi<Blog[], [networkId: string]>(
@@ -13,6 +13,18 @@ export default function useBlogs() {
     async (networkId, blogId) => await api.get<Blog>(`/networks/${networkId}/blogs/${blogId}`),
   );
 
+  const fetchUserBlogs = useCachedApi<Blog[], [userId: string, userProxyId: string]>(
+    (userId, userProxyId) => `users_${userId}_proxies_${userProxyId}_blogs`,
+    async (userId, userProxyId) =>
+      await api.get<Blog[]>(`/users/${userId}/proxies/${userProxyId}/blogs`),
+  );
+
+  const fetchUserBlog = useCachedApi<Blog, [userId: string, userProxyId: string, blogId: string]>(
+    (userId, userProxyId, blogId) => `users_${userId}_proxies_${userProxyId}_blogs_${blogId}`,
+    async (userId, userProxyId, blogId) =>
+      await api.get<Blog>(`/users/${userId}/proxies/${userProxyId}/blogs/${blogId}`),
+  );
+
   const createBlog = useMutation<Blog, [networkId: string, payload: CreateBlog]>(
     async (networkId, payload) =>
       await api.post<Blog, CreateBlog>(`/networks/${networkId}/blogs/`, payload),
@@ -20,9 +32,9 @@ export default function useBlogs() {
       itemKeyFactory: (result, networkId) => `networks_${networkId}_blogs_${result.id}`,
       listKeyFactory: (networkId) => `networks_${networkId}_blogs`,
       listUpdater: (currentList, result) => {
-        return currentList.map((item) => item.id == result.id ? result : item)
-      }
-    }
+        return currentList.map((item) => (item.id == result.id ? result : item));
+      },
+    },
   );
 
   const deleteBlog = useMutation<void, [networkId: string, blogId: string], Blog>(
@@ -31,8 +43,8 @@ export default function useBlogs() {
       itemKeyFactory: (_, networkId, blogId) => `networks_${networkId}_blogs_${blogId}`,
       listKeyFactory: (networkId) => `networks_${networkId}_blogs`,
       listUpdater: (currentList, _, __, blogId) => currentList.filter((item) => item.id !== blogId),
-    }
-  )
+    },
+  );
 
-  return { fetchBlogs, fetchBlog, createBlog, deleteBlog };
+  return { fetchBlogs, fetchBlog, fetchUserBlogs, fetchUserBlog, createBlog, deleteBlog };
 }

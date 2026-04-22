@@ -1,58 +1,32 @@
-import { ref, computed, type Ref } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { defineStore } from 'pinia';
-import { AxiosError, type InternalAxiosRequestConfig } from 'axios';
-import type { AccessTokenClaims, ErrorMessage, NetworkFile, TokenPair, UserProxy } from '@/types';
-import rawApi from '@/api/rawApi';
-import api from '@/api/api';
-import { useGlobalStore } from './global';
+import { type InternalAxiosRequestConfig } from 'axios';
+import type {
+  AccessTokenClaims,
+  Network,
+  NetworkPermissionCollection,
+  UserLogin,
+  UserProxy,
+  UserSignup,
+} from '@/types';
 import { decodeJWT } from '@/lib/utils';
 import { ClaimChecker } from '@/lib/claimChecker';
 import useNetworks from '@/composables/useNetworks';
-import { useHistoryStore } from './history';
+import { clearAllHistoryStores } from './history';
+import useAuthentication from '@/composables/useAuthentication';
+import useUserProxy from '@/composables/useUserProxy';
 
-// --- Constants for Local Storage Keys ---
 const ACCESS_TOKEN_KEY = 'access_token';
 const REFRESH_TOKEN_KEY = 'refresh_token';
 
-// --- Type Definition for the Utility Function's Context ---
-// This defines exactly what the utility needs from the store, removing 'any'.
-interface AuthStoreContext {
-  accessToken: Ref<string | null>;
-  refreshToken: Ref<string | null>;
-  setNetworkClaims: () => void;
-}
-
-// --- Utility Functions for Token Management ---
-
-/**
- * Saves tokens to local storage and updates the store state.
- * @param aToken - Access Token
- * @param rToken - Refresh Token
- * @param context - Necessary reactive references and methods from the store.
- */
-function saveTokensToStorage(aToken: string, rToken: string, context: AuthStoreContext) {
-  context.accessToken.value = aToken;
-  context.refreshToken.value = rToken;
-  localStorage.setItem(ACCESS_TOKEN_KEY, aToken);
-  localStorage.setItem(REFRESH_TOKEN_KEY, rToken);
-  context.setNetworkClaims(); // Update claims immediately after saving
-}
-
-/**
- * Checks if a JWT token is expired based on the 'exp' claim.
- * @param token - The JWT string
- * @returns true if expired, false otherwise
- */
 function isTokenExpired(token: string): boolean {
   const decodedPayload = decodeJWT<AccessTokenClaims>(token);
   return decodedPayload.exp < Math.floor(Date.now() / 1000);
 }
 
-// --- Pinia Auth Store Definition ---
 export const useAuthStore = defineStore('auth', () => {
-  // --- State ---
-  const accessToken = ref<string | null>(null);
-  const refreshToken = ref<string | null>(null);
+  const auth = useAuthentication();
+  const proxyState = useUserProxy();
 
   const isInitialized = ref(false);
   let initPromise: Promise<void> | null = null;
@@ -61,39 +35,189 @@ export const useAuthStore = defineStore('auth', () => {
   const isUnauthModalOpen = ref<boolean>(false);
   const { execute: fetchMainNetwork, data: mainNetwork } = useNetworks().fetchMainNetwork;
 
-  // const networkClaims = ref<NetworkClaims[]>([]);
-  const claimChecker = ref(new ClaimChecker({}));
+  const claimChecker = new ClaimChecker();
 
   const modalMode = ref<'signup' | 'login'>('signup');
   let modalCallback = () => {};
 
   const currentUserProxy = ref<UserProxy | null>(null);
-  const loading = ref(false);
-  const error = ref<string | null>(null);
+  const loading = computed(() => auth.loading.value);
+  const error = computed(() => auth.error.value);
+  const accessToken = ref<string | null>(null);
+  const refreshToken = ref<string | null>(null);
+  const permissionCollection = ref<NetworkPermissionCollection[]>([]);
 
-  const global = useGlobalStore();
-  const historyStore = useHistoryStore();
+  watch(permissionCollection, (newCollections) => {
+    console.log('updated newCollections', newCollections);
+    alert('updated newCollections');
+  });
 
-  // --- Computed Properties ---
-
+  // --- Auth properties ---
   const isAuthenticated = computed(() => {
     loadTokens();
     if (!accessToken.value) return false;
     return !isTokenExpired(accessToken.value);
   });
 
-  const isAdmin = computed(() => {
+  const canI = {
+    bypassEverything: (network: Network) =>
+      claimChecker.hasPermission(
+        permissionCollection.value,
+        network.id,
+        claimChecker.permissions.Administrator,
+      ),
+    readNetwork: (network: Network) =>
+      claimChecker.hasPermission(
+        permissionCollection.value,
+        network.id,
+        claimChecker.permissions['Read Network'],
+      ),
+    manageNetwork: (network: Network) =>
+      claimChecker.hasPermission(
+        permissionCollection.value,
+        network.id,
+        claimChecker.permissions['Manage Network'],
+      ),
+    readAccess: (network: Network) =>
+      claimChecker.hasPermission(
+        permissionCollection.value,
+        network.id,
+        claimChecker.permissions['Read Access'],
+      ),
+    manageAccess: (network: Network) =>
+      claimChecker.hasPermission(
+        permissionCollection.value,
+        network.id,
+        claimChecker.permissions['Manage Access'],
+      ),
+    readPermission: (network: Network) =>
+      claimChecker.hasPermission(
+        permissionCollection.value,
+        network.id,
+        claimChecker.permissions['Read Permission'],
+      ),
+    managePermission: (network: Network) =>
+      claimChecker.hasPermission(
+        permissionCollection.value,
+        network.id,
+        claimChecker.permissions['Manage Permission'],
+      ),
+    readRole: (network: Network) =>
+      claimChecker.hasPermission(
+        permissionCollection.value,
+        network.id,
+        claimChecker.permissions['Read Role'],
+      ),
+    manageRole: (network: Network) =>
+      claimChecker.hasPermission(
+        permissionCollection.value,
+        network.id,
+        claimChecker.permissions['Manage Role'],
+      ),
+    readUser: (network: Network) =>
+      claimChecker.hasPermission(
+        permissionCollection.value,
+        network.id,
+        claimChecker.permissions['Read User'],
+      ),
+    manageUser: (network: Network) =>
+      claimChecker.hasPermission(
+        permissionCollection.value,
+        network.id,
+        claimChecker.permissions['Manage User'],
+      ),
+    readCustomPage: (network: Network) =>
+      claimChecker.hasPermission(
+        permissionCollection.value,
+        network.id,
+        claimChecker.permissions['Read CustomPage'],
+      ),
+    manageCustomPage: (network: Network) =>
+      claimChecker.hasPermission(
+        permissionCollection.value,
+        network.id,
+        claimChecker.permissions['Manage CustomPage'],
+      ),
+    readPageBlock: (network: Network) =>
+      claimChecker.hasPermission(
+        permissionCollection.value,
+        network.id,
+        claimChecker.permissions['Read PageBlock'],
+      ),
+    managePageBlock: (network: Network) =>
+      claimChecker.hasPermission(
+        permissionCollection.value,
+        network.id,
+        claimChecker.permissions['Manage PageBlock'],
+      ),
+    readFile: (network: Network) =>
+      claimChecker.hasPermission(
+        permissionCollection.value,
+        network.id,
+        claimChecker.permissions['Read File'],
+      ),
+    manageFile: (network: Network) =>
+      claimChecker.hasPermission(
+        permissionCollection.value,
+        network.id,
+        claimChecker.permissions['Manage File'],
+      ),
+    readConfiguration: (network: Network) =>
+      claimChecker.hasPermission(
+        permissionCollection.value,
+        network.id,
+        claimChecker.permissions['Read Configuration'],
+      ),
+    manageConfiguration: (network: Network) =>
+      claimChecker.hasPermission(
+        permissionCollection.value,
+        network.id,
+        claimChecker.permissions['Manage Configuration'],
+      ),
+    readBlog: (network: Network) =>
+      claimChecker.hasPermission(
+        permissionCollection.value,
+        network.id,
+        claimChecker.permissions['Read Blog'],
+      ),
+    manageBlog: (network: Network) =>
+      claimChecker.hasPermission(
+        permissionCollection.value,
+        network.id,
+        claimChecker.permissions['Manage Blog'],
+      ),
+  };
+
+  const isSuperAdmin = async () => {
+    await initialize();
     if (!isAuthenticated.value) return false;
     if (!mainNetwork.value) return false;
 
-    return claimChecker.value.isSuperAdmin(mainNetwork.value);
-  });
+    const coll = await getPermissions();
+    return claimChecker.hasPermission(
+      coll,
+      mainNetwork.value.id,
+      claimChecker.permissions.Administrator,
+    );
+  };
+
+  async function getPermissions() {
+    await initialize();
+
+    const {
+      execute: fetchPermissionCollection,
+      error: err,
+      data: collection,
+    } = proxyState.fetchPermissionCollection;
+    await fetchPermissionCollection();
+
+    if (!collection.value) throw new Error(`Abnormal: Collection not found ${err.value}`);
+    permissionCollection.value = collection.value;
+
+    return collection.value;
+  }
 
   // --- Core Methods ---
-
-  /**
-   * Loads tokens from local storage into the store state.
-   */
   function loadTokens() {
     const aToken = localStorage.getItem(ACCESS_TOKEN_KEY);
     const rToken = localStorage.getItem(REFRESH_TOKEN_KEY);
@@ -101,101 +225,83 @@ export const useAuthStore = defineStore('auth', () => {
     if (accessToken.value !== aToken || refreshToken.value !== rToken) {
       accessToken.value = aToken;
       refreshToken.value = rToken;
-      if (aToken) {
-        setNetworkClaims();
-      }
     }
   }
 
-  /**
-   * Updates the network claims in the store and the ClaimChecker.
-   */
-  function setNetworkClaims() {
-    if (!accessToken.value) {
-      return clearTokens();
-    }
-
-    try {
-      const decodedPayload = decodeJWT<AccessTokenClaims>(accessToken.value);
-
-      if (!decodedPayload.networks) {
-        console.error("Token missing 'networks' claim. Clearing tokens.");
-        return clearTokens();
-      }
-
-      claimChecker.value.setNetworkClaims(decodedPayload.networks);
-    } catch (e) {
-      console.error('Failed to decode token or parse network claims.', e);
-      clearTokens();
-    }
-  }
-
-  /**
-   * Centralized function to save tokens and update state.
-   */
   function saveTokens(aToken: string, rToken: string) {
-    // Pass a context object matching the AuthStoreContext interface
-    saveTokensToStorage(aToken, rToken, {
-      accessToken,
-      refreshToken,
-      setNetworkClaims,
-    });
+    accessToken.value = aToken;
+    refreshToken.value = rToken;
+    localStorage.setItem(ACCESS_TOKEN_KEY, aToken);
+    localStorage.setItem(REFRESH_TOKEN_KEY, rToken);
   }
 
-  /**
-   * Centralized function to clear tokens and reset state.
-   */
   function clearTokens() {
     accessToken.value = null;
     refreshToken.value = null;
     localStorage.removeItem(ACCESS_TOKEN_KEY);
     localStorage.removeItem(REFRESH_TOKEN_KEY);
-    claimChecker.value.setNetworkClaims({});
     currentUserProxy.value = null;
   }
 
   // --- Authentication Flow ---
-
-  async function login(email: string, password: string) {
-    global.startFetching();
-    try {
-      const response = await rawApi.post<TokenPair>('/auth/login', { email, password });
-
-      if (response.status === 200) {
-        saveTokens(response.data.accessToken, response.data.refreshToken);
-      }
-      historyStore.reset();
-      return response;
-    } catch (err) {
-      const message =
-        (err as AxiosError<ErrorMessage>).response?.data.message || 'Failed to login.';
-      error.value = message;
-      throw new Error(message);
-    } finally {
-      global.stopFetching();
-    }
+  async function login(form: UserLogin) {
+    console.log('Logging in!');
+    await auth.login(form.email, form.password);
+    handleAuthenticated();
   }
 
-  async function refreshTokens(): Promise<string | null> {
+  async function signUp(form: UserSignup) {
+    await auth.signUp(form.username, form.email, form.firstName, form.lastName, form.password);
+    handleAuthenticated();
+  }
+
+  async function networkLogin(networkId: string, form: UserLogin) {
+    await auth.networkLogin(networkId, form.email, form.password);
+    handleAuthenticated();
+  }
+
+  async function networkSignUp(networkId: string, form: UserSignup) {
+    await auth.networkSignUp(
+      networkId,
+      form.username,
+      form.email,
+      form.firstName,
+      form.lastName,
+      form.password,
+    );
+    handleAuthenticated();
+  }
+
+  function handleAuthenticated() {
+    if (error.value) return;
+    if (!auth.tokenPair.value) return console.warn('TokenPair was null');
+
+    const tokenPair = auth.tokenPair.value;
+    saveTokens(tokenPair.accessToken, tokenPair.refreshToken);
+    clearAllHistoryStores();
+  }
+
+  function logout() {
+    clearAllHistoryStores();
+    clearTokens();
+  }
+
+  async function refreshTokens() {
     if (!refreshToken.value) {
       clearTokens();
       return null;
     }
 
-    global.startFetching();
-    try {
-      const response = await api.refresh(refreshToken.value);
-      saveTokens(response.data.accessToken, response.data.refreshToken);
-      return response.data.accessToken;
-    } catch (err) {
-      error.value =
-        (err as AxiosError<ErrorMessage>).response?.data.message ||
-        'Session expired. Please log in again.';
+    await auth.refreshTokens(refreshToken.value);
+
+    if (error.value) {
       clearTokens();
-      return null;
-    } finally {
-      global.stopFetching();
+      return;
     }
+    if (!auth.tokenPair.value) return console.warn('TokenPair was null');
+
+    const tokenPair = auth.tokenPair.value;
+    saveTokens(tokenPair.accessToken, tokenPair.refreshToken);
   }
 
   async function applyHeaders(
@@ -207,7 +313,7 @@ export const useAuthStore = defineStore('auth', () => {
     const tokenIsMissingButRefreshExists = !accessToken.value && refreshToken.value;
 
     if (tokenIsExpired || tokenIsMissingButRefreshExists) {
-      accessToken.value = await refreshTokens();
+      await refreshTokens();
     }
 
     if (accessToken.value) {
@@ -217,149 +323,35 @@ export const useAuthStore = defineStore('auth', () => {
     return config;
   }
 
-  async function signUp(
-    username: string,
-    email: string,
-    firstname: string,
-    lastname: string,
-    password: string,
-  ) {
-    global.startFetching();
-    try {
-      const response = await rawApi.post<TokenPair>('/auth/register', {
-        username,
-        firstName: firstname,
-        lastName: lastname,
-        email,
-        password,
-      });
-
-      if (response.status === 200) {
-        saveTokens(response.data.accessToken, response.data.refreshToken);
-      }
-      return response;
-    } catch (err) {
-      const message =
-        (err as AxiosError<ErrorMessage>).response?.data.message || 'Failed to signup.';
-      error.value = message;
-      throw new Error(message);
-    } finally {
-      global.stopFetching();
-    }
-  }
-
-  // --- User Data and Proxy ---
-
+  // --- User Data ---
   async function getUserProxy() {
+    await initialize();
+
     if (currentUserProxy.value) return currentUserProxy.value;
+    if (!isAuthenticated.value) throw new Error('Cannot call this while unauthenticated.');
 
-    if (!isAuthenticated.value) return null;
+    const { execute: fetchMe, data: userProxy } = proxyState.fetchMe;
+    await fetchMe();
+    if (!userProxy.value) throw new Error('Abnormality: Logged in UserProxy not found.');
 
-    global.startFetching();
-    try {
-      const response = await api.get<UserProxy>('/me');
-
-      if (response.status === 200) {
-        currentUserProxy.value = response.data;
-        return currentUserProxy.value;
-      } else {
-        clearTokens();
-        return null;
-      }
-    } catch (err) {
-      error.value =
-        (err as AxiosError<ErrorMessage>).response?.data.message || 'Failed to get user details.';
-      return null;
-    } finally {
-      global.stopFetching();
-    }
+    currentUserProxy.value = userProxy.value;
+    return currentUserProxy.value;
   }
 
   function getUserProxyId() {
-    if (!accessToken.value || !isAuthenticated.value) {
+    if (!accessToken.value || !isAuthenticated.value)
       throw new Error('User not authenticated or access token is missing/expired');
-    }
+
     const decodedPayload = decodeJWT<AccessTokenClaims>(accessToken.value);
     return decodedPayload.uid;
   }
 
-  async function getAllUserFiles() {
-    await getUserProxy();
-
-    if (!currentUserProxy.value) return [];
-
-    const allProxies = [
-      currentUserProxy.value,
-      ...(currentUserProxy.value.user.userProxies.filter((u) => u != null) ?? []),
-    ];
-    const files: NetworkFile[] = [];
-
-    for (const up of allProxies) {
-      for (const nu of up.networkUsers) {
-        nu.userProxy = up;
-        if (nu.files) {
-          for (const f of nu.files) {
-            f.author = nu;
-            files.push(f);
-          }
-        }
-      }
-    }
-
-    return files;
-  }
-
-  // --- Network and Modal functions (omitted for brevity, unchanged) ---
-  async function networkLogin(networkId: string, email: string, password: string) {
-    global.startFetching();
-    try {
-      return await rawApi.post<TokenPair>(`/auth/${networkId}/login`, { email, password });
-    } catch (err) {
-      error.value =
-        (err as AxiosError<ErrorMessage>).response?.data.message || 'Failed to login to network.';
-      throw err;
-    } finally {
-      global.stopFetching();
-    }
-  }
-
-  async function networkSignUp(
-    networkId: string,
-    username: string,
-    email: string,
-    firstname: string,
-    lastname: string,
-    password: string,
-  ) {
-    global.startFetching();
-    try {
-      return await rawApi.post<TokenPair>(`/auth/${networkId}/register`, {
-        username: username,
-        firstName: firstname,
-        lastName: lastname,
-        email: email,
-        password: password,
-      });
-    } catch (err) {
-      error.value =
-        (err as AxiosError<ErrorMessage>).response?.data.message || 'Failed to signup to network.';
-      throw err;
-    } finally {
-      global.stopFetching();
-    }
-  }
-
-  function logout() {
-    clearTokens();
-  }
-
+  // --- Modal Functions ---
   function setModalMode(newModalMode: 'signup' | 'login') {
     modalMode.value = newModalMode;
   }
 
   function setModalOpen(newModelState: boolean) {
-    console.log(newModelState);
-    console.log(modalCallback);
     isModalOpen.value = newModelState;
     if (newModelState) modalCallback();
   }
@@ -372,8 +364,11 @@ export const useAuthStore = defineStore('auth', () => {
     isUnauthModalOpen.value = newModelState;
   }
 
+  // --- State Management ---
   async function initialize() {
     if (initPromise) return initPromise;
+
+    loadTokens();
 
     initPromise = (async () => {
       try {
@@ -389,36 +384,37 @@ export const useAuthStore = defineStore('auth', () => {
     return initPromise;
   }
 
-  // --- Return exposed state and actions ---
   return {
     // State
     accessToken,
     refreshToken,
     isModalOpen,
     isUnauthModalOpen,
-    claimChecker: computed(() => claimChecker.value),
+    claimChecker,
     modalMode,
-    currentUserProxy,
     loading,
     error,
 
+    // Data
+    currentUserProxy,
+    getUserProxyId,
+    getUserProxy,
+
     // Computed
     isAuthenticated,
-    isAdmin,
+    isSuperAdmin,
+    canI,
 
     // Actions
-    applyHeaders,
-    saveTokens,
-    clearTokens,
-    refreshTokens,
     login,
     signUp,
     networkLogin,
     networkSignUp,
     logout,
-    getUserProxyId,
-    getUserProxy,
-    getAllUserFiles,
+    loadTokens,
+    clearTokens,
+    refreshTokens,
+    applyHeaders,
     initialize,
 
     // Modal Functions
@@ -426,7 +422,5 @@ export const useAuthStore = defineStore('auth', () => {
     setModalMode,
     setModalOpenCallback,
     setUnauthModalOpen,
-    loadTokens,
-    setNetworkClaims,
   };
 });

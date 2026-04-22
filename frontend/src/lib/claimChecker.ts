@@ -1,54 +1,61 @@
-import type { Network, NetworkClaims } from '@/types';
+import type { NetworkPermissionCollection } from '@/types';
 
 export class ClaimChecker {
-  private networkClaims: NetworkClaims;
+  permissions = {
+    Administrator: 'Administrator',
+    'Read Network': 'Read Network',
+    'Manage Network': 'Manage Network',
+    'Read Access': 'Read Access',
+    'Manage Access': 'Manage Access',
+    'Read Permission': 'Read Permission',
+    'Manage Permission': 'Manage Permission',
+    'Read Role': 'Read Role',
+    'Manage Role': 'Manage Role',
+    IsUserOwner: 'IsUserOwner',
+    IsNetworkUserOwner: 'IsNetworkUserOwner',
+    IsUserProxyOwner: 'IsUserProxyOwner',
+    'Read User': 'Read User',
+    'Manage User': 'Manage User',
+    'Read CustomPage': 'Read CustomPage',
+    'Manage CustomPage': 'Manage CustomPage',
+    'Read PageBlock': 'Read PageBlock',
+    'Manage PageBlock': 'Manage PageBlock',
+    'Read File': 'Read File',
+    'Manage File': 'Manage File',
+    'Read Configuration': 'Read Configuration',
+    'Manage Configuration': 'Manage Configuration',
+    'Read Blog': 'Read Blog',
+    'Manage Blog': 'Manage Blog',
+  } as const;
 
-  private Administrator = 'Administrator';
-  private ReadNetwork = 'Read Network';
-  private ManageNetwork = 'Manage Network';
-  private ReadAccess = 'Read Access';
-  private ManageAccess = 'Manage Access';
-  private ReadPermission = 'Read Permission';
-  private ManagePermission = 'Manage Permission';
-  private ReadRole = 'Read Role';
-  private ManageRole = 'Manage Role';
-  private IsUserOwner = 'IsUserOwner';
-  private IsNetworkUserOwner = 'IsNetworkUserOwner';
-  private IsUserProxyOwner = 'IsUserProxyOwner';
-  private ReadUser = 'Read User';
-  private ManageUser = 'Manage User';
-  private ReadCustomPage = 'Read CustomPage';
-  private ManageCustomPage = 'Manage CustomPage';
-  private ReadPageBlock = 'Read PageBlock';
-  private ManagePageBlock = 'Manage PageBlock';
-  private ReadFile = 'Read File';
-  private ManageFile = 'Manage File';
-  private ReadConfiguration = 'Read Configuration';
-  private ManageConfiguration = 'Manage Configuration';
-  private ReadBlog = 'Read Blog';
-  private ManageBlog = 'Manage Blog';
+  constructor() {}
 
-  constructor(networkClaims: NetworkClaims) {
-    this.networkClaims = networkClaims;
-  }
+  private getNetworkCollection = (
+    collections: NetworkPermissionCollection[],
+    networkId: string,
+  ) => {
+    return collections.find((collection) => collection.id == networkId);
+  };
 
-  setNetworkClaims(networkClaims: NetworkClaims) {
-    this.networkClaims = networkClaims;
-  }
+  private getPermissionValue = (permission: string) => {
+    const value = this.permissions[permission as keyof typeof this.permissions];
 
-  canManageNetwork(network: Network) {
-    const claimCollection = this.networkClaims[network.id];
-    if (!claimCollection) return false;
+    if (!value) throw new Error(`Permission '${permission}' does not exist.`);
 
-    return (
-      claimCollection.includes(this.Administrator) || claimCollection.includes(this.ManageNetwork)
+    return value;
+  };
+
+  hasPermission(collections: NetworkPermissionCollection[], networkId: string, permission: string) {
+    if (!collections) return false;
+
+    const permissionValue = this.getPermissionValue(permission);
+    const collection = this.getNetworkCollection(collections, networkId);
+
+    if (!collection) return false;
+
+    return collection.permissions.some(
+      (permission) =>
+        permission.name === this.permissions.Administrator || permission.name === permissionValue,
     );
-  }
-
-  isSuperAdmin(mainNetwork: Network) {
-    const claimCollection = this.networkClaims[mainNetwork.id];
-    if (!claimCollection) return false;
-
-    return claimCollection.includes(this.Administrator);
   }
 }

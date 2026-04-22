@@ -3,16 +3,21 @@
     <!-- Main Content -->
     <AdminSidebar />
 
-    <div class="flex-1 p-6 overflow-auto">
+    <div class="flex-1 overflow-auto p-6">
       <RouterView @delete-network="confirmDeleteNetwork" />
 
       <!-- Modals -->
-      <ConfirmationModal v-if="showConfirmationModal" :title="confirmationTitle"
-        :message="confirmationMessage" :button-text="confirmButtonText"
-        :color="confirmButtonColor" :is-submitting="isSubmitting"
-        @close="showConfirmationModal = false" @confirm="confirmAction" />
+      <ConfirmationModal
+        v-if="showConfirmationModal"
+        :title="confirmationTitle"
+        :message="confirmationMessage"
+        :button-text="confirmButtonText"
+        :color="confirmButtonColor"
+        :is-submitting="isSubmitting"
+        @close="showConfirmationModal = false"
+        @confirm="confirmAction"
+      />
     </div>
-
   </div>
 </template>
 
@@ -30,7 +35,7 @@ const confirmationTitle = ref('');
 const confirmationMessage = ref('');
 const confirmButtonText = ref('');
 const confirmButtonColor = ref('');
-const confirmationAction = ref(() => { });
+const confirmationAction = ref(() => {});
 
 const networksState = useNetworks();
 

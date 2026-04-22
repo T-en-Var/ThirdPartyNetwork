@@ -1,136 +1,250 @@
 <template>
   <Teleport to="body">
-    <div v-if="authStore.isModalOpen" class="modal-overlay" @click="closeModal">
-      <div class="auth-modal" @click.stop>
+    <div
+      v-if="authStore.isModalOpen"
+      class="modal-overlay"
+      @click="closeModal"
+    >
+      <div
+        class="auth-modal"
+        @click.stop
+      >
         <div class="form-wrapper">
-          <button class="close-button" @click="closeModal">×</button>
+          <button
+            class="close-button"
+            @click="closeModal"
+          >
+            ×
+          </button>
 
           <div class="logo-container">
             <div class="logo">
-              <img src="@/images/favicon-nobg.png" alt="Company Logo">
+              <img
+                src="@/images/favicon-nobg.png"
+                alt="Company Logo"
+              />
             </div>
           </div>
 
           <!-- Login Form -->
-          <div class="form-panel"
-            :class="{ 'active': authStore.modalMode == 'login' }">
+          <div
+            class="form-panel"
+            :class="{ active: authStore.modalMode == 'login' }"
+          >
             <div class="form-content">
               <div class="form-header">
                 <h2>Sign In</h2>
                 <p class="form-subtitle">Access your account</p>
               </div>
 
-              <p v-if="error" class="error-message">{{ error }}</p>
+              <p
+                v-if="error"
+                class="error-message"
+              >
+                {{ error }}
+              </p>
 
-              <div v-if="isInDevelopment" class="flex flex-col items-center text-sm">
-                <span>Log in as</span>
-                <div>
-                  <span class="underline text-blue-500 cursor-pointer"
-                    @click="logInAsAdmin">Admin</span>
+              <div
+                v-if="isInDevelopment"
+                class="flex flex-row items-center justify-center gap-8 text-sm"
+              >
+                <div class="flex flex-col items-center">
+                  <span>Log in as</span>
+                  <div>
+                    <span
+                      class="cursor-pointer text-blue-500 underline"
+                      @click="logInAsAdmin"
+                      >Admin</span
+                    >
+                  </div>
+                </div>
+                <div class="flex flex-col items-center">
+                  <span>Log in as</span>
+                  <div>
+                    <span
+                      class="cursor-pointer text-blue-500 underline"
+                      @click="logInAsUser"
+                      >User</span
+                    >
+                  </div>
                 </div>
               </div>
 
               <form @submit.prevent="login">
                 <div class="form-group">
                   <label for="email">Email</label>
-                  <input id="email" name="email" v-model="email" type="text"
-                    placeholder="Enter your email" autocomplete="username" required>
+                  <input
+                    id="email"
+                    name="email"
+                    v-model="loginForm.email"
+                    type="text"
+                    placeholder="Enter your email"
+                    autocomplete="username"
+                    required
+                  />
                 </div>
 
                 <div class="form-group">
                   <label for="password">Password</label>
-                  <input id="password" name="password" v-model="password"
-                    type="password" placeholder="Enter your password"
-                    autocomplete="username" required>
+                  <input
+                    id="password"
+                    name="password"
+                    v-model="loginForm.password"
+                    type="password"
+                    placeholder="Enter your password"
+                    autocomplete="username"
+                    required
+                  />
                 </div>
 
-                <button type="submit" class="btn-primary" :disabled="isLoading">
+                <button
+                  type="submit"
+                  class="btn-primary"
+                  :disabled="isLoading"
+                >
                   {{ isLoading ? 'Signing in...' : 'Sign In' }}
                 </button>
               </form>
 
               <div class="form-footer">
                 <p>Don't have an account?</p>
-                <button @click="switchMode('signup')" class="btn-switch">Create
-                  Account</button>
+                <button
+                  @click="switchMode('signup')"
+                  class="btn-switch"
+                >
+                  Create Account
+                </button>
               </div>
             </div>
           </div>
 
           <!-- Sign Up Form -->
-          <div class="form-panel"
-            :class="{ 'active': authStore.modalMode == 'signup' }">
+          <div
+            class="form-panel"
+            :class="{ active: authStore.modalMode == 'signup' }"
+          >
             <div class="form-content">
               <div class="form-header">
                 <h2>Create Account</h2>
                 <p class="form-subtitle">Join the platform</p>
               </div>
 
-              <p v-if="signupError" class="error-message">{{ signupError }}</p>
+              <p
+                v-if="signupError"
+                class="error-message"
+              >
+                {{ signupError }}
+              </p>
 
               <form @submit.prevent="signUp">
                 <div class="form-row">
                   <div class="form-group">
                     <label for="signup-firstname">Firstname</label>
-                    <input id="signup-firstname" v-model="signupFirstname"
-                      type="text" placeholder="Your firstname" required>
+                    <input
+                      id="signup-firstname"
+                      v-model="signUpForm.firstName"
+                      type="text"
+                      placeholder="Your firstname"
+                      required
+                    />
                   </div>
 
                   <div class="form-group">
                     <label for="confirm-lastname">Lastname</label>
-                    <input id="confirm-lastname" v-model="signupLastname" type="text"
-                      placeholder="Your lastname" required>
+                    <input
+                      id="confirm-lastname"
+                      v-model="signUpForm.lastName"
+                      type="text"
+                      placeholder="Your lastname"
+                      required
+                    />
                   </div>
                 </div>
 
                 <div class="form-row">
                   <div class="form-group">
                     <label for="signup-username">Username</label>
-                    <input id="signup-username" v-model="signupUsername" type="text"
-                      placeholder="Choose a username" required>
+                    <input
+                      id="signup-username"
+                      v-model="signUpForm.username"
+                      type="text"
+                      placeholder="Choose a username"
+                      required
+                    />
                   </div>
 
                   <div class="form-group">
                     <label for="signup-email">Email</label>
-                    <input id="signup-email" v-model="signupEmail" type="email"
-                      placeholder="Your email" required>
+                    <input
+                      id="signup-email"
+                      v-model="signUpForm.email"
+                      type="email"
+                      placeholder="Your email"
+                      required
+                    />
                   </div>
                 </div>
 
                 <div class="form-row">
                   <div class="form-group">
                     <label for="signup-password">Password</label>
-                    <input id="signup-password" v-model="signupPassword"
-                      type="password" placeholder="Create a password" required>
+                    <input
+                      id="signup-password"
+                      v-model="signUpForm.password"
+                      type="password"
+                      placeholder="Create a password"
+                      required
+                    />
                   </div>
 
                   <div class="form-group">
                     <label for="confirm-password">Confirm Password</label>
-                    <input id="confirm-password" v-model="confirmPassword"
-                      type="password" placeholder="Confirm your password" required>
+                    <input
+                      id="confirm-password"
+                      v-model="confirmPassword"
+                      type="password"
+                      placeholder="Confirm your password"
+                      required
+                    />
                   </div>
                 </div>
 
                 <div class="form-group checkbox-group">
                   <div class="checkbox-container">
-                    <input id="confirm-tos" v-model="confirmToS" type="checkbox"
-                      required>
+                    <input
+                      id="confirm-tos"
+                      v-model="confirmToS"
+                      type="checkbox"
+                      required
+                    />
                     <label for="confirm-tos">
-                      I accept the <span class="tos-link"
-                        @click="redirectToTos">Terms and Conditions</span>.
+                      I accept the
+                      <span
+                        class="tos-link"
+                        @click="redirectToTos"
+                        >Terms and Conditions</span
+                      >.
                     </label>
                   </div>
                 </div>
 
-                <button type="submit" class="btn-primary" :disabled="isSigningUp">
+                <button
+                  type="submit"
+                  class="btn-primary"
+                  :disabled="isSigningUp"
+                >
                   {{ isSigningUp ? 'Creating account...' : 'Create Account' }}
                 </button>
               </form>
 
               <div class="form-footer">
                 <p>Already have an account?</p>
-                <button @click="switchMode('login')" class="btn-switch">Sign
-                  In</button>
+                <button
+                  @click="switchMode('login')"
+                  class="btn-switch"
+                >
+                  Sign In
+                </button>
               </div>
             </div>
           </div>
@@ -144,34 +258,39 @@
 import { computed, ref } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useRoute, useRouter } from 'vue-router';
-import type { AxiosError } from 'axios';
-import type { ErrorMessage } from '@/types';
+import type { UserLogin, UserSignup } from '@/types';
 
 const router = useRouter();
 const route = useRoute();
 
 const authStore = useAuthStore();
 
-const email = ref('');
-const password = ref('');
 const error = ref('');
 const isLoading = ref(false);
 
-const signupUsername = ref('');
-const signupFirstname = ref('');
-const signupLastname = ref('');
-const signupEmail = ref('');
-const signupPassword = ref('');
+const loginForm = ref<UserLogin>({
+  email: '',
+  password: '',
+});
+
+const signUpForm = ref<UserSignup>({
+  firstName: '',
+  lastName: '',
+  username: '',
+  email: '',
+  password: '',
+});
+
 const confirmPassword = ref('');
 const confirmToS = ref(false);
 const signupError = ref('');
 const isSigningUp = ref(false);
 
 const modalOpenCallback = () => {
-  signupUsername.value = route.query.s_username as string || '';
-  signupFirstname.value = route.query.s_firstname as string || '';
-  signupLastname.value = route.query.s_lastname as string || '';
-  signupEmail.value = route.query.s_email as string || '';
+  signUpForm.value.username = (route.query.s_username as string) || '';
+  signUpForm.value.firstName = (route.query.s_firstname as string) || '';
+  signUpForm.value.lastName = (route.query.s_lastname as string) || '';
+  signUpForm.value.email = (route.query.s_email as string) || '';
 };
 
 authStore.setModalOpenCallback(modalOpenCallback);
@@ -180,13 +299,14 @@ const redirectToTos = () => {
   authStore.setModalOpen(false);
 
   let uri = route.query.redirect;
-  if (route.name !== "Terms of Service") uri = btoa(route.fullPath);
+  if (route.name !== 'Terms of Service') uri = btoa(route.fullPath);
 
-  router.push(`/tos?redirect=${uri}&s_username=${signupUsername.value}&s_firstname=${signupFirstname.value}&s_lastname=${signupLastname.value}&s_email=${signupEmail.value}`);
+  router.push(
+    `/tos?redirect=${uri}&s_username=${signUpForm.value.username}&s_firstname=${signUpForm.value.firstName}&s_lastname=${signUpForm.value.lastName}&s_email=${signUpForm.value.email}`,
+  );
 };
 
-// Switch between login and signup modes
-const switchMode = (modalValue: "signup" | "login") => {
+const switchMode = (modalValue: 'signup' | 'login') => {
   authStore.setModalMode(modalValue);
   error.value = '';
   signupError.value = '';
@@ -195,18 +315,27 @@ const switchMode = (modalValue: "signup" | "login") => {
 const closeModal = () => {
   authStore.setModalOpen(false);
 
-  email.value = '';
-  password.value = '';
-  signupUsername.value = '';
-  signupPassword.value = '';
+  loginForm.value = {
+    email: '',
+    password: '',
+  };
+
+  signUpForm.value = {
+    firstName: '',
+    lastName: '',
+    username: '',
+    email: '',
+    password: '',
+  };
   confirmPassword.value = '';
+
   error.value = '';
   signupError.value = '';
   confirmToS.value = false;
 };
 
 const login = async () => {
-  if (!email.value || !password.value) {
+  if (!loginForm.value.email || !loginForm.value.password) {
     error.value = 'Please enter both username and password';
     return;
   }
@@ -214,22 +343,14 @@ const login = async () => {
   isLoading.value = true;
   error.value = '';
 
-  let response;
-
-  try {
-    response = await authStore.login(email.value.trim(), password.value);
-  } catch (err) {
+  await authStore.login(loginForm.value);
+  if (authStore.error) {
     isLoading.value = false;
-    error.value = (err as AxiosError<ErrorMessage>).response?.data.message || "Something went wrong, please try again";
+    error.value = authStore.error || 'Something went wrong, please try again';
     return;
   }
 
   closeModal();
-
-  if (response.status != 200) {
-    error.value = 'Invalid credentials. Please try again.';
-    return;
-  }
 
   const redirectPath = route.query.redirect ? atob(route.query.redirect as string) : '/networks';
   router.push(redirectPath);
@@ -238,12 +359,19 @@ const login = async () => {
 };
 
 const signUp = async () => {
-  if (!signupUsername.value || !signupPassword.value || !confirmPassword.value || !signupEmail.value || !signupFirstname.value || !signupLastname.value) {
+  if (
+    !signUpForm.value.username ||
+    !signUpForm.value.firstName ||
+    !signUpForm.value.lastName ||
+    !signUpForm.value.email ||
+    !signUpForm.value.password ||
+    !confirmPassword.value
+  ) {
     signupError.value = 'Please fill in all fields';
     return;
   }
 
-  if (signupPassword.value !== confirmPassword.value) {
+  if (signUpForm.value.password !== confirmPassword.value) {
     signupError.value = 'Passwords do not match';
     return;
   }
@@ -256,28 +384,13 @@ const signUp = async () => {
   isSigningUp.value = true;
   signupError.value = '';
 
-  let response;
+  await authStore.signUp(signUpForm.value);
 
-  try {
-    response = await authStore.signUp(
-      signupUsername.value.trim(),
-      signupEmail.value.trim(),
-      signupFirstname.value.trim(),
-      signupLastname.value.trim(),
-      signupPassword.value
-    );
-  } catch (err) {
-    console.error(err);
+  if (authStore.error) {
+    console.error(authStore.error);
     isLoading.value = false;
     isSigningUp.value = false;
-    signupError.value = (err as AxiosError<ErrorMessage>).response?.data.message || "Something went wrong, please try again.";
-    return;
-  }
-
-  if (response.status < 199 || response.status > 299) {
-    isLoading.value = false;
-    isSigningUp.value = false;
-    signupError.value = 'Unable to create account. Please try again.';
+    signupError.value = authStore.error || 'Something went wrong, please try again.';
     return;
   }
 
@@ -293,11 +406,22 @@ const signUp = async () => {
 const isInDevelopment = computed(() => window.location.hostname === 'localhost');
 
 const logInAsAdmin = async () => {
-  email.value = "admin@gmail.com";
-  password.value = "admin@gmail.com";
-  await login();
-}
+  loginForm.value = {
+    email: 'admin@gmail.com',
+    password: 'admin@gmail.com',
+  };
 
+  await login();
+};
+
+const logInAsUser = async () => {
+  loginForm.value = {
+    email: 'normaluser@gmail.com',
+    password: 'normaluser@gmail.com',
+  };
+
+  await login();
+};
 </script>
 
 <style scoped>
@@ -448,7 +572,7 @@ const logInAsAdmin = async () => {
   gap: 8px;
 }
 
-.checkbox-container input[type="checkbox"] {
+.checkbox-container input[type='checkbox'] {
   width: 18px;
   height: 18px;
   accent-color: #3f51b5;

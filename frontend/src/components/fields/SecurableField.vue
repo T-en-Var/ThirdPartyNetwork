@@ -1,15 +1,26 @@
 <template>
   <div
-    :class="{ 'font-medium': !sensitive || isVisible, 'flex justify-start items-center flex-nowrap text-nowrap whitespace-nowrap': 1 }">
+    :class="{
+      'font-medium': !sensitive || isVisible,
+      'flex flex-nowrap items-center justify-start whitespace-nowrap text-nowrap': 1,
+    }"
+  >
     <template v-if="sensitive && !isVisible">
-      <span class="inline-block blur-sm select-none">••••••••</span>
-      <span class="text-xs text-blue-600 ml-2 cursor-pointer" @click="toggleVisibility">({{
-        buttonText }})</span>
+      <span class="inline-block select-none blur-sm">••••••••</span>
+      <span
+        class="ml-2 cursor-pointer text-xs text-blue-600"
+        @click="toggleVisibility"
+        >({{ buttonText }})</span
+      >
     </template>
     <template v-else>
       <span class="break-all">{{ value || 'Not provided' }}</span>
-      <span v-if="sensitive" class="text-xs text-blue-600 ml-2 cursor-pointer"
-        @click="toggleVisibility">(Click to hide)</span>
+      <span
+        v-if="sensitive"
+        class="ml-2 cursor-pointer text-xs text-blue-600"
+        @click="toggleVisibility"
+        >(Click to hide)</span
+      >
     </template>
   </div>
 </template>

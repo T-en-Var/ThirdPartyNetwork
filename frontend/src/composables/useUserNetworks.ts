@@ -41,5 +41,5 @@ export default function useUsersNetworks() {
     execute: _fetchUserNetworks,
   };
 
-  return { fetchUserNetworks }
+  return { fetchUserNetworks };
 }

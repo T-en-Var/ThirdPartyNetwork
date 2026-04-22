@@ -1,5 +1,5 @@
-import type { NetworkFile } from "./files";
-import type { UserContentBase, UserContentCreateBase } from "./userContentBase";
+import type { NetworkFile } from './files';
+import type { UserContentBase, UserContentCreateBase } from './userContentBase';
 
 export interface Blog extends UserContentBase {
   id: string;

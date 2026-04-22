@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
-// import NetworksView from '@/views/NetworksView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -60,10 +59,64 @@ const router = createRouter({
         {
           path: 'files',
           name: 'manage-account-files',
-          component: () => import('@/components/tabs/account/FilesTab.vue'),
+          component: () => import('@/components/tabs/usercontent/FilesTab.vue'),
           meta: {
             requiresAuth: true,
             title: 'User Files',
+          },
+        },
+        {
+          path: 'blogs',
+          name: 'manage-account-blogs',
+          component: () => import('@/components/tabs/usercontent/BlogsTab.vue'),
+          meta: {
+            requiresAuth: true,
+            title: 'User Blogs',
+          },
+        },
+        {
+          path: 'networks/:networkId/blogs/:blogId/edit',
+          name: 'manage-account-blogs-edit',
+          component: () => import('@/components/tabs/usercontent/EditBlogTab.vue'),
+          meta: {
+            requiresAuth: true,
+            title: 'Edit Blog',
+          },
+        },
+        {
+          path: 'configurations',
+          name: 'manage-account-configurations',
+          component: () => import('@/components/tabs/usercontent/ConfigurationsTab.vue'),
+          meta: {
+            requiresAuth: true,
+            title: 'User Configurations',
+          },
+        },
+        {
+          path: 'networks/:networkId/configurations/:configurationId/edit',
+          name: 'manage-account-configurations-edit',
+          component: () => import('@/components/tabs/usercontent/EditConfigurationTab.vue'),
+          meta: {
+            requiresAuth: true,
+            title: 'Edit Configuration',
+          },
+        },
+        {
+          path: 'custom-pages',
+          name: 'manage-account-custom-pages',
+          component: () => import('@/components/tabs/usercontent/CustomPagesTab.vue'),
+          meta: {
+            requiresAuth: true,
+            title: 'User Custom Pages',
+          },
+        },
+        {
+          path: 'networks/:networkId/custom-pages/:customPageId/edit',
+          name: 'manage-account-custom-pages-edit',
+          component: () => import('@/components/tabs/usercontent/EditCustomPageTab.vue'),
+          meta: {
+            requiresAuth: true,
+            title: 'Edit Custom Page',
           },
         },
       ],
@@ -186,7 +239,7 @@ const router = createRouter({
         {
           path: 'files',
           name: 'manage-network-files',
-          component: () => import('@/components/tabs/network/FilesTab.vue'),
+          component: () => import('@/components/tabs/usercontent/FilesTab.vue'),
           meta: {
             requiresAuth: true,
             title: 'Files',
@@ -195,7 +248,7 @@ const router = createRouter({
         {
           path: 'custom-pages',
           name: 'manage-network-custom-pages',
-          component: () => import('@/components/tabs/network/CustomPagesTab.vue'),
+          component: () => import('@/components/tabs/usercontent/CustomPagesTab.vue'),
           meta: {
             requiresAuth: true,
             title: 'Custom Pages',
@@ -204,7 +257,7 @@ const router = createRouter({
         {
           path: 'blogs',
           name: 'manage-network-blogs',
-          component: () => import('@/components/tabs/network/BlogsTab.vue'),
+          component: () => import('@/components/tabs/usercontent/BlogsTab.vue'),
           meta: {
             requiresAuth: true,
             title: 'Blogs',
@@ -213,7 +266,7 @@ const router = createRouter({
         {
           path: 'blogs/:blogId/edit',
           name: 'manage-network-edit-blog',
-          component: () => import('@/components/tabs/network/EditBlogTab.vue'),
+          component: () => import('@/components/tabs/usercontent/EditBlogTab.vue'),
           meta: {
             requiresAuth: true,
             title: 'Edit Blog',
@@ -222,7 +275,7 @@ const router = createRouter({
         {
           path: 'configurations',
           name: 'manage-network-configurations',
-          component: () => import('@/components/tabs/network/ConfigurationsTab.vue'),
+          component: () => import('@/components/tabs/usercontent/ConfigurationsTab.vue'),
           meta: {
             requiresAuth: true,
             title: 'Configurations',
@@ -231,7 +284,7 @@ const router = createRouter({
         {
           path: 'configurations/:configurationId/edit',
           name: 'manage-network-edit-configuration',
-          component: () => import('@/components/tabs/network/EditConfigurationTab.vue'),
+          component: () => import('@/components/tabs/usercontent/EditConfigurationTab.vue'),
           meta: {
             requiresAuth: true,
             title: 'Edit Configuration',
@@ -240,7 +293,7 @@ const router = createRouter({
         {
           path: 'custom-pages/:customPageId/edit',
           name: 'manage-network-edit-custom-page',
-          component: () => import('@/components/tabs/network/EditCustomPageTab.vue'),
+          component: () => import('@/components/tabs/usercontent/EditCustomPageTab.vue'),
           meta: {
             requiresAuth: true,
             title: 'Edit Custom Page',
@@ -249,7 +302,7 @@ const router = createRouter({
         {
           path: 'custom-pages/:customPageId/blocks/:pageBlockId/edit',
           name: 'manage-network-edit-page-block',
-          component: () => import('@/components/tabs/network/EditPageBlockTab.vue'),
+          component: () => import('@/components/tabs/usercontent/EditPageBlockTab.vue'),
           meta: {
             requiresAuth: true,
             title: 'Edit Page Block',
@@ -336,10 +389,9 @@ const router = createRouter({
       },
     },
     {
-      path: "/:pathMatch(.*)*",
-      // redirect: '/404',
+      path: '/:pathMatch(.*)*',
       component: () => import('@/views/NotFoundView.vue'),
-    }
+    },
   ],
 });
 
@@ -359,9 +411,7 @@ router.beforeEach(async (to, from, next) => {
   }
 
   if (to.matched.some((record) => record.meta.requiresAdmin)) {
-    await authStore.initialize();
-
-    if (!authStore.isAdmin) {
+    if (!(await authStore.isSuperAdmin())) {
       next({ path: '/404' });
       return;
     }

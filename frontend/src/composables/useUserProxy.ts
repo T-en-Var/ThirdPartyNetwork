@@ -1,13 +1,23 @@
 import api from '@/api/api';
 import { ref } from 'vue';
 import { useAuthStore } from '@/stores/auth';
-import type { UserProxy } from '@/types';
+import type { NetworkPermissionCollection, UserProxy } from '@/types';
 import { useCachedApi } from './useApi';
 
 export default function useUserProxy() {
   const authStore = useAuthStore();
 
   const authError = ref<string | null>(null);
+
+  const fetchMe = useCachedApi<UserProxy, []>(
+    () => `me`,
+    async () => await api.get<UserProxy>(`/me`),
+  );
+
+  const fetchPermissionCollection = useCachedApi<NetworkPermissionCollection[], []>(
+    () => `me_permissions`,
+    async () => await api.get<NetworkPermissionCollection[]>(`/me/permissions`),
+  );
 
   const {
     data: userProxy,
@@ -38,9 +48,11 @@ export default function useUserProxy() {
     loading,
     error: apiError,
     execute: _fetchUserProxy,
-  }
+  };
 
   return {
     fetchUserProxy,
+    fetchMe,
+    fetchPermissionCollection,
   };
 }

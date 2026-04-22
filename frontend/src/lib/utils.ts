@@ -1,8 +1,8 @@
-import { type ClassValue, clsx } from 'clsx'
-import { twMerge } from 'tailwind-merge'
+import { type ClassValue, clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
 
 export function isValidHttpUrl(value?: string) {
@@ -17,7 +17,7 @@ export function isValidHttpUrl(value?: string) {
     return false;
   }
 
-  return url.protocol === "http:" || url.protocol === "https:";
+  return url.protocol === 'http:' || url.protocol === 'https:';
 }
 
 export function decodeJWT<T>(token: string): T {
@@ -27,20 +27,19 @@ export function decodeJWT<T>(token: string): T {
 }
 
 export function readableSize(bytes: number): string {
-  const sizes = ['B', 'KB', 'MB', 'GB']
-  const i = Math.floor(Math.log(bytes) / Math.log(1024))
-  return (bytes / Math.pow(1024, i)).toFixed(2) + ' ' + sizes[i]
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(1024));
+  return (bytes / Math.pow(1024, i)).toFixed(2) + ' ' + sizes[i];
 }
 
 export const mapMediaType: Record<string, string> = {
   image:
-    "image/jpeg, image/jpg, image/png, image/gif, image/webp, image/avif, image/svg+xml, image/tiff, image/bmp, image/x-icon, image/vnd.microsoft.icon",
+    'image/jpeg, image/jpg, image/png, image/gif, image/webp, image/avif, image/svg+xml, image/tiff, image/bmp, image/x-icon, image/vnd.microsoft.icon',
   video:
-    "video/mp4, video/webm, video/ogg, video/avi, video/mov, video/mpeg, video/3gpp, video/3gpp2, video/quicktime, video/x-msvideo",
-  audio:
-    "audio/mpeg, audio/mp3, audio/wav, audio/ogg, audio/flac, audio/aac, audio/x-m4a",
+    'video/mp4, video/webm, video/ogg, video/avi, video/mov, video/mpeg, video/3gpp, video/3gpp2, video/quicktime, video/x-msvideo',
+  audio: 'audio/mpeg, audio/mp3, audio/wav, audio/ogg, audio/flac, audio/aac, audio/x-m4a',
   raw:
-    // “raw” covers things that are not image/video (docs, archives, etc.)
-    "application/pdf, application/zip, application/gzip, application/x-rar-compressed, application/msword, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-powerpoint, application/vnd.openxmlformats-officedocument.presentationml.presentation, text/plain, application/json, application/xml, application/vnd.adobe.photoshop",
-  _: ""
+    // "raw" covers things that are not image/video (docs, archives, etc.)
+    'application/pdf, application/zip, application/gzip, application/x-rar-compressed, application/msword, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-powerpoint, application/vnd.openxmlformats-officedocument.presentationml.presentation, text/plain, application/json, application/xml, application/vnd.adobe.photoshop',
+  _: '',
 };

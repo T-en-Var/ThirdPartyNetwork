@@ -1,9 +1,9 @@
 import api from '@/api/api';
 import type { Configuration, CreateConfiguration } from '@/types';
-import { useCachedApi, useMutation } from './useApi';
+import { useCachedApi, useMutation } from '../useApi';
 
 export default function useConfigurations() {
-  const fetchNetworkConfigurations = useCachedApi<Configuration[], [networkId: string]>(
+  const fetchConfigurations = useCachedApi<Configuration[], [networkId: string]>(
     (networkId) => `networks_${networkId}_configurations`,
     async (networkId) => await api.get<Configuration[]>(`/networks/${networkId}/configurations`),
   );
@@ -69,7 +69,7 @@ export default function useConfigurations() {
   );
 
   return {
-    fetchNetworkConfigurations,
+    fetchConfigurations,
     fetchConfiguration,
     createConfiguration,
     updateConfiguration,

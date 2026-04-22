@@ -1,5 +1,5 @@
-import type { PageBlock } from "./pageBlock";
-import type { UserContentBase, UserContentCreateBase } from "./userContentBase";
+import type { PageBlock } from './pageBlock';
+import type { UserContentBase, UserContentCreateBase } from './userContentBase';
 
 export interface CustomPage extends UserContentBase {
   id: string;

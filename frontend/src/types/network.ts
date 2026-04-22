@@ -1,11 +1,7 @@
-import type { NetworkAccess } from "./networkAccess";
-import type { Role } from "./role";
-import type { NetworkUser } from "./networkUser";
-import type { NetworkFile, NetworkFileLink } from "./userContent/files";
-
-
-
-
+import type { NetworkAccess } from './networkAccess';
+import type { Role } from './role';
+import type { NetworkUser } from './networkUser';
+import type { NetworkFile, NetworkFileLink } from './userContent/files';
 
 export interface EntitlementLimits {
   fileCountLimit: number;
@@ -30,7 +26,6 @@ export interface NetworkEntitlement extends EntitlementLimits {
   allowCustomPages: boolean;
 }
 
-
 export interface SettableEntitlement {
   allowFiles?: boolean;
   fileCountLimit?: number;
@@ -48,7 +43,6 @@ export interface SettableEntitlement {
   customPageBlockCountLimit?: number;
   customPageBlockSizeLimit?: number;
 }
-
 
 export interface SettableEntitlementForm extends SettableEntitlement {
   setAllowFiles?: boolean;
@@ -68,47 +62,44 @@ export interface SettableEntitlementForm extends SettableEntitlement {
   setCustomPageBlockSizeLimit?: number;
 }
 
-
 export interface Network {
-  id: string,
-  name: string,
-  description: string,
-  imageFile?: NetworkFile,
-  isPublic: boolean,
-  redirectURI: string,
-  createdOn: Date,
-  networkAccesses: NetworkAccess[],
-  roles: Role[],
-  networkUsers: NetworkUser[],
-  isSystemProtected: boolean,
-  // files: NetworkFile[],
-  // customPages: CustomPage[]
-  entitlement?: NetworkEntitlement,
+  id: string;
+  name: string;
+  description: string;
+  imageFile?: NetworkFile;
+  isPublic: boolean;
+  redirectURI: string;
+  createdOn: Date;
+  networkAccesses: NetworkAccess[];
+  roles: Role[];
+  networkUsers: NetworkUser[];
+  isSystemProtected: boolean;
+  entitlement?: NetworkEntitlement;
 }
 
 export interface CreateNetwork {
-  name: string,
-  isPublic: boolean,
-  description: string,
-  fileLink?: NetworkFileLink,
-  redirectURI: string,
+  name: string;
+  isPublic: boolean;
+  description: string;
+  fileLink?: NetworkFileLink;
+  redirectURI: string;
 }
 
 export interface NetworkUpdate {
-  name: string,
-  isPublic: boolean,
-  description: string,
-  fileLink?: NetworkFileLink,
-  redirectURI: string,
+  name: string;
+  isPublic: boolean;
+  description: string;
+  fileLink?: NetworkFileLink;
+  redirectURI: string;
 }
 
 export interface NetworkMetrics {
-  networkId: string,
-  fileCount: number,
-  fileStorage: number,
-  blogCount: number,
-  configurationCount: number,
-  customPageCount: number,
-  customPageBlockCount: number,
-  customPageBlockSize: number
+  networkId: string;
+  fileCount: number;
+  fileStorage: number;
+  blogCount: number;
+  configurationCount: number;
+  customPageCount: number;
+  customPageBlockCount: number;
+  customPageBlockSize: number;
 }

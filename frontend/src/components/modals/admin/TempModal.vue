@@ -1,5 +1,8 @@
 <template>
-  <modal-container :title="'Soon (TM)'" @close="$emit('close')">
+  <modal-container
+    :title="'Soon (TM)'"
+    @close="$emit('close')"
+  >
     <div>
       <span>Will open a new screen to view all user's content/info.</span>
     </div>

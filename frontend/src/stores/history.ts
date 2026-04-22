@@ -1,134 +1,135 @@
 import type { Blog, Configuration, CustomPage, Network, PageBlock, User, UserProxy } from '@/types';
 import { defineStore } from 'pinia';
-import { ref } from 'vue';
+import { reactive } from 'vue';
 
-export const useHistoryStore = defineStore('history', () => {
-  function genericHistory<T extends { id: string }>(theList: T[], theItem: T, max: number) {
-    theList = theList.filter((x) => x.id !== theItem.id);
-    theList.push(theItem);
+export const DEFAULT_STORES = {
+  adminPage: 'admin-page',
+  account: 'account',
+};
 
-    if (theList.length > max) theList.splice(0, theList.length - max);
+export interface HistoryModelMap {
+  userProxies: UserProxy;
+  networks: Network;
+  users: User;
+  configurations: Configuration;
+  blogs: Blog;
+  customPages: CustomPage;
+  pageBlocks: PageBlock;
+}
 
-    return theList;
+export type HistoryType = keyof HistoryModelMap;
+
+export const HISTORY_LIMITS: Record<HistoryType, number> = {
+  userProxies: 3,
+  networks: 3,
+  users: 3,
+  configurations: 3,
+  blogs: 3,
+  customPages: 3,
+  pageBlocks: 10,
+};
+
+function genericHistory<T extends { id: string }>(theList: T[], theItem: T, max: number): T[] {
+  const filteredList = theList.filter((x) => x.id !== theItem.id);
+  filteredList.push(theItem);
+  if (filteredList.length > max) filteredList.splice(0, filteredList.length - max);
+  return filteredList;
+}
+
+const activeStores = new Set<{ reset: () => void }>();
+
+export const useHistoryStore = (namespace: string) => {
+  const store = defineStore(`history-${namespace}`, () => {
+    const data = reactive(
+      (Object.keys(HISTORY_LIMITS) as HistoryType[]).reduce(
+        (acc, key) => {
+          acc[key] = [];
+          return acc;
+        },
+        {} as { [K in HistoryType]: HistoryModelMap[K][] },
+      ),
+    );
+
+    const getStorageKey = (type: HistoryType) => `history_${namespace}_${type}`;
+
+    type VisitMap = { [K in HistoryType]: (item: HistoryModelMap[K]) => void };
+
+    const visit = (Object.keys(HISTORY_LIMITS) as HistoryType[]).reduce((acc, key) => {
+      acc[key] = (item: { id: string }) => {
+        const currentList = data[key] as { id: string }[];
+        const updatedList = genericHistory(currentList, item, HISTORY_LIMITS[key]);
+
+        (data as Record<HistoryType, unknown[]>)[key] = updatedList;
+
+        localStorage.setItem(getStorageKey(key), JSON.stringify(updatedList));
+      };
+
+      return acc;
+    }, {} as VisitMap);
+
+    type RemoveMap = { [K in HistoryType]: (itemOrId: HistoryModelMap[K] | string) => void };
+
+    const remove = (Object.keys(HISTORY_LIMITS) as HistoryType[]).reduce((acc, key) => {
+      acc[key] = (itemOrId: { id: string } | string) => {
+        const idToRemove = typeof itemOrId === 'string' ? itemOrId : itemOrId.id;
+        const currentList = data[key] as { id: string }[];
+
+        const updatedList = currentList.filter((x) => x.id !== idToRemove);
+
+        (data as Record<HistoryType, unknown[]>)[key] = updatedList;
+
+        localStorage.setItem(getStorageKey(key), JSON.stringify(updatedList));
+      };
+
+      return acc;
+    }, {} as RemoveMap);
+
+    function initialize() {
+      (Object.keys(HISTORY_LIMITS) as HistoryType[]).forEach((type) => {
+        const stored = localStorage.getItem(getStorageKey(type));
+        if (stored) {
+          try {
+            (data as Record<HistoryType, unknown[]>)[type] = JSON.parse(stored) as unknown[];
+          } catch {
+            (data as Record<HistoryType, never[]>)[type] = [];
+          }
+        }
+      });
+    }
+
+    function reset() {
+      (Object.keys(HISTORY_LIMITS) as HistoryType[]).forEach((type) => {
+        localStorage.removeItem(getStorageKey(type));
+        (data as Record<HistoryType, never[]>)[type] = [];
+      });
+    }
+
+    initialize();
+
+    return {
+      data,
+      visit,
+      remove,
+      initialize,
+      reset,
+    };
+  })();
+
+  activeStores.add(store);
+
+  return store;
+};
+
+export function clearAllHistoryStores() {
+  activeStores.forEach((store) => store.reset());
+
+  const keysToRemove: string[] = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key?.startsWith('history_')) {
+      keysToRemove.push(key);
+    }
   }
 
-  // Account
-  const userProxies = ref<UserProxy[]>([]);
-  const userProxiesHistoryMax = 3;
-  const userProxyVisit = (userProxy: UserProxy) => {
-    userProxies.value = genericHistory(userProxies.value, userProxy, userProxiesHistoryMax);
-    localStorage.setItem('history_userProxies', JSON.stringify(userProxies.value));
-  };
-
-  // Admin
-  const networks = ref<Network[]>([]);
-  const networkHistoryMax = 3;
-  const networkVisit = (network: Network) => {
-    networks.value = genericHistory(networks.value, network, networkHistoryMax);
-    localStorage.setItem('history_networks', JSON.stringify(networks.value));
-  };
-
-  const users = ref<User[]>([]);
-  const userHistoryMax = 3;
-  const userVisit = (user: User) => {
-    users.value = genericHistory(users.value, user, userHistoryMax);
-    localStorage.setItem('history_users', JSON.stringify(users.value));
-  };
-
-  // Network
-  const configurations = ref<Configuration[]>([]);
-  const configurationHistoryMax = 3;
-  const configurationVisit = (config: Configuration) => {
-    configurations.value = genericHistory(configurations.value, config, configurationHistoryMax);
-    localStorage.setItem('history_configurations', JSON.stringify(configurations.value));
-  };
-
-  const blogs = ref<Blog[]>([]);
-  const blogHistoryMax = 3;
-  const blogVisit = (blog: Blog) => {
-    blogs.value = genericHistory(blogs.value, blog, blogHistoryMax);
-    localStorage.setItem('history_blogs', JSON.stringify(blogs.value));
-  };
-
-  const customPages = ref<CustomPage[]>([]);
-  const customPageHistoryMax = 3;
-  const customPageVisit = (page: CustomPage) => {
-    customPages.value = genericHistory(customPages.value, page, customPageHistoryMax);
-    localStorage.setItem('history_customPages', JSON.stringify(customPages.value));
-  };
-
-  const pageBlocks = ref<PageBlock[]>([]);
-  const pageBlockHistoryMax = 10;
-  const pageBlockVisit = (page: PageBlock) => {
-    pageBlocks.value = genericHistory(pageBlocks.value, page, pageBlockHistoryMax);
-    localStorage.setItem('history_pageBlocks', JSON.stringify(pageBlocks.value));
-  };
-
-  function initialize() {
-    const storedUserProxies = localStorage.getItem('history_userProxies');
-    if (storedUserProxies) userProxies.value = JSON.parse(storedUserProxies);
-
-    const storedBlogs = localStorage.getItem('history_blogs');
-    if (storedBlogs) blogs.value = JSON.parse(storedBlogs);
-
-    const storedConfigs = localStorage.getItem('history_configurations');
-    if (storedConfigs) configurations.value = JSON.parse(storedConfigs);
-
-    const storedCustomPages = localStorage.getItem('history_customPages');
-    if (storedCustomPages) customPages.value = JSON.parse(storedCustomPages);
-
-    const storedPageBlocks = localStorage.getItem('history_pageBlocks');
-    if (storedPageBlocks) pageBlocks.value = JSON.parse(storedPageBlocks);
-
-    const storedNetworks = localStorage.getItem('history_networks');
-    if (storedNetworks) networks.value = JSON.parse(storedNetworks);
-
-    const storedUsers = localStorage.getItem('history_users');
-    if (storedUsers) users.value = JSON.parse(storedUsers);
-  }
-
-  function reset() {
-    localStorage.removeItem('history_userProxies');
-    userProxies.value = []
-
-    localStorage.removeItem('history_blogs');
-    blogs.value = []
-
-    localStorage.removeItem('history_configurations');
-    configurations.value = []
-
-    localStorage.removeItem('history_customPages');
-    customPages.value = []
-
-    localStorage.removeItem('history_pageBlocks');
-    pageBlocks.value = []
-
-    localStorage.removeItem('history_networks');
-    networks.value = []
-
-    localStorage.removeItem('history_users');
-    users.value = []
-  }
-
-  return {
-    initialize,
-    reset,
-
-    userProxies,
-    userProxyVisit,
-
-    networks,
-    networkVisit,
-    users,
-    userVisit,
-
-    blogs,
-    blogVisit,
-    configurations,
-    configurationVisit,
-    customPages,
-    customPageVisit,
-    pageBlocks,
-    pageBlockVisit,
-  };
-});
+  keysToRemove.forEach((key) => localStorage.removeItem(key));
+}

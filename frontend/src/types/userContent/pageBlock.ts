@@ -1,4 +1,4 @@
-import type { UserContentBase } from "./userContentBase";
+import type { UserContentBase } from './userContentBase';
 
 export interface PageBlock extends UserContentBase {
   id: string;
@@ -17,10 +17,11 @@ export interface CreatePageBlock {
 }
 
 export interface TreeNode {
-  id: string
-  text: string
-  parentPageId?: string
-  children: TreeNode[]
-  recursive: boolean
-  visited: boolean
+  id: string;
+  text: string;
+  parentPageId?: string;
+  children: TreeNode[];
+  position: number;
+  recursive: boolean;
+  visited: boolean;
 }

@@ -1,24 +1,31 @@
 import api from '@/api/api.ts';
 import type { CreateCustomPage, CreatePageBlock, CustomPage, PageBlock } from '@/types';
-import { useCachedApi, useMutation } from './useApi';
+import { useCachedApi, useMutation } from '../useApi';
+
+const getKey = (networkId: string, entryId?: string) => {
+  const entity = 'customPages';
+  const base = `networks_${networkId}_${entity}`;
+  if (entryId !== undefined) return base + `_${entryId}`;
+  return base;
+};
 
 export default function useCustomPages() {
   const fetchCustomPages = useCachedApi<CustomPage[], [networkId: string]>(
-    (networkId) => `networks_${networkId}_customPages`,
-    async (networkId) => await api.get<CustomPage[]>(`/networks/${networkId}/custompages`),
+    (networkId) => getKey(networkId),
+    async (networkId) => await api.get<CustomPage[]>(`/networks/${networkId}/customPages`),
   );
 
   const fetchCustomPage = useCachedApi<CustomPage, [networkId: string, customPageId: string]>(
-    (networkId, customPageId) => `networks_${networkId}_customPages_${customPageId}`,
+    (networkId, customPageId) => getKey(networkId, customPageId),
     async (networkId, customPageId) =>
-      await api.get<CustomPage>(`/networks/${networkId}/custompages/${customPageId}`),
+      await api.get<CustomPage>(`/networks/${networkId}/customPages/${customPageId}`),
   );
 
   const createCustomPage = useMutation<CustomPage, [networkId: string, payload: CreateCustomPage]>(
     async (networkId, payload) => await api.post(`/networks/${networkId}/customPages/`, payload),
     {
       itemKeyFactory: (result, networkId) => `networks_${networkId}_customPages_${result.id}`,
-      listKeyFactory: (networkId) => `networks_${networkId}_customPages`,
+      listKeyFactory: (networkId) => getKey(networkId),
       listUpdater: (currentList, result) => {
         return [result, ...currentList];
       },
@@ -35,9 +42,8 @@ export default function useCustomPages() {
         payload,
       ),
     {
-      itemKeyFactory: (_, networkId, customPageId) =>
-        `networks_${networkId}_customPages_${customPageId}`,
-      listKeyFactory: (networkId) => `networks_${networkId}_customPages`,
+      itemKeyFactory: (_, networkId, customPageId) => getKey(networkId, customPageId),
+      listKeyFactory: (networkId) => getKey(networkId),
       listUpdater: (currentList, result) => {
         return currentList.map((item) => (item.id == result.id ? result : item));
       },
@@ -48,9 +54,8 @@ export default function useCustomPages() {
     async (networkId, customPageId) =>
       await api.delete(`/networks/${networkId}/customPages/${customPageId}/`),
     {
-      itemKeyFactory: (networkId, customPageId) =>
-        `networks_${networkId}_customPages_${customPageId}`,
-      listKeyFactory: (networkId) => `networks_${networkId}_customPages`,
+      itemKeyFactory: (_, networkId, customPageId) => getKey(networkId, customPageId),
+      listKeyFactory: (networkId) => getKey(networkId),
       listUpdater: (currentList, _, __, customPageId) => {
         return currentList.filter((item) => item.id !== customPageId);
       },
@@ -66,9 +71,8 @@ export default function useCustomPages() {
       await api.post(`/networks/${networkId}/customPages/${customPageId}/pageBlocks`, payload),
     {
       itemKeyFactory: (result, networkId, customPageId) =>
-        `networks_${networkId}_customPages_${customPageId}_pageBlocks_${result.id}`,
-      listKeyFactory: (networkId, customPageId) =>
-        `networks_${networkId}_customPages_${customPageId}`,
+        getKey(networkId, customPageId) + `_pageBlocks_${result.id}`,
+      listKeyFactory: (networkId, customPageId) => getKey(networkId, customPageId),
       listUpdater: (currentList, result) => {
         const customPage = currentList as unknown as CustomPage;
         customPage.pages = [result, ...customPage.pages];
@@ -87,17 +91,37 @@ export default function useCustomPages() {
         `/networks/${networkId}/customPages/${customPageId}/pageBlocks/${pageBlockId}`,
         payload,
       ),
-      {
+    {
       itemKeyFactory: (_, networkId, customPageId, pageBlockId) =>
-        `networks_${networkId}_customPages_${customPageId}_pageBlocks_${pageBlockId}`,
-      listKeyFactory: (networkId, customPageId) =>
-        `networks_${networkId}_customPages_${customPageId}`,
+        getKey(networkId, customPageId) + `_pageBlocks_${pageBlockId}`,
+      listKeyFactory: (networkId, customPageId) => getKey(networkId, customPageId),
       listUpdater: (currentList, result) => {
         const customPage = currentList as unknown as CustomPage;
-        customPage.pages = customPage.pages.map((item) => item.id === result.id ? result : item);
+        customPage.pages = customPage.pages.map((item) => (item.id === result.id ? result : item));
         return customPage as unknown as unknown[];
       },
-      }
+    },
+  );
+
+  const deletePageBlock = useMutation<
+    void,
+    [networkId: string, customPageId: string, pageBlockId: string],
+    unknown
+  >(
+    async (networkId, customPageId, pageBlockId) =>
+      await api.delete(
+        `/networks/${networkId}/customPages/${customPageId}/pageBlocks/${pageBlockId}`,
+      ),
+    {
+      itemKeyFactory: (_, networkId, customPageId, pageBlockId) =>
+        getKey(networkId, customPageId) + `_pageBlocks_${pageBlockId}`,
+      listKeyFactory: (networkId, customPageId) => getKey(networkId, customPageId),
+      listUpdater: (currentList, _, __, ___, pageBlockId) => {
+        const customPage = currentList as unknown as CustomPage;
+        customPage.pages = customPage.pages.filter((item) => item.id !== pageBlockId);
+        return customPage as unknown as unknown[];
+      },
+    },
   );
 
   return {
@@ -106,7 +130,9 @@ export default function useCustomPages() {
     createCustomPage,
     updateCustomPage,
     deleteCustomPage,
+
     createPageBlock,
     updatePageBlock,
+    deletePageBlock,
   };
 }

@@ -1,4 +1,10 @@
-import type { Network, NetworkEntitlement, NetworkMetrics, NetworkUpdate, SettableEntitlement } from '@/types';
+import type {
+  Network,
+  NetworkEntitlement,
+  NetworkMetrics,
+  NetworkUpdate,
+  SettableEntitlement,
+} from '@/types';
 import api from '@/api/api';
 import { globalCache, useCachedApi, useMutation } from './useApi';
 

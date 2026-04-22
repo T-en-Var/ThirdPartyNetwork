@@ -1,4 +1,4 @@
-import type { UserContentBase, UserContentCreateBase } from "./userContentBase";
+import type { UserContentBase, UserContentCreateBase } from './userContentBase';
 
 export interface Configuration extends UserContentBase {
   id: string;

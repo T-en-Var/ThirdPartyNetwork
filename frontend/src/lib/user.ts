@@ -9,9 +9,9 @@ export function getNameDisplayUserProxy(userProxy: UserProxy) {
     return `${fullName} (${username})`;
   }
 
-  return fullName || username || 'Unknown User'; 
+  return fullName || username || 'Unknown User';
 }
 
 export const defaultProxy = (user: User) => {
-  return user.userProxies.find(up => up.isDefault)!;
-}
+  return user.userProxies.find((up) => up.isDefault)!;
+};
