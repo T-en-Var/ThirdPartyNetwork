@@ -16,11 +16,8 @@ public class WebsocketController : ControllerBase
     [HttpGet("group/{groupId}")]
     public async Task Get(string groupId)
     {
-        Console.WriteLine($"Get group {groupId}");
-
         if (HttpContext.WebSockets.IsWebSocketRequest)
         {
-            Console.WriteLine($"WebSocket request");
             await _websocketService.ProcessWebSocketRequestAsync(groupId, HttpContext);
         }
         else
