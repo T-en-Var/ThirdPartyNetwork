@@ -32,25 +32,26 @@ builder.Services.AddAuthentication(o =>
 {
     var sp = builder.Services.BuildServiceProvider();
     var httpContextAccessor = sp.GetRequiredService<IHttpContextAccessor>();
-    
+
     o.TokenValidationParameters = new TokenValidationParameters
     {
         ValidIssuer = config["JwtSettings:Issuer"],
         AudienceValidator = (audiences, securityToken, validationParameters) =>
         {
             var httpContext = httpContextAccessor.HttpContext;
-            
-            if (httpContext == null) throw new NullReferenceException(); 
+
+            if (httpContext == null) throw new NullReferenceException();
 
             var defaultAudience = config["JwtSettings:Audience"];
             var originHeader = httpContext.Request.Headers.Origin.FirstOrDefault();
-            
+
             if (originHeader == defaultAudience) return true;
-            
+
             var enumerable = audiences as string[] ?? audiences.ToArray();
             return enumerable.Contains(originHeader) || enumerable.Contains(defaultAudience);
         },
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("TOKEN_SECRET")!)),
+        IssuerSigningKey =
+            new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("TOKEN_SECRET")!)),
         ValidateIssuer = true,
         ValidateAudience = true,
         ValidateLifetime = true,
@@ -64,7 +65,8 @@ builder.Services.AddAuthentication(o =>
         OnChallenge = context =>
         {
             context.HandleResponse(); // Prevent default
-            return ErrorResponseWriter.WriteJsonError(context.HttpContext, 401, "Authentication is required to access this resource.");
+            return ErrorResponseWriter.WriteJsonError(context.HttpContext, 401,
+                "Authentication is required to access this resource.");
         }
     };
 });
@@ -112,7 +114,7 @@ builder.Services.Configure<Microsoft.AspNetCore.Mvc.JsonOptions>(options =>
 builder.Services.Configure<JsonOptions>(options =>
 {
     options.SerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
-    options.SerializerOptions.MaxDepth = 128; 
+    options.SerializerOptions.MaxDepth = 128;
 });
 
 builder.Services.AddOpenApi(options =>
@@ -121,12 +123,13 @@ builder.Services.AddOpenApi(options =>
     {
         // This is a "Hammer" fix: it tells the generator to stop 
         // recursing if the schema gets too complex.
-        if (context.JsonTypeInfo.Type.Name.EndsWith("Repository") || 
-            context.JsonTypeInfo.Type.Name.Contains("Proxy")) 
+        if (context.JsonTypeInfo.Type.Name.EndsWith("Repository") ||
+            context.JsonTypeInfo.Type.Name.Contains("Proxy"))
         {
             // Just treat these as objects instead of crawling them
-            schema.Properties.Clear(); 
+            schema.Properties.Clear();
         }
+
         return Task.CompletedTask;
     });
 });
@@ -134,10 +137,8 @@ builder.Services.AddOpenApi(options =>
 builder.Services.AddTransient<DatabaseSeeder>();
 
 // builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-builder.Services.AddAutoMapper(cfg =>
-{
-    cfg.LicenseKey = Environment.GetEnvironmentVariable("LUCKY_PENNY_LICENSE");
-}, typeof(Program).Assembly, typeof(UserService).Assembly, typeof(Program).Assembly);
+builder.Services.AddAutoMapper(cfg => { cfg.LicenseKey = Environment.GetEnvironmentVariable("LUCKY_PENNY_LICENSE"); },
+    typeof(Program).Assembly, typeof(UserService).Assembly, typeof(Program).Assembly);
 
 // Other
 builder.Services.AddHttpContextAccessor();
@@ -152,7 +153,7 @@ builder.Services.Configure<CloudinaryOptions>(options =>
 builder.Services.Configure<FormOptions>(options =>
 {
     // options.MultipartBodyLengthLimit = 104857600; // 100 MB
-    options.MultipartBodyLengthLimit =  52428800; // 50 MB
+    options.MultipartBodyLengthLimit = 52428800; // 50 MB
 });
 builder.Services.AddSingleton<ICDNService, CloudinaryService>();
 
@@ -184,6 +185,7 @@ builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IIdentityVerifier, IdentityVerifier>();
 builder.Services.AddScoped<IIdentityService, IdentityService>();
 builder.Services.AddScoped<IAccessLevelVerifier, AccessLevelVerifier>();
+builder.Services.AddSingleton<WebsocketHandler>();
 
 // Add Services
 builder.Services.AddScoped<IAccessService, AccessService>();
@@ -206,6 +208,7 @@ builder.Services.AddScoped<IPermissionService, PermissionService>();
 builder.Services.AddScoped<IUserProxyManagerService, UserProxyManagerService>();
 builder.Services.AddScoped<IUserProxyService, UserProxyService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IWebsocketService, WebsocketService>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -216,8 +219,8 @@ builder.Services.AddOpenApi(options =>
     options.AddDocumentTransformer((document, context, cancellationToken) =>
     {
         document.Info.Title = "Third Party Network API";
-        document.Info.Version = "v1";
-        
+        document.Info.Version = "v0";
+
         // Add Bearer Security Scheme
         var scheme = new Microsoft.OpenApi.Models.OpenApiSecurityScheme
         {
@@ -227,10 +230,10 @@ builder.Services.AddOpenApi(options =>
             In = Microsoft.OpenApi.Models.ParameterLocation.Header,
             Description = "Please provide a valid JWT token."
         };
-        
+
         document.Components ??= new Microsoft.OpenApi.Models.OpenApiComponents();
         document.Components.SecuritySchemes.Add("Bearer", scheme);
-        
+
         return Task.CompletedTask;
     });
 });
@@ -250,7 +253,7 @@ var app = builder.Build();
 // Wrap the seeding in a scope to safely handle errors
 using (var scope = app.Services.CreateScope())
 {
-    try 
+    try
     {
         // Only run seeder if not generating migrations (optional check)
         var seeder = scope.ServiceProvider.GetRequiredService<DatabaseSeeder>();
@@ -261,7 +264,7 @@ using (var scope = app.Services.CreateScope())
         // Log the error but don't crash the app entirely
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
         logger.LogError(ex, "An error occurred while seeding the database.");
-        
+
         // In CI/Migrations context, we might expect this to fail if secrets aren't present
     }
 }
@@ -270,17 +273,19 @@ using (var scope = app.Services.CreateScope())
 app.UseMiddleware<CustomExceptionMiddleware>();
 app.UseExceptionHandler();
 
-if (app.Environment.IsDevelopment())
+if (true || app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
-    app.MapScalarApiReference(); 
+    app.MapScalarApiReference();
 }
 
 app.UseCors("AllowAll");
 
+app.UseWebSockets();
+
 app.UseHttpsRedirection();
 
-app.UseAuthentication(); 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
