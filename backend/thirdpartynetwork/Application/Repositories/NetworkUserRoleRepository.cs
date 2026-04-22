@@ -31,7 +31,7 @@ namespace thirdpartynetwork.Application.Repositories
             return await _context.NetworkUserRoles
                     .Include(n => n.NetworkUser)
                     .Include(n => n.Role)
-                    .AsNoTracking()
+                    
                     .ToListAsync();
         }
 
@@ -50,7 +50,7 @@ namespace thirdpartynetwork.Application.Repositories
         public async Task<ICollection<NetworkUserRole>> GetByNetworkUserIdAsync(Guid networkId, Guid id)
         {
             return await GetQueryable(networkId)
-                    .AsNoTracking()
+                    
                     .Where(nur => nur.NetworkUserId == id)
                     .ToListAsync();
         }
@@ -58,7 +58,7 @@ namespace thirdpartynetwork.Application.Repositories
         public async Task<ICollection<NetworkUserRole>> GetByRoleIdAsync(Guid networkId, Guid id)
         {
             return await GetQueryable(networkId)
-                    .AsNoTracking()
+                    
                     .Where(nur => nur.RoleId == id)
                     .ToListAsync();
         }

@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using thirdpartynetwork.Application.Auth.Requirements;
 using thirdpartynetwork.Core;
 using thirdpartynetwork.Application.Dtos.UserContent.Blog;
-using thirdpartynetwork.Core.Interfaces.Services;
 
 namespace thirdpartynetwork.Presentation.Controllers;
 
@@ -17,7 +16,7 @@ public class BlogController(IBlogService service, IMapper mapper) : ControllerBa
     public async Task<IActionResult> GetNetworkBlogs(Guid networkId)
     {
         var list = await service.GetByNetworkIdAsync(networkId);
-        return Ok(mapper.Map<IEnumerable<BlogDto>>(list));
+        return Ok(mapper.Map<IEnumerable<BlogDto>>(list, opts => { opts.Items["networkId"] = networkId; }));
     }
 
     [HttpGet("{blogId:guid}")]
@@ -27,7 +26,7 @@ public class BlogController(IBlogService service, IMapper mapper) : ControllerBa
     public async Task<IActionResult> GetBlog(Guid networkId, Guid blogId)
     {
         var blog = await service.GetByIdAsync(networkId, blogId);
-        return blog != null ? Ok(mapper.Map<BlogDto>(blog)) : NotFound();
+        return blog != null ? Ok(mapper.Map<BlogDto>(blog, opts => { opts.Items["networkId"] = networkId; })) : NotFound();
     }
 
     [HttpGet("{slug}")]
@@ -37,7 +36,7 @@ public class BlogController(IBlogService service, IMapper mapper) : ControllerBa
     public async Task<IActionResult> GetBySlug(Guid networkId, string slug)
     {
         var blog = await service.GetBySlugAsync(networkId, slug);
-        return blog != null ? Ok(mapper.Map<BlogDto>(blog)) : NotFound();
+        return blog != null ? Ok(mapper.Map<BlogDto>(blog, opts => { opts.Items["networkId"] = networkId; })) : NotFound();
     }
 
     [HttpPost]
@@ -46,8 +45,7 @@ public class BlogController(IBlogService service, IMapper mapper) : ControllerBa
     public async Task<IActionResult> CreateBlog(Guid networkId, [FromBody] CreateBlogDto blog)
     {
         var created = await service.CreateAsync(networkId, blog);
-        return CreatedAtAction(nameof(CreateBlog), new { networkId = networkId, blogId = created.Id },
-            mapper.Map<BlogDto>(created));
+        return Ok(mapper.Map<BlogDto>(created, opts => { opts.Items["networkId"] = networkId; }));
     }
 
     [HttpPut("{blogId:guid}")]
@@ -57,7 +55,7 @@ public class BlogController(IBlogService service, IMapper mapper) : ControllerBa
     public async Task<IActionResult> UpdateBlog(Guid networkId, Guid blogId, [FromBody] UpdateBlogDto updateBlog)
     {
         var updated = await service.UpdateAsync(networkId, blogId, updateBlog);
-        return Ok(mapper.Map<BlogDto>(updated));
+        return Ok(mapper.Map<BlogDto>(updated, opts => { opts.Items["networkId"] = networkId; }));
     }
 
     [HttpDelete("{blogId:guid}")]

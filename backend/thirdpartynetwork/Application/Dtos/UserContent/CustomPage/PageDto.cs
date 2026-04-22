@@ -3,17 +3,15 @@ using thirdpartynetwork.Core.Enum;
 
 namespace thirdpartynetwork.Application.Dtos.UserContent.CustomPage
 {
-    public class CustomPageDto : CustomUserContentBaseDto
+    public class PageDto : UserContentBaseDto
     {
-        public Guid Id { get; set; }
         public required string Name { get; set; }
         public required string Slug { get; set; }
         public ICollection<PageBlockLightDto> Pages { get; set; }
     }
     
-    public class CustomPageLightDto : CustomUserContentBaseLightDto
+    public class PageLightDto : UserContentBaseLightDto
     {
-        public Guid Id { get; set; }
         public required string Name { get; set; }
         public required string Slug { get; set; }
     }

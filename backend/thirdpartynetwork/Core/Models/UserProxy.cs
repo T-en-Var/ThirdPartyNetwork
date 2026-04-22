@@ -18,25 +18,18 @@ namespace thirdpartynetwork.Core.Models
         [JsonIgnore]
         public ICollection<NetworkUser> NetworkUsers { get; set; } = new List<NetworkUser>();
         
-        public UserProxy ApplyDefaults()
+        public void ApplyDefaults()
         {
-            if (IsDefault) return this;
+            if (IsDefault) return;
             
-            var defaultProxy = this.User.DefaultProxy;
+            var defaultProxy = User.DefaultProxy;
 
-            return new UserProxy
-            {
-                Id = this.Id,
-                Username = this.Username ?? defaultProxy.Username,
-                FirstName = this.FirstName ?? defaultProxy.FirstName,
-                LastName = this.LastName ?? defaultProxy.LastName,
-                Email = this.Email ?? defaultProxy.Email,
-                ImageFile = this.ImageFile ?? defaultProxy.ImageFile,
-                ImageFileId = this.ImageFileId ?? defaultProxy.ImageFileId,
-                IsDefault = this.IsDefault,
-                User = this.User,
-                NetworkUsers = this.NetworkUsers,
-            };
+             Username ??= defaultProxy.Username;
+             FirstName ??= defaultProxy.FirstName;
+             LastName ??= defaultProxy.LastName;
+             Email ??= defaultProxy.Email;
+             ImageFile ??= defaultProxy.ImageFile;
+             ImageFileId ??= defaultProxy.ImageFileId;
         }
     }
 }

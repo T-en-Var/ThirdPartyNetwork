@@ -89,7 +89,7 @@ public class EntitlementService(
             return false;
         }
 
-        if (file.Length > network.Entitlement.FileSizeLimit)
+        if (file.Length > network.Entitlement.FileSizeLimit * 1024.0) // FileSizeLimit is in KB
         {
             Console.WriteLine("network.Entitlement.FileSizeLimit reached");
             return false;
@@ -108,7 +108,7 @@ public class EntitlementService(
 
         // Includes role limit, if found takes the largest value.
         var userFileSizeLimit = ReadFileSizeLimitEntitlement(networkUser) ?? network.Entitlement.FileSizeLimit;
-        if (file.Length > userFileSizeLimit)
+        if (file.Length > userFileSizeLimit * 1024.0)
         {
             Console.WriteLine("userFileSizeLimit reached");
             return false;

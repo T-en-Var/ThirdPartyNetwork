@@ -3,6 +3,7 @@ using thirdpartynetwork.Core;
 using thirdpartynetwork.Core.Data;
 using thirdpartynetwork.Core.Interfaces.Auth;
 using thirdpartynetwork.Core.Models;
+using File = thirdpartynetwork.Core.Models.File;
 
 namespace thirdpartynetwork.Application.Repositories.UserContent;
 
@@ -12,6 +13,18 @@ public abstract class UserContentBaseRepository<T>(DataContext context, IAccessL
 {
     protected abstract Task<IQueryable<T>> GetQueryableAsync();
     protected abstract string ReadPermissionName { get; }
+
+    private static IQueryable<T> BaseIncludes(IQueryable<T> query)
+    {
+        return query
+            .Include(x => x.Author)
+            .ThenInclude(x => x.UserProxy)
+            .ThenInclude(x => x.ImageFile)
+            .Include(x => x.Author)
+            .ThenInclude(x => x.NetworkUserAccesses)
+            .ThenInclude(x => x.Access)
+            .AsQueryable();
+    }
 
     protected async Task<IQueryable<T>> GetAccessibleQueryableAsync(Guid networkId, bool bypass = false)
     {
@@ -25,10 +38,17 @@ public abstract class UserContentBaseRepository<T>(DataContext context, IAccessL
             query = query.Where(accessPredicate);
         }
 
-        return query
-            .Include(x => x.Author)
-            .ThenInclude(x => x.UserProxy)
-            .AsQueryable();
+        return BaseIncludes(query);
+    }
+
+    public async Task<ICollection<T>> GetByNetworkIdAsync(Guid networkId)
+    {
+        var query = await GetAccessibleQueryableAsync(networkId); 
+
+        query = BaseIncludes(query);
+        query = query.Where(x => x.NetworkId == networkId);
+    
+        return await query.ToListAsync();
     }
 
     public async Task<ICollection<T>> GetByAuthorIdAsync(Guid networkId, Guid networkUserId, bool bypass = false)
@@ -44,6 +64,7 @@ public abstract class UserContentBaseRepository<T>(DataContext context, IAccessL
     {
         var query = await GetQueryableAsync(); 
 
+        query = BaseIncludes(query);
         query = query.Where(x => x.Author.UserProxyId == userProxyId);
     
         return await query.ToListAsync();

@@ -19,7 +19,6 @@ namespace thirdpartynetwork.Application.Services
     ) : INetworkService
     {
         private static Network? _cachedMainNetwork;
-        // private static Network? _cachedMainNetworkDetails;
 
         private async Task<ICollection<Network>> FilterNetworksAsync(ICollection<Network> networks, bool bypass = false)
         {

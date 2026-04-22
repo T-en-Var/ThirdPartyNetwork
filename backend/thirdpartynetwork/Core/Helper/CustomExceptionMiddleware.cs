@@ -6,7 +6,7 @@ namespace thirdpartynetwork.Core.Helper
     {
         public async Task InvokeAsync(HttpContext context)
         {
-            Console.WriteLine("[Middleware (Request)] " + context.Request.Path);
+            Console.WriteLine($"[Middleware (Request)] {context.Request.Method}: {context.Request.Path}");
             try
             {
                 await next(context);

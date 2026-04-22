@@ -1,4 +1,4 @@
-﻿﻿using AutoMapper;
+﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using thirdpartynetwork.Core.Models;
@@ -13,22 +13,37 @@ namespace thirdpartynetwork.Application.Services
         IFileRepository fileRepository,
         IMapper mapper) : INetworkUserService
     {
+        private static ICollection<NetworkUser> MultiApplyDefaults(ICollection<NetworkUser> networkUsers)
+        {
+            foreach (var networkUser in networkUsers) SingleApplyDefaults(networkUser);
+
+            return networkUsers;
+        }
+
+        private static NetworkUser? SingleApplyDefaults(NetworkUser? networkUser)
+        {
+            if (networkUser == null) return null;
+            networkUser.UserProxy.ApplyDefaults();
+
+            return networkUser;
+        }
+        
         public async Task<ICollection<NetworkUser>> GetAllAsync()
         {
             var networkUsers = await repository.GetAllAsync();
-            return networkUsers;
+            return MultiApplyDefaults(networkUsers);
         }
 
         public async Task<NetworkUser?> GetByIdsAsync(Guid networkId, Guid userProxyId)
         {
             var networkUser = await repository.GetByIdsAsync(networkId, userProxyId);
-            return networkUser;
+            return SingleApplyDefaults(networkUser);
         }
 
         public async Task<NetworkUser?> GetByIdsPreAuthAsync(Guid networkId, Guid userProxyId)
         {
             var networkUser = await repository.GetByIdsPreAuthAsync(networkId, userProxyId);
-            return networkUser;
+            return SingleApplyDefaults(networkUser);
         }
 
         public async Task<ICollection<NetworkUser>> GetByNetworkIdAsync(Guid networkId)
@@ -36,7 +51,7 @@ namespace thirdpartynetwork.Application.Services
             if (await networkService.GetByIdAsync(networkId) == null) throw new NotFoundHttpException("Network not Found");
 
             var networkUsers = await repository.GetByNetworkIdAsync(networkId);
-            return networkUsers;
+            return MultiApplyDefaults(networkUsers);
         }
 
         public async Task<ICollection<NetworkUser>> GetByUserProxyIdAsync(Guid userProxyId)
@@ -44,9 +59,9 @@ namespace thirdpartynetwork.Application.Services
             if (await userProxyService.GetByIdAsync(userProxyId) == null) throw new NotFoundHttpException("UserProxy not Found");
 
             var networkUsers = await repository.GetByUserProxyIdAsync(userProxyId);
-            return networkUsers;
+            return MultiApplyDefaults(networkUsers);
         }
-
+        
         public async Task<ICollection<Network>> GetNetworksByUserProxyIdAsync(Guid userProxyId)
         {
             if (await userProxyService.GetByIdAsync(userProxyId) == null) throw new NotFoundHttpException("UserProxy not Found");
@@ -70,18 +85,18 @@ namespace thirdpartynetwork.Application.Services
         public async Task<NetworkUser?> GetByIdAsync(Guid networkId, Guid id)
         {
             var networkUser = await repository.GetByIdAsync(networkId, id);
-            return networkUser;
+            return SingleApplyDefaults(networkUser);
         } 
         
         public async Task<NetworkUser?> GetJustByIdAsync(Guid id)
         {
-            return await repository.GetJustByIdAsync(id);
+            return SingleApplyDefaults(await repository.GetJustByIdAsync(id));
         }
 
         public async Task<NetworkUser?> GetByNetworkIdAndEmailAsync(Guid networkId, string email)
         {
             var networkUser = await repository.GetByNetworkIdAndEmailAsync(networkId, email);
-            return networkUser;
+            return SingleApplyDefaults(networkUser);
         }
 
         public async Task<NetworkUser> CreateAsync(Guid networkId, Guid userProxyId, CreateNetworkUserDto createNetworkUser)
@@ -130,7 +145,7 @@ namespace thirdpartynetwork.Application.Services
             }
 
             networkUser = await repository.CreateAsync(networkUser);
-            return networkUser;
+            return SingleApplyDefaults(networkUser)!;
         }
 
         public async Task<NetworkUser> UpdateAsync(Guid networkId, Guid networkUserId, UpdateNetworkUserDto updateNetworkUser)
@@ -145,7 +160,7 @@ namespace thirdpartynetwork.Application.Services
             networkUser.UserProxyId = existing.UserProxyId;
 
             networkUser = await repository.UpdateAsync(networkId, networkUser);
-            return networkUser;
+            return SingleApplyDefaults(networkUser)!;
         }
 
         public async Task NetworkAccessUpdateAsync(Guid networkId)
