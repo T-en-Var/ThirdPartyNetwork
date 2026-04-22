@@ -1,78 +1,129 @@
 using System.Collections.Concurrent;
 using System.Net.WebSockets;
 using System.Text;
+using System.Threading.Channels;
 
 namespace thirdpartynetwork.Application.Helpers;
 
+public class WebSocketConnection : IDisposable
+{
+    public string ConnectionId { get; }
+    public WebSocket Socket { get; }
+
+    private readonly Channel<byte[]> _sendQueue;
+    private readonly CancellationTokenSource _cts = new();
+
+    public WebSocketConnection(string connectionId, WebSocket socket)
+    {
+        ConnectionId = connectionId;
+        Socket = socket;
+
+        _sendQueue = Channel.CreateUnbounded<byte[]>();
+        _ = ProcessSendQueueAsync();
+    }
+
+    public void EnqueueMessage(byte[] message)
+    {
+        _sendQueue.Writer.TryWrite(message);
+    }
+
+    private async Task ProcessSendQueueAsync()
+    {
+        try
+        {
+            await foreach (var message in _sendQueue.Reader.ReadAllAsync(_cts.Token))
+            {
+                if (Socket.State == WebSocketState.Open)
+                {
+                    await Socket.SendAsync(
+                        new ArraySegment<byte>(message),
+                        WebSocketMessageType.Text,
+                        true,
+                        CancellationToken.None);
+                }
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            /* Expected when connection closes */
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Send loop error for {ConnectionId}: {ex.Message}");
+        }
+    }
+
+    public void Dispose()
+    {
+        _cts.Cancel();
+        _cts.Dispose();
+    }
+}
+
+
 public class WebsocketHandler
 {
-    private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, WebSocket>> _groups = new();
+    private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, WebSocketConnection>> _groups = new();
 
     public async Task HandleConnectionAsync(string groupId, HttpContext context)
     {
         using var webSocket = await context.WebSockets.AcceptWebSocketAsync();
         var connectionId = Guid.NewGuid().ToString();
 
-        var group = _groups.GetOrAdd(groupId, _ => new ConcurrentDictionary<string, WebSocket>());
-        group.TryAdd(connectionId, webSocket);
+        using var connection = new WebSocketConnection(connectionId, webSocket);
 
-        var joinText = $"System: User {connectionId} joined.";
-        var joinMessage = Encoding.UTF8.GetBytes(joinText);
-        
-        await BroadcastToGroupAsync(
-            groupId, 
-            connectionId, 
-            joinMessage, 
-            joinMessage.Length, 
-            WebSocketMessageType.Text, 
-            true
-        );
+        var group = _groups.GetOrAdd(groupId, _ => new ConcurrentDictionary<string, WebSocketConnection>());
+        group.TryAdd(connectionId, connection);
 
-        await ReceiveLoopAsync(groupId, connectionId, webSocket);
+        var joinMessage = Encoding.UTF8.GetBytes($"System: User {connectionId} joined.");
+
+        BroadcastToGroup(groupId, joinMessage);
+
+        await ReceiveLoopAsync(groupId, connection);
     }
-    
-    private async Task ReceiveLoopAsync(string groupId, string connectionId, WebSocket webSocket)
+
+    private async Task ReceiveLoopAsync(string groupId, WebSocketConnection connection)
     {
         var buffer = new byte[1024 * 4];
 
         try
         {
-            while (webSocket.State == WebSocketState.Open)
+            while (connection.Socket.State == WebSocketState.Open)
             {
-                Console.WriteLine("Receiving message");
-                var receiveResult = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-                Console.WriteLine($"Received {receiveResult.Count} bytes");
+                using var memoryStream = new MemoryStream();
+                WebSocketReceiveResult receiveResult;
 
-                if (receiveResult.MessageType == WebSocketMessageType.Close)
+                do
                 {
-                    await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Client disconnected", CancellationToken.None);
-                    break;
-                }
+                    receiveResult =
+                        await connection.Socket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
 
-                await BroadcastToGroupAsync(groupId, connectionId, buffer, receiveResult.Count, receiveResult.MessageType, receiveResult.EndOfMessage);
+                    if (receiveResult.MessageType == WebSocketMessageType.Close)
+                    {
+                        await connection.Socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Client disconnected",
+                            CancellationToken.None);
+                        return;
+                    }
+
+                    memoryStream.Write(buffer, 0, receiveResult.Count);
+                } while (!receiveResult.EndOfMessage);
+
+                var completeMessage = memoryStream.ToArray();
+                BroadcastToGroup(groupId, completeMessage);
             }
         }
         finally
         {
             if (_groups.TryGetValue(groupId, out var group))
             {
-                group.TryRemove(connectionId, out _);
-                
-                if (!group.IsEmpty) 
+                group.TryRemove(connection.ConnectionId, out _);
+
+                if (!group.IsEmpty)
                 {
-                    var leaveText = $"System: User {connectionId} disconnected.";
-                    var leaveMessage = Encoding.UTF8.GetBytes(leaveText);
-                    
-                    await BroadcastToGroupAsync(
-                        groupId, 
-                        connectionId, 
-                        leaveMessage, 
-                        leaveMessage.Length, 
-                        WebSocketMessageType.Text, 
-                        true
-                    );
+                    var leaveMessage = Encoding.UTF8.GetBytes($"System: User {connection.ConnectionId} disconnected.");
+                    BroadcastToGroup(groupId, leaveMessage);
                 }
-                
+
                 if (group.IsEmpty)
                 {
                     _groups.TryRemove(groupId, out _);
@@ -81,27 +132,13 @@ public class WebsocketHandler
         }
     }
 
-    private async Task BroadcastToGroupAsync(string groupId, string senderConnectionId, byte[] buffer, int count, WebSocketMessageType messageType, bool endOfMessage)
+    private void BroadcastToGroup(string groupId, byte[] message)
     {
         if (!_groups.TryGetValue(groupId, out var group)) return;
 
-        var messageSegment = new ArraySegment<byte>(buffer, 0, count);
-
-        // Create a copy of the clients to avoid modification issues during iteration
-        var clients = group.Values.Where(ws => ws.State == WebSocketState.Open).ToList();
-
-        foreach (var client in clients)
+        foreach (var client in group.Values)
         {
-            try 
-            {
-                // Note: In a production app, you'd want a SemaphoreSlim per connection 
-                // to ensure this specific 'client' isn't currently sending something else.
-                await client.SendAsync(messageSegment, messageType, endOfMessage, CancellationToken.None);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error sending to a client: {ex.Message}");
-            }
+            client.EnqueueMessage(message);
         }
     }
 }
