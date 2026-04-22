@@ -22,6 +22,11 @@ namespace thirdpartynetwork.Application.Repositories
         {
             var query = _context.Blogs
                 .Include(x => x.CoverImage)
+                .Include(x => x.Author)
+                .ThenInclude(x => x.UserProxy)
+                .Include(x => x.Author)
+                .ThenInclude(x => x.NetworkUserAccesses)
+                .ThenInclude(x => x.Access)
                 .AsQueryable();
             
             return Task.FromResult(query);
@@ -53,14 +58,6 @@ namespace thirdpartynetwork.Application.Repositories
         public async Task<Blog?> GetByIdAsync(Guid id)
         {
             return await (await GetQueryableAsync()).FirstOrDefaultAsync(x => x.Id == id);
-        }
-
-        public async Task<ICollection<Blog>> GetByNetworkIdAsync(Guid networkId)
-        {
-            return await (await GetAccessibleQueryableAsync(networkId))
-                .AsNoTracking()
-                .Where(b => b.Network.Id == networkId)
-                .ToListAsync();
         }
 
         public async Task<Blog> UpdateAsync(Guid blogId, UpdateBlogDto updateBlog)

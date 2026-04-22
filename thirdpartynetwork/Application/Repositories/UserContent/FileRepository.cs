@@ -53,14 +53,6 @@ namespace thirdpartynetwork.Application.Repositories
             return await (await GetAccessibleQueryableAsync(networkId)).FirstOrDefaultAsync(x => x.Id == id);
         }
 
-        public async Task<ICollection<File>> GetByNetworkIdAsync(Guid networkId)
-        {
-            return await (await GetAccessibleQueryableAsync(networkId))
-                .AsNoTracking()
-                .Where(c => c.NetworkId == networkId)
-                .ToListAsync();
-        }
-
         public async Task<File> UpdateAsync(Guid networkId, Guid fileId, UpdateFileDto updateFile)
         {
             var existing = await GetByIdAsync(networkId, fileId);

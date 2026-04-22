@@ -17,9 +17,6 @@ namespace thirdpartynetwork.Application.Repositories
         private async Task<IQueryable<NetworkUser>> GetQueryableAsync(Guid networkId)
         {
             var query = _context.NetworkUsers
-                // .AsNoTracking()  // Assume it doesnt break anything
-                                    // because the issue arises as
-                                    // UserProxy -> NetworkUsers is loaded into memory
                 .AsQueryable();
 
             var currentUser = await identityService.GetUserProxyAsync(true);
@@ -52,14 +49,14 @@ namespace thirdpartynetwork.Application.Repositories
             return await _context.NetworkUsers
                     .Include(n => n.Network)
                     .Include(n => n.UserProxy)
-                    .AsNoTracking()
+                    
                     .ToListAsync();
         }
 
         public async Task<ICollection<NetworkUser>> GetByNetworkIdAsync(Guid networkId)
         {
             return await (await GetQueryableAsync(networkId))
-                    .AsNoTracking()
+                    
                     .Where(nu => nu.NetworkId == networkId)
                     .ToListAsync();
         }
@@ -68,7 +65,7 @@ namespace thirdpartynetwork.Application.Repositories
             Guid userProxyId,
             Func<IQueryable<NetworkUser>, IQueryable<NetworkUser>>? queryConfig = null)
         {
-            var query = _context.NetworkUsers.AsNoTracking().AsQueryable();
+            var query = _context.NetworkUsers.AsQueryable();
             
             if (queryConfig != null)
             {

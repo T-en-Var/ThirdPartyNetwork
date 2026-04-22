@@ -1,4 +1,4 @@
-﻿﻿using AutoMapper;
+﻿using AutoMapper;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using thirdpartynetwork.Core.Models;
 
@@ -11,10 +11,25 @@ namespace thirdpartynetwork.Application.Services
         IRoleService roleService, 
         IMapper mapper) : INetworkUserRoleService
     {
+        private static ICollection<NetworkUserRole> MultiApplyDefaults(ICollection<NetworkUserRole> networkUserRoles)
+        {
+            foreach (var networkUserRole in networkUserRoles) SingleApplyDefaults(networkUserRole);
+
+            return networkUserRoles;
+        }
+
+        private static NetworkUserRole? SingleApplyDefaults(NetworkUserRole? networkUserRole)
+        {
+            if (networkUserRole == null) return null;
+            networkUserRole.NetworkUser.UserProxy.ApplyDefaults();
+
+            return networkUserRole;
+        }
+
         public async Task<ICollection<NetworkUserRole>> GetAllAsync()
         {
             var networkUserRoles = await repository.GetAllAsync();
-            return networkUserRoles;
+            return MultiApplyDefaults(networkUserRoles);
         }
 
         public async Task<ICollection<NetworkUserRole>> GetByNetworkUserIdAsync(Guid networkId, Guid networkUserId)
@@ -23,7 +38,7 @@ namespace thirdpartynetwork.Application.Services
             if (await networkUserService.GetByIdAsync(networkId, networkUserId) == null) throw new NotFoundHttpException("NetworkUser not found");
             
             var networkUserRoles = await repository.GetByNetworkUserIdAsync(networkId, networkUserId);
-            return networkUserRoles;
+            return MultiApplyDefaults(networkUserRoles);
         }
 
         public async Task<ICollection<NetworkUserRole>> GetByRoleIdAsync(Guid networkId, Guid roleId)
@@ -31,7 +46,7 @@ namespace thirdpartynetwork.Application.Services
             if (await roleService.GetByIdAsync(networkId, roleId) == null) throw new NotFoundHttpException("Role not found");
             
             var networkUserRoles = await repository.GetByRoleIdAsync(networkId, roleId);
-            return networkUserRoles;
+            return MultiApplyDefaults(networkUserRoles);
         }
 
         public async Task<NetworkUserRole?> GetByIdsAsync(Guid networkId, Guid networkUserId, Guid roleId)
@@ -41,7 +56,7 @@ namespace thirdpartynetwork.Application.Services
             if (await roleService.GetByIdAsync(networkId, roleId) == null) throw new NotFoundHttpException("Role not found");
 
             var networkUserRole = await repository.GetByIdsAsync(networkId, networkUserId, roleId);
-            return networkUserRole;
+            return SingleApplyDefaults(networkUserRole);
         }
 
         public async Task<NetworkUserRole> CreateAsync(Guid networkId, Guid networkUserId, Guid roleId, CreateNetworkUserRoleDto createNetworkUserRole)
@@ -57,7 +72,7 @@ namespace thirdpartynetwork.Application.Services
             networkUserRole.RoleId = roleId;
             
             networkUserRole = await repository.CreateAsync(networkUserRole);
-            return networkUserRole;
+            return SingleApplyDefaults(networkUserRole)!;
         }
 
         public async Task<NetworkUserRole> UpdateAsync(Guid networkId, Guid networkUserId, Guid roleId, UpdateNetworkUserRoleDto updateNetworkUserRole)
@@ -69,7 +84,7 @@ namespace thirdpartynetwork.Application.Services
             networkUserRole.RoleId = roleId;
             
             networkUserRole = await repository.UpdateAsync(networkId, networkUserRole);
-            return networkUserRole;
+            return SingleApplyDefaults(networkUserRole)!;
         }
 
         public async Task DeleteByIdsAsync(Guid networkId, Guid networkUserId, Guid roleId)

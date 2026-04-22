@@ -12,10 +12,25 @@ namespace thirdpartynetwork.Application.Services
         IAccessService accessService, 
         IMapper mapper) : INetworkUserAccessService
     {
+        private static ICollection<NetworkUserAccess> MultiApplyDefaults(ICollection<NetworkUserAccess> networkUserAccesses)
+        {
+            foreach (var networkUserAccess in networkUserAccesses) SingleApplyDefaults(networkUserAccess);
+
+            return networkUserAccesses;
+        }
+
+        private static NetworkUserAccess? SingleApplyDefaults(NetworkUserAccess? networkUserAccess)
+        {
+            if (networkUserAccess == null) return null;
+            networkUserAccess.NetworkUser.UserProxy.ApplyDefaults();
+
+            return networkUserAccess;
+        }
+
         public async Task<ICollection<NetworkUserAccess>> GetAllAsync()
         {
             var networkUserAccesses = await repository.GetAllAsync();
-            return networkUserAccesses;
+            return MultiApplyDefaults(networkUserAccesses);
         }
 
         public async Task<ICollection<NetworkUserAccess>> GetByNetworkIdAsync(Guid networkId, Guid networkUserId)
@@ -24,7 +39,7 @@ namespace thirdpartynetwork.Application.Services
             if (await networkUserService.GetByIdAsync(networkId, networkUserId) == null) throw new NotFoundHttpException("NetworkUser not found");
             
             var networkUserAccesses = await repository.GetByNetworkUserIdAsync(networkUserId);
-            return networkUserAccesses;
+            return MultiApplyDefaults(networkUserAccesses);
         }
 
         public async Task<ICollection<NetworkUserAccess>> GetByAccessIdAsync(Guid accessId)
@@ -32,7 +47,7 @@ namespace thirdpartynetwork.Application.Services
             if (await accessService.GetByIdAsync(accessId) == null) throw new NotFoundHttpException("Access not found");
             
             var networkUserAccesses = await repository.GetByAccessIdAsync(accessId);
-            return networkUserAccesses;
+            return MultiApplyDefaults(networkUserAccesses);
         }
 
         public async Task PopulateAsync(Guid networkId, Guid accessId)
@@ -51,8 +66,8 @@ namespace thirdpartynetwork.Application.Services
             if (await networkUserService.GetByIdAsync(networkId, networkUserId) == null) throw new NotFoundHttpException("NetworkUser not found");
             if (await accessService.GetByIdAsync(accessId) == null) throw new NotFoundHttpException("Access not found");
             
-            var networkUserPermission = await repository.GetByIdsAsync(networkUserId, accessId);
-            return networkUserPermission;
+            var networkUserAccess = await repository.GetByIdsAsync(networkUserId, accessId);
+            return SingleApplyDefaults(networkUserAccess);
         }
 
         public async Task<NetworkUserAccess> CreateAsync(Guid networkId, Guid networkUserId, Guid accessId, CreateNetworkUserAccessDto createNetworkUserPermission)
@@ -71,7 +86,7 @@ namespace thirdpartynetwork.Application.Services
 
             await MarkAccessCompleteAsync(networkUserId);
             
-            return networkUserAccess;
+            return SingleApplyDefaults(networkUserAccess)!;
         }
 
         public async Task<NetworkUserAccess> UpdateAsync(Guid networkId, Guid networkUserId, Guid accessId, UpdateNetworkUserAccessDto updateNetworkUserAccess)
@@ -89,7 +104,7 @@ namespace thirdpartynetwork.Application.Services
             
             await MarkAccessCompleteAsync(networkUserId);
             
-            return networkUserAccess;
+            return SingleApplyDefaults(networkUserAccess)!;
         }
 
         private async Task MarkAccessCompleteAsync(Guid networkUserId)

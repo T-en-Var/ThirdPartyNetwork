@@ -39,7 +39,7 @@ namespace thirdpartynetwork.Application.Repositories
 
         public async Task<ICollection<User>> GetAllAsync()
         {
-            return await GetQueryable().AsNoTracking().ToListAsync();
+            return await GetQueryable().ToListAsync();
         }
 
         public async Task<ICollection<UserMetricsDto>> GetWithMetricsAsync(Guid? userId = null, Guid? networkId = null)

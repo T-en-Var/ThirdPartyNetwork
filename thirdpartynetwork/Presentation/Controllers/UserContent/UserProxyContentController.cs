@@ -16,38 +16,38 @@ public class UserProxyContentController(
     IMapper mapper) : ControllerBase
 {
     [HttpGet("blogs")]
-    [RequirePermission(Constants.Permissions.ReadUser)]
+    [RequirePermission(Constants.Permissions.IsUserOwner, Constants.Permissions.ReadBlog)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<BlogDto>))]
     public async Task<IActionResult> GetBlogs(Guid userProxyId)
     {
         var blogs = await blogService.GetByUserProxyIdAsync(userProxyId);
-        return Ok(mapper.Map<IEnumerable<BlogDto>>(blogs));
+        return Ok(mapper.Map<IEnumerable<BlogDto>>(blogs, opts => { opts.Items["bypass"] = true; }));
     }
     
     [HttpGet("configurations")]
-    [RequirePermission(Constants.Permissions.ReadConfiguration)]
+    [RequirePermission(Constants.Permissions.IsUserOwner, Constants.Permissions.ReadConfiguration)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<ConfigurationDto>))]
     public async Task<IActionResult> GetConfigurations(Guid userProxyId)
     {
         var configurations = await configurationService.GetByUserProxyIdAsync(userProxyId);
-        return Ok(mapper.Map<IEnumerable<ConfigurationDto>>(configurations));
+        return Ok(mapper.Map<IEnumerable<ConfigurationDto>>(configurations, opts => { opts.Items["bypass"] = true; }));
     }
     
     [HttpGet("customPages")]
-    [RequirePermission(Constants.Permissions.ReadConfiguration)]
-    [ProducesResponseType(200, Type = typeof(IEnumerable<CustomPageDto>))]
+    [RequirePermission(Constants.Permissions.IsUserOwner, Constants.Permissions.ReadCustomPage)]
+    [ProducesResponseType(200, Type = typeof(IEnumerable<PageDto>))]
     public async Task<IActionResult> GetCustomPages(Guid userProxyId)
     {
         var customPages = await customPageService.GetByUserProxyIdAsync(userProxyId);
-        return Ok(mapper.Map<IEnumerable<CustomPageDto>>(customPages));
+        return Ok(mapper.Map<IEnumerable<PageDto>>(customPages, opts => { opts.Items["bypass"] = true; }));
     }
     
     [HttpGet("files")]
-    [RequirePermission(Constants.Permissions.ReadConfiguration)]
+    [RequirePermission(Constants.Permissions.IsUserOwner, Constants.Permissions.ReadFile)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<FileDto>))]
     public async Task<IActionResult> GetFiles(Guid userProxyId)
     {
         var files = await fileService.GetByUserProxyIdAsync(userProxyId);
-        return Ok(mapper.Map<IEnumerable<FileDto>>(files));
+        return Ok(mapper.Map<IEnumerable<FileDto>>(files, opts => { opts.Items["bypass"] = true; }));
     }
 }

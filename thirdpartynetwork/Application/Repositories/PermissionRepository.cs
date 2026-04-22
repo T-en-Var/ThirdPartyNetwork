@@ -12,7 +12,7 @@ public class PermissionRepository(DataContext context) : BaseRepository(context)
     private IQueryable<Permission> GetQueryable()
     {
         var query = _context.Permissions
-            .AsNoTracking()
+            
             .AsQueryable();
         
         // I'll skip this for now.
@@ -28,7 +28,7 @@ public class PermissionRepository(DataContext context) : BaseRepository(context)
     public async Task<ICollection<Permission>> GetAllAsync()
     {
         return await _context.Permissions
-            .AsNoTracking()
+            
             .ToListAsync();
     }
 

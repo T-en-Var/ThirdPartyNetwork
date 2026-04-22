@@ -30,7 +30,6 @@ namespace thirdpartynetwork.Application.Repositories
             var allowEntitlement = bypass ||
                                    await identityVerifier.IsAllowedAsync(id, currentUser.Id,
                                        Constants.Permissions.ManageNetwork);
-            Console.WriteLine($"allowEntitlement: {allowEntitlement}");
 
             if (allowEntitlement)
             {
@@ -132,14 +131,14 @@ namespace thirdpartynetwork.Application.Repositories
                 .Include(x => x.NetworkUsers)
                 // .ThenInclude(n => n.NetworkUserAccesses)
                 .Include(n => n.ImageFile)
-                .AsNoTracking()
+                
                 .FirstOrDefaultAsync(n => n.Id == id);
             return network;
         }
 
         public async Task<Network> GetMainNetworkAsync()
         {
-            var mainNetwork = await _context.Networks.AsNoTracking()
+            var mainNetwork = await _context.Networks
                 .FirstOrDefaultAsync(n => n.Name == Constants.Networks.Main);
             if (mainNetwork == null) throw new Exception("Main network not found, that is NOT good.");
 
@@ -148,7 +147,7 @@ namespace thirdpartynetwork.Application.Repositories
 
         public async Task<Network> GetMainNetworkDetailsAsync()
         {
-            var mainNetwork = await _context.Networks.Include(x => x.Entitlement).AsNoTracking()
+            var mainNetwork = await _context.Networks.Include(x => x.Entitlement)
                 .FirstOrDefaultAsync(n => n.Name == Constants.Networks.Main);
             if (mainNetwork == null) throw new Exception("Main network not found, that is NOT good.");
 

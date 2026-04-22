@@ -3,23 +3,22 @@ using thirdpartynetwork.Application.Dtos.UserContent.UserContentBase;
 
 namespace thirdpartynetwork.Application.Dtos.UserContent.PageBlock
 {
-    public class PageBlockDto : CustomUserContentBaseDto
+    public class PageBlockDto : UserContentBaseDto
     {
-        public Guid Id { get; set; }
         public Guid? ParentPageId { get; set; }
         public required string Text { get; set; }
         public required int Position { get; set; }
         public JsonElement Data { get; set; }
         public required Guid CustomPageId { get; set; }
-        public required CustomPageLightDto CustomPage { get; set; }
+        public required PageLightDto Page { get; set; }
     }
     
-    public class PageBlockLightDto : CustomUserContentBaseLightDto
+    public class PageBlockLightDto : UserContentBaseLightDto
     {
-        public Guid Id { get; set; }
         public Guid? ParentPageId { get; set; }
         public required string Text { get; set; }
         public required int Position { get; set; }
+        public required Guid CustomPageId { get; set; }
         public JsonElement Data { get; set; }
     }
 }

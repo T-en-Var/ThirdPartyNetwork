@@ -27,14 +27,14 @@ public class RolePermissionRepository(DataContext context) : BaseRepository(cont
     public async Task<ICollection<RolePermission>> GetAllAsync()
     {
         return await GetQueryable()
-            .AsNoTracking()
+            
             .ToListAsync();
     }
 
     public async Task<ICollection<RolePermission>> GetByRoleIdAsync(Guid roleId)
     {
         return await GetQueryable()
-            .AsNoTracking()
+            
             .Where(r => r.RoleId == roleId)
             .ToListAsync();
     }
@@ -42,7 +42,7 @@ public class RolePermissionRepository(DataContext context) : BaseRepository(cont
     public async Task<ICollection<RolePermission>> GetByPermissionIdAsync(Guid permissionId)
     {
         return await GetQueryable()
-            .AsNoTracking()
+            
             .Where(r => r.PermissionId == permissionId)
             .ToListAsync();
     }

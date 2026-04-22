@@ -34,20 +34,8 @@ public class TokenGenerator(IJtiCacheService jtiCacheService, IConfiguration con
     {
         var jti = Guid.NewGuid();
 
-        var allNetworkClaims = (from nu in networkUser.UserProxy.NetworkUsers
-            let permissionNames = nu.NetworkUserRoles.SelectMany(r => r.Role.RolePermissions)
-                .Select(rp => rp.Permission.Name)
-                .Distinct()
-                .ToList()
-            let claimObjects = permissionNames.Select(p => new CustomClaim() { Key = p, Value = true })
-                .ToList()
-            select new NetworkClaim { Id = nu.NetworkId, Claims = claimObjects }).ToList();
-
-        var networkClaimsToInclude = networkId.HasValue
-            ? allNetworkClaims.Where(nc => nc.Id == networkId.Value).ToList()
-            : allNetworkClaims;
-
-        var userProxy = networkUser.UserProxy.ApplyDefaults();
+        var userProxy = networkUser.UserProxy;
+        userProxy.ApplyDefaults();
 
         var tokensDto = new TokensDto()
         {
@@ -56,7 +44,6 @@ public class TokenGenerator(IJtiCacheService jtiCacheService, IConfiguration con
                 userProxy.Id,
                 userProxy.Username!,
                 networkUser.AccessIncomplete,
-                networkClaimsToInclude,
                 audience),
             RefreshToken = GenerateRefreshToken(
                 jti,
@@ -73,28 +60,16 @@ public class TokenGenerator(IJtiCacheService jtiCacheService, IConfiguration con
         Guid userId,
         string username,
         bool accessIncomplete,
-        List<NetworkClaim> networkClaims,
         string? dynamicAudience = null)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.UTF8.GetBytes(TokenSecret);
-
-        // Transform to Dictionary<NetworkId, string[]>
-        var networksDict = networkClaims.ToDictionary(
-            n => n.Id.ToString(),
-            n => n.Claims.Select(c => c.Key).ToArray() // Assumes 'Key' holds the permission name like "Read Network"
-        );
-
-        var networksJson = JsonSerializer.Serialize(networksDict);
 
         var claims = new List<Claim>
         {
             new(JwtRegisteredClaimNames.Jti, jti.ToString()),
             new(JwtRegisteredClaimNames.Name, username),
             new("uid", userId.ToString()),
-        
-            // This tells the handler this is already Json
-            new("networks", networksJson, JsonClaimValueTypes.Json) 
         };
 
         if (accessIncomplete)
