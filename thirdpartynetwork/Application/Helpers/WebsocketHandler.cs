@@ -75,6 +75,7 @@ public class WebsocketHandler
         var group = _groups.GetOrAdd(groupId, _ => new ConcurrentDictionary<string, WebSocketConnection>());
         group.TryAdd(connectionId, connection);
 
+        Console.WriteLine($"[Info] Client {connection.ConnectionId} connected.");
         var joinMessage = Encoding.UTF8.GetBytes($"System: User {connectionId} joined.");
 
         BroadcastToGroup(groupId, joinMessage);
@@ -111,6 +112,13 @@ public class WebsocketHandler
                 var completeMessage = memoryStream.ToArray();
                 BroadcastToGroup(groupId, completeMessage);
             }
+        }catch (WebSocketException ex) when (ex.WebSocketErrorCode == WebSocketError.ConnectionClosedPrematurely)
+        {
+            Console.WriteLine($"[Info] Client {connection.ConnectionId} dropped connection abruptly.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Error] WebSocket receive loop error for {connection.ConnectionId}: {ex.Message}");
         }
         finally
         {
@@ -120,6 +128,7 @@ public class WebsocketHandler
 
                 if (!group.IsEmpty)
                 {
+                    Console.WriteLine($"[Info] Client {connection.ConnectionId} disconnected.");
                     var leaveMessage = Encoding.UTF8.GetBytes($"System: User {connection.ConnectionId} disconnected.");
                     BroadcastToGroup(groupId, leaveMessage);
                 }
