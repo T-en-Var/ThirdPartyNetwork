@@ -20,7 +20,7 @@ public class MeController(IMeService service, INetworkService networkService, IM
     }
     
     [HttpGet("permissions")]
-    [ProducesResponseType(200, Type = typeof(NetworkPermissionsCollectionDto))]
+    [ProducesResponseType(200, Type = typeof(ICollection<NetworkPermissionsCollectionDto>))]
     [ProducesResponseType(401)]
     [Authorize]
     public async Task<IActionResult> GetMyPermissions()
