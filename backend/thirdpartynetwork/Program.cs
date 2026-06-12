@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.IdentityModel.Tokens;
@@ -30,33 +31,6 @@ builder.Services.AddAuthentication(o =>
     o.DefaultSignInScheme = JwtBearerDefaults.AuthenticationScheme;
 }).AddJwtBearer(o =>
 {
-    var sp = builder.Services.BuildServiceProvider();
-    var httpContextAccessor = sp.GetRequiredService<IHttpContextAccessor>();
-
-    o.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidIssuer = config["JwtSettings:Issuer"],
-        AudienceValidator = (audiences, securityToken, validationParameters) =>
-        {
-            var httpContext = httpContextAccessor.HttpContext;
-
-            if (httpContext == null) throw new NullReferenceException();
-
-            var defaultAudience = config["JwtSettings:Audience"];
-            var originHeader = httpContext.Request.Headers.Origin.FirstOrDefault();
-
-            if (originHeader == defaultAudience) return true;
-
-            var enumerable = audiences as string[] ?? audiences.ToArray();
-            return enumerable.Contains(originHeader) || enumerable.Contains(defaultAudience);
-        },
-        IssuerSigningKey =
-            new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("TOKEN_SECRET")!)),
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-    };
     o.Events = new JwtBearerEvents
     {
         OnForbidden = context => ErrorResponseWriter.WriteJsonError(context.HttpContext, 403,
@@ -64,34 +38,91 @@ builder.Services.AddAuthentication(o =>
 
         OnChallenge = context =>
         {
-            context.HandleResponse(); // Prevent default
+            Console.WriteLine("OnChallenge invoked");
+
+            // 1. Check for the specific exception that caused the failure
+            if (context.AuthenticateFailure != null)
+            {
+                Console.WriteLine($"JWT Validation Failed: {context.AuthenticateFailure.Message}");
+
+                // If you need the full stack trace, use:
+                // Console.WriteLine(context.AuthenticateFailure.ToString());
+            }
+            else
+            {
+                // If it's null, it usually means no token was provided in the header at all,
+                // or the header was malformed (e.g., missing the 'Bearer ' prefix).
+                Console.WriteLine("JWT Validation Failed: No token provided or token was completely unreadable.");
+            }
+
+            // 2. Check for standard OAuth error details (sometimes populated by the middleware)
+            if (!string.IsNullOrEmpty(context.Error) || !string.IsNullOrEmpty(context.ErrorDescription))
+            {
+                Console.WriteLine($"OAuth Error: {context.Error} - {context.ErrorDescription}");
+            }
+
+            context.HandleResponse();
             return ErrorResponseWriter.WriteJsonError(context.HttpContext, 401,
-                "Authentication is required to access this resource.");
+                "Authentication is required to access this resource :).");
         }
     };
 });
 
-// Add CORS with permissive policy
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAll", b =>
+builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
+    .Configure<IHttpContextAccessor, IDynamicAudienceCache>((options, httpContextAccessor, audienceCache) =>
     {
-        b.AllowAnyOrigin()
-            .AllowAnyMethod()
-            .AllowAnyHeader();
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidIssuer = config["JwtSettings:Issuer"],
+            AudienceValidator = (tokenAudiences, securityToken, validationParameters) =>
+            {
+                var enumerable = tokenAudiences as string[] ?? tokenAudiences.ToArray();
+                if (enumerable.Length == 0) 
+                {
+                    return false;
+                }
+
+                var defaultAudience = config["JwtSettings:Audience"];
+
+                foreach (var aud in enumerable)
+                {
+                    if (string.Equals(aud, defaultAudience, StringComparison.OrdinalIgnoreCase)) 
+                    {
+                        return true;
+                    }
+
+                    if (audienceCache.IsValidAudience(aud)) 
+                    {
+                        return true;
+                    }
+                }
+
+                Console.WriteLine("No token audiences matched the valid list.");
+                return false;
+            },
+            IssuerSigningKey =
+                new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("TOKEN_SECRET")!)),
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+        };
     });
-});
 
-builder.Services.AddSingleton<IAuthorizationPolicyProvider, DynamicPermissionPolicyProvider>();
+builder.Services.AddCors();
 
-// Add services to the container.
-// builder.Services.AddControllers()
-//     .AddJsonOptions(options =>
-//     {
-//         options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-//         // options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
-//         options.JsonSerializerOptions.MaxDepth = 32; // Optional: Increase if necessary
-//     });
+builder.Services.AddOptions<CorsOptions>()
+    .Configure<ICorsOriginCache>((options, originCache) =>
+    {
+        options.AddPolicy("DynamicCorsPolicy", builderContext =>
+        {
+            builderContext
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .AllowCredentials()
+                .SetIsOriginAllowed(originCache.IsOriginAllowed);
+        });
+    });
 
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
@@ -155,8 +186,12 @@ builder.Services.Configure<FormOptions>(options =>
     // options.MultipartBodyLengthLimit = 104857600; // 100 MB
     options.MultipartBodyLengthLimit = 52428800; // 50 MB
 });
-builder.Services.AddSingleton<ICDNService, CloudinaryService>();
 
+// Add Singletons
+builder.Services.AddSingleton<IDynamicAudienceCache, DynamicAudienceCache>();
+builder.Services.AddSingleton<ICDNService, CloudinaryService>();
+builder.Services.AddSingleton<ICorsOriginCache, CorsOriginCache>();
+builder.Services.AddSingleton<IAuthorizationPolicyProvider, DynamicPermissionPolicyProvider>();
 
 // Add Repositories
 builder.Services.AddScoped<IAccessRepository, AccessRepository>();
@@ -219,7 +254,7 @@ builder.Services.AddOpenApi(options =>
     options.AddDocumentTransformer((document, context, cancellationToken) =>
     {
         document.Info.Title = "Third Party Network API";
-        document.Info.Version = "v0";
+        document.Info.Version = "v0.8.11";
 
         // Add Bearer Security Scheme
         var scheme = new Microsoft.OpenApi.Models.OpenApiSecurityScheme
@@ -279,7 +314,25 @@ if (true || app.Environment.IsDevelopment())
     app.MapScalarApiReference();
 }
 
-app.UseCors("AllowAll");
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<DataContext>();
+    var audienceCache = scope.ServiceProvider.GetRequiredService<IDynamicAudienceCache>();
+
+    var redirectUris = await context.Networks
+        .Select(n => n.RedirectURI)
+        .ToListAsync();
+
+    var defaultAudience = config["JwtSettings:Audience"];
+    if (!string.IsNullOrEmpty(defaultAudience))
+    {
+        redirectUris.Add(defaultAudience);
+    }
+
+    audienceCache.ReloadAudiences(redirectUris);
+}
+
+app.UseCors("DynamicCorsPolicy");
 
 app.UseWebSockets();
 

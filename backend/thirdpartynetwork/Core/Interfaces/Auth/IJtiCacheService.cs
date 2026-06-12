@@ -6,7 +6,7 @@ public interface IJtiCacheService
     {
         public required string Jti { get; init; }
         public JtiTracker? Next { get; set; }
-        public DateTime? Expiration { get; set; }
+        public DateTime Expiration { get; set; }
     }
 
     bool IsJtiValid(string jti);
