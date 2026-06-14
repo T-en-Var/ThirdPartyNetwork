@@ -68,6 +68,16 @@
                     >
                   </div>
                 </div>
+                <div class="flex flex-col items-center">
+                  <span>Log in as</span>
+                  <div>
+                    <span
+                      class="cursor-pointer text-blue-500 underline"
+                      @click="logInAsMyUser"
+                      >MyUser</span
+                    >
+                  </div>
+                </div>
               </div>
 
               <form @submit.prevent="login">
@@ -418,6 +428,15 @@ const logInAsUser = async () => {
   loginForm.value = {
     email: 'normaluser@gmail.com',
     password: 'normaluser@gmail.com',
+  };
+
+  await login();
+};
+
+const logInAsMyUser = async () => {
+  loginForm.value = {
+    email: 'myuser@gmail.com',
+    password: 'myuser@gmail.com',
   };
 
   await login();

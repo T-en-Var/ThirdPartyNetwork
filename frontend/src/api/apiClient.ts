@@ -18,6 +18,7 @@ class ApiClient {
   constructor(baseURL: string, config?: AxiosRequestConfig) {
     this.instance = axios.create({
       baseURL,
+      withCredentials: true,
       ...config,
     });
 
@@ -142,16 +143,6 @@ class ApiClient {
     return response;
   }
 
-  public async refresh(refreshToken: string): Promise<AxiosResponse<TokenPair>> {
-    const config = { headers: { 'x-skip-auth-headers': true } };
-    const response: AxiosResponse<TokenPair> = await this.instance.post(
-      `/auth/refresh`,
-      { refreshToken: refreshToken },
-      config,
-    );
-    return response;
-  }
-
   public async put<T, B>(
     url: string,
     data?: B,
@@ -172,6 +163,16 @@ class ApiClient {
 
   public async delete<T>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
     const response: AxiosResponse<T> = await this.instance.delete(url, config);
+    return response;
+  }
+
+  public async refresh(): Promise<AxiosResponse<TokenPair>> {
+    const config = { headers: { 'x-skip-auth-headers': true } };
+    const response: AxiosResponse<TokenPair> = await this.instance.post(
+      `/auth/refresh`,
+      {},
+      config,
+    );
     return response;
   }
 }

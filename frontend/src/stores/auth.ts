@@ -17,7 +17,6 @@ import useAuthentication from '@/composables/useAuthentication';
 import useUserProxy from '@/composables/useUserProxy';
 
 const ACCESS_TOKEN_KEY = 'access_token';
-const REFRESH_TOKEN_KEY = 'refresh_token';
 
 function isTokenExpired(token: string): boolean {
   const decodedPayload = decodeJWT<AccessTokenClaims>(token);
@@ -44,15 +43,19 @@ export const useAuthStore = defineStore('auth', () => {
   const loading = computed(() => auth.loading.value);
   const error = computed(() => auth.error.value);
   const accessToken = ref<string | null>(null);
-  const refreshToken = ref<string | null>(null);
   const permissionCollection = ref<NetworkPermissionCollection[]>([]);
 
   watch(permissionCollection, (newCollections) => {
     console.log('updated newCollections', newCollections);
-    alert('updated newCollections');
   });
 
-  // --- Auth properties ---
+  setInterval(() => {
+    if (!accessToken.value) return;
+    const decodedPayload = decodeJWT<AccessTokenClaims>(accessToken.value);
+
+    console.log(Math.round(decodedPayload.exp - Date.now()/1000), "until expiry")
+  }, 3000);
+
   const isAuthenticated = computed(() => {
     loadTokens();
     if (!accessToken.value) return false;
@@ -220,32 +223,25 @@ export const useAuthStore = defineStore('auth', () => {
   // --- Core Methods ---
   function loadTokens() {
     const aToken = localStorage.getItem(ACCESS_TOKEN_KEY);
-    const rToken = localStorage.getItem(REFRESH_TOKEN_KEY);
 
-    if (accessToken.value !== aToken || refreshToken.value !== rToken) {
+    if (accessToken.value !== aToken) {
       accessToken.value = aToken;
-      refreshToken.value = rToken;
     }
   }
 
-  function saveTokens(aToken: string, rToken: string) {
+  function saveTokens(aToken: string) {
     accessToken.value = aToken;
-    refreshToken.value = rToken;
     localStorage.setItem(ACCESS_TOKEN_KEY, aToken);
-    localStorage.setItem(REFRESH_TOKEN_KEY, rToken);
   }
 
   function clearTokens() {
     accessToken.value = null;
-    refreshToken.value = null;
     localStorage.removeItem(ACCESS_TOKEN_KEY);
-    localStorage.removeItem(REFRESH_TOKEN_KEY);
     currentUserProxy.value = null;
   }
 
   // --- Authentication Flow ---
   async function login(form: UserLogin) {
-    console.log('Logging in!');
     await auth.login(form.email, form.password);
     handleAuthenticated();
   }
@@ -277,7 +273,7 @@ export const useAuthStore = defineStore('auth', () => {
     if (!auth.tokenPair.value) return console.warn('TokenPair was null');
 
     const tokenPair = auth.tokenPair.value;
-    saveTokens(tokenPair.accessToken, tokenPair.refreshToken);
+    saveTokens(tokenPair.accessToken);
     clearAllHistoryStores();
   }
 
@@ -287,12 +283,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function refreshTokens() {
-    if (!refreshToken.value) {
-      clearTokens();
-      return null;
-    }
-
-    await auth.refreshTokens(refreshToken.value);
+    await auth.refreshTokens();
 
     if (error.value) {
       clearTokens();
@@ -301,7 +292,7 @@ export const useAuthStore = defineStore('auth', () => {
     if (!auth.tokenPair.value) return console.warn('TokenPair was null');
 
     const tokenPair = auth.tokenPair.value;
-    saveTokens(tokenPair.accessToken, tokenPair.refreshToken);
+    saveTokens(tokenPair.accessToken);
   }
 
   async function applyHeaders(
@@ -310,9 +301,8 @@ export const useAuthStore = defineStore('auth', () => {
     loadTokens();
 
     const tokenIsExpired = accessToken.value && isTokenExpired(accessToken.value);
-    const tokenIsMissingButRefreshExists = !accessToken.value && refreshToken.value;
 
-    if (tokenIsExpired || tokenIsMissingButRefreshExists) {
+    if (tokenIsExpired) {
       await refreshTokens();
     }
 
@@ -387,7 +377,6 @@ export const useAuthStore = defineStore('auth', () => {
   return {
     // State
     accessToken,
-    refreshToken,
     isModalOpen,
     isUnauthModalOpen,
     claimChecker,

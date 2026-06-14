@@ -46,16 +46,16 @@
         :fetch-files="handle.files.fetchAll"
         :fetch-file="handle.files.fetch"
         :network="network"
-        @add-file="showAddFileModal = true"
+        @add-file="console.log('do you want to use this?, showModal.addFile.value = true')"
         @file-update="handle.files.update"
         @file-delete="handle.files.delete"
-        @add-user="showAddUserModal = true"
+        @add-user="showModal.addUser.value = true"
         @manage-user="openManageUserModal"
         @remove-user="handle.users.delete"
-        @add-role="showAddRoleModal = true"
+        @add-role="showModal.addRole.value = true"
         @manage-role="openEditRoleModal"
         @remove-role="handle.roles.delete"
-        @add-access="showAddAccessModal = true"
+        @add-access="showModal.addAccess.value = true"
         @toggle-access-required="handle.accesses.toggle"
         @remove-access="handle.accesses.delete"
         @update-network="handle.network.update"
@@ -64,58 +64,58 @@
 
       <div v-if="network">
         <EditUserModal
-          v-if="showManageUserModal && selectedUser"
+          v-if="showModal.manageUser.value && selectedUser"
           :network="network"
           :selected-user="selectedUser"
           :is-submitting="isSubmitting"
           :manage-user-form="manageUserForm"
-          @close="showManageUserModal = false"
+          @close="showModal.manageUser.value = false"
           @update="updateUserSettings"
         />
 
         <AddRoleModal
-          v-if="showAddRoleModal"
+          v-if="showModal.addRole.value"
           :network="network"
           :is-submitting="isSubmitting"
-          @close="showAddRoleModal = false"
+          @close="showModal.addRole.value = false"
           @add-role="addRoleToNetwork"
         />
 
         <EditRoleModal
-          v-if="showEditRoleModal && selectedRole"
+          v-if="showModal.editRole.value && selectedRole"
           :network="network"
           :selected-role="selectedRole"
           :manage-role-form="manageRoleForm"
-          @close="showEditRoleModal = false"
+          @close="showModal.editRole.value = false"
           @update="updateRolePermissions"
         />
 
         <AddAccessModal
-          v-if="showAddAccessModal"
+          v-if="showModal.addAccess.value"
           :network="network"
           :is-submitting="isSubmitting"
-          @close="showAddAccessModal = false"
+          @close="showModal.addAccess.value = false"
           @add-access="handle.accesses.create"
         />
 
         <ConfirmationModal
-          v-if="showConfirmationModal"
+          v-if="showModal.confirmation.value"
           :title="confirmationTitle"
           :message="confirmationMessage"
           :button-text="confirmButtonText"
           :color="confirmButtonColor"
           :is-submitting="isSubmitting"
-          @close="showConfirmationModal = false"
+          @close="showModal.confirmation.value = false"
           @confirm="confirmAction"
         />
 
-        <AddFileModal
-          v-if="showAddFileModal"
+        <!-- <AddFileModal
+          v-if="showModal.addFile.value"
           media-type="any"
           :network-id="network.id"
-          @close="showAddFileModal = false"
+          @close="showModal.addFile.value = false"
           @uploaded="handle.files.openEdit"
-        />
+        /> -->
       </div>
     </div>
   </div>
@@ -132,7 +132,7 @@ import EditUserModal from '@/components/modals/network/EditUserModal.vue';
 import AddRoleModal from '@/components/modals/network/AddRoleModal.vue';
 import EditRoleModal from '@/components/modals/network/EditRoleModal.vue';
 import AddAccessModal from '@/components/modals/network/AddAccessModal.vue';
-import AddFileModal from '@/components/modals/usercontent/AddFileModal.vue';
+// import AddFileModal from '@/components/modals/usercontent/AddFileModal.vue';
 import ConfirmationModal from '@/components/modals/ConfirmationModal.vue';
 
 import type {
@@ -187,14 +187,18 @@ const composables = {
   configurations: useConfigurations(),
 };
 
-const showAddUserModal = ref(false);
-const showManageUserModal = ref(false);
-const showAddRoleModal = ref(false);
-const showEditRoleModal = ref(false);
-const showAddAccessModal = ref(false);
-const showConfirmationModal = ref(false);
-const showAddFileModal = ref(false);
-const showEditFileModal = ref(false);
+const showModal = {
+  addUser: ref(false),
+  manageUser: ref(false),
+  addRole: ref(false),
+  editRole: ref(false),
+  addAccess: ref(false),
+  confirmation: ref(false),
+  addFile: ref(false),
+  editFile: ref(false),
+}
+
+watch(showModal.addUser, () => alert('This function is not available yet.'));
 
 const selectedUser = ref<NetworkUser | null>(null);
 const selectedRole = ref<Role | null>(null);
@@ -267,7 +271,7 @@ function confirm(form: ConfirmForm) {
     await form.action();
   };
 
-  showConfirmationModal.value = true;
+  showModal.confirmation.value = true;
 }
 
 function handleReturn(section: string) {
@@ -536,7 +540,7 @@ const handle = {
 
     delete: (file: NetworkFile) => {
       console.log('Yes!');
-      showEditFileModal.value = false;
+      showModal.editFile.value = false;
       confirm({
         title: 'Delete File',
         message: `Are you sure you want to delete the file '${file.name}'?`,
@@ -620,7 +624,7 @@ function openManageUserModal(user: NetworkUser) {
   manageUserForm.roleIds = user.networkUserRoles?.map((nur) => nur.role.id) || [];
   manageUserForm.entitlements = user.entitlements;
 
-  showManageUserModal.value = true;
+  showModal.manageUser.value = true;
 }
 
 async function openEditRoleModal(role: Role) {
@@ -634,7 +638,7 @@ async function openEditRoleModal(role: Role) {
   manageRoleForm.isDefault = role.isDefault;
   manageRoleForm.permissionIds = role.rolePermissions?.map((rp) => rp.permission.id) || [];
 
-  showEditRoleModal.value = true;
+  showModal.editRole.value = true;
 }
 
 async function updateUserSettings(localForm: ManageUserForm) {
@@ -663,7 +667,7 @@ async function updateUserSettings(localForm: ManageUserForm) {
     manageUserForm.roleIds = localForm.roleIds;
     manageUserForm.entitlements = localForm.entitlements;
 
-    showManageUserModal.value = false;
+    showModal.manageUser.value = false;
   } catch (err) {
     console.error('Error updating user settings:', err);
   } finally {
@@ -683,7 +687,7 @@ async function addRoleToNetwork(localForm: Ref<RoleForm>) {
   try {
     await createRole(networkId.value, payload, localForm.value.permissionIds);
 
-    showAddRoleModal.value = false;
+    showModal.addRole.value = false;
   } catch (err) {
     console.error('Error adding role:', err);
   } finally {
@@ -715,7 +719,7 @@ async function updateRolePermissions(localForm: RoleForm) {
 
     await updateRole(networkId.value, roleId, payload, addedPerms, removedPerms);
 
-    showEditRoleModal.value = false;
+    showModal.editRole.value = false;
   } catch (err) {
     console.error('Error updating role permissions:', err);
   } finally {
@@ -738,7 +742,7 @@ async function cleanUpPageBlockOrphans(customPageId: string, pageBlockId: string
 }
 
 function confirmAction() {
-  showConfirmationModal.value = false;
+  showModal.confirmation.value = false;
   confirmationAction.value();
 }
 </script>

@@ -133,10 +133,10 @@ export default function useAuthentication() {
     }
   };
 
-  const refreshTokens = async (refreshToken: string) => {
+  const refreshTokens = async () => {
     global.startFetching();
     try {
-      const response = await api.refresh(refreshToken);
+      const response = await api.refresh();
       tokenPair.value = response.data;
     } catch (err) {
       const fullError = err as AxiosError<ErrorMessage>;

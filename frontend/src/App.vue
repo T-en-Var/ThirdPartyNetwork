@@ -18,7 +18,7 @@
       @remove="global.removeToast"
     />
 
-    <!-- <div class="fixed bg-green-500 w-10 h-10 z-50 cursor-pointer" @click="global.addToast({ message: 'hello world!!', duration: 2500 })"></div> -->
+    <div class="fixed bg-green-500 w-10 h-10 z-50 cursor-pointer" @click="authStore.refreshTokens()"></div>
     <!-- <div class="fixed bg-red-500 w-10 h-10 z-50 cursor-pointer" @click="console.log((globalCache.get(`networks_019b722f-5d71-7631-812d-6646febcaef2`)))"></div> -->
   </main>
 </template>
