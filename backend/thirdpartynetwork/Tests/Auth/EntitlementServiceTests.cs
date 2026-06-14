@@ -39,6 +39,26 @@ public class EntitlementServiceTests
             _configurationRepositoryMock.Object,
             _customPageRepositoryMock.Object
         );
+        
+        var mainNetwork = new Network
+        {
+            Id = Guid.NewGuid(),
+            Name = "Main Network",
+            Entitlement = new NetworkEntitlement
+            {
+                AllowFiles = true,
+                AllowBlogs = true,
+                AllowConfigurations = true,
+                AllowCustomPages = true
+            },
+            IsPublic = true,
+            Description = "#",
+            RedirectURI = "#"
+        };
+    
+        _networkRepositoryMock
+            .Setup(r => r.GetMainNetworkDetailsAsync())
+            .ReturnsAsync(mainNetwork);
     }
 
     #region CheckUserAddNetworkFileEntitlementAsync Tests
