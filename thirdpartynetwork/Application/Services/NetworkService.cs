@@ -4,6 +4,7 @@ using thirdpartynetwork.Core;
 using thirdpartynetwork.Core.Models;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using thirdpartynetwork.Core.Interfaces.Auth;
+using thirdpartynetwork.Core.Interfaces.Helpers;
 
 namespace thirdpartynetwork.Application.Services
 {
@@ -15,6 +16,7 @@ namespace thirdpartynetwork.Application.Services
         IIdentityService identityService,
         ICDNService cdnService,
         IIdentityVerifier identityVerifier,
+        IDynamicAudienceCache audienceCache,
         IFileRepository fileRepository // im sorry
     ) : INetworkService
     {
@@ -213,6 +215,8 @@ namespace thirdpartynetwork.Application.Services
 
             network = await repository.CreateAsync(network);
 
+            await RefreshIssuerCacheAsync();
+
             return network;
         }
 
@@ -227,6 +231,8 @@ namespace thirdpartynetwork.Application.Services
             {
                 network.ImageFileId = updateNetworkDto.FileLink.Id;
             }
+
+            await RefreshIssuerCacheAsync();
 
             network = await repository.UpdateAsync(network);
             return network;
@@ -311,6 +317,8 @@ namespace thirdpartynetwork.Application.Services
                 await cdnService.DeleteAsync($"{networkFile.NetworkId}/{networkFile.PublicId}", networkFile.MediaType);
             }
 
+            await RefreshIssuerCacheAsync();
+
             await repository.DeleteAsync(network);
         }
 
@@ -341,6 +349,13 @@ namespace thirdpartynetwork.Application.Services
         {
             var network = repository.GetByIdQueryable(id);
             return network;
+        }
+        
+        private async Task RefreshIssuerCacheAsync()
+        {
+            var allNetworks = await repository.GetAllAsync();
+            var redirectUris = allNetworks.Select(n => n.RedirectURI);
+            audienceCache.ReloadAudiences(redirectUris);
         }
     }
 }

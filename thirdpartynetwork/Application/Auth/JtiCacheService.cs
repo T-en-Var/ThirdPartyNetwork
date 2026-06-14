@@ -5,78 +5,94 @@ namespace thirdpartynetwork.Application.Auth;
 
 public class JtiCacheService : IJtiCacheService
 {
-    private readonly List<IJtiCacheService.JtiTracker> _jtiTrackers = [];
+    private readonly object _lock = new();
+
+    private readonly Dictionary<string, IJtiCacheService.JtiTracker> _trackers = new();
 
     public bool IsJtiValid(string jti)
     {
-        return _jtiTrackers.Any(t => t.Jti == jti);
+        lock (_lock)
+        {
+            return _trackers.ContainsKey(jti);
+        }
     }
 
     public void StoreJti(string jti, string? previousJti, TimeSpan expiry)
     {
-        GarbageCollect();
-
-        var newTracker = new IJtiCacheService.JtiTracker
+        Console.WriteLine($"StoreJti: {jti} from {previousJti}");
+        lock (_lock)
         {
-            Jti = jti,
-            Expiration = DateTime.UtcNow.Add(expiry)
-        };
+            GarbageCollect();
 
-        if (previousJti != null) AppendValidateJti(newTracker, previousJti);
+            var newTracker = new IJtiCacheService.JtiTracker
+            {
+                Jti = jti,
+                Expiration = DateTime.UtcNow.Add(expiry)
+            };
 
-        _jtiTrackers.Add(newTracker);
+            if (previousJti != null)
+            {
+                AppendValidateJti(newTracker, previousJti);
+            }
+
+            _trackers[jti] = newTracker;
+        }
     }
 
     private void AppendValidateJti(IJtiCacheService.JtiTracker newTracker, string previousJti)
     {
-        var previousTracker = _jtiTrackers.Find(t => t.Jti == previousJti);
-        if (previousTracker == null) throw new UnauthorizedHttpException("Invalid token 4");
+        if (!_trackers.TryGetValue(previousJti, out var previousTracker))
+        {
+            throw new UnauthorizedHttpException("Invalid token 4 (jti not found)");
+        }
 
         if (previousTracker.Next != null)
         {
             RemoveTrackerTree(previousTracker.Jti);
-            throw new UnauthorizedHttpException("Invalid token 5");
+            throw new UnauthorizedHttpException("Invalid token 5 (jti reuse detected)");
         }
 
         previousTracker.Next = newTracker;
-        previousTracker.Expiration = null;
     }
 
     public void RemoveJti(string jti)
     {
-        GarbageCollect();
-
-        RemoveTrackerTree(jti);
+        lock (_lock)
+        {
+            GarbageCollect();
+            RemoveTrackerTree(jti);
+        }
     }
 
     private void RemoveTrackerTree(string jti)
     {
-        var tracker = _jtiTrackers.Find(t => t.Jti == jti);
-        if (tracker == null) return;
-        
-        _jtiTrackers.Remove(tracker);
-        
+        if (!_trackers.Remove(jti, out var tracker))
+            return;
+
         if (tracker.Next != null)
         {
             RemoveTrackerTree(tracker.Next.Jti);
         }
-        
-        var childTrackers = _jtiTrackers.FindAll(t => t.Next == tracker);
-        foreach (var childTracker in childTrackers)
+
+        var parents = _trackers.Values.Where(t => t.Next == tracker).ToList();
+        foreach (var parent in parents)
         {
-            RemoveTrackerTree(childTracker.Jti);
+            RemoveTrackerTree(parent.Jti);
         }
     }
 
     private void GarbageCollect()
     {
-        var expiredTrackers = _jtiTrackers
-            .Where(t => t.Expiration != null && t.Expiration < DateTime.UtcNow)
+        var now = DateTime.UtcNow;
+
+        var expiredJtis = _trackers.Values
+            .Where(t => t.Expiration < now)
+            .Select(t => t.Jti)
             .ToList();
-        
-        foreach (var expiredTracker in expiredTrackers)
+
+        foreach (var jti in expiredJtis)
         {
-            RemoveTrackerTree(expiredTracker.Jti);
+            RemoveTrackerTree(jti);
         }
     }
 }
