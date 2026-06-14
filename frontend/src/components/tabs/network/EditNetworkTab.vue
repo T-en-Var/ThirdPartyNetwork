@@ -114,7 +114,7 @@
 
           <AddFileModal
             v-if="showUploadModal"
-            :network="network"
+            :network-id="network.id"
             @close="showUploadModal = false"
             @uploaded="handleImageUploaded"
             media-type="image"

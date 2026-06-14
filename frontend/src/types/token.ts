@@ -2,7 +2,6 @@ import type { PermissionShort } from './permission';
 
 export interface TokenPair {
   accessToken: string;
-  refreshToken: string;
 }
 
 export interface AccessTokenClaims {

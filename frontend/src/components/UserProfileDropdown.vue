@@ -117,9 +117,9 @@ const closeDropdown = () => {
 };
 
 const handleLogout = () => {
+  router.push('/logout');
   authStore.logout();
   closeDropdown();
-  router.push('/');
 };
 
 const handleClickOutside = (event: MouseEvent) => {

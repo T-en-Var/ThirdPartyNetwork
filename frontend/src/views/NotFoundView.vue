@@ -58,6 +58,6 @@ const route = useRoute();
 const path = ref<string>(route.fullPath);
 
 onMounted(() => {
-  router.push('/404');
+  router.replace('/404');
 });
 </script>

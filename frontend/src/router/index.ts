@@ -389,6 +389,14 @@ const router = createRouter({
       },
     },
     {
+      path: '/logout',
+      name: 'logout',
+      component: () => import('@/views/LogoutView.vue'),
+      meta: {
+        title: 'Logged out',
+      },
+    },
+    {
       path: '/:pathMatch(.*)*',
       component: () => import('@/views/NotFoundView.vue'),
     },
