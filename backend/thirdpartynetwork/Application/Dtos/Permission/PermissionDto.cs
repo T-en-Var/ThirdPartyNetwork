@@ -9,6 +9,7 @@ namespace thirdpartynetwork.Application.Dtos.Permission
         public Guid Id { get; set; }
         public required string Name { get; set; }
         public required string Description { get; set; }
+        public NetworkLightDto? Network { get; set; }
         public ICollection<RolePermissionPtRDto> RolePermissions { get; set; } = [];
     }
     
