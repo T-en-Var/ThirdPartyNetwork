@@ -206,7 +206,7 @@ const canSubmit = computed(() => {
 
   return networkDetails.data.value.networkAccesses
     .filter((na) => na.isRequired)
-    .every((na) => userAccesses.value[na.accessId]?.value);
+    .every((na) => userAccesses.value[na.access.id]?.value);
 });
 
 onMounted(async () => {
@@ -311,8 +311,8 @@ async function handleSubmit() {
 
 async function acceptAccesses(networkUserId: string, accessToken: string) {
   const acceptedAccesses = (networkDetails.data.value?.networkAccesses ?? [])
-    .filter((access) => userAccesses.value[access.accessId]?.value)
-    .map((access) => access.accessId);
+    .filter((access) => userAccesses.value[access.access.id]?.value)
+    .map((access) => access.access.id);
 
   await applyAccessConsent(networkId.value, networkUserId, acceptedAccesses, true, accessToken);
 }

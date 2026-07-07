@@ -30,7 +30,7 @@ export default function useAccessConsent() {
     const state: Record<string, AccessConsentState> = {};
 
     for (const access of networkAccesses) {
-      state[access.accessId] = { value: getInitialValue(access), userChecked: false };
+      state[access.access.id] = { value: getInitialValue(access), userChecked: false };
     }
 
     return state;

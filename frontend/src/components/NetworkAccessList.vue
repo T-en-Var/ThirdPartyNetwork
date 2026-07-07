@@ -22,7 +22,10 @@
         :key="networkAccess.access.id"
         class="rounded-md border border-gray-200 p-4"
       >
-        <div class="flex items-start">
+        <div
+          class="flex items-start"
+          v-if="internalAccesses[networkAccess.access.id]"
+        >
           <div class="flex h-6 items-center">
             <input
               :id="networkAccess.access.id"
@@ -61,13 +64,9 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue';
+import { ref, watch } from 'vue';
 import LoadingSpinner from '@/components/LoadingSpinner.vue';
 import type { NetworkAccess, NetworkUserAccess } from '@/types';
-
-onMounted(() => {
-  console.log('Hello?');
-});
 
 interface UserAccessState {
   value: boolean;
@@ -83,17 +82,14 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:modelValue', 'access-change']);
 
-const internalAccesses = ref<Record<string, UserAccessState>>({ ...props.initialUserAccesses });
-console.log(internalAccesses);
-console.log(internalAccesses);
-console.log(internalAccesses);
+const internalAccesses = ref<Record<string, UserAccessState>>({});
 
 watch(
   () => props.initialUserAccesses,
   (newAccesses) => {
     internalAccesses.value = { ...newAccesses };
   },
-  { deep: true },
+  { deep: true, immediate: true },
 );
 
 const isAlreadyAccepted = (accessId: string) => {
@@ -104,12 +100,15 @@ const handleAccessChange = (e: Event) => {
   const currentElementId = (e.target as HTMLInputElement).id;
   const isChecked = (e.target as HTMLInputElement).checked;
 
-  const accessDefinition = props.networkAccesses.find((a) => a.accessId === currentElementId);
+  const accessDefinition = props.networkAccesses.find((a) => a.access.id === currentElementId);
 
   if (accessDefinition) {
-    internalAccesses.value[currentElementId] = { value: isChecked, userChecked: true };
-
-    emit('access-change', currentElementId, isChecked, accessDefinition.isRequired);
+    emit(
+      'access-change',
+      currentElementId,
+      accessDefinition.isRequired ? true : isChecked,
+      accessDefinition.isRequired,
+    );
   }
 };
 
