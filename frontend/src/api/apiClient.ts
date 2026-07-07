@@ -60,10 +60,10 @@ class ApiClient {
         const statusCode = error.response?.status;
 
         if (statusCode == 401) {
-          let uri = this.route.query.redirect;
-          if (this.route.name !== 'Terms of Service') uri = btoa(this.route.fullPath);
+          let uri = this.route.query.redirect as string | undefined;
+          if (this.route.name !== 'terms-of-service') uri = btoa(this.route.fullPath);
 
-          this.router.push(`/401?redirect=${uri}`);
+          this.router.push({ path: '/401', query: uri ? { redirect: uri } : {} });
           this.auth.setModalOpen(true);
           this.auth.setModalMode('login');
         }

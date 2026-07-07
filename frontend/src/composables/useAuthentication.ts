@@ -14,30 +14,12 @@ export default function useAuthentication() {
   const tokenPair = ref<TokenPair | null>(null);
 
   const handleError = (err: AxiosError<ErrorMessage>, defaultMessage: string = 'Action failed') => {
-    console.log(err);
-    console.log('err.cause', err.cause);
-    console.log('err.code', err.code);
-    console.log('err.config', err.config);
-    console.log('err.event', err.event);
-    console.log('err.isAxiosError', err.isAxiosError);
-    console.log('err.message', err.message);
-    console.log('err.name', err.name);
-    console.log('err.request', err.request);
-    console.log('err.response', err.response);
-    console.log('err.toJSON', err.toJSON());
-
     if (err.code == AxiosError.ERR_NETWORK) {
       error.value = 'Network Error. Either you are not connected, or the server is offline.';
       return;
     }
 
-    if (err.code == AxiosError.ERR_BAD_REQUEST) {
-      error.value = err.response?.data.message || err.message || defaultMessage;
-      return;
-    }
-
-    const message = err.response?.data.message || err.message || defaultMessage;
-    error.value = message;
+    error.value = err.response?.data.message || err.message || defaultMessage;
   };
 
   const login = async (email: string, password: string) => {
@@ -140,8 +122,8 @@ export default function useAuthentication() {
       tokenPair.value = response.data;
     } catch (err) {
       const fullError = err as AxiosError<ErrorMessage>;
-      const message = fullError.response?.data.message || fullError.message || 'Failed to sign up.';
-      error.value = message;
+      error.value =
+        fullError.response?.data.message || fullError.message || 'Failed to refresh session.';
     } finally {
       global.stopFetching();
     }

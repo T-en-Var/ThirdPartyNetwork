@@ -409,7 +409,7 @@ router.beforeEach(async (to, from, next) => {
   if (to.matched.some((record) => record.meta.requiresAuth)) {
     if (!authStore.isAuthenticated) {
       next({
-        path: '/403',
+        path: '/401',
         query: { redirect: btoa(to.fullPath) },
       });
       authStore.setModalOpen(true);
