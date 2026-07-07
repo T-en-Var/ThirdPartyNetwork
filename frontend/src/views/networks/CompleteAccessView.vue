@@ -132,6 +132,8 @@ import ErrorAlert from '@/components/ErrorAlert.vue';
 import UserProxyDisplay from '@/components/UserProxyDisplay.vue';
 import api from '@/api/api';
 import useNetworks from '@/composables/useNetworks';
+import { TEMPORARY_ACCESS_TOKEN_KEY } from '@/composables/useNetworkAuthFlow';
+import { safeAtob } from '@/lib/utils';
 
 interface UserAccessState {
   value: boolean;
@@ -168,9 +170,12 @@ const canSubmit = computed(() => {
 });
 
 onMounted(async () => {
-  temporaryAccessToken = localStorage.getItem('temporaryAccessToken') || '';
+  temporaryAccessToken = localStorage.getItem(TEMPORARY_ACCESS_TOKEN_KEY) || '';
   if (!temporaryAccessToken) {
-    router.push(`/networks/${networkId.value}/login?redirectUri=${route.query.redirectUri}`);
+    router.push({
+      path: `/networks/${networkId.value}/login`,
+      query: { redirectUri: route.query.redirectUri },
+    });
     pageLoading.value = false;
     return;
   }
@@ -283,8 +288,8 @@ async function handleUpdateAccesses() {
       );
     }
 
-    const redirectUrl = atob(route.query.redirectUri as string);
-    localStorage.removeItem('temporaryAccessToken');
+    const redirectUrl = safeAtob(route.query.redirectUri as string | undefined) || '/';
+    localStorage.removeItem(TEMPORARY_ACCESS_TOKEN_KEY);
     window.location.href = redirectUrl;
   } catch (err) {
     const axiosError = err as AxiosError<ErrorMessage>;

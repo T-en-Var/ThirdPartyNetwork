@@ -2,261 +2,96 @@
   <Teleport to="body">
     <div
       v-if="authStore.isModalOpen"
-      class="modal-overlay"
-      @click="closeModal"
+      class="fixed inset-0 z-[1000] flex items-center justify-center overflow-auto bg-black/60 p-5 backdrop-blur-sm max-sm:p-0"
+      @click.self="closeModal"
     >
       <div
-        class="auth-modal"
-        @click.stop
+        role="dialog"
+        aria-modal="true"
+        :aria-label="isLoginMode ? 'Sign in' : 'Create account'"
+        class="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-lg bg-white shadow-xl max-sm:max-h-full max-sm:rounded-none"
       >
-        <div class="form-wrapper">
-          <button
-            class="close-button"
-            @click="closeModal"
-          >
-            ×
-          </button>
+        <div class="absolute left-4 top-4 z-10 flex h-9 w-9 items-center justify-center">
+          <img
+            src="@/images/favicon-nobg.png"
+            alt="Company Logo"
+            class="max-h-full max-w-full object-contain"
+          />
+        </div>
 
-          <div class="logo-container">
-            <div class="logo">
-              <img
-                src="@/images/favicon-nobg.png"
-                alt="Company Logo"
-              />
+        <button
+          class="absolute right-4 top-3 z-10 flex h-8 w-8 items-center justify-center rounded text-2xl text-gray-500 transition hover:bg-gray-100 hover:text-gray-800"
+          @click="closeModal"
+          aria-label="Close"
+        >
+          ×
+        </button>
+
+        <div class="px-8 pb-8 pt-14 max-sm:px-5">
+          <div class="mb-6 text-center">
+            <h2 class="mb-1 text-2xl font-semibold text-gray-800">
+              {{ isLoginMode ? 'Sign In' : 'Create Account' }}
+            </h2>
+            <p class="text-sm text-gray-600">
+              {{ isLoginMode ? 'Access your account' : 'Join the platform' }}
+            </p>
+          </div>
+
+          <p
+            v-if="error"
+            class="mb-4 rounded bg-red-100 px-4 py-2 text-center text-sm text-red-700"
+            role="alert"
+          >
+            {{ error }}
+          </p>
+
+          <div
+            v-if="isInDevelopment && isLoginMode"
+            class="mb-4 flex flex-row items-center justify-center gap-8 text-sm"
+          >
+            <div
+              v-for="account in devAccounts"
+              :key="account.email"
+              class="flex flex-col items-center"
+            >
+              <span>Log in as</span>
+              <button
+                type="button"
+                class="cursor-pointer text-blue-500 underline"
+                @click="login({ email: account.email, password: account.email })"
+              >
+                {{ account.label }}
+              </button>
             </div>
           </div>
 
-          <!-- Login Form -->
+          <AuthLoginForm
+            v-if="isLoginMode"
+            id-prefix="modal-login"
+            email-label="Email"
+            email-placeholder="Enter your email"
+            :submitting="isSubmitting"
+            @submit="login"
+          />
+          <AuthSignupForm
+            v-else
+            id-prefix="modal-signup"
+            :initial-values="signupPrefill"
+            :submitting="isSubmitting"
+            @submit="signUp"
+            @tos="redirectToTos"
+          />
+
           <div
-            class="form-panel"
-            :class="{ active: authStore.modalMode == 'login' }"
+            class="mt-6 flex flex-wrap items-center justify-center gap-2 text-center text-sm text-gray-600"
           >
-            <div class="form-content">
-              <div class="form-header">
-                <h2>Sign In</h2>
-                <p class="form-subtitle">Access your account</p>
-              </div>
-
-              <p
-                v-if="error"
-                class="error-message"
-              >
-                {{ error }}
-              </p>
-
-              <div
-                v-if="isInDevelopment"
-                class="flex flex-row items-center justify-center gap-8 text-sm"
-              >
-                <div class="flex flex-col items-center">
-                  <span>Log in as</span>
-                  <div>
-                    <span
-                      class="cursor-pointer text-blue-500 underline"
-                      @click="logInAsAdmin"
-                      >Admin</span
-                    >
-                  </div>
-                </div>
-                <div class="flex flex-col items-center">
-                  <span>Log in as</span>
-                  <div>
-                    <span
-                      class="cursor-pointer text-blue-500 underline"
-                      @click="logInAsUser"
-                      >User</span
-                    >
-                  </div>
-                </div>
-                <div class="flex flex-col items-center">
-                  <span>Log in as</span>
-                  <div>
-                    <span
-                      class="cursor-pointer text-blue-500 underline"
-                      @click="logInAsMyUser"
-                      >MyUser</span
-                    >
-                  </div>
-                </div>
-              </div>
-
-              <form @submit.prevent="login">
-                <div class="form-group">
-                  <label for="email">Email</label>
-                  <input
-                    id="email"
-                    name="email"
-                    v-model="loginForm.email"
-                    type="text"
-                    placeholder="Enter your email"
-                    autocomplete="username"
-                    required
-                  />
-                </div>
-
-                <div class="form-group">
-                  <label for="password">Password</label>
-                  <input
-                    id="password"
-                    name="password"
-                    v-model="loginForm.password"
-                    type="password"
-                    placeholder="Enter your password"
-                    autocomplete="username"
-                    required
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  class="btn-primary"
-                  :disabled="isLoading"
-                >
-                  {{ isLoading ? 'Signing in...' : 'Sign In' }}
-                </button>
-              </form>
-
-              <div class="form-footer">
-                <p>Don't have an account?</p>
-                <button
-                  @click="switchMode('signup')"
-                  class="btn-switch"
-                >
-                  Create Account
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Sign Up Form -->
-          <div
-            class="form-panel"
-            :class="{ active: authStore.modalMode == 'signup' }"
-          >
-            <div class="form-content">
-              <div class="form-header">
-                <h2>Create Account</h2>
-                <p class="form-subtitle">Join the platform</p>
-              </div>
-
-              <p
-                v-if="signupError"
-                class="error-message"
-              >
-                {{ signupError }}
-              </p>
-
-              <form @submit.prevent="signUp">
-                <div class="form-row">
-                  <div class="form-group">
-                    <label for="signup-firstname">Firstname</label>
-                    <input
-                      id="signup-firstname"
-                      v-model="signUpForm.firstName"
-                      type="text"
-                      placeholder="Your firstname"
-                      required
-                    />
-                  </div>
-
-                  <div class="form-group">
-                    <label for="confirm-lastname">Lastname</label>
-                    <input
-                      id="confirm-lastname"
-                      v-model="signUpForm.lastName"
-                      type="text"
-                      placeholder="Your lastname"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div class="form-row">
-                  <div class="form-group">
-                    <label for="signup-username">Username</label>
-                    <input
-                      id="signup-username"
-                      v-model="signUpForm.username"
-                      type="text"
-                      placeholder="Choose a username"
-                      required
-                    />
-                  </div>
-
-                  <div class="form-group">
-                    <label for="signup-email">Email</label>
-                    <input
-                      id="signup-email"
-                      v-model="signUpForm.email"
-                      type="email"
-                      placeholder="Your email"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div class="form-row">
-                  <div class="form-group">
-                    <label for="signup-password">Password</label>
-                    <input
-                      id="signup-password"
-                      v-model="signUpForm.password"
-                      type="password"
-                      placeholder="Create a password"
-                      required
-                    />
-                  </div>
-
-                  <div class="form-group">
-                    <label for="confirm-password">Confirm Password</label>
-                    <input
-                      id="confirm-password"
-                      v-model="confirmPassword"
-                      type="password"
-                      placeholder="Confirm your password"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div class="form-group checkbox-group">
-                  <div class="checkbox-container">
-                    <input
-                      id="confirm-tos"
-                      v-model="confirmToS"
-                      type="checkbox"
-                      required
-                    />
-                    <label for="confirm-tos">
-                      I accept the
-                      <span
-                        class="tos-link"
-                        @click="redirectToTos"
-                        >Terms and Conditions</span
-                      >.
-                    </label>
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  class="btn-primary"
-                  :disabled="isSigningUp"
-                >
-                  {{ isSigningUp ? 'Creating account...' : 'Create Account' }}
-                </button>
-              </form>
-
-              <div class="form-footer">
-                <p>Already have an account?</p>
-                <button
-                  @click="switchMode('login')"
-                  class="btn-switch"
-                >
-                  Sign In
-                </button>
-              </div>
-            </div>
+            <p>{{ isLoginMode ? "Don't have an account?" : 'Already have an account?' }}</p>
+            <button
+              @click="switchMode"
+              class="font-medium text-blue-600 hover:underline"
+            >
+              {{ isLoginMode ? 'Create Account' : 'Sign In' }}
+            </button>
           </div>
         </div>
       </div>
@@ -265,558 +100,116 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import { useAuthStore } from '@/stores/auth';
+import { computed, onUnmounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useAuthStore } from '@/stores/auth';
+import { safeAtob } from '@/lib/utils';
 import type { UserLogin, UserSignup } from '@/types';
+
+import AuthLoginForm from '@/components/AuthLoginForm.vue';
+import AuthSignupForm from '@/components/AuthSignupForm.vue';
 
 const router = useRouter();
 const route = useRoute();
-
 const authStore = useAuthStore();
 
 const error = ref('');
-const isLoading = ref(false);
+const isSubmitting = ref(false);
 
-const loginForm = ref<UserLogin>({
-  email: '',
-  password: '',
-});
+const isLoginMode = computed(() => authStore.modalMode === 'login');
 
-const signUpForm = ref<UserSignup>({
-  firstName: '',
-  lastName: '',
-  username: '',
-  email: '',
-  password: '',
-});
+const signupPrefill = computed<Partial<UserSignup>>(() => ({
+  username: (route.query.s_username as string) || '',
+  firstName: (route.query.s_firstname as string) || '',
+  lastName: (route.query.s_lastname as string) || '',
+  email: (route.query.s_email as string) || '',
+}));
 
-const confirmPassword = ref('');
-const confirmToS = ref(false);
-const signupError = ref('');
-const isSigningUp = ref(false);
-
-const modalOpenCallback = () => {
-  signUpForm.value.username = (route.query.s_username as string) || '';
-  signUpForm.value.firstName = (route.query.s_firstname as string) || '';
-  signUpForm.value.lastName = (route.query.s_lastname as string) || '';
-  signUpForm.value.email = (route.query.s_email as string) || '';
+const onKeydown = (e: KeyboardEvent) => {
+  if (e.key === 'Escape') closeModal();
 };
 
-authStore.setModalOpenCallback(modalOpenCallback);
+watch(
+  () => authStore.isModalOpen,
+  (open) => {
+    error.value = '';
+    if (open) document.addEventListener('keydown', onKeydown);
+    else document.removeEventListener('keydown', onKeydown);
+  },
+  { immediate: true },
+);
 
-const redirectToTos = () => {
-  authStore.setModalOpen(false);
+onUnmounted(() => document.removeEventListener('keydown', onKeydown));
 
-  let uri = route.query.redirect;
-  if (route.name !== 'Terms of Service') uri = btoa(route.fullPath);
-
-  router.push(
-    `/tos?redirect=${uri}&s_username=${signUpForm.value.username}&s_firstname=${signUpForm.value.firstName}&s_lastname=${signUpForm.value.lastName}&s_email=${signUpForm.value.email}`,
-  );
-};
-
-const switchMode = (modalValue: 'signup' | 'login') => {
-  authStore.setModalMode(modalValue);
+const switchMode = () => {
+  authStore.setModalMode(isLoginMode.value ? 'signup' : 'login');
   error.value = '';
-  signupError.value = '';
 };
 
 const closeModal = () => {
   authStore.setModalOpen(false);
-
-  loginForm.value = {
-    email: '',
-    password: '',
-  };
-
-  signUpForm.value = {
-    firstName: '',
-    lastName: '',
-    username: '',
-    email: '',
-    password: '',
-  };
-  confirmPassword.value = '';
-
   error.value = '';
-  signupError.value = '';
-  confirmToS.value = false;
 };
 
-const login = async () => {
-  if (!loginForm.value.email || !loginForm.value.password) {
-    error.value = 'Please enter both username and password';
-    return;
-  }
-
-  isLoading.value = true;
-  error.value = '';
-
-  await authStore.login(loginForm.value);
-  if (authStore.error) {
-    isLoading.value = false;
-    error.value = authStore.error || 'Something went wrong, please try again';
-    return;
-  }
-
+const finishAuthentication = () => {
   closeModal();
-
-  const redirectPath = route.query.redirect ? atob(route.query.redirect as string) : '/networks';
+  const redirectPath = safeAtob(route.query.redirect as string | undefined) || '/networks';
   router.push(redirectPath);
-
-  isLoading.value = false;
 };
 
-const signUp = async () => {
-  if (
-    !signUpForm.value.username ||
-    !signUpForm.value.firstName ||
-    !signUpForm.value.lastName ||
-    !signUpForm.value.email ||
-    !signUpForm.value.password ||
-    !confirmPassword.value
-  ) {
-    signupError.value = 'Please fill in all fields';
-    return;
-  }
+const login = async (form: UserLogin) => {
+  error.value = '';
+  isSubmitting.value = true;
 
-  if (signUpForm.value.password !== confirmPassword.value) {
-    signupError.value = 'Passwords do not match';
-    return;
-  }
-
-  if (!confirmToS.value) {
-    signupError.value = 'Required to accept the Terms of Service';
-    return;
-  }
-
-  isSigningUp.value = true;
-  signupError.value = '';
-
-  await authStore.signUp(signUpForm.value);
+  await authStore.login(form);
+  isSubmitting.value = false;
 
   if (authStore.error) {
-    console.error(authStore.error);
-    isLoading.value = false;
-    isSigningUp.value = false;
-    signupError.value = authStore.error || 'Something went wrong, please try again.';
+    error.value = authStore.error;
     return;
   }
 
+  finishAuthentication();
+};
+
+const signUp = async (form: UserSignup) => {
+  error.value = '';
+  isSubmitting.value = true;
+
+  await authStore.signUp(form);
+  isSubmitting.value = false;
+
+  if (authStore.error) {
+    error.value = authStore.error;
+    return;
+  }
+
+  finishAuthentication();
+};
+
+const redirectToTos = (form: UserSignup) => {
   closeModal();
 
-  const redirectPath = route.query.redirect ? atob(route.query.redirect as string) : '/networks';
-  router.push(redirectPath);
+  let redirect = route.query.redirect as string | undefined;
+  if (route.name !== 'terms-of-service') redirect = btoa(route.fullPath);
 
-  isLoading.value = false;
-  isSigningUp.value = false;
+  router.push({
+    path: '/tos',
+    query: {
+      redirect,
+      s_username: form.username,
+      s_firstname: form.firstName,
+      s_lastname: form.lastName,
+      s_email: form.email,
+    },
+  });
 };
 
 const isInDevelopment = computed(() => window.location.hostname === 'localhost');
 
-const logInAsAdmin = async () => {
-  loginForm.value = {
-    email: 'admin@gmail.com',
-    password: 'admin@gmail.com',
-  };
-
-  await login();
-};
-
-const logInAsUser = async () => {
-  loginForm.value = {
-    email: 'normaluser@gmail.com',
-    password: 'normaluser@gmail.com',
-  };
-
-  await login();
-};
-
-const logInAsMyUser = async () => {
-  loginForm.value = {
-    email: 'myuser@gmail.com',
-    password: 'myuser@gmail.com',
-  };
-
-  await login();
-};
+const devAccounts = [
+  { label: 'Admin', email: 'admin@gmail.com' },
+  { label: 'User', email: 'normaluser@gmail.com' },
+  { label: 'MyUser', email: 'myuser@gmail.com' },
+];
 </script>
-
-<style scoped>
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(2px);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  padding: 20px;
-  overflow: auto;
-}
-
-.auth-modal {
-  width: 100%;
-  max-width: 480px;
-  position: relative;
-  animation: modal-appear 0.25s ease-out;
-  max-height: 90vh;
-  overflow-y: auto;
-}
-
-@keyframes modal-appear {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Logo styling */
-.logo-container {
-  position: absolute;
-  top: 16px;
-  left: 16px;
-  z-index: 10;
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  width: 36px;
-  height: 36px;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 12px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.logo img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-}
-
-/* Fix close button */
-.close-button {
-  position: absolute;
-  top: 12px;
-  right: 16px;
-  width: 32px;
-  height: 32px;
-  border-radius: 4px;
-  background: transparent;
-  border: none;
-  font-size: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  z-index: 10;
-  color: #666;
-  transition: all 0.2s ease;
-  padding: 0 0 6px 0;
-}
-
-.close-button:hover {
-  background: rgba(0, 0, 0, 0.05);
-  color: #333;
-}
-
-/* Form Styling */
-.form-wrapper {
-  position: relative;
-  width: 100%;
-  overflow: hidden;
-  border-radius: 8px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-  background: white;
-}
-
-.form-panel {
-  position: absolute;
-  width: 100%;
-  top: 0;
-  left: 0;
-  opacity: 0;
-  visibility: hidden;
-}
-
-.form-panel.active {
-  position: relative;
-  opacity: 1;
-  visibility: visible;
-  z-index: 2;
-}
-
-.form-content {
-  width: 100%;
-  padding: 2rem;
-  background: white;
-  color: #333;
-}
-
-/* Responsive layout for form rows */
-.form-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  margin-bottom: 0;
-}
-
-.form-row .form-group {
-  flex: 1 1 calc(50% - 8px);
-  min-width: 120px;
-}
-
-/* Checkbox styling */
-.checkbox-group {
-  margin-top: 0.5rem;
-}
-
-.checkbox-container {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-}
-
-.checkbox-container input[type='checkbox'] {
-  width: 18px;
-  height: 18px;
-  accent-color: #3f51b5;
-  cursor: pointer;
-  margin-top: 2px;
-}
-
-.checkbox-container label {
-  margin-bottom: 0;
-  font-size: 0.89rem;
-  color: #555;
-  cursor: pointer;
-  line-height: 1.4;
-}
-
-.tos-link {
-  color: #3f51b5;
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.2s;
-}
-
-.tos-link:hover {
-  color: #5c6bc0;
-  text-decoration: underline;
-}
-
-/* Form header */
-.form-header {
-  margin-bottom: 1.5rem;
-  padding-top: 0.5rem;
-  text-align: center;
-}
-
-h2 {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  color: #333;
-}
-
-.form-subtitle {
-  color: #666;
-  font-size: 0.875rem;
-}
-
-/* Form elements */
-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-}
-
-.form-group {
-  position: relative;
-  margin-bottom: 0;
-}
-
-label {
-  display: block;
-  margin-bottom: 6px;
-  color: #555;
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-input {
-  width: 100%;
-  padding: 10px 12px;
-  font-size: 0.9rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background: white;
-  color: #333;
-  transition: border-color 0.2s;
-}
-
-input:focus {
-  outline: none;
-  border-color: #3f51b5;
-  box-shadow: 0 0 0 2px rgba(63, 81, 181, 0.1);
-}
-
-/* Buttons */
-.btn-primary {
-  width: 100%;
-  padding: 12px;
-  border: none;
-  border-radius: 4px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  background-color: #3f51b5;
-  color: white;
-  margin-top: 1rem;
-}
-
-.btn-primary:hover {
-  background-color: #303f9f;
-}
-
-.btn-primary:active {
-  transform: translateY(1px);
-}
-
-.btn-primary:disabled {
-  background-color: #c5cae9;
-  cursor: not-allowed;
-}
-
-/* Form footer */
-.form-footer {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 1.5rem;
-  color: #666;
-  font-size: 0.85rem;
-  flex-wrap: wrap;
-}
-
-.btn-switch {
-  background: none;
-  border: none;
-  color: #3f51b5;
-  font-weight: 500;
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: color 0.2s;
-}
-
-.btn-switch:hover {
-  color: #5c6bc0;
-  text-decoration: underline;
-}
-
-/* Error messages */
-.error-message {
-  color: #d32f2f;
-  margin-bottom: 1rem;
-  text-align: center;
-  font-size: 0.85rem;
-  padding: 8px 12px;
-  border-radius: 4px;
-  background: #ffebee;
-}
-
-/* Responsive adjustments */
-@media (max-width: 576px) {
-  .form-content {
-    padding: 1.5rem;
-  }
-
-  .form-row {
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .form-row .form-group {
-    width: 100%;
-  }
-
-  .auth-modal {
-    max-width: 100%;
-    max-height: 100vh;
-    border-radius: 0;
-  }
-
-  .form-wrapper {
-    border-radius: 0;
-    height: 100%;
-  }
-
-  .modal-overlay {
-    padding: 0;
-  }
-
-  h2 {
-    font-size: 1.3rem;
-  }
-
-  .form-footer {
-    flex-direction: column;
-    text-align: center;
-  }
-}
-
-/* Handle very small screens */
-@media (max-width: 360px) {
-  .form-content {
-    padding: 1rem;
-  }
-
-  .btn-primary {
-    padding: 10px;
-  }
-
-  input {
-    padding: 8px 10px;
-  }
-}
-
-/* Handle tall forms on small screens */
-@media (max-height: 700px) and (max-width: 576px) {
-  .form-content {
-    padding-top: 2.5rem;
-  }
-
-  .form-header {
-    margin-bottom: 1rem;
-  }
-
-  form {
-    gap: 1rem;
-  }
-}
-
-/* Handle landscape orientation on mobile */
-@media (max-height: 500px) {
-  .auth-modal {
-    max-height: 100vh;
-    overflow-y: auto;
-  }
-}
-</style>

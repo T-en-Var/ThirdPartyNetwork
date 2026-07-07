@@ -1,48 +1,43 @@
 <template>
   <AuthLayout
-    :back-url="route.query.back as string"
+    :back-url="backUrl"
     max-width="xl"
     :current-step="signUpStep"
     @go-back-step="goBackStep"
   >
     <div
       v-if="networkDetails.loading.value"
-      class="w-full max-w-md text-center"
+      class="w-full text-center"
     >
-      <p class="text-gray-600">Loading network details...</p>
+      <p class="text-sm text-gray-600">Loading network details...</p>
       <div class="mt-4 flex justify-center">
-        <svg
-          class="h-6 w-6 animate-spin text-blue-600"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <circle
-            class="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            stroke-width="4"
-          ></circle>
-          <path
-            class="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-          ></path>
-        </svg>
+        <LoadingSpinner />
       </div>
     </div>
 
     <div
-      v-else-if="networkNotFoundError"
-      class="w-full max-w-md text-center"
+      v-else-if="networkNotFound"
+      class="w-full text-center"
     >
       <NetworkNotFound :network-id="networkId" />
     </div>
 
+    <div
+      v-else-if="!isValidUrl"
+      class="w-full text-center"
+    >
+      <p
+        class="mb-4 rounded bg-red-100 px-4 py-2 text-sm text-red-700"
+        role="alert"
+        aria-live="assertive"
+      >
+        Invalid URL. Please ensure all required parameters are present.
+      </p>
+    </div>
+
+    <!-- Step 1: Account details -->
     <AuthFormCard
-      v-else-if="signUpStep == 1"
+      v-else-if="signUpStep === 1"
       title="Create Account"
       :subtitle="
         networkDetails.data.value ? `Join ${networkDetails.data.value.name}` : 'Join the platform'
@@ -50,159 +45,18 @@
       :error="error"
       :network-details="networkDetails"
     >
-      <form
-        @submit.prevent="signUp"
-        class="flex flex-col gap-5"
-      >
-        <div class="flex flex-wrap gap-5">
-          <div class="min-w-[140px] flex-1">
-            <label
-              for="signup-firstname"
-              class="mb-2 block text-sm font-medium text-slate-700"
-              >First Name</label
-            >
-            <input
-              id="signup-firstname"
-              v-model="signupFirstname"
-              type="text"
-              required
-              autocomplete="given-name"
-              placeholder="Your first name"
-              aria-required="true"
-              class="w-full rounded border border-gray-300 p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div class="min-w-[140px] flex-1">
-            <label
-              for="signup-lastname"
-              class="mb-2 block text-sm font-medium text-slate-700"
-              >Last Name</label
-            >
-            <input
-              id="signup-lastname"
-              v-model="signupLastname"
-              type="text"
-              required
-              autocomplete="family-name"
-              placeholder="Your last name"
-              aria-required="true"
-              class="w-full rounded border border-gray-300 p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-        </div>
-
-        <div class="flex flex-wrap gap-5">
-          <div class="min-w-[140px] flex-1">
-            <label
-              for="signup-username"
-              class="mb-2 block text-sm font-medium text-slate-700"
-              >Username</label
-            >
-            <input
-              id="signup-username"
-              v-model="signupUsername"
-              type="text"
-              required
-              autocomplete="username"
-              placeholder="Choose a username"
-              aria-required="true"
-              class="w-full rounded border border-gray-300 p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div class="min-w-[140px] flex-1">
-            <label
-              for="signup-email"
-              class="mb-2 block text-sm font-medium text-slate-700"
-              >Email</label
-            >
-            <input
-              id="signup-email"
-              v-model="signupEmail"
-              type="email"
-              required
-              autocomplete="email"
-              placeholder="Your email"
-              aria-required="true"
-              class="w-full rounded border border-gray-300 p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-        </div>
-
-        <div class="flex flex-wrap gap-5">
-          <div class="min-w-[140px] flex-1">
-            <label
-              for="signup-password"
-              class="mb-2 block text-sm font-medium text-slate-700"
-              >Password</label
-            >
-            <input
-              id="signup-password"
-              v-model="signupPassword"
-              type="password"
-              required
-              autocomplete="new-password"
-              placeholder="Create a password"
-              aria-required="true"
-              class="w-full rounded border border-gray-300 p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div class="min-w-[140px] flex-1">
-            <label
-              for="confirm-password"
-              class="mb-2 block text-sm font-medium text-slate-700"
-              >Confirm Password</label
-            >
-            <input
-              id="confirm-password"
-              v-model="confirmPassword"
-              type="password"
-              required
-              autocomplete="new-password"
-              placeholder="Confirm your password"
-              aria-required="true"
-              class="w-full rounded border border-gray-300 p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-        </div>
-        <div class="mt-1 flex items-center gap-3">
-          <input
-            id="confirm-tos"
-            v-model="confirmToS"
-            type="checkbox"
-            required
-            aria-required="true"
-            class="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-          />
-          <label
-            for="confirm-tos"
-            class="text-sm text-slate-700"
-          >
-            I accept the
-            <a
-              href="#"
-              @click.prevent="redirectToTos"
-              class="cursor-pointer font-medium text-blue-600 hover:underline"
-              >Terms and Conditions</a
-            >.
-          </label>
-        </div>
-
-        <button
-          type="submit"
-          class="mt-3 w-full rounded bg-blue-600 py-3 font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
-          :disabled="isSigningUp"
-          aria-live="polite"
-        >
-          {{ isSigningUp ? 'Creating account...' : 'Create Account' }}
-        </button>
-      </form>
+      <AuthSignupForm
+        :initial-values="initialSignupValues"
+        @submit="completeStep1"
+        @tos="redirectToTos"
+      />
 
       <template #footer>
-        <div class="mt-6 text-center text-sm text-slate-600">
+        <div class="mt-6 flex items-center justify-center gap-2 text-sm text-gray-600">
           <p>Already have an account?</p>
           <button
-            @click="navigateToLogin"
-            class="mt-1 font-medium text-blue-600 hover:underline"
+            @click="goToLogin"
+            class="font-medium text-blue-600 hover:underline"
           >
             Sign In
           </button>
@@ -210,14 +64,13 @@
       </template>
     </AuthFormCard>
 
-    <!-- 4. Signup Step 2: Access Consent -->
+    <!-- Step 2: Access consent -->
     <AuthFormCard
-      v-else-if="signUpStep == 2"
+      v-else-if="signUpStep === 2"
       title="Confirm Access"
       subtitle="Review the required data access for this network."
       :error="error"
       :network-details="networkDetails"
-      max-width="2xl"
     >
       <div class="mb-8 overflow-hidden rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
         <h2 class="text-xl font-semibold text-gray-800">{{ networkDetails.data.value?.name }}</h2>
@@ -226,72 +79,28 @@
         </p>
       </div>
 
-      <div
-        v-if="isLoading"
-        class="mb-8"
-      >
-        <LoadingSpinner />
-      </div>
-
-      <div
-        v-else-if="
-          networkDetails.data.value && networkDetails.data.value.networkAccesses.length > 0
-        "
-      >
-        <h3 class="mb-4 text-lg font-medium text-gray-800">Required Data Access</h3>
-        <p class="mb-4 text-gray-600">Update your consent for the following data accesses:</p>
-
-        <div class="mb-6 space-y-4">
-          <div
-            v-for="access in networkDetails.data.value.networkAccesses"
-            :key="access.accessId"
-            class="rounded-md border border-gray-200 p-4"
-          >
-            <div class="flex items-start">
-              <input
-                :id="access.accessId"
-                v-model="userAccesses[access.accessId].value"
-                type="checkbox"
-                class="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                @change="validateRequiredAccesses"
-                :aria-required="access.isRequired ? 'true' : 'false'"
-              />
-              <div class="ml-3">
-                <label
-                  :for="access.accessId"
-                  class="block text-sm font-medium text-gray-700"
-                >
-                  {{ access.access.name }}
-                  <span
-                    v-if="access.isRequired"
-                    class="ml-1 text-red-500"
-                    >(Required)</span
-                  >
-                </label>
-                <p class="text-sm text-gray-500">{{ access.access.description }}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div v-else>
-        <p class="text-gray-600">This network does not require any special permissions.</p>
-      </div>
+      <NetworkAccessList
+        :network-accesses="networkDetails.data.value?.networkAccesses ?? []"
+        :initial-user-accesses="userAccesses"
+        :network-user-accesses="[]"
+        :loading="networkDetails.loading.value"
+        @access-change="onAccessChange"
+      />
 
       <div class="mb-8">
         <h2 class="mb-4 text-lg font-medium text-gray-800">Your account</h2>
         <UserProxyDisplay
+          v-if="signupForm"
           :userProxy="{
-            firstName: signupFirstname,
+            firstName: signupForm.firstName,
             createdOn: new Date(),
             id: '',
             isDefault: true,
             networkUsers: [],
             user: { id: '', createdOn: new Date(), userProxies: [] },
-            email: signupEmail,
-            lastName: signupLastname,
-            username: signupUsername,
+            email: signupForm.email,
+            lastName: signupForm.lastName,
+            username: signupForm.username,
             hasPassword: false,
           }"
           :sensitiveFields="['email', 'lastName']"
@@ -304,8 +113,8 @@
         <div class="flex justify-end space-x-3 border-t border-gray-200 pt-4">
           <button
             type="submit"
-            :class="`rounded-md px-4 py-2 text-white transition ${canSubmit && !isSubmitting ? 'bg-blue-600 hover:bg-blue-700' : 'cursor-not-allowed bg-gray-400'}`"
-            :disabled="!canSubmit || isSubmitting"
+            :class="`rounded-md px-4 py-2 text-white transition ${canSubmit ? 'bg-blue-600 hover:bg-blue-700' : 'cursor-not-allowed bg-gray-400'}`"
+            :disabled="!canSubmit"
             aria-label="Create account and confirm access"
             aria-live="polite"
           >
@@ -325,10 +134,10 @@
       </form>
     </AuthFormCard>
 
-    <!-- 5. Signup Step 3: Final Loading -->
+    <!-- Step 3: Finalizing -->
     <div
-      v-else-if="signUpStep == 3"
-      class="w-full max-w-xl space-y-4 text-center"
+      v-else
+      class="w-full space-y-4 text-center"
     >
       <h1 class="text-2xl font-semibold text-gray-800">Hold on, we're creating your account...</h1>
       <p class="text-gray-600">Please wait while we complete your authentication.</p>
@@ -336,14 +145,13 @@
     </div>
 
     <ConfirmationModal
-      v-if="showConfirmationModal"
-      :title="confirmationTitle"
-      :message="confirmationMessage"
-      :button-text="confirmButtonText"
-      :color="confirmButtonColor"
-      :is-submitting="isSubmitting"
-      @close="showConfirmationModal = false"
-      @confirm="confirmationAction"
+      v-if="incompleteAccess"
+      title="Account Created, Additional Access Required"
+      message="This network requires additional confirmation of your data access. Please continue to confirm and complete your registration."
+      button-text="Continue to Access"
+      color="blue"
+      @close="incompleteAccess = null"
+      @confirm="confirmIncompleteAccess"
     />
   </AuthLayout>
 </template>
@@ -351,282 +159,175 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import type {
-  AccessTokenClaims,
-  AuthorizationCode,
-  ErrorMessage,
-  UserProxy,
-  NetworkAccess,
-} from '@/types';
-import { decodeJWT } from '@/lib/utils';
+import type { UserProxy, UserSignup } from '@/types';
 import { useGlobalStore } from '@/stores/global';
-import type { AxiosError } from 'axios';
 import api from '@/api/api';
-import rawApi from '@/api/rawApi';
+import useNetworkAuthFlow from '@/composables/useNetworkAuthFlow';
 
 import AuthLayout from '@/components/AuthLayout.vue';
 import AuthFormCard from '@/components/AuthFormCard.vue';
+import AuthSignupForm from '@/components/AuthSignupForm.vue';
 import LoadingSpinner from '@/components/LoadingSpinner.vue';
 import ConfirmationModal from '@/components/modals/ConfirmationModal.vue';
+import NetworkAccessList from '@/components/NetworkAccessList.vue';
 import UserProxyDisplay from '@/components/UserProxyDisplay.vue';
 import NetworkNotFound from '@/components/NetworkNotFound.vue';
-import useNetworks from '@/composables/useNetworks';
 
 const router = useRouter();
 const route = useRoute();
 const global = useGlobalStore();
-const networkDetails = useNetworks().fetchNetworkDetails;
-
-const networkId = computed(() => route.params.networkId as string);
-const clientId = computed(() => route.query.clientId as string);
-const codeChallenge = computed(() => route.query.codeChallenge as string);
-const state = computed(() => route.query.state as string);
-const backUrlQuery = computed(() => route.query.back as string);
-
-const signupUsername = ref('');
-const signupFirstname = ref('');
-const signupLastname = ref('');
-const signupEmail = ref('');
-const signupPassword = ref('');
-const confirmPassword = ref('');
-const confirmToS = ref(false);
+const flow = useNetworkAuthFlow();
+const { networkDetails, networkId, backUrl, isValidUrl, networkNotFound, goToLogin } = flow;
 
 const signUpStep = ref(1);
 const error = ref('');
-const isLoading = ref(false);
-const isSigningUp = ref(false);
-
-const userAccesses = ref<Record<string, { value: boolean; userChecked: boolean }>>({});
-
-const showConfirmationModal = ref(false);
-const confirmationTitle = ref('');
-const confirmationMessage = ref('');
-const confirmButtonText = ref('');
-const confirmButtonColor = ref('');
-const confirmationAction = ref(() => {});
 const isSubmitting = ref(false);
+const signupForm = ref<UserSignup | null>(null);
+const userAccesses = ref<Record<string, { value: boolean; userChecked: boolean }>>({});
+const incompleteAccess = ref<{ accessToken: string; redirectUrl: string } | null>(null);
 
-const networkNotFoundError = computed(() => {
-  return !!networkId.value && !networkDetails.data.value;
-});
+const initialSignupValues = computed<Partial<UserSignup>>(
+  () =>
+    // Keep entered values when the user returns to step 1 (back button or a
+    // failed submit); otherwise prefill from the query (return from the ToS page).
+    signupForm.value ?? {
+      username: (route.query.uname as string) || '',
+      firstName: (route.query.fname as string) || '',
+      lastName: (route.query.lname as string) || '',
+      email: (route.query.email as string) || '',
+    },
+);
 
 const canSubmit = computed(() => {
   if (!networkDetails.data.value || isSubmitting.value) return false;
 
-  const requiredAccesses = networkDetails.data.value.networkAccesses.filter(
-    (na: NetworkAccess) => na.isRequired,
-  );
-  return requiredAccesses.every((na: NetworkAccess) => userAccesses.value[na.accessId]?.value);
+  return networkDetails.data.value.networkAccesses
+    .filter((na) => na.isRequired)
+    .every((na) => userAccesses.value[na.accessId]?.value);
 });
 
 onMounted(async () => {
-  await networkDetails.execute(networkId.value);
+  await flow.loadNetwork();
 
   for (const access of networkDetails.data.value?.networkAccesses || []) {
     userAccesses.value[access.accessId] = { value: false, userChecked: false };
   }
-
-  if (route.query.uname) signupUsername.value = route.query.uname as string;
-  if (route.query.fname) signupFirstname.value = route.query.fname as string;
-  if (route.query.lname) signupLastname.value = route.query.lname as string;
-  if (route.query.email) signupEmail.value = route.query.email as string;
 });
 
 const goBackStep = () => {
-  if (signUpStep.value > 1) {
-    signUpStep.value--;
+  if (signUpStep.value === 2) {
+    signUpStep.value = 1;
   }
 };
 
-const navigateToLogin = () => {
-  router.push(
-    `/networks/${networkId.value}/login?clientId=${clientId.value}&codeChallenge=${codeChallenge.value}&state=${state.value}&back=${backUrlQuery.value}`,
-  );
-};
-
-function buildQueryString(queryObj: typeof route.query) {
-  const entries = Object.entries(queryObj);
-  if (entries.length === 0) return '';
-  return (
-    '?' +
-    entries
-      .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value as string)}`)
-      .join('&')
-  );
-}
-
-const redirectToTos = () => {
-  const currentQuery = { ...route.query };
-  delete currentQuery.uname;
-  delete currentQuery.fname;
-  delete currentQuery.lname;
-  delete currentQuery.email;
-
-  const cleanedPath = route.path + buildQueryString(currentQuery);
-  const signupInfo = `&uname=${signupUsername.value}&fname=${signupFirstname.value}&lname=${signupLastname.value}&email=${signupEmail.value}`;
-
-  router.push(`/tos?redirect=${btoa(cleanedPath + signupInfo)}&fromExternal=&hideNavbar=`);
-};
-
-const signUp = async () => {
+const completeStep1 = (form: UserSignup) => {
   error.value = '';
+  signupForm.value = form;
+  signUpStep.value = 2;
+};
+
+const onAccessChange = (accessId: string, isChecked: boolean) => {
+  userAccesses.value[accessId] = { value: isChecked, userChecked: true };
+};
+
+const redirectToTos = (form: UserSignup) => {
+  const target = router.resolve({
+    path: route.path,
+    query: {
+      clientId: flow.clientId.value,
+      codeChallenge: flow.codeChallenge.value,
+      state: flow.state.value,
+      back: backUrl.value,
+      uname: form.username,
+      fname: form.firstName,
+      lname: form.lastName,
+      email: form.email,
+    },
+  }).fullPath;
+
+  router.push({
+    path: '/tos',
+    query: { redirect: btoa(target), fromExternal: '', hideNavbar: '' },
+  });
+};
+
+async function handleSubmit() {
+  if (!canSubmit.value || !signupForm.value) {
+    error.value = 'Please accept all required accesses.';
+    return;
+  }
 
   if (!networkDetails.data.value) {
     error.value = 'Network details are not available yet.';
     return;
   }
 
-  if (
-    !signupUsername.value ||
-    !signupPassword.value ||
-    !confirmPassword.value ||
-    !signupEmail.value ||
-    !signupFirstname.value ||
-    !signupLastname.value
-  ) {
-    error.value = 'Please fill in all fields';
-    return;
-  }
-
-  if (signupPassword.value !== confirmPassword.value) {
-    error.value = 'Passwords do not match';
-    return;
-  }
-
-  if (!confirmToS.value) {
-    error.value = 'Required to accept the Terms of Service';
-    return;
-  }
-
-  signUpStep.value = 2;
-};
-
-async function handleSubmit() {
-  if (!canSubmit.value) {
-    error.value = 'Please accept all required accesses.';
-    return;
-  }
-
+  error.value = '';
   isSubmitting.value = true;
   signUpStep.value = 3;
   global.startFetching();
 
-  const network = networkDetails.data.value;
-
-  if (!network) {
-    error.value = 'Network details missing.';
-    global.stopFetching();
-    isSubmitting.value = false;
-    signUpStep.value = 2;
-    return;
-  }
-
-  const signupUrl = `/auth/${networkId.value}/register?clientId=${clientId.value}&redirectUri=${network.redirectURI}&codeChallenge=${codeChallenge.value}`;
-
   try {
-    const response = await rawApi.post<AuthorizationCode>(signupUrl, {
-      username: signupUsername.value.trim(),
-      firstName: signupFirstname.value.trim(),
-      lastName: signupLastname.value.trim(),
-      email: signupEmail.value.trim(),
-      password: signupPassword.value,
-    });
-
-    const accessToken = response.data.accessToken;
+    const auth = await flow.authorize('register', signupForm.value);
 
     const userResponse = await api.get<UserProxy>(`/me`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
+      headers: { Authorization: `Bearer ${auth.accessToken}` },
     });
-    const networkUserId = userResponse.data.networkUsers[0].id;
+    const networkUserId = userResponse.data.networkUsers[0]?.id;
+    if (!networkUserId) throw new Error('Created user is not linked to this network.');
 
-    await handleUpdateAccesses(networkUserId, accessToken);
+    await acceptAccesses(networkUserId, auth.accessToken);
 
-    const jwt = decodeJWT<AccessTokenClaims>(accessToken);
+    const redirectUrl = flow.buildRedirectUrl(auth.code);
 
-    if (jwt.AccessIncomplete === 'true') {
-      localStorage.setItem('temporaryAccessToken', accessToken);
-      const redirectUrl = `${network.redirectURI}?code=${response.data.code}&state=${state.value}`;
-      handleIncompleteAccess(redirectUrl);
+    if (flow.isAccessIncomplete(auth.accessToken)) {
+      incompleteAccess.value = { accessToken: auth.accessToken, redirectUrl };
       return;
     }
 
-    const redirectUrl = `${network.redirectURI}?code=${response.data.code}&state=${state.value}`;
     window.location.href = redirectUrl;
   } catch (err) {
-    global.stopFetching();
-    isSubmitting.value = false;
+    const { status, message } = flow.extractError(
+      err,
+      'An unexpected error occurred during account creation. Please try again.',
+    );
 
-    const axiosError = err as AxiosError<ErrorMessage>;
-
-    if (axiosError.response?.status === 409) {
+    if (status === 409) {
       error.value = 'An account with this username or email already exists. Please sign in.';
       signUpStep.value = 1;
-    } else if (axiosError.response?.status === 400) {
-      error.value = axiosError.response.data?.message || 'Invalid registration data provided.';
+    } else if (status === 400) {
+      error.value = message || 'Invalid registration data provided.';
       signUpStep.value = 1;
-    } else if (axiosError.response?.data?.message) {
-      error.value = axiosError.response.data.message;
-      signUpStep.value = 2;
     } else {
-      error.value = 'An unexpected error occurred during account creation. Please try again.';
+      error.value = message;
       signUpStep.value = 2;
     }
+  } finally {
+    isSubmitting.value = false;
+    global.stopFetching();
   }
 }
 
-async function handleUpdateAccesses(networkUserId: string, temporaryAccessToken: string) {
-  if (!networkDetails.data.value) return;
-
-  const acceptedAccesses = networkDetails.data.value.networkAccesses
-    .filter((access) => userAccesses.value[access.accessId].value)
+async function acceptAccesses(networkUserId: string, accessToken: string) {
+  const acceptedAccesses = (networkDetails.data.value?.networkAccesses ?? [])
+    .filter((access) => userAccesses.value[access.accessId]?.value)
     .map((access) => access.accessId);
 
-  try {
-    await Promise.all(
-      acceptedAccesses.map((accessId) =>
-        api.put(
-          `/networks/${networkId.value}/users/${networkUserId}/accesses/${accessId}/`,
-          { isAccepted: true },
-          {
-            headers: { Authorization: `Bearer ${temporaryAccessToken}` },
-          },
-        ),
+  await Promise.all(
+    acceptedAccesses.map((accessId) =>
+      api.put(
+        `/networks/${networkId.value}/users/${networkUserId}/accesses/${accessId}/`,
+        { isAccepted: true },
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        },
       ),
-    );
-  } catch (err) {
-    console.error('Failed to update accesses:', err);
-    throw err;
-  }
-}
-
-function handleIncompleteAccess(redirectUri: string) {
-  showConfirmationModal.value = true;
-  confirmationTitle.value = 'Account Created, Additional Access Required';
-  confirmationMessage.value =
-    'This network requires additional confirmation of your data access. Please continue to confirm and complete your registration.';
-  confirmButtonText.value = 'Continue to Access';
-  confirmButtonColor.value = 'blue';
-
-  confirmationAction.value = () => {
-    router.push(`/networks/${networkId.value}/complete-access?redirectUri=${btoa(redirectUri)}`);
-  };
-}
-
-function validateRequiredAccesses(e: Event) {
-  if (!networkDetails.data.value) return;
-
-  const currentElementId = (e.target as HTMLInputElement).id;
-  const isChecked = (e.target as HTMLInputElement).checked;
-
-  const access = networkDetails.data.value.networkAccesses.find(
-    (a) => a.accessId === currentElementId,
+    ),
   );
+}
 
-  if (access && access.isRequired) {
-    userAccesses.value[currentElementId].value = isChecked;
-    userAccesses.value[currentElementId].userChecked = true;
-  } else if (access) {
-    userAccesses.value[currentElementId].value = isChecked;
-  }
+function confirmIncompleteAccess() {
+  if (!incompleteAccess.value) return;
+  flow.goToCompleteAccess(incompleteAccess.value.accessToken, incompleteAccess.value.redirectUrl);
 }
 </script>

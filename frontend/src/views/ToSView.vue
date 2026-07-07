@@ -87,6 +87,7 @@
 
 <script setup lang="ts">
 import { useAuthStore } from '@/stores/auth';
+import { safeAtob } from '@/lib/utils';
 import { useRoute, useRouter } from 'vue-router';
 
 const authStore = useAuthStore();
@@ -98,7 +99,7 @@ const hasRedirect = route.fullPath.includes('redirect');
 
 const handleContinue = () => {
   if (route.query.fromExternal !== undefined) {
-    router.push(atob(route.query.redirect as string));
+    router.push(safeAtob(route.query.redirect as string | undefined) || '/');
     return;
   }
 

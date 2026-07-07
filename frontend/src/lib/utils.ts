@@ -20,6 +20,15 @@ export function isValidHttpUrl(value?: string) {
   return url.protocol === 'http:' || url.protocol === 'https:';
 }
 
+export function safeAtob(value: string | null | undefined, fallback = ''): string {
+  if (!value) return fallback;
+  try {
+    return atob(value);
+  } catch {
+    return fallback;
+  }
+}
+
 export function decodeJWT<T>(token: string): T {
   const payloadBase64 = token.split('.')[1];
   const decodedPayload = atob(payloadBase64);

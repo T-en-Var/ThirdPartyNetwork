@@ -25,27 +25,41 @@
       <span> Back </span>
     </button>
 
-    <div :class="`w-full max-w-${maxWidth}`">
+    <div :class="['w-full', widthClasses[maxWidth]]">
       <slot />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { safeAtob } from '@/lib/utils';
 
-const props = defineProps<{
-  backUrl?: string;
-  maxWidth?: string;
-  currentStep: number;
-}>();
+const props = withDefaults(
+  defineProps<{
+    backUrl?: string;
+    maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+    currentStep: number;
+  }>(),
+  {
+    maxWidth: 'md',
+  },
+);
 
-const back = computed(() => (props.backUrl ? atob(props.backUrl) : '/'));
 const emit = defineEmits(['go-back-step']);
+
+// Tailwind only generates classes it can see verbatim at build time,
+// so the max-width variants must be spelled out.
+const widthClasses = {
+  sm: 'max-w-sm',
+  md: 'max-w-md',
+  lg: 'max-w-lg',
+  xl: 'max-w-xl',
+  '2xl': 'max-w-2xl',
+} as const;
 
 const goBack = () => {
   if (props.currentStep === 1) {
-    window.location.href = back.value;
+    window.location.href = safeAtob(props.backUrl) || '/';
   } else {
     emit('go-back-step');
   }
