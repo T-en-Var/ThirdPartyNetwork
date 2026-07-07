@@ -1,4 +1,4 @@
-import { ref, computed, watch } from 'vue';
+import { ref, computed } from 'vue';
 import { defineStore } from 'pinia';
 import { type InternalAxiosRequestConfig } from 'axios';
 import type {
@@ -37,24 +37,12 @@ export const useAuthStore = defineStore('auth', () => {
   const claimChecker = new ClaimChecker();
 
   const modalMode = ref<'signup' | 'login'>('signup');
-  let modalCallback = () => {};
 
   const currentUserProxy = ref<UserProxy | null>(null);
   const loading = computed(() => auth.loading.value);
   const error = computed(() => auth.error.value);
   const accessToken = ref<string | null>(null);
   const permissionCollection = ref<NetworkPermissionCollection[]>([]);
-
-  watch(permissionCollection, (newCollections) => {
-    console.log('updated newCollections', newCollections);
-  });
-
-  setInterval(() => {
-    if (!accessToken.value) return;
-    const decodedPayload = decodeJWT<AccessTokenClaims>(accessToken.value);
-
-    console.log(Math.round(decodedPayload.exp - Date.now()/1000), "until expiry")
-  }, 3000);
 
   const isAuthenticated = computed(() => {
     loadTokens();
@@ -341,13 +329,8 @@ export const useAuthStore = defineStore('auth', () => {
     modalMode.value = newModalMode;
   }
 
-  function setModalOpen(newModelState: boolean) {
-    isModalOpen.value = newModelState;
-    if (newModelState) modalCallback();
-  }
-
-  function setModalOpenCallback(callback: () => void) {
-    modalCallback = callback;
+  function setModalOpen(newModalState: boolean) {
+    isModalOpen.value = newModalState;
   }
 
   function setUnauthModalOpen(newModelState: boolean) {
@@ -409,7 +392,6 @@ export const useAuthStore = defineStore('auth', () => {
     // Modal Functions
     setModalOpen,
     setModalMode,
-    setModalOpenCallback,
     setUnauthModalOpen,
   };
 });

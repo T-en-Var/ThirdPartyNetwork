@@ -41,10 +41,16 @@ interface NetworkDetails {
   data: Ref<Network | null>;
 }
 
-defineProps<{
-  title: string;
-  subtitle: string;
-  error: string;
-  networkDetails: NetworkDetails;
-}>();
+withDefaults(
+  defineProps<{
+    title: string;
+    subtitle?: string;
+    error?: string;
+    networkDetails: NetworkDetails;
+  }>(),
+  {
+    subtitle: '',
+    error: '',
+  },
+);
 </script>
