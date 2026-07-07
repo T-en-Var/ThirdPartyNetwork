@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 
 namespace thirdpartynetwork.Presentation.Controllers;
 
@@ -41,7 +42,7 @@ public class AuthController(IAuthService service, IWebHostEnvironment env) : Con
         Console.WriteLine($"test: {test}");
         if (!Request.Cookies.TryGetValue("refreshToken", out var refreshTokenStr))
         {
-            throw new UnauthorizedAccessException();
+            throw new UnauthorizedHttpException();
         }
 
         return new RefreshTokenDto() { RefreshToken = refreshTokenStr };

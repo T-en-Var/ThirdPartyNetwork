@@ -16,6 +16,7 @@ using thirdpartynetwork.Core.Data;
 using thirdpartynetwork.Application.Repositories;
 using thirdpartynetwork.Application.Services;
 using thirdpartynetwork.Core.Helper;
+using thirdpartynetwork.Core.Helper.Singletons;
 using thirdpartynetwork.Core.Interfaces.Auth;
 using thirdpartynetwork.Core.Interfaces.Helpers;
 
@@ -254,7 +255,7 @@ builder.Services.AddOpenApi(options =>
     options.AddDocumentTransformer((document, context, cancellationToken) =>
     {
         document.Info.Title = "Third Party Network API";
-        document.Info.Version = "v0.8.11";
+        document.Info.Version = "v0.9.0";
 
         // Add Bearer Security Scheme
         var scheme = new Microsoft.OpenApi.Models.OpenApiSecurityScheme
@@ -316,6 +317,7 @@ using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<DataContext>();
     var audienceCache = scope.ServiceProvider.GetRequiredService<IDynamicAudienceCache>();
+    var originCache = scope.ServiceProvider.GetRequiredService<ICorsOriginCache>();
 
     var redirectUris = await context.Networks
         .Select(n => n.RedirectURI)
@@ -328,6 +330,14 @@ using (var scope = app.Services.CreateScope())
     }
 
     audienceCache.ReloadAudiences(redirectUris);
+
+    foreach (var uri in redirectUris)
+    {
+        if (Uri.TryCreate(uri, UriKind.Absolute, out var parsed))
+        {
+            originCache.AddOrigin(parsed.GetLeftPart(UriPartial.Authority));
+        }
+    }
 }
 
 app.UseCors("DynamicCorsPolicy");
