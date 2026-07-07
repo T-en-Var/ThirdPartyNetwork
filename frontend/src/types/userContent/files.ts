@@ -1,7 +1,6 @@
 import type { UserContentBase, UserContentCreateBase } from './userContentBase';
 
 export interface NetworkFile extends UserContentBase {
-  id: string;
   url: string;
   format: string;
   sizeBytes: number;

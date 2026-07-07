@@ -12,6 +12,21 @@ export const entitlementKeys = {
   ],
 } as const;
 
+type EntitlementFlagKey = keyof typeof entitlementKeys;
+type EntitlementLimitKey = (typeof entitlementKeys)[EntitlementFlagKey][number];
+
+function setField<K extends keyof SettableEntitlementForm>(
+  form: SettableEntitlementForm,
+  key: K,
+  value: SettableEntitlementForm[K],
+) {
+  form[key] = value;
+}
+
+function setFlagFor(itemKey: EntitlementLimitKey): keyof SettableEntitlementForm {
+  return `set${capitalize(itemKey)}` as keyof SettableEntitlementForm;
+}
+
 export function useEntitlements(network: Network) {
   const entitlementsData = ref<SettableEntitlementForm>({});
 
@@ -21,20 +36,20 @@ export function useEntitlements(network: Network) {
   ) => {
     if (!network.entitlement) return;
 
-    Object.entries(entitlementKeys).forEach(([key, list]) => {
-      if (!unsetIsOff && sourceEntitlements[key as keyof SettableEntitlement]) {
-        (entitlementsData.value[key as keyof SettableEntitlementForm] as boolean | undefined) =
-          true;
+    (Object.keys(entitlementKeys) as EntitlementFlagKey[]).forEach((flagKey) => {
+      const limitKeys: readonly EntitlementLimitKey[] = entitlementKeys[flagKey];
+
+      if (!unsetIsOff && sourceEntitlements[flagKey]) {
+        setField(entitlementsData.value, flagKey, true);
       }
-      list.forEach((itemKey) => {
+
+      limitKeys.forEach((itemKey) => {
         const value = sourceEntitlements[itemKey];
         const turnOn = unsetIsOff ? value !== undefined && value !== null : !!value;
         if (turnOn) {
-          (entitlementsData.value[itemKey] as number | boolean | undefined) = value;
-          const setKey = `set${capitalize(itemKey)}` as keyof SettableEntitlementForm;
-          (entitlementsData.value[setKey] as boolean | undefined) = true;
-          (entitlementsData.value[key as keyof SettableEntitlementForm] as boolean | undefined) =
-            true;
+          setField(entitlementsData.value, itemKey, value);
+          setField(entitlementsData.value, setFlagFor(itemKey), true);
+          setField(entitlementsData.value, flagKey, true);
         }
       });
     });
@@ -43,17 +58,17 @@ export function useEntitlements(network: Network) {
   const getSubmitData = () => {
     const result: SettableEntitlement = {};
 
-    Object.entries(entitlementKeys).forEach(([key, list]) => {
-      if (!entitlementsData.value[key as keyof SettableEntitlement]) return;
+    (Object.keys(entitlementKeys) as EntitlementFlagKey[]).forEach((flagKey) => {
+      const limitKeys: readonly EntitlementLimitKey[] = entitlementKeys[flagKey];
+      if (!entitlementsData.value[flagKey]) return;
 
-      (result[key as keyof SettableEntitlement] as boolean | undefined) = true;
+      result[flagKey] = true;
 
-      list.forEach((itemKey) => {
+      limitKeys.forEach((itemKey) => {
         const value = entitlementsData.value[itemKey];
         if (value !== undefined || value !== null) {
-          const setKey = `set${capitalize(itemKey)}` as keyof SettableEntitlementForm;
-          if (entitlementsData.value[setKey]) {
-            (result[itemKey as keyof SettableEntitlement] as number | undefined) = value;
+          if (entitlementsData.value[setFlagFor(itemKey)]) {
+            result[itemKey] = value;
           }
         }
       });

@@ -586,6 +586,8 @@ import type {
 import { capitalize, computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import DualSlider from '@/components/DualSlider.vue';
+import { extractApiErrorMessage } from '@/lib/utils';
+import { useGlobalStore } from '@/stores/global';
 
 interface EntitlementItem {
   label: string;
@@ -600,6 +602,7 @@ interface EntitlementGroup {
 
 const router = useRouter();
 const historyStore = useHistoryStore(DEFAULT_STORES.adminPage);
+const globalStore = useGlobalStore();
 
 const { execute: fetchNetworks, error, loading, data: networks } = useNetworks().fetchNetworks;
 const { execute: fetchNetworksMetrics, data: networksMetrics } = useNetworks().fetchNetworksMetrics;
@@ -850,6 +853,11 @@ const handleUpdateNetwork = async (networkEntitlement: SettableEntitlement) => {
     showEditNetworkModal.value = false;
   } catch (err) {
     console.error('Error updating network entitlements:', err);
+    globalStore.addToast({
+      message: extractApiErrorMessage(err, 'Failed to update network entitlements.'),
+      type: 'error',
+      duration: 5000,
+    });
   } finally {
     isSubmitting.value = false;
   }

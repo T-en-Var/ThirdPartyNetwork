@@ -1,133 +1,119 @@
 import api from '@/api/api';
 import rawApi from '@/api/rawApi';
-import { useGlobalStore } from '@/stores/global';
-import type { ErrorMessage, TokenPair } from '@/types';
-import { AxiosError } from 'axios';
-import { ref } from 'vue';
+import type { TokenPair } from '@/types';
+import { computed, ref } from 'vue';
+import { useMutation } from './useApi';
 
 export default function useAuthentication() {
-  const global = useGlobalStore();
-
-  const error = ref<string | null>(null);
-  const loading = ref(false);
-
   const tokenPair = ref<TokenPair | null>(null);
-
-  const handleError = (err: AxiosError<ErrorMessage>, defaultMessage: string = 'Action failed') => {
-    if (err.code == AxiosError.ERR_NETWORK) {
-      error.value = 'Network Error. Either you are not connected, or the server is offline.';
-      return;
-    }
-
-    error.value = err.response?.data.message || err.message || defaultMessage;
+  const onSuccess = (data: TokenPair) => {
+    tokenPair.value = data;
   };
 
-  const login = async (email: string, password: string) => {
-    error.value = null;
-    global.startFetching();
-    loading.value = true;
-    try {
-      const response = await rawApi.post<TokenPair>('/auth/login', {
-        email: email.trim(),
-        password,
-      });
-      tokenPair.value = response.data;
-      return response;
-    } catch (err) {
-      handleError(err as AxiosError<ErrorMessage>, 'Failed to login');
-    } finally {
-      loading.value = false;
-      global.stopFetching();
-    }
-  };
+  const loginMutation = useMutation<TokenPair, [email: string, password: string]>(
+    async (email, password) =>
+      await rawApi.post<TokenPair>('/auth/login', { email: email.trim(), password }),
+    { onSuccess },
+  );
 
-  const signUp = async (
-    username: string,
-    email: string,
-    firstname: string,
-    lastname: string,
-    password: string,
-  ) => {
-    error.value = null;
-    global.startFetching();
-    loading.value = true;
-    try {
-      const response = await rawApi.post<TokenPair>('/auth/register', {
+  const signUpMutation = useMutation<
+    TokenPair,
+    [username: string, email: string, firstname: string, lastname: string, password: string]
+  >(
+    async (username, email, firstname, lastname, password) =>
+      await rawApi.post<TokenPair>('/auth/register', {
         username: username.trim(),
         firstName: firstname.trim(),
         lastName: lastname.trim(),
         email: email.trim(),
         password,
-      });
+      }),
+    { onSuccess },
+  );
 
-      tokenPair.value = response.data;
-    } catch (err) {
-      handleError(err as AxiosError<ErrorMessage>, 'Failed to sign up');
-    } finally {
-      loading.value = false;
-      global.stopFetching();
-    }
-  };
-
-  const networkLogin = async (networkId: string, email: string, password: string) => {
-    error.value = null;
-    global.startFetching();
-    loading.value = true;
-    try {
-      const response = await rawApi.post<TokenPair>(`/auth/${networkId}/login`, {
+  const networkLoginMutation = useMutation<
+    TokenPair,
+    [networkId: string, email: string, password: string]
+  >(
+    async (networkId, email, password) =>
+      await rawApi.post<TokenPair>(`/auth/${networkId}/login`, {
         email: email.trim(),
-        password: password,
-      });
-      tokenPair.value = response.data;
-    } catch (err) {
-      handleError(err as AxiosError<ErrorMessage>, 'Failed to login');
-    } finally {
-      loading.value = false;
-      global.stopFetching();
-    }
-  };
+        password,
+      }),
+    { onSuccess },
+  );
 
-  const networkSignUp = async (
+  const networkSignUpMutation = useMutation<
+    TokenPair,
+    [
+      networkId: string,
+      username: string,
+      email: string,
+      firstname: string,
+      lastname: string,
+      password: string,
+    ]
+  >(
+    async (networkId, username, email, firstname, lastname, password) =>
+      await rawApi.post<TokenPair>(`/auth/${networkId}/register`, {
+        username: username.trim(),
+        firstName: firstname.trim(),
+        lastName: lastname.trim(),
+        email: email.trim(),
+        password,
+      }),
+    { onSuccess },
+  );
+
+  const refreshMutation = useMutation<TokenPair, []>(async () => await api.refresh(), {
+    onSuccess,
+  });
+
+  const loading = computed(
+    () =>
+      loginMutation.loading.value ||
+      signUpMutation.loading.value ||
+      networkLoginMutation.loading.value ||
+      networkSignUpMutation.loading.value ||
+      refreshMutation.loading.value,
+  );
+
+  const error = computed(
+    () =>
+      loginMutation.error.value ||
+      signUpMutation.error.value ||
+      networkLoginMutation.error.value ||
+      networkSignUpMutation.error.value ||
+      refreshMutation.error.value,
+  );
+
+  const login = (email: string, password: string) =>
+    loginMutation.execute(email, password).catch(() => undefined);
+
+  const signUp = (
+    username: string,
+    email: string,
+    firstname: string,
+    lastname: string,
+    password: string,
+  ) => signUpMutation.execute(username, email, firstname, lastname, password).catch(() => undefined);
+
+  const networkLogin = (networkId: string, email: string, password: string) =>
+    networkLoginMutation.execute(networkId, email, password).catch(() => undefined);
+
+  const networkSignUp = (
     networkId: string,
     username: string,
     email: string,
     firstname: string,
     lastname: string,
     password: string,
-  ) => {
-    error.value = null;
-    global.startFetching();
-    loading.value = true;
-    try {
-      const response = await rawApi.post<TokenPair>(`/auth/${networkId}/register`, {
-        username: username.trim(),
-        firstName: firstname.trim(),
-        lastName: lastname.trim(),
-        email: email.trim(),
-        password: password,
-      });
-      tokenPair.value = response.data;
-    } catch (err) {
-      handleError(err as AxiosError<ErrorMessage>, 'Failed to sign up');
-    } finally {
-      loading.value = false;
-      global.stopFetching();
-    }
-  };
+  ) =>
+    networkSignUpMutation
+      .execute(networkId, username, email, firstname, lastname, password)
+      .catch(() => undefined);
 
-  const refreshTokens = async () => {
-    global.startFetching();
-    try {
-      const response = await api.refresh();
-      tokenPair.value = response.data;
-    } catch (err) {
-      const fullError = err as AxiosError<ErrorMessage>;
-      error.value =
-        fullError.response?.data.message || fullError.message || 'Failed to refresh session.';
-    } finally {
-      global.stopFetching();
-    }
-  };
+  const refreshTokens = () => refreshMutation.execute().catch(() => undefined);
 
   return {
     loading,

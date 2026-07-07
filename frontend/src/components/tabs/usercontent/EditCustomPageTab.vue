@@ -157,12 +157,13 @@ import type {
   CustomPage,
   PageBlock,
 } from '@/types';
-import { ref, computed, watch, type Ref } from 'vue';
+import { ref, computed, type Ref } from 'vue';
 import { useRoute } from 'vue-router';
 import UserContentForm from '@/components/UserContentForm.vue';
 import { useEventStore } from '@/stores/event';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import AddPageBlockModal from '@/components/modals/usercontent/AddPageBlockModal.vue';
+import { useEditableEntity } from '@/composables/useEditableEntity';
 
 const route = useRoute();
 const events = useEventStore();
@@ -189,13 +190,10 @@ const customPageId = computed(() => route.params.customPageId as string);
 const networkId = computed(() => route.params.networkId as string);
 
 const isSubmitting = ref(false);
-const loading = ref(false);
-const error = ref<string | null>();
 
 const showCreatePageBlockModal = ref(false);
 
 const inputIsValid = computed(() => true);
-const customPage = ref<CustomPage | null>(null);
 
 const form = ref({ name: '', slug: '' });
 const viewMode = ref<'flat' | 'grouped'>('flat');
@@ -204,22 +202,16 @@ const activeTabClasses = 'px-3 py-1 bg-blue-600 text-white rounded-md text-sm cu
 const inactiveTabClasses =
   'px-3 py-1 bg-gray-100 text-gray-700 rounded-md text-sm hover:bg-gray-200';
 
-watch(
-  customPageId,
-  async (newId) => {
-    customPage.value = null;
-    loading.value = true;
-
-    const data = await props.fetchCustomPage(newId);
-    loading.value = false;
-
-    if (!data.value) throw new Error('CustomPage not found');
-    watch(data, (newEntry) => (customPage.value = newEntry), { immediate: true });
-    form.value.name = customPage.value!.name;
-    form.value.slug = customPage.value!.slug;
+const { entity: customPage, loading, error } = useEditableEntity<CustomPage>({
+  id: customPageId,
+  fetch: props.fetchCustomPage,
+  notFoundMessage: 'Custom page not found.',
+  onNotFound: () => handleReturn(),
+  onLoaded: (loadedCustomPage) => {
+    form.value.name = loadedCustomPage.name;
+    form.value.slug = loadedCustomPage.slug;
   },
-  { immediate: true },
-);
+});
 
 const groupedBlocks = computed(() => {
   if (!customPage.value?.pages) return {};

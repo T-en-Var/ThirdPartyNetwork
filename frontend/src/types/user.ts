@@ -6,11 +6,9 @@ export interface User {
   userProxies: UserProxy[];
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface CreateUser {}
+export type CreateUser = Record<string, never>;
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface UpdateUser {}
+export type UpdateUser = Record<string, never>;
 
 export interface UserMetrics {
   userId: string;

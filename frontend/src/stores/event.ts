@@ -1,17 +1,6 @@
 import type { Blog, Configuration, CustomPage, NetworkFile, PageBlock } from '@/types';
 import { defineStore } from 'pinia';
 
-const defineDomains = <T extends Record<keyof AppEventPayloads, readonly string[]>>(
-  domains: T & {
-    [K in keyof AppEventPayloads]: Exclude<keyof AppEventPayloads[K], T[K][number]> extends never // Check for missing keys
-      ? // Check for extra/invalid keys
-        Exclude<T[K][number], keyof AppEventPayloads[K]> extends never
-        ? T[K] // match
-        : readonly ['❌ EXTRA EVENT DETECTED:', Exclude<T[K][number], keyof AppEventPayloads[K]>]
-      : readonly ['❌ MISSING EVENT:', Exclude<keyof AppEventPayloads[K], T[K][number]>];
-  },
-) => domains;
-
 export interface AppEventPayloads {
   test: {
     myevent: [payload: string];
@@ -38,14 +27,16 @@ export interface AppEventPayloads {
   };
 }
 
-const EVENT_DOMAINS = defineDomains({
-  test: ['myevent'] as const,
-  file: ['openEdit', 'update'] as const,
-  blogs: ['create', 'update'] as const,
-  configurations: ['create', 'update'] as const,
-  customPages: ['create', 'update'] as const,
-  pageBlocks: ['create', 'delete'] as const,
-});
+// `satisfies` guarantees this lists exactly the domains/actions declared in
+// AppEventPayloads: TypeScript errors on a missing or an extra key.
+const EVENT_DOMAINS = {
+  test: { myevent: null },
+  file: { openEdit: null, update: null },
+  blogs: { create: null, update: null },
+  configurations: { create: null, update: null },
+  customPages: { create: null, update: null },
+  pageBlocks: { create: null, delete: null },
+} satisfies { [K in keyof AppEventPayloads]: Record<keyof AppEventPayloads[K], null> };
 
 type EmitMap = {
   [Domain in keyof AppEventPayloads]: {
@@ -81,7 +72,7 @@ export const useEventStore = defineStore('event', () => {
     const domainEmit: Record<string, GenericEventListener> = {};
     const domainListen: Record<string, (cb: GenericEventListener) => () => void> = {};
 
-    for (const action of actions) {
+    for (const action of Object.keys(actions)) {
       const eventKey = `${currentDomain}:${action}`;
 
       domainEmit[action] = (...args: unknown[]) => {
@@ -107,12 +98,6 @@ export const useEventStore = defineStore('event', () => {
         };
 
         listeners.get(eventKey)!.add(finalCallback);
-        
-        let totalEverywhere = 0;
-        for (const eventSet of listeners.values()) {
-          totalEverywhere += eventSet.size;
-        }
-        console.log(`Registering listener on ${eventKey}. Total of ${totalEverywhere}`);
 
         return unregister;
       };

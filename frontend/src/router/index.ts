@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
+import { safeBtoa } from '@/lib/utils';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -135,7 +136,7 @@ const router = createRouter({
       component: () => import('@/views/AdminView.vue'),
       meta: {
         requiresAdmin: true,
-        title: 'Networks',
+        title: 'Admin',
       },
       children: [
         {
@@ -324,7 +325,6 @@ const router = createRouter({
       component: () => import('@/views/networks/LoginNetworkView.vue'),
       meta: {
         showNavbar: false,
-        requiresAuth: false,
         title: 'Sign In',
       },
     },
@@ -334,7 +334,6 @@ const router = createRouter({
       component: () => import('@/views/networks/SignupNetworkView.vue'),
       meta: {
         showNavbar: false,
-        requiresAuth: false,
         title: 'Create Account',
       },
     },
@@ -344,7 +343,6 @@ const router = createRouter({
       component: () => import('@/views/networks/CompleteAccessView.vue'),
       meta: {
         showNavbar: false,
-        requiresAuth: false,
         title: 'Complete Access',
       },
     },
@@ -410,7 +408,7 @@ router.beforeEach(async (to, from, next) => {
     if (!authStore.isAuthenticated) {
       next({
         path: '/401',
-        query: { redirect: btoa(to.fullPath) },
+        query: { redirect: safeBtoa(to.fullPath) },
       });
       authStore.setModalOpen(true);
       authStore.setModalMode('login');

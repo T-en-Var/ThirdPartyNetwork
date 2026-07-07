@@ -1,4 +1,4 @@
-import api from '@/api/api.ts';
+import api from '@/api/api';
 import type {
   CreateUser,
   User,

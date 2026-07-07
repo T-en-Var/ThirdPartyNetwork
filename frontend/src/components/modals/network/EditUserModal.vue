@@ -33,33 +33,13 @@
         <h3 class="text-lg font-medium leading-6 text-gray-900">User Roles</h3>
         <p class="mt-1 text-sm text-gray-500">Manage roles assigned to this user</p>
 
-        <div class="mt-4 max-h-48 overflow-y-auto rounded-md border p-2">
-          <div
-            v-if="availableRoles.length === 0"
-            class="text-sm text-gray-500"
-          >
-            No roles available in this network
-          </div>
-          <div
-            v-for="role in availableRoles"
-            :key="role.id"
-            class="flex items-center py-1"
-          >
-            <input
-              :id="`role-${role.id}`"
-              type="checkbox"
-              :value="role.id"
-              v-model="localForm.roleIds"
-              class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-            />
-            <label
-              :for="`role-${role.id}`"
-              class="ml-2 block text-sm text-gray-700"
-            >
-              {{ role.name }}
-            </label>
-          </div>
-        </div>
+        <checkbox-list
+          :items="availableRoles"
+          v-model="localForm.roleIds"
+          id-prefix="role"
+          empty-message="No roles available in this network"
+          container-class="mt-4 max-h-48 overflow-y-auto rounded-md border p-2"
+        />
       </div>
 
       <div class="flex items-center gap-3 rounded-xl border border-blue-100 bg-blue-50/50 p-3">
@@ -77,25 +57,15 @@
         v-model="entitlementsData"
       />
 
-      <div class="flex justify-end space-x-3 pt-4">
-        <button
-          type="button"
-          class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
-          @click="$emit('close')"
-          :disabled="isSubmitting"
-        >
-          Cancel
-        </button>
-        <button
-          type="button"
-          class="rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-          :disabled="isSubmitting"
-          @click="handleSubmit"
-        >
-          <span v-if="isSubmitting">Saving...</span>
-          <span v-else>Save Changes</span>
-        </button>
-      </div>
+      <modal-form-actions
+        :is-submitting="isSubmitting"
+        :bordered="false"
+        submit-type="button"
+        submit-label="Save Changes"
+        submitting-label="Saving..."
+        @cancel="$emit('close')"
+        @submit="handleSubmit"
+      />
     </div>
   </modal-container>
 </template>
@@ -103,6 +73,8 @@
 <script setup lang="ts">
 import { ref, watch, computed, onMounted } from 'vue';
 import ModalContainer from '@/components/modals/ModalContainer.vue';
+import ModalFormActions from '@/components/modals/ModalFormActions.vue';
+import CheckboxList from '@/components/CheckboxList.vue';
 import type { Network, NetworkUser, ManageUserForm } from '@/types';
 import { getNameDisplayUserProxy } from '@/lib/user';
 import EntitlementsForm from '@/components/EntitlementsForm.vue';

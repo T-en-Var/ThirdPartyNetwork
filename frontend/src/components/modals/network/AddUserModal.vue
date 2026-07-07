@@ -36,75 +36,43 @@
             </option>
           </select>
         </div>
-        <p
-          v-if="loadingUsers"
-          class="mt-1 text-sm text-gray-500"
-        >
-          Loading users...
-        </p>
+        <loading-error-component
+          :loading="usersLoading"
+          :error="usersError"
+          :has-value="!!users"
+        />
       </div>
 
       <div>
         <label class="block text-sm font-medium text-gray-700">Assign Roles</label>
-        <div class="mt-2 max-h-48 overflow-y-auto rounded-md border p-2">
-          <div
-            v-if="availableRoles.length === 0"
-            class="text-sm text-gray-500"
-          >
-            No roles available in this network
-          </div>
-          <div
-            v-for="role in availableRoles"
-            :key="role.id"
-            class="flex items-center py-1"
-          >
-            <input
-              :id="`role-${role.id}`"
-              type="checkbox"
-              :value="role.id"
-              v-model="form.roleIds"
-              class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-            />
-            <label
-              :for="`role-${role.id}`"
-              class="ml-2 block text-sm text-gray-700"
-            >
-              {{ role.name }}
-            </label>
-          </div>
-        </div>
+        <checkbox-list
+          :items="availableRoles"
+          v-model="form.roleIds"
+          id-prefix="role"
+          empty-message="No roles available in this network"
+          container-class="mt-2 max-h-48 overflow-y-auto rounded-md border p-2"
+        />
       </div>
 
-      <div class="flex justify-end space-x-3 border-t border-gray-200 pt-4">
-        <button
-          type="button"
-          class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
-          @click="$emit('close')"
-          :disabled="isSubmitting"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          class="rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-          :disabled="isSubmitting || !form.userId"
-        >
-          <span v-if="isSubmitting">Adding...</span>
-          <span v-else>Add User</span>
-        </button>
-      </div>
+      <modal-form-actions
+        :is-submitting="isSubmitting ?? false"
+        :disable-submit="!form.userId"
+        submit-label="Add User"
+        submitting-label="Adding..."
+        @cancel="$emit('close')"
+      />
     </form>
   </modal-container>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import ModalContainer from '@/components/modals/ModalContainer.vue';
-import api from '@/api/api';
-import type { UserProxy, Network, Role } from '@/types';
-import { useGlobalStore } from '@/stores/global';
-
-const global = useGlobalStore();
+import ModalFormActions from '@/components/modals/ModalFormActions.vue';
+import CheckboxList from '@/components/CheckboxList.vue';
+import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
+import type { UserProxy, Network } from '@/types';
+import useUsers from '@/composables/useUsers';
 
 const props = defineProps<{
   network: Network;
@@ -118,28 +86,26 @@ const form = ref({
   roleIds: [] as string[],
 });
 
-const availableUsers = ref<UserProxy[]>([]);
-const availableRoles = ref<Role[]>([]);
-const loadingUsers = ref(true);
+const {
+  data: users,
+  loading: usersLoading,
+  error: usersError,
+  execute: fetchUsers,
+} = useUsers().fetchUsers;
+
+const availableUsers = computed<UserProxy[]>(() => {
+  if (!users.value) return [];
+
+  const networkUserIds = props.network.networkUsers.map((nu) => nu.userProxy.id);
+  return users.value
+    .flatMap((user) => user.userProxies)
+    .filter((proxy) => !networkUserIds.includes(proxy.id));
+});
+
+const availableRoles = computed(() => props.network.roles);
 
 onMounted(async () => {
-  global.startFetching();
-  loadingUsers.value = true;
-
-  try {
-    const response = await api.get<UserProxy[]>('/users/');
-    const allUsers = response.data || [];
-
-    const networkUserIds = props.network.networkUsers.map((nu) => nu.userProxy.id);
-    availableUsers.value = allUsers.filter((user) => !networkUserIds.includes(user.id));
-
-    availableRoles.value = props.network.roles;
-  } catch (error) {
-    console.error('Error fetching users:', error);
-  } finally {
-    loadingUsers.value = false;
-    global.stopFetching();
-  }
+  await fetchUsers();
 });
 
 function handleSubmit() {

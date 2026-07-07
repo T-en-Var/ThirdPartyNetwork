@@ -51,18 +51,23 @@
 import { onMounted, onBeforeUnmount, computed } from 'vue';
 import { useModalStack } from '@/composables/useModalStack';
 
-const props = defineProps({
-  title: { type: String, required: true },
-  customClass: { type: String, default: '' },
-  closeOnEscape: { type: Boolean, default: true },
-  closeOnOutsideClick: { type: Boolean, default: true },
-  enableClosing: { type: Boolean, default: true },
-  size: {
-    type: String,
-    default: 'sm',
-    validator: (value: string) => ['sm', 'md', 'lg'].includes(value),
+const props = withDefaults(
+  defineProps<{
+    title: string;
+    customClass?: string;
+    closeOnEscape?: boolean;
+    closeOnOutsideClick?: boolean;
+    enableClosing?: boolean;
+    size?: 'sm' | 'md' | 'lg';
+  }>(),
+  {
+    customClass: '',
+    closeOnEscape: true,
+    closeOnOutsideClick: true,
+    enableClosing: true,
+    size: 'sm',
   },
-});
+);
 
 const emit = defineEmits(['close']);
 

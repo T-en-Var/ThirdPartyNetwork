@@ -187,7 +187,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed, type Ref } from 'vue';
+import { ref, computed, type Ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import AccessLevelPicker from '@/components/fields/AccessLevelPicker.vue';
@@ -197,9 +197,13 @@ import type { Blog, CreateBlog } from '@/types/userContent/blog';
 import api from '@/api/api';
 import AddFileModal from '@/components/modals/usercontent/AddFileModal.vue';
 import type { Network, NetworkFile } from '@/types';
+import { useEditableEntity } from '@/composables/useEditableEntity';
+import { useGlobalStore } from '@/stores/global';
+import { extractApiErrorMessage } from '@/lib/utils';
 
 const router = useRouter();
 const route = useRoute();
+const global = useGlobalStore();
 
 const props = defineProps<{
   network: Network;
@@ -208,10 +212,6 @@ const props = defineProps<{
 
 const blogId = computed(() => route.params.blogId as string);
 const networkId = route.params.networkId as string;
-
-const blog = ref<Blog | null>(null);
-const loading = ref(false);
-const error = ref<string | null>(null);
 
 const isPreviewing = ref(false);
 const isSaving = ref(false);
@@ -226,31 +226,24 @@ const publishedAtLocal = ref<string | null>(null);
 const showImageModal = ref(false);
 const editorRef = ref<InstanceType<typeof RichTextEditor> | null>(null);
 
-watch(
-  blogId,
-  async (newId) => {
-    blog.value = null;
-    loading.value = true;
+const { entity: blog, loading, error } = useEditableEntity<Blog>({
+  id: blogId,
+  fetch: props.fetchBlog,
+  notFoundMessage: 'Blog not found.',
+  onNotFound: () => router.back(),
+  onLoaded: (loadedBlog) => {
+    form.value.title = loadedBlog.title;
+    form.value.summary = loadedBlog.summary ?? '';
+    form.value.accessLevel = loadedBlog.accessLevel ?? 0;
 
-    const data = await props.fetchBlog(newId);
-    loading.value = false;
+    form.value.body = loadedBlog.body ? JSON.parse(JSON.stringify(loadedBlog.body)) : undefined;
 
-    if (!data.value) throw new Error('Blog not found');
-    watch(data, (newEntry) => (blog.value = newEntry), { immediate: true });
-
-    form.value.title = blog.value!.title;
-    form.value.summary = blog.value!.summary ?? '';
-    form.value.accessLevel = blog.value!.accessLevel ?? 0;
-
-    form.value.body = blog.value!.body ? JSON.parse(JSON.stringify(blog.value!.body)) : undefined;
-
-    published.value = !!blog.value!.publishedAt;
-    publishedAtLocal.value = blog.value!.publishedAt
-      ? toLocalDatetimeInput(blog.value!.publishedAt)
+    published.value = !!loadedBlog.publishedAt;
+    publishedAtLocal.value = loadedBlog.publishedAt
+      ? toLocalDatetimeInput(loadedBlog.publishedAt)
       : null;
   },
-  { immediate: true },
-);
+});
 
 function handleImageInserted(file: NetworkFile) {
   if (editorRef.value && file.url) {
@@ -285,8 +278,11 @@ async function handleUpdate() {
 
     alert('Blog saved successfully!');
   } catch (err) {
-    console.error('Error updating blog', err);
-    alert('Failed to save blog.');
+    global.addToast({
+      message: extractApiErrorMessage(err, 'Failed to save blog.'),
+      type: 'error',
+      duration: 5000,
+    });
   } finally {
     isSaving.value = false;
   }

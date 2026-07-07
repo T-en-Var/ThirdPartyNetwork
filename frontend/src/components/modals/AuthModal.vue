@@ -103,7 +103,7 @@
 import { computed, onUnmounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
-import { safeAtob } from '@/lib/utils';
+import { safeAtob, safeBtoa } from '@/lib/utils';
 import type { UserLogin, UserSignup } from '@/types';
 
 import AuthLoginForm from '@/components/AuthLoginForm.vue';
@@ -191,7 +191,7 @@ const redirectToTos = (form: UserSignup) => {
   closeModal();
 
   let redirect = route.query.redirect as string | undefined;
-  if (route.name !== 'terms-of-service') redirect = btoa(route.fullPath);
+  if (route.name !== 'terms-of-service') redirect = safeBtoa(route.fullPath);
 
   router.push({
     path: '/tos',

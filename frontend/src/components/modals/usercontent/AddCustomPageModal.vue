@@ -8,7 +8,7 @@
       :input-is-valid="inputIsValid"
       :network-id="networkId"
       :network-ids="networkIds"
-      button-text="Add Blog"
+      button-text="Add Custom Page"
       @submit="handleSubmit"
     >
       <div>
@@ -28,7 +28,6 @@
         />
       </div>
 
-      <!-- TODO: 'unique ensure' -->
       <div>
         <label
           for="pageSlug"
@@ -47,21 +46,30 @@
         <p class="mt-1 text-xs text-gray-500">
           Information which should make it easier to look up.
         </p>
+        <transition name="fade">
+          <p
+            v-if="slugExists"
+            class="mt-2 rounded-lg border border-amber-200 bg-amber-100/50 p-2 text-[11px] text-amber-700"
+          >
+            This slug is already taken. The system will append a unique ID to your link.
+          </p>
+        </transition>
       </div>
     </UserContentForm>
   </modal-container>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, watch, onMounted, type Ref } from 'vue';
 import ModalContainer from '@/components/modals/ModalContainer.vue';
-import type { CreateCustomPage, CreateUserContentForm } from '@/types';
+import type { CreateCustomPage, CreateUserContentForm, CustomPage } from '@/types';
 import UserContentForm from '../../UserContentForm.vue';
 
-defineProps<{
+const props = defineProps<{
   isSubmitting: boolean;
   networkId?: string;
   networkIds?: string[];
+  fetchCustomPages: () => Promise<Ref<CustomPage[] | null>>;
 }>();
 
 const emit = defineEmits<{
@@ -73,6 +81,18 @@ const inputIsValid = computed(() => true);
 
 const name = ref('');
 const slug = ref('');
+
+const customPages = ref<CustomPage[]>([]);
+
+onMounted(async () => {
+  const remoteRef = await props.fetchCustomPages();
+
+  watch(remoteRef, (newVal) => (customPages.value = newVal ?? []), { immediate: true });
+});
+
+const slugExists = computed(() =>
+  customPages.value.find((p) => p.slug === slug.value.trim() && slug.value.trim() !== ''),
+);
 
 function handleSubmit(form: CreateUserContentForm) {
   emit('submit', form.networkId, {

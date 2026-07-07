@@ -106,10 +106,11 @@
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import JsonEditorVue from 'json-editor-vue';
 import AccessLevelPicker from '@/components/fields/AccessLevelPicker.vue';
-import { ref, computed, watch, type Ref } from 'vue';
+import { ref, computed, type Ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import type { Configuration, CreateConfiguration } from '@/types';
 import { useEventStore } from '@/stores/event';
+import { useEditableEntity } from '@/composables/useEditableEntity';
 
 const router = useRouter();
 const route = useRoute();
@@ -133,49 +134,32 @@ const props = defineProps<{
 const networkId = route.params.networkId as string;
 const configurationId = computed(() => route.params.configurationId as string);
 
-const configuration = ref<Configuration | null>(null);
-const loading = ref(false);
-const error = ref<string | null>(null);
-
 const form = ref<CreateConfiguration>({ key: '', accessLevel: 0, value: {} });
 const editMode = ref(false);
 const jsonValue = ref<object>({});
+
+const { entity: configuration, loading, error } = useEditableEntity<Configuration>({
+  id: configurationId,
+  fetch: props.fetchConfiguration,
+  notFoundMessage: 'Configuration not found.',
+  onNotFound: () => handleReturn(),
+  onLoaded: (loadedConfiguration) => {
+    form.value.key = loadedConfiguration.key;
+    form.value.accessLevel = loadedConfiguration.accessLevel;
+    form.value.value = loadedConfiguration.value;
+    try {
+      jsonValue.value = loadedConfiguration.value ?? {};
+    } catch {
+      jsonValue.value = {};
+    }
+  },
+});
 
 const cfg = computed(() => configuration.value);
 
 const formattedValue = computed(() => {
   return JSON.stringify(form.value.value ?? {}, null, 2);
 });
-
-async function load(configurationId: string) {
-  configuration.value = null;
-  loading.value = true;
-
-  const data = await props.fetchConfiguration(configurationId);
-  loading.value = false;
-
-  if (!data.value) throw new Error('CustomPage not found');
-  watch(data, (newEntry) => (configuration.value = newEntry), { immediate: true });
-
-  form.value.key = configuration.value!.key;
-  form.value.accessLevel = configuration.value!.accessLevel;
-  form.value.value = configuration.value!;
-  try {
-    jsonValue.value = configuration.value! ?? {};
-  } catch {
-    jsonValue.value = {};
-  }
-}
-
-watch(
-  configurationId,
-  async (newId) => {
-    if (newId) {
-      await load(newId);
-    }
-  },
-  { immediate: true },
-);
 
 function cancelEdit() {
   editMode.value = false;

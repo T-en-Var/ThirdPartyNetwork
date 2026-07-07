@@ -378,11 +378,12 @@ async function handleSubmit() {
   titleValue.value = 'Updating network accesses';
   progessValue.value = 75;
 
+  if (newNetwork.networkUsers.length === 0) throw new Error('no network creator');
+
   try {
     global.startFetching();
 
     await Promise.all([
-      ,
       ...fakeNetwork.value.networkAccesses.map((networkAccess) =>
         api.put(
           `/networks/${newNetwork.id}/users/${newNetwork.networkUsers[0].id}/accesses/${networkAccess.accessId}/`,

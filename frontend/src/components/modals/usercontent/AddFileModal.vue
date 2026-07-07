@@ -186,7 +186,7 @@ const loading = computed(
   () => filesState.uploadFile.loading.value || filesState.uploadFile.loading.value,
 );
 
-const props = withDefaults(
+withDefaults(
   defineProps<{
     networkId?: string;
     networkIds?: string[];
@@ -207,10 +207,6 @@ const userProxy = ref<UserProxy | null>(null);
 const activeTab = ref<'upload' | 'existing'>('upload');
 
 onMounted(async () => {
-  console.log('Hello there!');
-  console.log(props.networkId);
-  console.log(props.networkId);
-  console.log(props.networkId);
   userProxy.value = await authStore.getUserProxy();
 
   if (userProxy.value) {

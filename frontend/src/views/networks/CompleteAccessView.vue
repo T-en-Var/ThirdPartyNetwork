@@ -132,17 +132,16 @@ import ErrorAlert from '@/components/ErrorAlert.vue';
 import UserProxyDisplay from '@/components/UserProxyDisplay.vue';
 import api from '@/api/api';
 import useNetworks from '@/composables/useNetworks';
+import useAccessConsent, { type AccessConsentState } from '@/composables/useAccessConsent';
 import { TEMPORARY_ACCESS_TOKEN_KEY } from '@/composables/useNetworkAuthFlow';
 import { safeAtob } from '@/lib/utils';
 
-interface UserAccessState {
-  value: boolean;
-  userChecked: boolean;
-}
+type UserAccessState = AccessConsentState;
 
 const router = useRouter();
 const route = useRoute();
 const global = useGlobalStore();
+const { buildInitialAccessState, applyAccessConsent } = useAccessConsent();
 
 const networksState = useNetworks();
 const { data: network, loading, execute: fetchNetworkDetails } = networksState.fetchNetworkDetails;
@@ -202,14 +201,11 @@ onMounted(async () => {
       }
       currentNetworkUser.value = networkUser;
 
-      const initialAccessState: Record<string, UserAccessState> = {};
-      for (const na of network.value.networkAccesses) {
-        const isAccepted = networkUser.networkUserAccesses.some(
+      userAccesses.value = buildInitialAccessState(network.value.networkAccesses, (na) =>
+        networkUser.networkUserAccesses.some(
           (nua) => nua.accessId === na.accessId && nua.isAccepted,
-        );
-        initialAccessState[na.accessId] = { value: isAccepted, userChecked: false };
-      }
-      userAccesses.value = initialAccessState;
+        ),
+      );
     } catch (e) {
       console.error(e);
       submitError.value = 'Authentication error. Please log in again.';
@@ -255,37 +251,38 @@ async function handleUpdateAccesses() {
     }
 
     await Promise.all([
-      ...acceptedAccesses.map((accessId) =>
-        api.put(
-          `/networks/${networkId.value}/users/${currentNetworkUser.value?.id}/accesses/${accessId}/`,
-          { isAccepted: true },
-          {
-            headers: { Authorization: `Bearer ${temporaryAccessToken}` },
-          },
-        ),
+      applyAccessConsent(
+        networkId.value,
+        currentNetworkUser.value.id,
+        acceptedAccesses,
+        true,
+        temporaryAccessToken,
       ),
-      ...rejectedAccesses.map((accessId) =>
-        api.put(
-          `/networks/${networkId.value}/users/${currentNetworkUser.value?.id}/accesses/${accessId}/`,
-          { isAccepted: false },
-          {
-            headers: { Authorization: `Bearer ${temporaryAccessToken}` },
-          },
-        ),
+      applyAccessConsent(
+        networkId.value,
+        currentNetworkUser.value.id,
+        rejectedAccesses,
+        false,
+        temporaryAccessToken,
       ),
     ]);
 
     if (acceptedAccesses.length === 0 && rejectedAccesses.length === 0) {
       const accessId = network.value.networkAccesses[0]?.accessId;
-      const isAccepted =
-        currentNetworkUser.value.networkUserAccesses.find((n) => n.accessId === accessId)
-          ?.isAccepted || false;
 
-      await api.put(
-        `/networks/${networkId.value}/users/${currentNetworkUser.value?.id}/accesses/${accessId}/`,
-        { isAccepted: isAccepted },
-        { headers: { Authorization: `Bearer ${temporaryAccessToken}` } },
-      );
+      if (accessId) {
+        const isAccepted =
+          currentNetworkUser.value.networkUserAccesses.find((n) => n.accessId === accessId)
+            ?.isAccepted || false;
+
+        await applyAccessConsent(
+          networkId.value,
+          currentNetworkUser.value.id,
+          [accessId],
+          isAccepted,
+          temporaryAccessToken,
+        );
+      }
     }
 
     const redirectUrl = safeAtob(route.query.redirectUri as string | undefined) || '/';
@@ -310,8 +307,11 @@ function navigateBack() {
 }
 
 function switchAccount() {
-  const url = btoa(route.fullPath);
-  router.push(`/account?redirect=${url}`);
+  localStorage.removeItem(TEMPORARY_ACCESS_TOKEN_KEY);
+  router.push({
+    path: `/networks/${networkId.value}/login`,
+    query: { redirectUri: route.query.redirectUri },
+  });
 }
 
 function handleNetworkDetails() {

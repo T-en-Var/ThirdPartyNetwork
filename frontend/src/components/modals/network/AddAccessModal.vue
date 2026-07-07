@@ -37,12 +37,11 @@
             </option>
           </select>
         </div>
-        <p
-          v-if="accessesState.loading.value"
-          class="mt-2 text-sm italic text-gray-500"
-        >
-          Loading access requirements...
-        </p>
+        <loading-error-component
+          :loading="accessesState.loading.value"
+          :error="accessesState.error.value"
+          :has-value="!!accessesState.data.value"
+        />
       </div>
 
       <!-- Access description if one is selected -->
@@ -69,24 +68,13 @@
         </label>
       </div>
 
-      <div class="flex justify-end space-x-3 border-t border-gray-200 pt-4">
-        <button
-          type="button"
-          class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
-          @click="$emit('close')"
-          :disabled="isSubmitting"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          class="rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-          :disabled="isSubmitting || !form.access"
-        >
-          <span v-if="isSubmitting">Adding...</span>
-          <span v-else>Add Access</span>
-        </button>
-      </div>
+      <modal-form-actions
+        :is-submitting="isSubmitting"
+        :disable-submit="!form.access"
+        submit-label="Add Access"
+        submitting-label="Adding..."
+        @cancel="$emit('close')"
+      />
     </form>
   </modal-container>
 </template>
@@ -94,6 +82,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
 import ModalContainer from '@/components/modals/ModalContainer.vue';
+import ModalFormActions from '@/components/modals/ModalFormActions.vue';
+import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import type { Network, NetworkAccessCreate } from '@/types';
 import useAccesses from '@/composables/useAccesses';
 

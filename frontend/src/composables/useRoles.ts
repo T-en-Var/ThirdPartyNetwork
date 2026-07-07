@@ -1,4 +1,4 @@
-import api from '@/api/api.ts';
+import api from '@/api/api';
 import type { CreateRole, Network, Role, UpdateRole } from '@/types';
 import { globalCache, useCachedApi, useMutation } from './useApi';
 

@@ -235,13 +235,14 @@
 <script setup lang="ts">
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import type { CustomPage, PageBlock, TreeNode } from '@/types';
-import { ref, computed, watch, type Ref } from 'vue';
+import { ref, computed, type Ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import JsonEditorVue from 'json-editor-vue';
 import TreeNodeComponent from '@/components/TreeNodeComponent.vue';
 import SearchableSelect from '@/components/SearchableSelect.vue';
 import type { useHistoryStore } from '@/stores/history';
 import { useGlobalStore } from '@/stores/global';
+import { useEditableEntity } from '@/composables/useEditableEntity';
 
 const router = useRouter();
 const route = useRoute();
@@ -263,10 +264,6 @@ const networkId = computed(() => route.params.networkId as string);
 const customPageId = computed(() => route.params.customPageId as string);
 const pageBlockId = computed(() => route.params.pageBlockId as string);
 
-const customPage = ref<CustomPage | null>(null);
-const loading = ref(false);
-const error = ref<string | null>();
-
 const form = ref<Partial<PageBlock>>({
   parentPageId: '',
   text: '',
@@ -277,19 +274,19 @@ const form = ref<Partial<PageBlock>>({
 const editDataMode = ref(false);
 const jsonEditorValue = ref<object>({});
 
-watch(
-  pageBlockId,
-  async () => {
-    customPage.value = null;
-    loading.value = true;
-
-    const data = await props.fetchCustomPage(customPageId.value);
-    loading.value = false;
-
-    if (!data.value) throw new Error('CustomPage not found');
-    watch(data, (newEntry) => (customPage.value = newEntry), { immediate: true });
-
-    if (!currentPageBlock.value) throw new Error('PageBlock not found');
+// This tab fetches the *custom page* (keyed by customPageId), but the entity being edited is
+// the page block derived from it via pageBlockId - so we watch pageBlockId (to refetch/re-derive
+// when navigating between sibling blocks) while always fetching by customPageId, and use
+// `isNotFound` to check the derived block rather than the fetched custom page itself.
+const { entity: customPage, loading, error } = useEditableEntity<CustomPage>({
+  id: pageBlockId,
+  fetch: () => props.fetchCustomPage(customPageId.value),
+  isNotFound: (loadedCustomPage) =>
+    !loadedCustomPage.pages.find((p) => p.id === pageBlockId.value),
+  notFoundMessage: 'Page block not found.',
+  onNotFound: () => handleReturn(),
+  onLoaded: () => {
+    if (!currentPageBlock.value) return;
 
     form.value = {
       parentPageId: currentPageBlock.value.parentPageId || '',
@@ -304,8 +301,7 @@ watch(
       jsonEditorValue.value = {};
     }
   },
-  { immediate: true },
-);
+});
 
 const currentPageBlock = computed(() =>
   customPage.value?.pages.find((p) => p.id == pageBlockId.value),

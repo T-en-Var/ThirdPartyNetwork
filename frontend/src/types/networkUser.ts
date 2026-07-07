@@ -18,9 +18,8 @@ export interface NetworkUser {
   entitlements: SettableEntitlement;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface CreateNetworkUser {}
+export type CreateNetworkUser = Record<string, never>;
 
 export interface UpdateNetworkUser {
-  entitlements: object;
+  entitlements: SettableEntitlement;
 }

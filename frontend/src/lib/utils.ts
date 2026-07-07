@@ -1,5 +1,7 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { AxiosError } from 'axios';
+import type { ErrorMessage } from '@/types';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -21,7 +23,7 @@ export function isValidHttpUrl(value?: string) {
 }
 
 export function safeAtob(value: string | null | undefined, fallback = ''): string {
-  if (!value) return fallback;
+  if (value == null) return fallback;
   try {
     return atob(value);
   } catch {
@@ -29,13 +31,31 @@ export function safeAtob(value: string | null | undefined, fallback = ''): strin
   }
 }
 
+export function safeBtoa(value: string | null | undefined, fallback = ''): string {
+  if (value == null) return fallback;
+  try {
+    return btoa(value);
+  } catch {
+    return fallback;
+  }
+}
+
 export function decodeJWT<T>(token: string): T {
   const payloadBase64 = token.split('.')[1];
-  const decodedPayload = atob(payloadBase64);
+  const decodedPayload = safeAtob(payloadBase64);
   return JSON.parse(decodedPayload);
 }
 
+export function extractApiErrorMessage(err: unknown, fallback: string): string {
+  const axiosError = err as AxiosError<ErrorMessage>;
+  if (axiosError?.code === AxiosError.ERR_NETWORK) {
+    return 'Network Error. Either you are not connected, or the server is offline.';
+  }
+  return axiosError?.response?.data?.message || axiosError?.message || fallback;
+}
+
 export function readableSize(bytes: number): string {
+  if (bytes === 0) return '0 B';
   const sizes = ['B', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(1024));
   return (bytes / Math.pow(1024, i)).toFixed(2) + ' ' + sizes[i];

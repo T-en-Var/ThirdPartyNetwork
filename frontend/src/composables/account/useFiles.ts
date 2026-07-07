@@ -2,21 +2,15 @@ import { ref } from 'vue';
 import api from '@/api/api';
 import type { Ref } from 'vue';
 import type { NetworkFile, UpdateFile } from '@/types';
-import { useCachedApi, useMutation } from '../useApi';
+import { prependItem, useCachedApi, useMutation } from '../useApi';
+import { userProxyKey } from '@/lib/cacheKeys';
 import type { AxiosProgressEvent } from 'axios';
-
-const getKey = (userId: string, userProxyId: string, entryId?: string) => {
-  const entity = 'files';
-  const base = `users_${userId}_proxies_${userProxyId}_${entity}`;
-  if (entryId !== undefined) return base + `_${entryId}`;
-  return base;
-};
 
 export default function useFiles() {
   const progress: Ref<number> = ref(0);
 
   const fetchFiles = useCachedApi<NetworkFile[], [userId: string, userProxyId: string]>(
-    (userId, userProxyId) => getKey(userId, userProxyId),
+    (userId, userProxyId) => userProxyKey(userId, userProxyId, 'files'),
     async (userId, userProxyId) =>
       await api.get<NetworkFile[]>(`/users/${userId}/proxies/${userProxyId}/files/`),
   );
@@ -25,8 +19,8 @@ export default function useFiles() {
     NetworkFile,
     [networkId: string, userId: string, userProxyId: string, fileId: string]
   >(
-    (_, userId, userProxyId, fileId) => getKey(userId, userProxyId, fileId),
-    async (_, userId, userProxyId, fileId) =>
+    (_networkId, userId, userProxyId, fileId) => userProxyKey(userId, userProxyId, 'files', fileId),
+    async (_networkId, userId, userProxyId, fileId) =>
       await api.get<NetworkFile>(`/users/${userId}/proxies/${userProxyId}/files/${fileId}`),
   );
 
@@ -40,7 +34,7 @@ export default function useFiles() {
       accessLevel?: number,
     ]
   >(
-    async (networkId, _, __, fileToUpload, accessLevel = 0) => {
+    async (networkId, _userId, _userProxyId, fileToUpload, accessLevel = 0) => {
       progress.value = 0;
 
       const formData = new FormData();
@@ -65,11 +59,10 @@ export default function useFiles() {
       );
     },
     {
-      itemKeyFactory: (result, _, userId, userProxyId) => getKey(userId, userProxyId, result.id),
-      listKeyFactory: (_, userId, userProxyId) => getKey(userId, userProxyId),
-      listUpdater: (currentList, result) => {
-        return [result, ...currentList];
-      },
+      itemKeyFactory: (result, _networkId, userId, userProxyId) =>
+        userProxyKey(userId, userProxyId, 'files', result.id),
+      listKeyFactory: (_networkId, userId, userProxyId) => userProxyKey(userId, userProxyId, 'files'),
+      listUpdater: prependItem,
     },
   );
 
@@ -77,12 +70,13 @@ export default function useFiles() {
     NetworkFile,
     [networkId: string, userId: string, userProxyId: string, fileId: string, payload: UpdateFile]
   >(
-    async (networkId, _, __, fileId, payload) =>
+    async (networkId, _userId, _userProxyId, fileId, payload) =>
       await api.put<NetworkFile, UpdateFile>(`/networks/${networkId}/files/${fileId}`, payload),
     {
-      itemKeyFactory: (_, __, userId, userProxyId, fileId) => getKey(userId, userProxyId, fileId),
-      listKeyFactory: (_, userId, userProxyId) => getKey(userId, userProxyId),
-      listUpdater: (currentList, result, _, __, ___, fileId) =>
+      itemKeyFactory: (_result, _networkId, userId, userProxyId, fileId) =>
+        userProxyKey(userId, userProxyId, 'files', fileId),
+      listKeyFactory: (_networkId, userId, userProxyId) => userProxyKey(userId, userProxyId, 'files'),
+      listUpdater: (currentList, result, _networkId, _userId, _userProxyId, fileId) =>
         currentList.map((item) => (item.id === fileId ? result : item)),
     },
   );
@@ -91,12 +85,17 @@ export default function useFiles() {
     void,
     [networkId: string, userId: string, userProxyId: string, fileId: string],
     NetworkFile
-  >(async (networkId, fileId) => await api.delete<void>(`/networks/${networkId}/files/${fileId}`), {
-    itemKeyFactory: (_, __, userId, userProxyId, fileId) => getKey(userId, userProxyId, fileId),
-    listKeyFactory: (_, userId, userProxyId) => getKey(userId, userProxyId),
-    listUpdater: (currentList, _, __, ___, ____, fileId) =>
-      currentList.filter((item) => item.id !== fileId),
-  });
+  >(
+    async (networkId, _userId, _userProxyId, fileId) =>
+      await api.delete<void>(`/networks/${networkId}/files/${fileId}`),
+    {
+      itemKeyFactory: (_result, _networkId, userId, userProxyId, fileId) =>
+        userProxyKey(userId, userProxyId, 'files', fileId),
+      listKeyFactory: (_networkId, userId, userProxyId) => userProxyKey(userId, userProxyId, 'files'),
+      listUpdater: (currentList, _result, _networkId, _userId, _userProxyId, fileId) =>
+        currentList.filter((item) => item.id !== fileId),
+    },
+  );
 
   const resetProgress = () => {
     progress.value = 0;

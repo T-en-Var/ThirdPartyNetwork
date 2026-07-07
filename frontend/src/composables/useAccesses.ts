@@ -1,4 +1,5 @@
-import api from '@/api/api.ts';
+import api from '@/api/api';
+import { networkKey } from '@/lib/cacheKeys';
 import { type NetworkAccess, type Access, type Network } from '@/types';
 import { useCachedApi, useMutation } from './useApi';
 
@@ -20,8 +21,8 @@ export default function useAccesses() {
     async (networkId, accessId, isRequired) =>
       await api.post(`/networks/${networkId}/accesses/${accessId}`, { isRequired: isRequired }),
     {
-      itemKeyFactory: (_, networkId, accessId) => `networks_${networkId}_accesses_${accessId}`,
-      listKeyFactory: (networkId) => `networks_${networkId}`,
+      itemKeyFactory: (_, networkId, accessId) => networkKey(networkId, 'accesses', accessId),
+      listKeyFactory: (networkId) => networkKey(networkId),
       listUpdater: (currentList, result) => {
         const network = currentList as unknown as Network;
         network.networkAccesses = network.networkAccesses.map((item) =>
@@ -44,8 +45,8 @@ export default function useAccesses() {
     async (networkId, accessId, isRequired) =>
       await api.put(`/networks/${networkId}/accesses/${accessId}?IsRequired=${!isRequired}`, {}),
     {
-      itemKeyFactory: (_, networkId, accessId) => `networks_${networkId}_accesses_${accessId}`,
-      listKeyFactory: (networkId) => `networks_${networkId}`,
+      itemKeyFactory: (_, networkId, accessId) => networkKey(networkId, 'accesses', accessId),
+      listKeyFactory: (networkId) => networkKey(networkId),
       listUpdater: (currentList, result) => {
         const network = currentList as unknown as Network;
         network.networkAccesses = network.networkAccesses.map((item) =>
@@ -59,12 +60,12 @@ export default function useAccesses() {
   const deleteNetworkAccess = useMutation<void, [networkId: string, accessId: string], unknown>(
     async (networkId, accessId) => await api.delete(`/networks/${networkId}/accesses/${accessId}/`),
     {
-      itemKeyFactory: (_, networkId, accessId) => `networks_${networkId}_accesses_${accessId}`,
-      listKeyFactory: (networkId) => `networks_${networkId}`,
+      itemKeyFactory: (_, networkId, accessId) => networkKey(networkId, 'accesses', accessId),
+      listKeyFactory: (networkId) => networkKey(networkId),
       listUpdater: (currentList, _, networkId, accessId) => {
         const network = currentList as unknown as Network;
         network.networkAccesses = network.networkAccesses.filter(
-          (item) => item.networkId !== networkId && item.accessId !== accessId,
+          (item) => item.networkId !== networkId || item.accessId !== accessId,
         );
         return network as unknown as unknown[];
       },

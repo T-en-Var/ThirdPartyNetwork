@@ -1,10 +1,11 @@
-import api from '@/api/api.ts';
+import api from '@/api/api';
+import { networkKey } from '@/lib/cacheKeys';
 import type { CreateNetworkUser, NetworkUser, UpdateNetworkUser } from '@/types';
 import { useCachedApi, useMutation } from './useApi';
 
 export default function useNetworkUsers() {
   const fetchNetworkUsers = useCachedApi<NetworkUser[], [networkId: string]>(
-    (networkId) => `networks_${networkId}_users`,
+    (networkId) => networkKey(networkId, 'users'),
     async (networkId) => {
       return await api.get<NetworkUser[]>(`networks/${networkId}/users/`);
     },
@@ -12,13 +13,27 @@ export default function useNetworkUsers() {
 
   const createNetworkUser = useMutation<
     NetworkUser,
-    [networkId: string, payload: CreateNetworkUser]
+    [networkId: string, userProxyId: string, roleIds: string[]]
   >(
-    async (networkId, payload) =>
-      await api.post<NetworkUser, CreateNetworkUser>(`/networks/${networkId}/users/`, payload),
+    async (networkId, userProxyId, roleIds) => {
+      const created = await api.post<NetworkUser, CreateNetworkUser>(
+        `/networks/${networkId}/users/${userProxyId}`,
+        {},
+      );
+
+      if (roleIds.length > 0) {
+        await Promise.all(
+          roleIds.map((roleId) =>
+            api.post(`/networks/${networkId}/users/${created.data.id}/roles/${roleId}/`, {}),
+          ),
+        );
+      }
+
+      return await api.get<NetworkUser>(`/networks/${networkId}/users/${created.data.id}/`);
+    },
     {
-      itemKeyFactory: (result, networkId) => `networks_${networkId}_users_${result.id}`,
-      listKeyFactory: (networkId) => `networks_${networkId}_users`,
+      itemKeyFactory: (result, networkId) => networkKey(networkId, 'users', result.id),
+      listKeyFactory: (networkId) => networkKey(networkId, 'users'),
       listUpdater: (currentList, result) => {
         return [result, ...currentList];
       },
@@ -56,8 +71,8 @@ export default function useNetworkUsers() {
       return await api.get<NetworkUser>(`/networks/${networkId}/users/${userId}/`);
     },
     {
-      itemKeyFactory: (_, networkId, roleId) => `networks_${networkId}_roles_${roleId}`,
-      listKeyFactory: (networkId) => `networks_${networkId}_users`,
+      itemKeyFactory: (_, networkId, userId) => networkKey(networkId, 'users', userId),
+      listKeyFactory: (networkId) => networkKey(networkId, 'users'),
       listUpdater: (currentList, result) => {
         return currentList.map((item) => (item.id === result.id ? result : item));
       },
@@ -72,9 +87,8 @@ export default function useNetworkUsers() {
     async (networkId, networkUserId) =>
       await api.delete(`/networks/${networkId}/users/${networkUserId}/`),
     {
-      itemKeyFactory: (_, networkId, networkUserId) =>
-        `networks_${networkId}_users_${networkUserId}`,
-      listKeyFactory: (networkId) => `networks_${networkId}_users`,
+      itemKeyFactory: (_, networkId, networkUserId) => networkKey(networkId, 'users', networkUserId),
+      listKeyFactory: (networkId) => networkKey(networkId, 'users'),
       listUpdater: (currentList, _, __, networkUserId) => {
         return currentList.filter((item) => item.id !== networkUserId);
       },

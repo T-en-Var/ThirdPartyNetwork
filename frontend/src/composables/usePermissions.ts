@@ -1,4 +1,4 @@
-import api from '@/api/api.ts';
+import api from '@/api/api';
 import type { Permission } from '@/types';
 import { useCachedApi } from './useApi';
 
