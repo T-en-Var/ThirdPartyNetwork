@@ -13,7 +13,7 @@
     <div class="space-y-4">
       <div
         v-for="networkAccess in network.networkAccesses"
-        :key="networkAccess.accessId"
+        :key="networkAccess.access.id"
         class="rounded-lg border border-gray-200 bg-gray-50 p-4"
       >
         <div class="flex items-center justify-between">

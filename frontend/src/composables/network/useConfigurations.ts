@@ -1,15 +1,16 @@
 import api from '@/api/api';
+import { networkKey } from '@/lib/cacheKeys';
 import type { Configuration, CreateConfiguration } from '@/types';
-import { useCachedApi, useMutation } from '../useApi';
+import { prependItem, useCachedApi, useMutation } from '../useApi';
 
 export default function useConfigurations() {
   const fetchConfigurations = useCachedApi<Configuration[], [networkId: string]>(
-    (networkId) => `networks_${networkId}_configurations`,
+    (networkId) => networkKey(networkId, 'configurations'),
     async (networkId) => await api.get<Configuration[]>(`/networks/${networkId}/configurations`),
   );
 
   const fetchConfiguration = useCachedApi<Configuration, [networkId: string, configId: string]>(
-    (networkId, configId) => `networks_${networkId}_configurations_${configId}`,
+    (networkId, configId) => networkKey(networkId, 'configurations', configId),
     async (networkId, configId) =>
       await api.get<Configuration>(`/networks/${networkId}/configurations/${configId}`),
   );
@@ -24,11 +25,9 @@ export default function useConfigurations() {
         payload,
       ),
     {
-      itemKeyFactory: (result, networkId) => `networks_${networkId}_configurations_${result.id}`,
-      listKeyFactory: (networkId) => `networks_${networkId}_configurations`,
-      listUpdater: (currentList, result) => {
-        return [result, ...currentList];
-      },
+      itemKeyFactory: (result, networkId) => networkKey(networkId, 'configurations', result.id),
+      listKeyFactory: (networkId) => networkKey(networkId, 'configurations'),
+      listUpdater: prependItem,
     },
   );
 
@@ -43,9 +42,8 @@ export default function useConfigurations() {
       ),
     {
       itemKeyFactory: (_, networkId, configurationId) =>
-        `networks_${networkId}_configurations_${configurationId}`,
-
-      listKeyFactory: (networkId) => `networks_${networkId}_configurations`,
+        networkKey(networkId, 'configurations', configurationId),
+      listKeyFactory: (networkId) => networkKey(networkId, 'configurations'),
       listUpdater: (currentList, result, networkId, configurationId) => {
         return currentList.map((item) => (item.id === configurationId ? result : item));
       },
@@ -61,8 +59,8 @@ export default function useConfigurations() {
       await api.delete<void>(`/networks/${networkId}/configurations/${configurationId}`),
     {
       itemKeyFactory: (_, networkId, configurationId) =>
-        `networks_${networkId}_configurations_${configurationId}`,
-      listKeyFactory: (networkId) => `networks_${networkId}_configurations`,
+        networkKey(networkId, 'configurations', configurationId),
+      listKeyFactory: (networkId) => networkKey(networkId, 'configurations'),
       listUpdater: (currentList, _, __, configurationId) =>
         currentList.filter((item) => item.id !== configurationId),
     },

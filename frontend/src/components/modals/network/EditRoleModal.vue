@@ -107,36 +107,15 @@
         />
 
         <div v-if="permissions">
-          <div class="divide-y divide-slate-50 overflow-y-auto">
-            <div
-              v-if="permissions?.length === 0"
-              class="p-8 text-center text-sm italic text-slate-400"
-            >
-              No permissions available
-            </div>
-            <label
-              v-for="permission in permissions"
-              :key="permission.id"
-              class="group flex cursor-pointer items-center rounded-md px-4 py-3 transition-colors hover:bg-slate-50"
-            >
-              <input
-                type="checkbox"
-                :value="permission.id"
-                v-model="localForm.permissionIds"
-                class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-              />
-              <div class="ml-3">
-                <span
-                  class="block text-sm font-semibold text-slate-700 group-hover:text-blue-600"
-                  >{{ permission.name }}</span
-                >
-                <span
-                  class="block font-mono text-[10px] uppercase tracking-tighter text-slate-400"
-                  >{{ permission.id }}</span
-                >
-              </div>
-            </label>
-          </div>
+          <checkbox-list
+            :items="permissions"
+            v-model="localForm.permissionIds"
+            variant="card"
+            empty-message="No permissions available"
+            empty-class="p-8 text-center text-sm italic text-slate-400"
+            container-class="divide-y divide-slate-50 overflow-y-auto"
+            show-id
+          />
         </div>
       </div>
 
@@ -160,25 +139,14 @@
         />
       </div>
 
-      <div class="flex justify-end space-x-3 border-t border-gray-200 pt-4">
-        <button
-          type="button"
-          class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
-          @click="$emit('close')"
-          :disabled="isSubmitting"
-        >
-          Cancel
-        </button>
-        <button
-          type="button"
-          class="rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-          :disabled="isSubmitting"
-          @click="handleSubmit"
-        >
-          <span v-if="isSubmitting">Saving...</span>
-          <span v-else>Save Changes</span>
-        </button>
-      </div>
+      <modal-form-actions
+        :is-submitting="isSubmitting"
+        submit-type="button"
+        submit-label="Save Changes"
+        submitting-label="Saving..."
+        @cancel="$emit('close')"
+        @submit="handleSubmit"
+      />
     </div>
   </modal-container>
 </template>
@@ -186,6 +154,8 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import ModalContainer from '@/components/modals/ModalContainer.vue';
+import ModalFormActions from '@/components/modals/ModalFormActions.vue';
+import CheckboxList from '@/components/CheckboxList.vue';
 import type { Role, Network, RoleForm } from '@/types';
 import usePermissions from '@/composables/usePermissions';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';

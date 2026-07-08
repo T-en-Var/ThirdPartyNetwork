@@ -1,17 +1,11 @@
-import api from '@/api/api.ts';
+import api from '@/api/api';
+import { userProxyKey } from '@/lib/cacheKeys';
 import type { CreateCustomPage, CreatePageBlock, CustomPage, PageBlock } from '@/types';
-import { useCachedApi, useMutation } from '../useApi';
-
-const getKey = (userId: string, userProxyId: string, entryId?: string) => {
-  const entity = 'customPages';
-  const base = `users_${userId}_proxies_${userProxyId}_${entity}`;
-  if (entryId !== undefined) return base + `_${entryId}`;
-  return base;
-};
+import { prependItem, useCachedApi, useMutation } from '../useApi';
 
 export default function useCustomPages() {
   const fetchCustomPages = useCachedApi<CustomPage[], [userId: string, userProxyId: string]>(
-    (userId, userProxyId) => getKey(userId, userProxyId),
+    (userId, userProxyId) => userProxyKey(userId, userProxyId, 'customPages'),
     async (userId, userProxyId) =>
       await api.get<CustomPage[]>(`/users/${userId}/proxies/${userProxyId}/customPages`),
   );
@@ -20,21 +14,26 @@ export default function useCustomPages() {
     CustomPage,
     [networkId: string, userId: string, userProxyId: string, customPageId: string]
   >(
-    (_, userId, userProxyId, customPageId) => getKey(userId, userProxyId, customPageId),
-    async (networkId, _, __, customPageId) =>
-      await api.get<CustomPage>(`/networks/${networkId}/custompages/${customPageId}`),
+    (_networkId, userId, userProxyId, customPageId) =>
+      userProxyKey(userId, userProxyId, 'customPages', customPageId),
+    async (networkId, _userId, _userProxyId, customPageId) =>
+      await api.get<CustomPage>(`/networks/${networkId}/customPages/${customPageId}`),
   );
 
   const createCustomPage = useMutation<
     CustomPage,
     [networkId: string, userId: string, userProxyId: string, payload: CreateCustomPage]
-  >(async (networkId, payload) => await api.post(`/networks/${networkId}/customPages/`, payload), {
-    itemKeyFactory: (result, _, userId, userProxyId) => getKey(userId, userProxyId, result.id),
-    listKeyFactory: (_, userId, userProxyId) => getKey(userId, userProxyId),
-    listUpdater: (currentList, result) => {
-      return [result, ...currentList];
+  >(
+    async (networkId, _userId, _userProxyId, payload) =>
+      await api.post(`/networks/${networkId}/customPages/`, payload),
+    {
+      itemKeyFactory: (result, _networkId, userId, userProxyId) =>
+        userProxyKey(userId, userProxyId, 'customPages', result.id),
+      listKeyFactory: (_networkId, userId, userProxyId) =>
+        userProxyKey(userId, userProxyId, 'customPages'),
+      listUpdater: prependItem,
     },
-  });
+  );
 
   const updateCustomPage = useMutation<
     CustomPage,
@@ -46,14 +45,16 @@ export default function useCustomPages() {
       payload: CreateCustomPage,
     ]
   >(
-    async (networkId, _, __, customPageId, payload) =>
+    async (networkId, _userId, _userProxyId, customPageId, payload) =>
       await api.put<CustomPage, CreateCustomPage>(
         `/networks/${networkId}/customPages/${customPageId}`,
         payload,
       ),
     {
-      itemKeyFactory: (_, __, userId, userProxyId, cpId) => getKey(userId, userProxyId, cpId),
-      listKeyFactory: (_, userId, userProxyId) => getKey(userId, userProxyId),
+      itemKeyFactory: (_result, _networkId, userId, userProxyId, customPageId) =>
+        userProxyKey(userId, userProxyId, 'customPages', customPageId),
+      listKeyFactory: (_networkId, userId, userProxyId) =>
+        userProxyKey(userId, userProxyId, 'customPages'),
       listUpdater: (currentList, result) => {
         return currentList.map((item) => (item.id == result.id ? result : item));
       },
@@ -65,12 +66,14 @@ export default function useCustomPages() {
     [networkId: string, userId: string, userProxyId: string, customPageId: string],
     CustomPage
   >(
-    async (networkId, _, __, customPageId) =>
+    async (networkId, _userId, _userProxyId, customPageId) =>
       await api.delete(`/networks/${networkId}/customPages/${customPageId}/`),
     {
-      itemKeyFactory: (_, userId, userProxyId, cpId) => getKey(userId, userProxyId, cpId),
-      listKeyFactory: (_, userId, userProxyId) => getKey(userId, userProxyId),
-      listUpdater: (currentList, _, __, customPageId) => {
+      itemKeyFactory: (_result, _networkId, userId, userProxyId, customPageId) =>
+        userProxyKey(userId, userProxyId, 'customPages', customPageId),
+      listKeyFactory: (_networkId, userId, userProxyId) =>
+        userProxyKey(userId, userProxyId, 'customPages'),
+      listUpdater: (currentList, _result, _networkId, _userId, _userProxyId, customPageId) => {
         return currentList.filter((item) => item.id !== customPageId);
       },
     },
@@ -87,13 +90,13 @@ export default function useCustomPages() {
     ],
     unknown
   >(
-    async (networkId, _, __, customPageId, payload) =>
+    async (networkId, _userId, _userProxyId, customPageId, payload) =>
       await api.post(`/networks/${networkId}/customPages/${customPageId}/pageBlocks`, payload),
     {
-      itemKeyFactory: (result, _, userId, userProxyId, customPageId) =>
-        getKey(userId, userProxyId, customPageId) + `_pageBlocks_${result.id}`,
-      listKeyFactory: (_, userId, userProxyId, customPageId) =>
-        getKey(userId, userProxyId, customPageId),
+      itemKeyFactory: (result, _networkId, userId, userProxyId, customPageId) =>
+        userProxyKey(userId, userProxyId, 'customPages', customPageId) + `_pageBlocks_${result.id}`,
+      listKeyFactory: (_networkId, userId, userProxyId, customPageId) =>
+        userProxyKey(userId, userProxyId, 'customPages', customPageId),
       listUpdater: (currentList, result) => {
         const customPage = currentList as unknown as CustomPage;
         customPage.pages = [result, ...customPage.pages];
@@ -114,16 +117,16 @@ export default function useCustomPages() {
     ],
     unknown
   >(
-    async (networkId, _, __, customPageId, pageBlockId, payload) =>
+    async (networkId, _userId, _userProxyId, customPageId, pageBlockId, payload) =>
       await api.put<PageBlock, PageBlock>(
         `/networks/${networkId}/customPages/${customPageId}/pageBlocks/${pageBlockId}`,
         payload,
       ),
     {
-      itemKeyFactory: (_, __, userId, userProxyId, customPageId, pageBlockId) =>
-        getKey(userId, userProxyId, customPageId) + `_pageBlocks_${pageBlockId}`,
-      listKeyFactory: (_, userId, userProxyId, customPageId) =>
-        getKey(userId, userProxyId, customPageId),
+      itemKeyFactory: (_result, _networkId, userId, userProxyId, customPageId, pageBlockId) =>
+        userProxyKey(userId, userProxyId, 'customPages', customPageId) + `_pageBlocks_${pageBlockId}`,
+      listKeyFactory: (_networkId, userId, userProxyId, customPageId) =>
+        userProxyKey(userId, userProxyId, 'customPages', customPageId),
       listUpdater: (currentList, result) => {
         const customPage = currentList as unknown as CustomPage;
         customPage.pages = customPage.pages.map((item) => (item.id === result.id ? result : item));
@@ -143,16 +146,24 @@ export default function useCustomPages() {
     ],
     unknown
   >(
-    async (networkId, _, __, customPageId, pageBlockId) =>
+    async (networkId, _userId, _userProxyId, customPageId, pageBlockId) =>
       await api.delete(
         `/networks/${networkId}/customPages/${customPageId}/pageBlocks/${pageBlockId}`,
       ),
     {
-      itemKeyFactory: (_, __, userId, userProxyId, customPageId, pageBlockId) =>
-        getKey(userId, userProxyId, customPageId) + `_pageBlocks_${pageBlockId}`,
-      listKeyFactory: (_, userId, userProxyId, customPageId) =>
-        getKey(userId, userProxyId, customPageId),
-      listUpdater: (currentList, _, __, ___, ____, _____, pageBlockId) => {
+      itemKeyFactory: (_result, _networkId, userId, userProxyId, customPageId, pageBlockId) =>
+        userProxyKey(userId, userProxyId, 'customPages', customPageId) + `_pageBlocks_${pageBlockId}`,
+      listKeyFactory: (_networkId, userId, userProxyId, customPageId) =>
+        userProxyKey(userId, userProxyId, 'customPages', customPageId),
+      listUpdater: (
+        currentList,
+        _result,
+        _networkId,
+        _userId,
+        _userProxyId,
+        _customPageId,
+        pageBlockId,
+      ) => {
         const customPage = currentList as unknown as CustomPage;
         customPage.pages = customPage.pages.filter((item) => item.id !== pageBlockId);
         return customPage as unknown as unknown[];

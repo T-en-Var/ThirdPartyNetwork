@@ -505,6 +505,10 @@ import useNetworks from '@/composables/useNetworks';
 import EditUserModal from '@/components/modals/network/EditUserModal.vue';
 import useNetworkUsers from '@/composables/useNetworkUsers';
 import TempModal from '@/components/modals/admin/TempModal.vue';
+import { extractApiErrorMessage } from '@/lib/utils';
+import { useGlobalStore } from '@/stores/global';
+
+const globalStore = useGlobalStore();
 
 const { execute: fetchUsers, error, loading, data: users } = useUsers().fetchUsers;
 const { execute: forceFetchUsers } = useUsers().forceFetchUsers;
@@ -584,6 +588,11 @@ async function handleUpdateNetworkUser(localForm: ManageUserForm) {
     showEditNetworkUserEntitlementModal.value = false;
   } catch (err) {
     console.error('Error updating user settings:', err);
+    globalStore.addToast({
+      message: extractApiErrorMessage(err, 'Failed to update user settings.'),
+      type: 'error',
+      duration: 5000,
+    });
   } finally {
     isSubmitting.value = false;
   }

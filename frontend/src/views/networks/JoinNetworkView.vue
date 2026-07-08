@@ -13,28 +13,12 @@
         >
           <div class="p-4">
             <div class="mb-4 flex items-center">
-              <div class="logo-container mr-4">
-                <div class="logo">
-                  <div
-                    v-if="loading"
-                    class="h-7 w-7 animate-spin rounded-full border-4 border-gray-300 border-t-indigo-500"
-                  ></div>
-                  <CloudinaryFile
-                    v-else-if="network?.imageFile"
-                    :display-only="true"
-                    :file="network?.imageFile"
-                    class="max-h-10 w-10 object-cover"
-                  />
-                  <div
-                    v-else
-                    class="logo"
-                  >
-                    <img
-                      :src="`https://ui-avatars.com/api/?name=${network?.name}&size=24&background=random`"
-                      :alt="network?.name"
-                    />
-                  </div>
-                </div>
+              <div class="mr-4">
+                <NetworkLogo
+                  :loading="loading"
+                  :image-file="network?.imageFile"
+                  :network-name="network?.name ?? ''"
+                />
               </div>
               <div class="flex-1">
                 <div class="flex items-center justify-between">
@@ -78,14 +62,14 @@
           <div class="mb-6 space-y-4">
             <div
               v-for="access in network.networkAccesses"
-              :key="access.accessId"
+              :key="access.access.id"
               class="rounded-md border border-gray-200 p-4"
             >
               <div class="flex items-start">
                 <div class="flex h-6 items-center">
                   <input
-                    :id="access.accessId"
-                    v-model="userAccesses[access.accessId]"
+                    :id="access.access.id"
+                    v-model="userAccesses[access.access.id].value"
                     type="checkbox"
                     class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     :disabled="access.isRequired"
@@ -94,7 +78,7 @@
                 </div>
                 <div class="ml-3">
                   <label
-                    :for="access.accessId"
+                    :for="access.access.id"
                     class="block text-sm font-medium text-gray-700"
                   >
                     {{ access.access.name }}
@@ -175,17 +159,20 @@ import type { AxiosError } from 'axios';
 import ErrorAlert from '@/components/ErrorAlert.vue';
 import { useAuthStore } from '@/stores/auth';
 import UserProxyDisplay from '@/components/UserProxyDisplay.vue';
+import NetworkLogo from '@/components/NetworkLogo.vue';
 import api from '@/api/api';
-import CloudinaryFile from '@/components/cdn/CloudinaryFile.vue';
 import useNetworks from '@/composables/useNetworks';
+import useAccessConsent, { type AccessConsentState } from '@/composables/useAccessConsent';
+import { safeBtoa } from '@/lib/utils';
 
 const router = useRouter();
 const route = useRoute();
 const global = useGlobalStore();
 const isSubmitting = ref(false);
 const submitError = ref('');
-const userAccesses = ref<{ [key: string]: boolean }>({});
+const userAccesses = ref<Record<string, AccessConsentState>>({});
 const authStore = useAuthStore();
+const { buildInitialAccessState, applyAccessConsent } = useAccessConsent();
 
 const currentUserProxy = ref<UserProxy | null>(null);
 
@@ -197,9 +184,10 @@ onMounted(async () => {
   currentUserProxy.value = await authStore.getUserProxy();
 
   if (network.value) {
-    for (const access of network.value.networkAccesses) {
-      userAccesses.value[access.accessId] = access.isRequired ? true : false;
-    }
+    userAccesses.value = buildInitialAccessState(
+      network.value.networkAccesses,
+      (access) => access.isRequired,
+    );
   }
 });
 
@@ -208,7 +196,7 @@ function validateRequiredAccesses() {
 
   network.value.networkAccesses.forEach((access) => {
     if (access.isRequired) {
-      userAccesses.value[access.accessId] = true;
+      userAccesses.value[access.access.id].value = true;
     }
   });
 }
@@ -229,17 +217,11 @@ async function handleJoinNetwork() {
 
     const acceptedAccesses = network
       .value!.networkAccesses.filter(
-        (access) => !access.isRequired && userAccesses.value[access.accessId],
+        (access) => !access.isRequired && userAccesses.value[access.access.id]?.value,
       )
-      .map((access) => access.accessId);
+      .map((access) => access.access.id);
 
-    await Promise.all(
-      acceptedAccesses.map((accessId) =>
-        api.put(`/networks/${networkId}/users/${networkUser.id}/accesses/${accessId}/`, {
-          isAccepted: true,
-        }),
-      ),
-    );
+    await applyAccessConsent(networkId, networkUser.id, acceptedAccesses, true);
 
     router.push(`/networks/${networkId}`);
   } catch (err) {
@@ -261,7 +243,10 @@ function navigateBack() {
 }
 
 function switchAccount() {
-  alert('not implemented, sorry');
+  authStore.logout();
+  router.push({ path: '/401', query: { redirect: safeBtoa(route.fullPath) } });
+  authStore.setModalOpen(true);
+  authStore.setModalMode('login');
 }
 
 function handleNetworkDetails() {

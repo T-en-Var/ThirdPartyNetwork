@@ -58,8 +58,8 @@ export interface SettableEntitlementForm extends SettableEntitlement {
 
   setAllowCustomPages?: boolean;
   setCustomPageCountLimit?: boolean;
-  setCustomPageBlockCountLimit?: number;
-  setCustomPageBlockSizeLimit?: number;
+  setCustomPageBlockCountLimit?: boolean;
+  setCustomPageBlockSizeLimit?: boolean;
 }
 
 export interface Network {

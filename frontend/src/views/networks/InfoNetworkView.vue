@@ -55,28 +55,12 @@
         <!-- Network Header with Logo -->
         <div class="flex justify-between">
           <div class="mb-6 flex items-center">
-            <div
-              class="mr-4 flex h-16 w-16 items-center justify-center rounded-lg border border-gray-200 bg-white p-1 shadow-sm"
-            >
-              <div
-                v-if="loading"
-                class="h-7 w-7 animate-spin rounded-full border-4 border-gray-300 border-t-indigo-500"
-              ></div>
-              <CloudinaryFile
-                v-else-if="network?.imageFile"
-                :display-only="true"
-                :file="network?.imageFile"
-                class="max-h-10 w-10 object-cover"
+            <div class="mr-4">
+              <NetworkLogo
+                :loading="loading"
+                :image-file="network.imageFile"
+                :network-name="network.name"
               />
-              <div
-                v-else
-                class="logo"
-              >
-                <img
-                  :src="`https://ui-avatars.com/api/?name=${network?.name}&size=24&background=random`"
-                  :alt="network?.name"
-                />
-              </div>
             </div>
             <div>
               <h2 class="flex items-center text-xl font-bold text-gray-800">
@@ -137,7 +121,7 @@
               <ul class="mt-4 space-y-3">
                 <li
                   v-for="networkAccess in network?.networkAccesses"
-                  :key="networkAccess.accessId"
+                  :key="networkAccess.access.id"
                   class="flex items-start rounded-md border border-gray-200 bg-gray-50 p-3"
                 >
                   <div class="mt-1 flex-shrink-0">
@@ -179,39 +163,7 @@
         <div class="mb-6">
           <h3 class="mb-3 text-lg font-medium text-gray-800">Connected Websites</h3>
 
-          <div
-            v-if="connectedWebsites.length > 0 && false"
-            class="grid grid-cols-1 gap-4 md:grid-cols-2"
-          >
-            <div
-              v-for="(website, index) in connectedWebsites"
-              :key="index"
-              class="rounded-lg border border-gray-200 p-4 transition-shadow hover:shadow-md"
-            >
-              <div class="flex items-center">
-                <img
-                  :src="website.icon || `https://www.google.com/s2/favicons?domain=${website.url}`"
-                  :alt="website.name"
-                  class="mr-3 h-6 w-6"
-                />
-                <div>
-                  <h4 class="font-medium text-gray-800">{{ website.name }}</h4>
-                  <a
-                    :href="website.url"
-                    target="_blank"
-                    class="text-sm text-blue-600 hover:underline"
-                  >
-                    {{ website.url }}
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div
-            v-else
-            class="rounded-lg border border-gray-200 bg-gray-50 p-6 text-center"
-          >
+          <div class="rounded-lg border border-gray-200 bg-gray-50 p-6 text-center">
             <p class="text-gray-600">
               No websites are currently using this network for authentication.
             </p>
@@ -283,7 +235,7 @@
                 <ul class="mt-4 space-y-3">
                   <li
                     v-for="access in network.networkAccesses"
-                    :key="access.accessId"
+                    :key="access.access.id"
                     class="flex justify-between rounded-md border border-gray-200 bg-gray-50 p-3"
                   >
                     <div class="flex items-start">
@@ -291,7 +243,7 @@
                         <span
                           v-if="
                             currentNetworkUser.networkUserAccesses.find(
-                              (nua) => nua.accessId == access.accessId,
+                              (nua) => nua.access.id === access.access.id,
                             )?.isAccepted
                           "
                           class="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800"
@@ -317,10 +269,10 @@
                         v-if="
                           !access.isRequired ||
                           !currentNetworkUser?.networkUserAccesses.find(
-                            (x) => x.accessId == access.accessId,
+                            (x) => x.access.id === access.access.id,
                           )?.isAccepted
                         "
-                        @click="handleToggle(access.accessId)"
+                        @click="handleToggle(access.access.id)"
                         class="mr-3 rounded-md border border-gray-200 bg-gray-100 px-4 py-2 text-sm text-gray-800"
                       >
                         Toggle
@@ -379,7 +331,7 @@ import { useGlobalStore } from '@/stores/global';
 import ErrorAlert from '@/components/ErrorAlert.vue';
 import ConfirmationModal from '@/components/modals/ConfirmationModal.vue';
 import api from '@/api/api';
-import CloudinaryFile from '@/components/cdn/CloudinaryFile.vue';
+import NetworkLogo from '@/components/NetworkLogo.vue';
 import useNetworks from '@/composables/useNetworks';
 
 const router = useRouter();
@@ -393,14 +345,6 @@ const {
   error,
   execute: fetchNetworkDetails,
 } = useNetworks().fetchNetworkDetails;
-
-const connectedWebsites = ref([
-  {
-    name: 'Vue Login Test',
-    url: 'http://localhost:5174',
-    icon: 'https://ui-avatars.com/api/?name=VT&size=32&background=random',
-  },
-]);
 
 const showConfirmationModal = ref(false);
 const confirmationTitle = ref('');
@@ -423,7 +367,7 @@ function handleLeaveNetwork() {
       const userProxyId = authStore.getUserProxyId();
       const networkId = route.params.networkId as string;
       const networkUserId = network.value?.networkUsers.find(
-        (nu) => nu.userProxyId == userProxyId,
+        (nu) => nu.userProxyId === userProxyId,
       )?.id;
 
       if (networkUserId == null) throw new Error('No NetworkUserId');
@@ -438,8 +382,10 @@ function handleLeaveNetwork() {
 }
 
 async function handleToggle(accessId: string) {
-  const access = currentNetworkUser.value?.networkUserAccesses.find((x) => x.accessId == accessId);
-  const networkAccess = network.value?.networkAccesses.find((x) => x.accessId == accessId);
+  const access = currentNetworkUser.value?.networkUserAccesses.find(
+    (x) => x.access.id === accessId,
+  );
+  const networkAccess = network.value?.networkAccesses.find((x) => x.access.id === accessId);
 
   if (!access) return alert('Access not found.');
 
@@ -455,7 +401,7 @@ async function handleToggle(accessId: string) {
       const userProxyId = authStore.getUserProxyId();
       const networkId = route.params.networkId as string;
       const networkUserId = network.value?.networkUsers.find(
-        (nu) => nu.userProxyId == userProxyId,
+        (nu) => nu.userProxyId === userProxyId,
       )?.id;
 
       await api.put(`/networks/${networkId}/users/${networkUserId}/accesses/${accessId}`, {

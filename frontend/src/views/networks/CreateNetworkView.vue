@@ -303,9 +303,7 @@ const fakeNetwork = ref<Network>({
 function addAccessToNetwork(networkAccess: NetworkAccessCreate) {
   if (!networkAccess.access) return;
   fakeNetwork.value.networkAccesses.push({
-    accessId: networkAccess.access.id,
     network: {} as Network,
-    networkId: fakeNetwork.value.id,
     access: networkAccess.access!,
     isRequired: networkAccess.isRequired,
   });
@@ -378,14 +376,15 @@ async function handleSubmit() {
   titleValue.value = 'Updating network accesses';
   progessValue.value = 75;
 
+  if (newNetwork.networkUsers.length === 0) throw new Error('no network creator');
+
   try {
     global.startFetching();
 
     await Promise.all([
-      ,
       ...fakeNetwork.value.networkAccesses.map((networkAccess) =>
         api.put(
-          `/networks/${newNetwork.id}/users/${newNetwork.networkUsers[0].id}/accesses/${networkAccess.accessId}/`,
+          `/networks/${newNetwork.id}/users/${newNetwork.networkUsers[0].id}/accesses/${networkAccess.access.id}/`,
           { isAccepted: true },
         ),
       ),

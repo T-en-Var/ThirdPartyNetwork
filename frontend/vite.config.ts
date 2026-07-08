@@ -8,6 +8,12 @@ import tailwind from 'tailwindcss'
 
 // https://vite.dev/config/
 export default defineConfig({
+  server: {
+    allowedHosts: [
+      'mytpn.tijmensimons.nl',
+      'localhost:5173',
+    ],
+  },
   plugins: [
     vue(),
     vueDevTools(),

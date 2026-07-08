@@ -20,7 +20,7 @@
           Page Block Text
         </label>
         <input
-          id="pageName"
+          id="pageText"
           v-model="form.text"
           type="text"
           placeholder="Enter text"
@@ -37,7 +37,7 @@
           Page Block Posistion
         </label>
         <input
-          id="pageSlug"
+          id="pagePosition"
           v-model="form.position"
           type="number"
           class="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-900 shadow-sm transition-all focus:border-blue-600 focus:ring focus:ring-blue-100 disabled:bg-gray-100 disabled:text-gray-500"

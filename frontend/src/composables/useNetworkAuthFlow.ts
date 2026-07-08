@@ -8,7 +8,7 @@ import type {
   UserLogin,
   UserSignup,
 } from '@/types';
-import { decodeJWT } from '@/lib/utils';
+import { decodeJWT, extractApiErrorMessage, safeBtoa } from '@/lib/utils';
 import rawApi from '@/api/rawApi';
 import useNetworks from '@/composables/useNetworks';
 
@@ -87,7 +87,7 @@ export default function useNetworkAuthFlow() {
     localStorage.setItem(TEMPORARY_ACCESS_TOKEN_KEY, accessToken);
     router.push({
       path: `/networks/${networkId.value}/complete-access`,
-      query: { redirectUri: btoa(redirectUrl) },
+      query: { redirectUri: safeBtoa(redirectUrl) },
     });
   }
 
@@ -95,7 +95,7 @@ export default function useNetworkAuthFlow() {
     const axiosError = err as AxiosError<ErrorMessage>;
     return {
       status: axiosError.response?.status,
-      message: axiosError.response?.data?.message || fallback,
+      message: extractApiErrorMessage(err, fallback),
     };
   }
 

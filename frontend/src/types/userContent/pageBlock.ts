@@ -9,6 +9,7 @@ export interface PageBlock extends UserContentBase {
   customPageId: string;
 }
 
+// does not extend UserContentCreateBase, does not have accessLevel
 export interface CreatePageBlock {
   text: string;
   position: number;

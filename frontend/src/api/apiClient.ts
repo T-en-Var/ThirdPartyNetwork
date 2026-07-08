@@ -1,8 +1,9 @@
+import { extractApiErrorMessage, safeBtoa } from '@/lib/utils';
 import { useAuthStore } from '@/stores/auth';
 import type { useGlobalStore } from '@/stores/global';
 import type { ErrorMessage, TokenPair } from '@/types';
 import axios from 'axios';
-import type { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import type { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse, Method } from 'axios';
 import { type Router, type RouteLocationNormalizedLoaded } from 'vue-router';
 
 class ApiClient {
@@ -61,7 +62,7 @@ class ApiClient {
 
         if (statusCode == 401) {
           let uri = this.route.query.redirect as string | undefined;
-          if (this.route.name !== 'terms-of-service') uri = btoa(this.route.fullPath);
+          if (this.route.name !== 'terms-of-service') uri = safeBtoa(this.route.fullPath);
 
           this.router.push({ path: '/401', query: uri ? { redirect: uri } : {} });
           this.auth.setModalOpen(true);
@@ -73,7 +74,7 @@ class ApiClient {
         }
 
         this.global.addToast({
-          message: error.response?.data.message || error.message || 'Something went wrong.',
+          message: extractApiErrorMessage(error, 'Something went wrong.'),
           type: 'error',
           duration: 5000,
         });
@@ -129,51 +130,39 @@ class ApiClient {
     if (this.initResolver) this.initResolver();
   }
 
-  public async get<T>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
-    const response: AxiosResponse<T> = await this.instance.get(url, config);
-    return response;
-  }
-
-  public async post<T, B>(
+  private async request<T>(
+    method: Method,
     url: string,
-    data?: B,
+    data?: unknown,
     config?: AxiosRequestConfig,
   ): Promise<AxiosResponse<T>> {
-    const response: AxiosResponse<T> = await this.instance.post(url, data, config);
-    return response;
+    return await this.instance.request<T>({ ...config, method, url, data });
   }
 
-  public async put<T, B>(
-    url: string,
-    data?: B,
-    config?: AxiosRequestConfig,
-  ): Promise<AxiosResponse<T>> {
-    const response: AxiosResponse<T> = await this.instance.put(url, data, config);
-    return response;
+  public get<T>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+    return this.request<T>('get', url, undefined, config);
   }
 
-  public async patch<T, B>(
-    url: string,
-    data?: B,
-    config?: AxiosRequestConfig,
-  ): Promise<AxiosResponse<T>> {
-    const response: AxiosResponse<T> = await this.instance.patch(url, data, config);
-    return response;
+  public post<T, B>(url: string, data?: B, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+    return this.request<T>('post', url, data, config);
   }
 
-  public async delete<T>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
-    const response: AxiosResponse<T> = await this.instance.delete(url, config);
-    return response;
+  public put<T, B>(url: string, data?: B, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+    return this.request<T>('put', url, data, config);
   }
 
-  public async refresh(): Promise<AxiosResponse<TokenPair>> {
-    const config = { headers: { 'x-skip-auth-headers': true } };
-    const response: AxiosResponse<TokenPair> = await this.instance.post(
-      `/auth/refresh`,
-      {},
-      config,
-    );
-    return response;
+  public patch<T, B>(url: string, data?: B, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+    return this.request<T>('patch', url, data, config);
+  }
+
+  public delete<T>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+    return this.request<T>('delete', url, undefined, config);
+  }
+
+  public refresh(): Promise<AxiosResponse<TokenPair>> {
+    return this.request<TokenPair>('post', '/auth/refresh', {}, {
+      headers: { 'x-skip-auth-headers': true },
+    });
   }
 }
 

@@ -163,6 +163,7 @@ import type { UserProxy, UserSignup } from '@/types';
 import { useGlobalStore } from '@/stores/global';
 import api from '@/api/api';
 import useNetworkAuthFlow from '@/composables/useNetworkAuthFlow';
+import useAccessConsent, { type AccessConsentState } from '@/composables/useAccessConsent';
 
 import AuthLayout from '@/components/AuthLayout.vue';
 import AuthFormCard from '@/components/AuthFormCard.vue';
@@ -172,18 +173,20 @@ import ConfirmationModal from '@/components/modals/ConfirmationModal.vue';
 import NetworkAccessList from '@/components/NetworkAccessList.vue';
 import UserProxyDisplay from '@/components/UserProxyDisplay.vue';
 import NetworkNotFound from '@/components/NetworkNotFound.vue';
+import { safeBtoa } from '@/lib/utils';
 
 const router = useRouter();
 const route = useRoute();
 const global = useGlobalStore();
 const flow = useNetworkAuthFlow();
 const { networkDetails, networkId, backUrl, isValidUrl, networkNotFound, goToLogin } = flow;
+const { buildInitialAccessState, applyAccessConsent } = useAccessConsent();
 
 const signUpStep = ref(1);
 const error = ref('');
 const isSubmitting = ref(false);
 const signupForm = ref<UserSignup | null>(null);
-const userAccesses = ref<Record<string, { value: boolean; userChecked: boolean }>>({});
+const userAccesses = ref<Record<string, AccessConsentState>>({});
 const incompleteAccess = ref<{ accessToken: string; redirectUrl: string } | null>(null);
 
 const initialSignupValues = computed<Partial<UserSignup>>(
@@ -203,15 +206,13 @@ const canSubmit = computed(() => {
 
   return networkDetails.data.value.networkAccesses
     .filter((na) => na.isRequired)
-    .every((na) => userAccesses.value[na.accessId]?.value);
+    .every((na) => userAccesses.value[na.access.id]?.value);
 });
 
 onMounted(async () => {
   await flow.loadNetwork();
 
-  for (const access of networkDetails.data.value?.networkAccesses || []) {
-    userAccesses.value[access.accessId] = { value: false, userChecked: false };
-  }
+  userAccesses.value = buildInitialAccessState(networkDetails.data.value?.networkAccesses || []);
 });
 
 const goBackStep = () => {
@@ -247,7 +248,7 @@ const redirectToTos = (form: UserSignup) => {
 
   router.push({
     path: '/tos',
-    query: { redirect: btoa(target), fromExternal: '', hideNavbar: '' },
+    query: { redirect: safeBtoa(target), fromExternal: '', hideNavbar: '' },
   });
 };
 
@@ -310,20 +311,10 @@ async function handleSubmit() {
 
 async function acceptAccesses(networkUserId: string, accessToken: string) {
   const acceptedAccesses = (networkDetails.data.value?.networkAccesses ?? [])
-    .filter((access) => userAccesses.value[access.accessId]?.value)
-    .map((access) => access.accessId);
+    .filter((access) => userAccesses.value[access.access.id]?.value)
+    .map((access) => access.access.id);
 
-  await Promise.all(
-    acceptedAccesses.map((accessId) =>
-      api.put(
-        `/networks/${networkId.value}/users/${networkUserId}/accesses/${accessId}/`,
-        { isAccepted: true },
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        },
-      ),
-    ),
-  );
+  await applyAccessConsent(networkId.value, networkUserId, acceptedAccesses, true, accessToken);
 }
 
 function confirmIncompleteAccess() {

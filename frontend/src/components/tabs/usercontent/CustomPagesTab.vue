@@ -29,6 +29,7 @@
         v-if="showCreateModal"
         :is-submitting="isSubmitting"
         :network-id="networkId"
+        :fetch-custom-pages="fetchCustomPages"
         @submit="handleCreateCustomPage"
         @close="showCreateModal = false"
       />

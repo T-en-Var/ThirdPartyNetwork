@@ -23,5 +23,5 @@ export interface UpdateRole {
   name: string;
   description: string;
   isDefault: boolean;
-  entitlements: object;
+  entitlements: SettableEntitlement;
 }

@@ -1,6 +1,6 @@
 import { useGlobalStore } from '@/stores/global';
-import type { ErrorMessage } from '@/types';
-import type { AxiosError, AxiosResponse } from 'axios';
+import { extractApiErrorMessage } from '@/lib/utils';
+import type { AxiosResponse } from 'axios';
 import { computed, ref, shallowRef, type Ref } from 'vue';
 
 interface CacheEntry<T> {
@@ -71,10 +71,7 @@ export function useCachedApi<T, P extends unknown[]>(
       entry.data.value = result.data;
       entry.lastFetch = Date.now();
     } catch (err) {
-      entry.error.value =
-        (err as AxiosError<ErrorMessage>)?.response?.data?.message ||
-        (err as AxiosError).message ||
-        'API Error';
+      entry.error.value = extractApiErrorMessage(err, 'API Error');
     } finally {
       entry.isFetching.value = false;
       globalStore.stopFetching();
@@ -145,11 +142,7 @@ export function useMutation<T, P extends unknown[], TListItem = T>(
 
       return result.data;
     } catch (err) {
-      const msg =
-        (err as AxiosError<ErrorMessage>)?.response?.data?.message ||
-        (err as AxiosError).message ||
-        'API Error';
-      error.value = msg;
+      error.value = extractApiErrorMessage(err, 'API Error');
 
       throw err;
     } finally {
@@ -159,4 +152,17 @@ export function useMutation<T, P extends unknown[], TListItem = T>(
   };
 
   return { execute, loading, error };
+}
+
+/** Shared `listUpdater` helpers for the common create/update/delete-in-place patterns. */
+export function prependItem<T>(currentList: T[], result: T): T[] {
+  return [result, ...currentList];
+}
+
+export function replaceById<T extends { id: string }>(currentList: T[], result: T): T[] {
+  return currentList.map((item) => (item.id === result.id ? result : item));
+}
+
+export function removeById<T extends { id: string }>(currentList: T[], id: string): T[] {
+  return currentList.filter((item) => item.id !== id);
 }

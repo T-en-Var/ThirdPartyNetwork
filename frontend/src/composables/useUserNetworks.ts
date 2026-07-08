@@ -1,45 +1,19 @@
 import api from '@/api/api';
-import { ref, computed } from 'vue';
-import { useAuthStore } from '@/stores/auth';
+import { userProxyKey } from '@/lib/cacheKeys';
 import type { Network } from '@/types';
 import { useCachedApi } from './useApi';
+import { withUserProxyGuard } from './withUserProxyGuard';
 
 export default function useUsersNetworks() {
-  const authStore = useAuthStore();
-
-  const authError = ref<string | null>(null);
-
-  const {
-    data: networks,
-    isFetching,
-    loading,
-    error: apiError,
-    execute,
-  } = useCachedApi<Network[], [userId: string, proxyId: string]>(
-    (userId, proxyId) => `users_${userId}_proxies_${proxyId}_networks`,
+  const cachedApi = useCachedApi<Network[], [userId: string, proxyId: string]>(
+    (userId, proxyId) => userProxyKey(userId, proxyId, 'networks'),
     async (userId, proxyId) =>
       await api.get<Network[]>(`/users/${userId}/proxies/${proxyId}/networks`),
   );
 
-  const _fetchUserNetworks = async () => {
-    authError.value = null;
-    const userProxy = await authStore.getUserProxy();
-
-    if (!userProxy) {
-      authError.value = 'No logged in user.';
-      return;
-    }
-
-    await execute(userProxy.user.id, userProxy.id);
-  };
-
-  const fetchUserNetworks = {
-    data: networks,
-    isFetching,
-    loading,
-    error: computed(() => authError.value || apiError.value),
-    execute: _fetchUserNetworks,
-  };
+  const fetchUserNetworks = withUserProxyGuard(cachedApi, async (userProxy) => {
+    await cachedApi.execute(userProxy.user.id, userProxy.id);
+  });
 
   return { fetchUserNetworks };
 }

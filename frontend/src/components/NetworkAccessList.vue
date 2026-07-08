@@ -18,41 +18,44 @@
 
     <div class="mb-6 space-y-4">
       <div
-        v-for="access in networkAccesses"
-        :key="access.accessId"
+        v-for="networkAccess in networkAccesses"
+        :key="networkAccess.access.id"
         class="rounded-md border border-gray-200 p-4"
       >
-        <div class="flex items-start">
+        <div
+          class="flex items-start"
+          v-if="internalAccesses[networkAccess.access.id]"
+        >
           <div class="flex h-6 items-center">
             <input
-              :id="access.accessId"
-              v-model="internalAccesses[access.accessId].value"
+              :id="networkAccess.access.id"
+              v-model="internalAccesses[networkAccess.access.id].value"
               type="checkbox"
               class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              :disabled="access.isRequired && isAlreadyAccepted(access.accessId)"
+              :disabled="networkAccess.isRequired && isAlreadyAccepted(networkAccess.access.id)"
               @change="handleAccessChange"
-              :aria-required="access.isRequired ? 'true' : 'false'"
+              :aria-required="networkAccess.isRequired ? 'true' : 'false'"
             />
           </div>
           <div class="ml-3">
             <label
-              :for="access.accessId"
+              :for="networkAccess.access.id"
               class="block text-sm font-medium text-gray-700"
             >
-              {{ access.access.name }}
+              {{ networkAccess.access.name }}
               <span
-                v-if="access.isRequired"
+                v-if="networkAccess.isRequired"
                 class="ml-1 text-red-500"
                 >(Required)</span
               >
               <span
-                v-if="isAlreadyAccepted(access.accessId)"
+                v-if="isAlreadyAccepted(networkAccess.access.id)"
                 class="ml-1 text-xs text-green-500"
               >
                 (Accepted)</span
               >
             </label>
-            <p class="text-sm text-gray-500">{{ access.access.description }}</p>
+            <p class="text-sm text-gray-500">{{ networkAccess.access.description }}</p>
           </div>
         </div>
       </div>
@@ -79,14 +82,14 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:modelValue', 'access-change']);
 
-const internalAccesses = ref<Record<string, UserAccessState>>({ ...props.initialUserAccesses });
+const internalAccesses = ref<Record<string, UserAccessState>>({});
 
 watch(
   () => props.initialUserAccesses,
   (newAccesses) => {
     internalAccesses.value = { ...newAccesses };
   },
-  { deep: true },
+  { deep: true, immediate: true },
 );
 
 const isAlreadyAccepted = (accessId: string) => {
@@ -97,12 +100,15 @@ const handleAccessChange = (e: Event) => {
   const currentElementId = (e.target as HTMLInputElement).id;
   const isChecked = (e.target as HTMLInputElement).checked;
 
-  const accessDefinition = props.networkAccesses.find((a) => a.accessId === currentElementId);
+  const accessDefinition = props.networkAccesses.find((a) => a.access.id === currentElementId);
 
   if (accessDefinition) {
-    internalAccesses.value[currentElementId] = { value: isChecked, userChecked: true };
-
-    emit('access-change', currentElementId, isChecked, accessDefinition.isRequired);
+    emit(
+      'access-change',
+      currentElementId,
+      accessDefinition.isRequired ? true : isChecked,
+      accessDefinition.isRequired,
+    );
   }
 };
 
