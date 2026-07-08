@@ -165,7 +165,7 @@ const canSubmit = computed(() => {
   const accessesRecord = currentAccesses as Record<string, UserAccessState>;
   const requiredAccesses = network.value.networkAccesses.filter((na) => na.isRequired);
 
-  return requiredAccesses.every((na) => accessesRecord[na.accessId]?.value);
+  return requiredAccesses.every((na) => accessesRecord[na.access.id]?.value);
 });
 
 onMounted(async () => {
@@ -203,7 +203,7 @@ onMounted(async () => {
 
       userAccesses.value = buildInitialAccessState(network.value.networkAccesses, (na) =>
         networkUser.networkUserAccesses.some(
-          (nua) => nua.accessId === na.accessId && nua.isAccepted,
+          (nua) => nua.access.id === na.access.id && nua.isAccepted,
         ),
       );
     } catch (e) {
@@ -238,15 +238,15 @@ async function handleUpdateAccesses() {
 
     for (const access of network.value.networkAccesses) {
       const isCurrentlyAccepted =
-        currentNetworkUser.value.networkUserAccesses.find((n) => n.accessId === access.accessId)
+        currentNetworkUser.value.networkUserAccesses.find((n) => n.access.id === access.access.id)
           ?.isAccepted || false;
 
-      const shouldBeAccepted = finalAccessState[access.accessId]?.value ?? false;
+      const shouldBeAccepted = finalAccessState[access.access.id]?.value ?? false;
 
       if (shouldBeAccepted && !isCurrentlyAccepted) {
-        acceptedAccesses.push(access.accessId);
+        acceptedAccesses.push(access.access.id);
       } else if (!shouldBeAccepted && isCurrentlyAccepted) {
-        rejectedAccesses.push(access.accessId);
+        rejectedAccesses.push(access.access.id);
       }
     }
 
@@ -268,11 +268,11 @@ async function handleUpdateAccesses() {
     ]);
 
     if (acceptedAccesses.length === 0 && rejectedAccesses.length === 0) {
-      const accessId = network.value.networkAccesses[0]?.accessId;
+      const accessId = network.value.networkAccesses[0]?.access.id;
 
       if (accessId) {
         const isAccepted =
-          currentNetworkUser.value.networkUserAccesses.find((n) => n.accessId === accessId)
+          currentNetworkUser.value.networkUserAccesses.find((n) => n.access.id === accessId)
             ?.isAccepted || false;
 
         await applyAccessConsent(

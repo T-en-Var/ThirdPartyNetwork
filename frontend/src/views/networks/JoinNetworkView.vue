@@ -62,14 +62,14 @@
           <div class="mb-6 space-y-4">
             <div
               v-for="access in network.networkAccesses"
-              :key="access.accessId"
+              :key="access.access.id"
               class="rounded-md border border-gray-200 p-4"
             >
               <div class="flex items-start">
                 <div class="flex h-6 items-center">
                   <input
-                    :id="access.accessId"
-                    v-model="userAccesses[access.accessId].value"
+                    :id="access.access.id"
+                    v-model="userAccesses[access.access.id].value"
                     type="checkbox"
                     class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     :disabled="access.isRequired"
@@ -78,7 +78,7 @@
                 </div>
                 <div class="ml-3">
                   <label
-                    :for="access.accessId"
+                    :for="access.access.id"
                     class="block text-sm font-medium text-gray-700"
                   >
                     {{ access.access.name }}
@@ -196,7 +196,7 @@ function validateRequiredAccesses() {
 
   network.value.networkAccesses.forEach((access) => {
     if (access.isRequired) {
-      userAccesses.value[access.accessId].value = true;
+      userAccesses.value[access.access.id].value = true;
     }
   });
 }
@@ -217,9 +217,9 @@ async function handleJoinNetwork() {
 
     const acceptedAccesses = network
       .value!.networkAccesses.filter(
-        (access) => !access.isRequired && userAccesses.value[access.accessId]?.value,
+        (access) => !access.isRequired && userAccesses.value[access.access.id]?.value,
       )
-      .map((access) => access.accessId);
+      .map((access) => access.access.id);
 
     await applyAccessConsent(networkId, networkUser.id, acceptedAccesses, true);
 

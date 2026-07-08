@@ -26,7 +26,7 @@ export default function useAccesses() {
       listUpdater: (currentList, result) => {
         const network = currentList as unknown as Network;
         network.networkAccesses = network.networkAccesses.map((item) =>
-          item.networkId === result.networkId && item.accessId === result.accessId ? result : item,
+          item.network.id === result.network.id && item.access.id === result.access.id ? result : item,
         );
         network.networkAccesses = network.networkAccesses.sort((a, b) =>
           a.access.name.localeCompare(b.access.name),
@@ -50,7 +50,7 @@ export default function useAccesses() {
       listUpdater: (currentList, result) => {
         const network = currentList as unknown as Network;
         network.networkAccesses = network.networkAccesses.map((item) =>
-          item.networkId === result.networkId && item.accessId === result.accessId ? result : item,
+          item.network.id === result.network.id && item.access.id === result.access.id ? result : item,
         );
         return network as unknown as unknown[];
       },
@@ -65,7 +65,7 @@ export default function useAccesses() {
       listUpdater: (currentList, _, networkId, accessId) => {
         const network = currentList as unknown as Network;
         network.networkAccesses = network.networkAccesses.filter(
-          (item) => item.networkId !== networkId || item.accessId !== accessId,
+          (item) => item.network.id !== networkId || item.access.id !== accessId,
         );
         return network as unknown as unknown[];
       },

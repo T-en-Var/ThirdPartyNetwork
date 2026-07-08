@@ -424,7 +424,7 @@ export default function useNetworkManageActions(networkId: ComputedRef<string>) 
           action: async () =>
             await genericMutation(composables.accesses.updateNetworkAccess)(
               networkId.value,
-              networkAccess.accessId,
+              networkAccess.access.id,
               !networkAccess.isRequired,
             ),
         }),
@@ -438,7 +438,7 @@ export default function useNetworkManageActions(networkId: ComputedRef<string>) 
           action: async () =>
             await genericMutation(composables.accesses.deleteNetworkAccess)(
               networkId.value,
-              networkAccess.accessId,
+              networkAccess.access.id,
             ),
         }),
     },

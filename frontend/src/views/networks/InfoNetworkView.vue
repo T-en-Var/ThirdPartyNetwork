@@ -121,7 +121,7 @@
               <ul class="mt-4 space-y-3">
                 <li
                   v-for="networkAccess in network?.networkAccesses"
-                  :key="networkAccess.accessId"
+                  :key="networkAccess.access.id"
                   class="flex items-start rounded-md border border-gray-200 bg-gray-50 p-3"
                 >
                   <div class="mt-1 flex-shrink-0">
@@ -235,7 +235,7 @@
                 <ul class="mt-4 space-y-3">
                   <li
                     v-for="access in network.networkAccesses"
-                    :key="access.accessId"
+                    :key="access.access.id"
                     class="flex justify-between rounded-md border border-gray-200 bg-gray-50 p-3"
                   >
                     <div class="flex items-start">
@@ -243,7 +243,7 @@
                         <span
                           v-if="
                             currentNetworkUser.networkUserAccesses.find(
-                              (nua) => nua.accessId === access.accessId,
+                              (nua) => nua.access.id === access.access.id,
                             )?.isAccepted
                           "
                           class="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800"
@@ -269,10 +269,10 @@
                         v-if="
                           !access.isRequired ||
                           !currentNetworkUser?.networkUserAccesses.find(
-                            (x) => x.accessId === access.accessId,
+                            (x) => x.access.id === access.access.id,
                           )?.isAccepted
                         "
-                        @click="handleToggle(access.accessId)"
+                        @click="handleToggle(access.access.id)"
                         class="mr-3 rounded-md border border-gray-200 bg-gray-100 px-4 py-2 text-sm text-gray-800"
                       >
                         Toggle
@@ -383,9 +383,9 @@ function handleLeaveNetwork() {
 
 async function handleToggle(accessId: string) {
   const access = currentNetworkUser.value?.networkUserAccesses.find(
-    (x) => x.accessId === accessId,
+    (x) => x.access.id === accessId,
   );
-  const networkAccess = network.value?.networkAccesses.find((x) => x.accessId === accessId);
+  const networkAccess = network.value?.networkAccesses.find((x) => x.access.id === accessId);
 
   if (!access) return alert('Access not found.');
 
