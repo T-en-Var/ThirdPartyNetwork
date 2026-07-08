@@ -12,11 +12,13 @@ namespace thirdpartynetwork.Application.Dtos.NetworkAccess
     }
     public class NetworkAccessNtADto
     {
+        public Guid AccessId { get; set; }
         public required bool IsRequired { get; set; }
         public required AccessLightDto Access { get; set; }
     }
     public class NetworkAccessAtNDto
     {
+        public Guid NetworkId { get; set; }
         public required bool IsRequired { get; set; }
         public required NetworkLightDto Network { get; set; }
     }
