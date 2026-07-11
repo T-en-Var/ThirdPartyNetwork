@@ -226,7 +226,11 @@ const publishedAtLocal = ref<string | null>(null);
 const showImageModal = ref(false);
 const editorRef = ref<InstanceType<typeof RichTextEditor> | null>(null);
 
-const { entity: blog, loading, error } = useEditableEntity<Blog>({
+const {
+  entity: blog,
+  loading,
+  error,
+} = useEditableEntity<Blog>({
   id: blogId,
   fetch: props.fetchBlog,
   notFoundMessage: 'Blog not found.',

@@ -87,7 +87,8 @@ export default function useNetworkUsers() {
     async (networkId, networkUserId) =>
       await api.delete(`/networks/${networkId}/users/${networkUserId}/`),
     {
-      itemKeyFactory: (_, networkId, networkUserId) => networkKey(networkId, 'users', networkUserId),
+      itemKeyFactory: (_, networkId, networkUserId) =>
+        networkKey(networkId, 'users', networkUserId),
       listKeyFactory: (networkId) => networkKey(networkId, 'users'),
       listUpdater: (currentList, _, __, networkUserId) => {
         return currentList.filter((item) => item.id !== networkUserId);

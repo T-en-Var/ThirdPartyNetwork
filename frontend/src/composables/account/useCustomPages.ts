@@ -124,7 +124,8 @@ export default function useCustomPages() {
       ),
     {
       itemKeyFactory: (_result, _networkId, userId, userProxyId, customPageId, pageBlockId) =>
-        userProxyKey(userId, userProxyId, 'customPages', customPageId) + `_pageBlocks_${pageBlockId}`,
+        userProxyKey(userId, userProxyId, 'customPages', customPageId) +
+        `_pageBlocks_${pageBlockId}`,
       listKeyFactory: (_networkId, userId, userProxyId, customPageId) =>
         userProxyKey(userId, userProxyId, 'customPages', customPageId),
       listUpdater: (currentList, result) => {
@@ -152,7 +153,8 @@ export default function useCustomPages() {
       ),
     {
       itemKeyFactory: (_result, _networkId, userId, userProxyId, customPageId, pageBlockId) =>
-        userProxyKey(userId, userProxyId, 'customPages', customPageId) + `_pageBlocks_${pageBlockId}`,
+        userProxyKey(userId, userProxyId, 'customPages', customPageId) +
+        `_pageBlocks_${pageBlockId}`,
       listKeyFactory: (_networkId, userId, userProxyId, customPageId) =>
         userProxyKey(userId, userProxyId, 'customPages', customPageId),
       listUpdater: (

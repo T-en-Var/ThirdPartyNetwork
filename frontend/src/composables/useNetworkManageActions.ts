@@ -257,9 +257,7 @@ export default function useNetworkManageActions(networkId: ComputedRef<string>) 
 
       edit: (configuration: Configuration) => {
         history.visit.configurations(configuration);
-        router.push(
-          `/networks/${networkId.value}/manage/configurations/${configuration.id}/edit`,
-        );
+        router.push(`/networks/${networkId.value}/manage/configurations/${configuration.id}/edit`);
       },
 
       create: async (networkId: string, payload: CreateConfiguration) =>

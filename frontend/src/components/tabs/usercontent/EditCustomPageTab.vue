@@ -202,7 +202,11 @@ const activeTabClasses = 'px-3 py-1 bg-blue-600 text-white rounded-md text-sm cu
 const inactiveTabClasses =
   'px-3 py-1 bg-gray-100 text-gray-700 rounded-md text-sm hover:bg-gray-200';
 
-const { entity: customPage, loading, error } = useEditableEntity<CustomPage>({
+const {
+  entity: customPage,
+  loading,
+  error,
+} = useEditableEntity<CustomPage>({
   id: customPageId,
   fetch: props.fetchCustomPage,
   notFoundMessage: 'Custom page not found.',

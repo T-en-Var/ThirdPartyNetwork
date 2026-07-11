@@ -151,7 +151,11 @@ class ApiClient {
     return this.request<T>('put', url, data, config);
   }
 
-  public patch<T, B>(url: string, data?: B, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+  public patch<T, B>(
+    url: string,
+    data?: B,
+    config?: AxiosRequestConfig,
+  ): Promise<AxiosResponse<T>> {
     return this.request<T>('patch', url, data, config);
   }
 
@@ -160,9 +164,14 @@ class ApiClient {
   }
 
   public refresh(): Promise<AxiosResponse<TokenPair>> {
-    return this.request<TokenPair>('post', '/auth/refresh', {}, {
-      headers: { 'x-skip-auth-headers': true },
-    });
+    return this.request<TokenPair>(
+      'post',
+      '/auth/refresh',
+      {},
+      {
+        headers: { 'x-skip-auth-headers': true },
+      },
+    );
   }
 }
 

@@ -61,7 +61,8 @@ export default function useFiles() {
     {
       itemKeyFactory: (result, _networkId, userId, userProxyId) =>
         userProxyKey(userId, userProxyId, 'files', result.id),
-      listKeyFactory: (_networkId, userId, userProxyId) => userProxyKey(userId, userProxyId, 'files'),
+      listKeyFactory: (_networkId, userId, userProxyId) =>
+        userProxyKey(userId, userProxyId, 'files'),
       listUpdater: prependItem,
     },
   );
@@ -75,7 +76,8 @@ export default function useFiles() {
     {
       itemKeyFactory: (_result, _networkId, userId, userProxyId, fileId) =>
         userProxyKey(userId, userProxyId, 'files', fileId),
-      listKeyFactory: (_networkId, userId, userProxyId) => userProxyKey(userId, userProxyId, 'files'),
+      listKeyFactory: (_networkId, userId, userProxyId) =>
+        userProxyKey(userId, userProxyId, 'files'),
       listUpdater: (currentList, result, _networkId, _userId, _userProxyId, fileId) =>
         currentList.map((item) => (item.id === fileId ? result : item)),
     },
@@ -91,7 +93,8 @@ export default function useFiles() {
     {
       itemKeyFactory: (_result, _networkId, userId, userProxyId, fileId) =>
         userProxyKey(userId, userProxyId, 'files', fileId),
-      listKeyFactory: (_networkId, userId, userProxyId) => userProxyKey(userId, userProxyId, 'files'),
+      listKeyFactory: (_networkId, userId, userProxyId) =>
+        userProxyKey(userId, userProxyId, 'files'),
       listUpdater: (currentList, _result, _networkId, _userId, _userProxyId, fileId) =>
         currentList.filter((item) => item.id !== fileId),
     },

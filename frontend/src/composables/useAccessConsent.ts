@@ -54,7 +54,9 @@ export default function useAccessConsent() {
     isAccepted: boolean,
     accessToken?: string,
   ): Promise<void> {
-    const config = accessToken ? { headers: { Authorization: `Bearer ${accessToken}` } } : undefined;
+    const config = accessToken
+      ? { headers: { Authorization: `Bearer ${accessToken}` } }
+      : undefined;
 
     await Promise.all(
       accessIds.map((accessId) =>

@@ -261,7 +261,7 @@ export const useAuthStore = defineStore('auth', () => {
     if (!auth.tokenPair.value) return console.warn('TokenPair was null');
 
     const tokenPair = auth.tokenPair.value;
-    await getPermissions()
+    await getPermissions();
     saveTokens(tokenPair.accessToken);
     clearAllHistoryStores();
   }

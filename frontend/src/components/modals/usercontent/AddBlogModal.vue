@@ -112,8 +112,7 @@ onMounted(async () => {
   watch(remoteRef, (newVal) => (blogs.value = newVal ?? []), { immediate: true });
 });
 
-const slugExists = computed(() => blogs.value.find(b => b.slug == slugPreview.value))
-
+const slugExists = computed(() => blogs.value.find((b) => b.slug == slugPreview.value));
 
 function generateSlug(title: string) {
   if (!title) return '';

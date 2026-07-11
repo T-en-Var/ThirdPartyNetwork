@@ -96,7 +96,8 @@ export default function useAuthentication() {
     firstname: string,
     lastname: string,
     password: string,
-  ) => signUpMutation.execute(username, email, firstname, lastname, password).catch(() => undefined);
+  ) =>
+    signUpMutation.execute(username, email, firstname, lastname, password).catch(() => undefined);
 
   const networkLogin = (networkId: string, email: string, password: string) =>
     networkLoginMutation.execute(networkId, email, password).catch(() => undefined);
