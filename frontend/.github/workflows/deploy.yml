@@ -53,6 +53,8 @@ jobs:
         with:
           context: .
           push: true
+          build-args: |
+            VITE_API_BASE_URL=https://api.trojonetworks.com
           tags: |
             ghcr.io/troshujin/tpn-frontend:latest
             ghcr.io/troshujin/tpn-frontend:${{ github.sha }}
