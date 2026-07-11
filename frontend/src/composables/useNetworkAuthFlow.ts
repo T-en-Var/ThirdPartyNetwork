@@ -14,11 +14,6 @@ import useNetworks from '@/composables/useNetworks';
 
 export const TEMPORARY_ACCESS_TOKEN_KEY = 'temporaryAccessToken';
 
-/**
- * Shared state and actions for the OAuth-style network login/signup pages.
- * These pages receive `clientId`, `codeChallenge` and `state` from the external
- * client and must pass them along (properly URL-encoded) at every step.
- */
 export default function useNetworkAuthFlow() {
   const route = useRoute();
   const router = useRouter();
