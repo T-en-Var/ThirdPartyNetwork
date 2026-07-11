@@ -66,7 +66,8 @@ export default function useCustomPages() {
     {
       itemKeyFactory: (result, networkId, customPageId) =>
         networkKey(networkId, 'customPages', customPageId) + `_pageBlocks_${result.id}`,
-      listKeyFactory: (networkId, customPageId) => networkKey(networkId, 'customPages', customPageId),
+      listKeyFactory: (networkId, customPageId) =>
+        networkKey(networkId, 'customPages', customPageId),
       listUpdater: (currentList, result) => {
         const customPage = currentList as unknown as CustomPage;
         customPage.pages = [result, ...customPage.pages];
@@ -88,7 +89,8 @@ export default function useCustomPages() {
     {
       itemKeyFactory: (_, networkId, customPageId, pageBlockId) =>
         networkKey(networkId, 'customPages', customPageId) + `_pageBlocks_${pageBlockId}`,
-      listKeyFactory: (networkId, customPageId) => networkKey(networkId, 'customPages', customPageId),
+      listKeyFactory: (networkId, customPageId) =>
+        networkKey(networkId, 'customPages', customPageId),
       listUpdater: (currentList, result) => {
         const customPage = currentList as unknown as CustomPage;
         customPage.pages = customPage.pages.map((item) => (item.id === result.id ? result : item));
@@ -109,7 +111,8 @@ export default function useCustomPages() {
     {
       itemKeyFactory: (_, networkId, customPageId, pageBlockId) =>
         networkKey(networkId, 'customPages', customPageId) + `_pageBlocks_${pageBlockId}`,
-      listKeyFactory: (networkId, customPageId) => networkKey(networkId, 'customPages', customPageId),
+      listKeyFactory: (networkId, customPageId) =>
+        networkKey(networkId, 'customPages', customPageId),
       listUpdater: (currentList, _, __, ___, pageBlockId) => {
         const customPage = currentList as unknown as CustomPage;
         customPage.pages = customPage.pages.filter((item) => item.id !== pageBlockId);

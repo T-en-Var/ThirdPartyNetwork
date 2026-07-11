@@ -138,7 +138,11 @@ const form = ref<CreateConfiguration>({ key: '', accessLevel: 0, value: {} });
 const editMode = ref(false);
 const jsonValue = ref<object>({});
 
-const { entity: configuration, loading, error } = useEditableEntity<Configuration>({
+const {
+  entity: configuration,
+  loading,
+  error,
+} = useEditableEntity<Configuration>({
   id: configurationId,
   fetch: props.fetchConfiguration,
   notFoundMessage: 'Configuration not found.',

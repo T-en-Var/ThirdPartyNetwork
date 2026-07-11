@@ -18,7 +18,7 @@
       <div v-if="authStore.currentUserProxy && manage.handle.value">
         <RouterView
           v-if="!authStore.loading && !authStore.error && authStore.currentUserProxy"
-          :network-ids="composables.networks.fetchNetworks.data.value?.map(n => n.id) ?? []"
+          :network-ids="composables.networks.fetchNetworks.data.value?.map((n) => n.id) ?? []"
           :history="manage.history"
           @confirm="manage.confirm"
           @return="manage.handleReturn"

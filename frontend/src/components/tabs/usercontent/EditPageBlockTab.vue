@@ -278,11 +278,14 @@ const jsonEditorValue = ref<object>({});
 // the page block derived from it via pageBlockId - so we watch pageBlockId (to refetch/re-derive
 // when navigating between sibling blocks) while always fetching by customPageId, and use
 // `isNotFound` to check the derived block rather than the fetched custom page itself.
-const { entity: customPage, loading, error } = useEditableEntity<CustomPage>({
+const {
+  entity: customPage,
+  loading,
+  error,
+} = useEditableEntity<CustomPage>({
   id: pageBlockId,
   fetch: () => props.fetchCustomPage(customPageId.value),
-  isNotFound: (loadedCustomPage) =>
-    !loadedCustomPage.pages.find((p) => p.id === pageBlockId.value),
+  isNotFound: (loadedCustomPage) => !loadedCustomPage.pages.find((p) => p.id === pageBlockId.value),
   notFoundMessage: 'Page block not found.',
   onNotFound: () => handleReturn(),
   onLoaded: () => {

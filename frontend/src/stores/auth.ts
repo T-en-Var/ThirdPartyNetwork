@@ -231,17 +231,17 @@ export const useAuthStore = defineStore('auth', () => {
   // --- Authentication Flow ---
   async function login(form: UserLogin) {
     await auth.login(form.email, form.password);
-    handleAuthenticated();
+    await handleAuthenticated();
   }
 
   async function signUp(form: UserSignup) {
     await auth.signUp(form.username, form.email, form.firstName, form.lastName, form.password);
-    handleAuthenticated();
+    await handleAuthenticated();
   }
 
   async function networkLogin(networkId: string, form: UserLogin) {
     await auth.networkLogin(networkId, form.email, form.password);
-    handleAuthenticated();
+    await handleAuthenticated();
   }
 
   async function networkSignUp(networkId: string, form: UserSignup) {
@@ -253,20 +253,22 @@ export const useAuthStore = defineStore('auth', () => {
       form.lastName,
       form.password,
     );
-    handleAuthenticated();
+    await handleAuthenticated();
   }
 
-  function handleAuthenticated() {
+  async function handleAuthenticated() {
     if (error.value) return;
     if (!auth.tokenPair.value) return console.warn('TokenPair was null');
 
     const tokenPair = auth.tokenPair.value;
+    await getPermissions();
     saveTokens(tokenPair.accessToken);
     clearAllHistoryStores();
   }
 
   function logout() {
     clearAllHistoryStores();
+    permissionCollection.value = [];
     clearTokens();
   }
 
