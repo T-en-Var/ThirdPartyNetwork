@@ -41,22 +41,15 @@ builder.Services.AddAuthentication(o =>
         {
             Console.WriteLine("OnChallenge invoked");
 
-            // 1. Check for the specific exception that caused the failure
             if (context.AuthenticateFailure != null)
             {
                 Console.WriteLine($"JWT Validation Failed: {context.AuthenticateFailure.Message}");
-
-                // If you need the full stack trace, use:
-                // Console.WriteLine(context.AuthenticateFailure.ToString());
             }
             else
             {
-                // If it's null, it usually means no token was provided in the header at all,
-                // or the header was malformed (e.g., missing the 'Bearer ' prefix).
                 Console.WriteLine("JWT Validation Failed: No token provided or token was completely unreadable.");
             }
 
-            // 2. Check for standard OAuth error details (sometimes populated by the middleware)
             if (!string.IsNullOrEmpty(context.Error) || !string.IsNullOrEmpty(context.ErrorDescription))
             {
                 Console.WriteLine($"OAuth Error: {context.Error} - {context.ErrorDescription}");
