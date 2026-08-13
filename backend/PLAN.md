@@ -109,7 +109,7 @@ erDiagram
 
     UserGeneratedContent {
         guid Id PK
-        guid AuthorId FK "-> NetworkUser"
+        guid AuthorUserProxyId FK "REVISED: -> UserProxy (was -> NetworkUser), nullable, SetNull"
         guid NetworkId FK "-> Network"
         int AccessLevel "REVISED: + Draft"
         int OwnershipMode "NEW: AuthorOwned | NetworkOwned"
@@ -117,6 +117,11 @@ erDiagram
         datetime DeletedAt "NEW: nullable, soft delete"
         datetime CreatedOn
         datetime UpdatedAt
+    }
+
+    Network {
+        guid Id PK
+        int ExternalContentKinds "NEW: flags — which of this network's Public content kinds other networks may durably reuse/embed; default File only"
     }
 
     File {
@@ -152,7 +157,7 @@ erDiagram
     ContentViewingLink {
         guid Id PK "the opaque token in the URL"
         guid FileId FK "-> File"
-        guid IssuedForNetworkUserId FK "nullable -> NetworkUser"
+        guid IssuedForUserProxyId FK "REVISED: nullable -> UserProxy (was -> NetworkUser)"
         guid IssuedForNetworkId FK "nullable -> Network"
         int Mode "OneTimeView|TimeLimited|Permanent"
         datetime ExpiresAt
@@ -181,8 +186,10 @@ erDiagram
     UserGeneratedContent ||--o{ ContentAccessGrant : "target (ContentKind+ContentId)"
 
     File ||--o{ ContentViewingLink : "brokers access to"
-    NetworkUser ||--o{ ContentViewingLink : "issued for"
+    UserProxy ||--o{ ContentViewingLink : "issued for"
     Network ||--o{ ContentViewingLink : "issued in context of"
+    UserProxy ||--o{ UserGeneratedContent : "authored (nullable, SetNull)"
+    Network ||--o{ UserGeneratedContent : "owns / scopes tenancy"
 
     Network ||--o{ ContentModerationFlag : "moderated within"
     NetworkUser ||--o{ ContentModerationFlag : "flagged by"
@@ -196,6 +203,26 @@ today (its columns are flattened into `File`/`Blog`/`Configuration`/`CustomPage`
 
 ### 2.1 `UserContentBaseModel` — revised (affects `File`, `Blog`, `Configuration`, `CustomPage`, `PageBlock`)
 
+- `AuthorId` is retargeted from `NetworkUser` to `UserProxy` (renamed `AuthorUserProxyId` for
+  clarity, matching the `GranteeUserProxyId`-style naming already used in §2.4). Today `AuthorId`
+  → `NetworkUser` cascades (`DataContext.cs`'s `AuthorToMany<T>()`, `OnDelete(Cascade)`): leaving
+  a network — or having a membership row removed for any reason — hard-deletes every piece of
+  content that member authored there, which directly contradicts this plan's own "`AuthorOwned` =
+  portable" framing (Q2). Pointing at the durable `UserProxy` persona instead fixes that, and
+  simplifies the per-user-per-network entitlement queries in `EntitlementService.cs` (currently
+  `GetByAuthorIdAsync(networkId, networkUser.Id)`) to a direct `WHERE NetworkId = @n AND
+  AuthorUserProxyId = @u` — both scoping keys already live on the content row, no join through
+  `NetworkUser` needed either way. `NetworkId` is **untouched and stays required**: it's tenancy
+  scope (quotas, `PublicToNetwork`, moderation scoping, §2.6), not ownership, and every row needs
+  one regardless of who owns it — this plan does not make `NetworkId`/`AuthorUserProxyId`
+  mutually exclusive, both are always populated, `OwnershipMode` (below) just decides which one is
+  authoritative for control.
+  `AuthorUserProxyId` becomes **nullable**, FK `OnDelete(SetNull)` — matching the existing
+  `ImageFileId`/`CoverImageId` convention, not a new cascade rule. If a `UserProxy` is hard-deleted
+  while it still authors `AuthorOwned` content, the content doesn't vanish or become ownerless: a
+  null `AuthorUserProxyId` is treated as falling back to `NetworkOwned`-equivalent management
+  (current network admins become the effective owner) regardless of the stored `OwnershipMode`
+  value — see §3.2.
 - `AccessLevel` gains `Draft` (append as a new int value, e.g. `Draft = 3` — do **not**
   renumber `Public`/`PublicToNetwork`/`Private`, they're persisted as ints today).
   `Draft` behaves like `Private` for everyone except the author, but is excluded from
@@ -233,7 +260,7 @@ files.<domain>/{token}
   → look up ContentViewingLink by Id
       not found / expired / (Mode=OneTimeView and UsedAt != null)  → 404
   → re-check the file's *current* AccessLevel/ContentAccessGrant for
-    IssuedForNetworkUserId (defense in depth: access may have been revoked
+    IssuedForUserProxyId (defense in depth: access may have been revoked
     after the link was minted but before it was used)
   → mark UsedAt (if Mode=OneTimeView)
   → 302 to a freshly presigned MinIO URL (short expiry; a NEW MinIO signature every
@@ -304,6 +331,81 @@ Implements the Q2 conclusion: moderators flag/hide, they don't edit.
   exclude content with an active `HiddenInNetwork` flag *for the network the request is
   scoped to* — same `EXISTS`-based shape as `ContentAccessGrant` (§0.2/Q3), same indexes.
 
+### 2.6 `Network.ExternalContentKinds` — new column, defines what "Public" buys you *outside* the owning network
+
+`AccessLevel.PublicToNetwork` and `AccessLevel.Public` need to mean two different things, and the
+plan as written up to §2.1 only pins down the first:
+
+- **`PublicToNetwork` is unchanged and un-gated by anything in this section**: "any `NetworkUser`
+  whose `NetworkId` equals the content's own `NetworkId` can view it." That's a same-tenant
+  read-permission check and stays exactly as described in §0.2/Q3 — the column below never
+  restricts a network's own members from seeing their own network's content.
+- **`Public`** today ("anyone, including anonymous, can view it") says nothing about whether a
+  *different* network may durably adopt that content as if it were its own — e.g. point a
+  `UserProxy.ImageFileId` or `Network.ImageFileId` at a `File` owned by another network, set a
+  `Blog.CoverImageId` to someone else's asset, or embed it inside another network's own
+  `CustomPage`/`PageBlock`. That's a distinct question from "can it be viewed," and it needs its
+  own network-level policy: does *the owning network* allow content of this kind to leave its
+  walls and become part of another network's own content graph at all?
+
+Add to `Network`:
+
+```
+ExternalContentKinds : int   // [Flags], default = ContentKindFlags.File only (0b00001)
+```
+
+Backed by a new `[Flags] enum ContentKindFlags` (`Core/Enum/ContentKindFlags.cs`), one bit per
+member of the existing `ContentKind` discriminator (§1), same order:
+
+```csharp
+[Flags]
+public enum ContentKindFlags
+{
+    None          = 0,
+    File          = 1 << 0,  // 00001
+    Blog          = 1 << 1,  // 00010
+    Configuration = 1 << 2,  // 00100
+    CustomPage    = 1 << 3,  // 01000
+    PageBlock     = 1 << 4,  // 10000
+}
+```
+
+This is deliberately a *second*, bitmask-shaped enum next to the existing sequential `ContentKind`
+discriminator used by `ContentAccessGrant`/`ContentModerationFlag` — `ContentKind` names *one*
+kind for a polymorphic FK; `ContentKindFlags` names *a combination* of kinds for a policy toggle.
+A plain `int` gives 32 independent bits (five used today), same pattern the codebase already uses
+for `PublicCapabilities` and `ContentAccessGrant.Capabilities` — so yes, more true/false settings
+can be added the same way as long as you stay under the backing type's bit width (32 for `int`,
+63 usable for `long` if a single concern ever needs more room). **Don't**, however, fold an
+unrelated yes/no network setting into *this* column later just because there's a free bit — a
+future, unrelated toggle (e.g. "allow anonymous signups") should get its own `[Flags]` column (or
+a plain `bool`); `Network` can have as many small columns as it needs, and that's cheaper than
+`1 << 17` meaning something nobody can guess without opening this file.
+
+**Enforcement point:** not write-time validation scattered across every place a foreign-network id
+could theoretically end up inside a jsonb blob (`Blog.Body`, `PageBlock.Data`) — that surface is
+unbounded. Instead, gate it at the same single choke point §2.3 already establishes for all file
+delivery: `ViewingUrl` computation / `GET /cdn/{token}` resolution — plus, as a fail-fast UX check
+only (not the security boundary), the handful of structured cross-network FK assignment points
+(`UserProxy.ImageFileId`, `Network.ImageFileId`, `Blog.CoverImageId`). The render path is the real
+boundary because every reference — however it got pasted in — has to pass through it to produce
+bytes:
+
+```
+requesting context's NetworkId != content.NetworkId   (genuine cross-network reuse, not a
+                                                         same-network or anonymous-no-context view)
+  AND content.AccessLevel != Public                                          → deny (unchanged)
+  AND NOT content.Network.ExternalContentKinds.HasFlag(flagFor(content's ContentKind)) → deny (NEW)
+```
+
+Same `AccessLevelVerifier`/`ContentViewingLink` code path as everything else in this plan — no
+third authorization system, per §0.1/§3.3's own rule. The network setting is a *ceiling*, ANDed
+with (never a substitute for) the item's own `AccessLevel`/`ContentAccessGrant` check: turning the
+`Blog` bit on doesn't expose a `Private` blog to other networks — it only decides whether an
+already-`Public` blog is *also* reusable outside its home network. Default (`File` only) matches
+the doc's own recurring example (shared branding/profile images) as the one kind that's reusable
+out of the box; every other kind opts in per network.
+
 ---
 
 ## 3. Authorization plumbing changes
@@ -328,11 +430,12 @@ more content types:
 ### 3.2 `IdentityVerifier.IsContentOwnerAsync` — implement the existing stub
 
 Signature already exists, currently `throw new NotImplementedException()`. Implement as:
-resolve the content's `AuthorId`/`OwnershipMode`; if `AuthorOwned`, owner = the caller's
-`NetworkUser` row for that content's `AuthorId` (via `UserProxy` ownership, same pattern
-as `IsNetworkUserOwnerAsync`, which is already correct); if `NetworkOwned`, owner = any
-`NetworkUser` holding `Administrator` in `NetworkId`. Add `IsContentOwner` to
-`Constants.OwnerPermissions`.
+resolve the content's `AuthorUserProxyId`/`OwnershipMode`; if `AuthorOwned` **and**
+`AuthorUserProxyId` is not null, owner = does the caller's `UserProxy` belong to the same `User`
+as `AuthorUserProxyId` (direct comparison — simpler than a `NetworkUser`-mediated check, now that
+the FK targets `UserProxy` directly, §2.1); if `NetworkOwned`, **or** `AuthorOwned` with a null
+`AuthorUserProxyId` (author's persona was hard-deleted, §2.1), owner = any `NetworkUser` holding
+`Administrator` in `NetworkId`. Add `IsContentOwner` to `Constants.OwnerPermissions`.
 
 ### 3.3 `AccessLevelVerifier` — extend, don't fork
 
@@ -360,7 +463,7 @@ permissions seeded per network the same way `Manage*` is today.
 
 ---
 
-## 4. Behavior change to flag explicitly (needs sign-off, not silently shipped)
+## 4. Behaviour change to flag explicitly (needs sign-off, not silently shipped)
 
 Today, `Manage<Type>` lets **any** role-holder edit or delete **any other member's**
 content in the network, including private drafts (§5.5 in the overview doc) — "reasonable
@@ -410,6 +513,9 @@ callers relying on "any editor role can fix any post" lose that ability and must
   `ViewingUrl` computed fresh per request (mints a `ContentViewingLink` server-side for
   non-public files, or a stable public URL for `AccessLevel = Public` files).
 - `GET /cdn/{token}` — public, anonymous, 302 redirect (§5).
+- Network settings surface (wherever `Network` update already lives) gains
+  `ExternalContentKinds` read/write, gated by that network's `Administrator` permission — this is
+  a network-wide policy knob, not per-content, so it doesn't belong on the content controllers.
 
 ---
 
@@ -419,13 +525,18 @@ callers relying on "any editor role can fix any post" lose that ability and must
    `IsUserProxyOwnerAsync` caller-filtering. Small, isolated, unblocks everything else.
 2. **Storage swap** — MinIO container + `MinioService : ICDNService`, `File.Bucket`/
    `ObjectKey` migration, one-off re-upload of existing Cloudinary assets into MinIO.
-3. **`UserContentBaseModel` revisions** — `Draft`, `OwnershipMode`, `PublicCapabilities`,
-   `DeletedAt`; one migration across all five content tables; repository base-query
-   filtering + soft-delete methods.
+3. **`UserContentBaseModel` revisions** — `AuthorId` → `AuthorUserProxyId` (`UserProxy`, nullable,
+   `SetNull`) retarget, `Draft`, `OwnershipMode`, `PublicCapabilities`, `DeletedAt`; one migration
+   across all five content tables; repository base-query filtering + soft-delete methods; update
+   `EntitlementService`'s `GetByAuthorIdAsync`-style queries to the new column. Also add
+   `Network.ExternalContentKinds` (§2.6) in this same migration pass — same "touch the schema
+   once" rationale as the base-model columns.
 4. **`ContentAccessGrant`** — model/migration/repository/service, `IsContentOwnerAsync`
-   implementation, `AccessLevelVerifier` extension, grant CRUD endpoints.
+   implementation (now `UserProxy`-direct, §3.2), `AccessLevelVerifier` extension, grant CRUD
+   endpoints.
 5. **`ContentViewingLink`** — model/migration/repository/service, `GET /cdn/{token}`,
-   `ViewingUrl` computation on read paths, expiry cleanup sweep.
+   `ViewingUrl` computation on read paths (including the `ExternalContentKinds` ceiling check,
+   §2.6), expiry cleanup sweep.
 6. **`ContentModerationFlag`** — model/migration/repository/service, `Moderate<Type>`
    permissions, flag/hide read-path integration, narrowed `Manage<Type>` semantics (§4 —
    confirm sign-off before shipping this part).
@@ -452,4 +563,4 @@ callers relying on "any editor role can fix any post" lose that ability and must
 building that for TPN-owned content and instead folding MinIO into TPN directly. If that
 Python service is already in use elsewhere (e.g., a non-TPN homelab service), keep it
 running for those callers — just don't route TPN's `File`/UGC content through it, to avoid
-the dual-authorization-system problem in §0.1.
+the dual-authorization-system problem in §0.1. -- it does not exist, so no worries
