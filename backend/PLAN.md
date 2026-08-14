@@ -192,7 +192,8 @@ erDiagram
 
     ContentViewingLink {
         guid Id PK "the opaque token in the URL"
-        guid FileId FK "-> File"
+        int ContentKind "REVISED: File|Blog|Configuration|CustomPage|PageBlock (was FileId FK -> File)"
+        guid ContentId "REVISED: app-enforced, no DB FK (polymorphic, same pattern as ContentAccessGrant)"
         guid IssuedForUserProxyId FK "nullable -> UserProxy; null = unaddressed/shareable link -> Unlisted, see §2.1"
         guid IssuedForNetworkId FK "nullable -> Network"
         int Mode "OneTimeView|TimeLimited|Permanent"
@@ -221,7 +222,7 @@ erDiagram
     NetworkUser ||--o{ ContentAccessGrant : "granted by"
     UserGeneratedContent ||--o{ ContentAccessGrant : "target (ContentKind+ContentId)"
 
-    File ||--o{ ContentViewingLink : "brokers access to"
+    UserGeneratedContent ||--o{ ContentViewingLink : "brokers access to (ContentKind+ContentId)"
     UserProxy ||--o{ ContentViewingLink : "issued for"
     Network ||--o{ ContentViewingLink : "issued in context of"
     UserProxy ||--o{ UserGeneratedContent : "authored (nullable, SetNull)"
@@ -294,8 +295,9 @@ today (its columns are flattened into `File`/`Blog`/`Configuration`/`CustomPage`
           return PublicToNetwork              // summary view: shared with *some* network
 
       hasAnyLink = ContentViewingLink.Any(l =>
-          l.FileId == content.Id && l.IssuedForUserProxyId == null &&
-          l.RevokedAt == null && (l.ExpiresAt == null || l.ExpiresAt > now()) &&
+          l.ContentKind == content.Kind && l.ContentId == content.Id &&
+          l.IssuedForUserProxyId == null &&
+          (l.ExpiresAt == null || l.ExpiresAt > now()) &&
           (l.Mode != OneTimeView || l.UsedAt == null))
       if grants.Any(g => g.GranteeType == User) or hasAnyLink:
           return Unlisted
@@ -317,17 +319,19 @@ today (its columns are flattened into `File`/`Blog`/`Configuration`/`CustomPage`
     default. Worth deciding which before shipping — noted here, not decided here.
   - **"shared with anyone" (any `ContentViewingLink`, any `Mode`) makes it `Unlisted` —
     but only a link minted with no specific `IssuedForUserProxyId` counts.** §2.3 mints a
-    `ContentViewingLink` on *every* fetch of a file's bytes, including the author's own
-    routine viewing of their own `Private` file, or a legitimately-granted `User`'s viewing
-    — those are minted *for* that specific, already-authorized person
-    (`IssuedForUserProxyId` set to them) purely as byte-delivery plumbing, and don't
-    represent a new act of sharing. Only a link minted for "anyone holding this URL"
-    (`IssuedForUserProxyId == null` — a deliberate "get a shareable link" action) is what
-    your rule means by "shared with anyone," so that's the only kind counted here.
-    Without this distinction, merely opening your own private file's detail page would
-    spuriously flip it to `Unlisted`. A used-up `OneTimeView` link is also excluded once
-    `UsedAt` is set — it's already dead (§2.3: a used one-time link 404s) regardless of
-    its nominal `ExpiresAt`, so it shouldn't count as "currently shared" either.
+    `ContentViewingLink` for *every* content kind (not just `File`, see §2.3) on every fetch
+    by an already-authorized caller — the author's own routine viewing of their own
+    `Private` item, or a legitimately-granted `User`'s viewing — those are minted *for*
+    that specific, already-authorized person (`IssuedForUserProxyId` set to them) purely as
+    access-delivery plumbing (byte-redirect for `File`, DTO-return for the other four
+    kinds, §2.3), and don't represent a new act of sharing. Only a link minted for "anyone
+    holding this URL" (`IssuedForUserProxyId == null` — a deliberate "get a shareable link"
+    action) is what your rule means by "shared with anyone," so that's the only kind
+    counted here. Without this distinction, merely opening your own private content's
+    detail page would spuriously flip it to `Unlisted`. A used-up `OneTimeView` link is
+    also excluded once `UsedAt` is set — it's already dead (§2.3: a used one-time link
+    404s) regardless of its nominal `ExpiresAt`, so it shouldn't count as "currently
+    shared" either.
   - `Tier(...)` is a **display/API label**, not itself the authorization check.
     `AccessLevelVerifier` (§3.3) checks the underlying facts (`PublishedAt`, grant
     existence, authorship) directly — it never computes "the tier" as an intermediate
@@ -359,15 +363,28 @@ never stored (`FILE_SERVICE_SETUP.md`'s house rule #5, and a precondition for on
 links: a stored stable URL would defeat the point). `Format`, `SizeBytes`, `Width`,
 `Height`, `Duration`, `MediaType`, `Name`, `IsSystemProtected` are unchanged.
 
-### 2.3 `ContentViewingLink` — new
+### 2.3 `ContentViewingLink` — new, polymorphic across all five content kinds
 
 The one-time/short-lived link broker behind Q1 and the suggestion doc's "Notes" section.
-`Id` is the opaque token used in the public URL. Flow:
+`Id` is the opaque token used in the public URL. This table follows the same generalization
+`ContentAccessGrant`/`ContentModerationFlag` already got in §1 — `ContentKind`+`ContentId`,
+not a `File`-only FK — because the underlying problem (Q1: pasting/forwarding a link
+shouldn't need a bearer token, but access must still be re-checked against current rules)
+isn't file-specific. A private `Blog` draft handed to an external reviewer, or a `CustomPage`
+shared as a preview link, has exactly the same shape as a private image link. Keeping it
+`File`-only would also silently break §2.1's own `Tier()` derivation for the other four kinds
+— `Unlisted` is defined there as "has an active unaddressed link `OR` a `User`-type grant,"
+and without a polymorphic table only `File` could ever satisfy the first half.
+
+What genuinely differs by kind isn't the token/row model, it's **what resolving the token
+produces** — `File` redirects to bytes in object storage, the other four kinds return
+structured data TPN already holds in Postgres — so there are two resolution routes over one
+shared table:
 
 ```
 files.<domain>/{token}
   → nginx → api.<domain>/cdn/{token}                      (TPN, no auth header needed)
-  → look up ContentViewingLink by Id
+  → look up ContentViewingLink by Id; if ContentKind != File → 404 (wrong route for this token)
       not found / expired / (Mode=OneTimeView and UsedAt != null)  → 404
   → re-check the file's *current* Tier()/ContentAccessGrant state for
     IssuedForUserProxyId (defense in depth: access may have been revoked
@@ -377,30 +394,64 @@ files.<domain>/{token}
     time, per the doc's "don't use the same link" note — the ContentViewingLink token
     and the MinIO presigned URL it redirects to are two different, both single-use-ish,
     layers)
+
+GET /view/{token}                                          (TPN, ordinary api.<domain> host,
+                                                              no auth header needed)
+  → same lookup/validity/re-check/UsedAt steps as above, for ContentKind in
+    {Blog, Configuration, CustomPage, PageBlock}
+  → 200, body = the exact same DTO shape the authenticated GET .../{id} endpoint for that
+    ContentKind already returns (same UserContentBaseService<T>/mapping code — this is a
+    different front door onto an existing read path, not a new serialization format)
 ```
 
-- Any `ContentViewingLink` — whatever its `Mode` — can be minted by the owner for a file
-  **regardless of its computed tier**, and under §2.1's derivation, an active *unaddressed*
-  one (`IssuedForUserProxyId == null`) is in fact one of the two things that *makes* a file
-  `Unlisted` (the other being a `User`-type `ContentAccessGrant`). This resolves cleanly
-  what used to be an open question earlier in this plan's history ("can a Private file get
-  a permanent link?") — under this model that's not a special case needing its own rule,
-  it's just what `Unlisted` *is*. The `IssuedForUserProxyId == null` condition is what keeps
-  this from over-firing: the far more common case — a link minted to deliver bytes to a
-  specific, already-authorized caller (the author, or an explicit `User`-grantee) — is
-  addressed to that person and doesn't itself change the tier (§2.1). For the one tier
-  where nothing needs to be gated at all — `PublicToNetwork` via a `Network`-type grant
-  whose network is itself `IsPublic` (§0.3) — TPN skips minting a row entirely and returns
-  a stable URL straight at MinIO's public bucket (anonymous GET enabled there, same as
-  `FILE_SERVICE_SETUP.md` §4.3); everything at or below `Unlisted` goes through an actual
-  `ContentViewingLink` row so it stays revocable (delete the row) rather than permanently
-  resolvable the instant it's minted.
-- `Mode = OneTimeView` is the default for `Private`/shared files: minted fresh every time
-  a `File`'s metadata is fetched or a `File` is resolved by id from embedded content
-  (blog body, custom page block), so a stale/replayed link never re-renders.
-- `Mode = TimeLimited` covers streaming (video/audio): a longer expiry, reusable within
-  the window (matches `FILE_SERVICE_SETUP.md` §4.4's `PRESIGN_EXPIRY_STREAMING_SECONDS`
-  reasoning — a single-render rule doesn't work for seekable media).
+`GET /cdn/{token}` stays the nginx-routed, bytes-only path — it only ever makes sense for
+`File`, since that's the one kind with an object-storage payload behind it. `GET /view/{token}`
+is the generic front door for the other four: there's nothing to redirect to in MinIO for a
+`Blog`, so the token just re-authorizes a normal API read instead of a byte transfer. Both
+routes share one lookup/validity/`UsedAt` implementation (`ContentViewingLinkService`,
+parameterized like `ContentAccessGrantService` already is) — the branch is purely "redirect to
+presigned bytes" vs. "return the DTO," not a second authorization system.
+
+- Any `ContentViewingLink` — whatever its `Mode` — can be minted by the owner for a content
+  item **regardless of its computed tier**, and under §2.1's derivation, an active
+  *unaddressed* one (`IssuedForUserProxyId == null`) is in fact one of the two things that
+  *makes* content `Unlisted` (the other being a `User`-type `ContentAccessGrant`). This
+  resolves cleanly what used to be an open question earlier in this plan's history ("can a
+  Private file get a permanent link?") — under this model that's not a special case needing
+  its own rule, it's just what `Unlisted` *is*, for any of the five kinds. The
+  `IssuedForUserProxyId == null` condition is what keeps this from over-firing: the far more
+  common case — a link minted to deliver access to a specific, already-authorized caller (the
+  author, or an explicit `User`-grantee) — is addressed to that person and doesn't itself
+  change the tier (§2.1). For the one tier where nothing needs to be gated at all —
+  `PublicToNetwork` via a `Network`-type grant whose network is itself `IsPublic` (§0.3) —
+  `File` skips minting a row entirely and returns a stable URL straight at MinIO's public
+  bucket (anonymous GET enabled there, same as `FILE_SERVICE_SETUP.md` §4.3); the other four
+  kinds at that same tier are simply served by their already-anonymous-capable `GET
+  .../{id}` endpoint (§3.3's `Network.IsPublic` branch), no link needed either. Everything at
+  or below `Unlisted` goes through an actual `ContentViewingLink` row, for any kind, so it
+  stays revocable (delete the row) rather than permanently resolvable the instant it's minted.
+- **Mode defaults are a per-kind service-layer policy, not a schema difference.** `Mode =
+  OneTimeView` is the default for `Private`/shared `File`s: minted fresh every time a
+  `File`'s metadata is fetched or a `File` is resolved by id from embedded content (blog
+  body, custom page block), so a stale/replayed link never re-renders — that makes sense for
+  a raw byte stream (limits exposure of the thing it points at). It's the *wrong* default for
+  the other four kinds: a shared `Blog`/`CustomPage` is meant to be reread, so a link that
+  dies after one open is broken UX, not a security feature. `Blog`/`Configuration`/
+  `CustomPage`/`PageBlock` default to `TimeLimited` instead (same rationale streaming media
+  already gets, below) unless the caller explicitly asks for a one-time reveal.
+- `Mode = TimeLimited` covers streaming (video/audio) for `File`, and is the default sharing
+  mode for the other four kinds (previous bullet): a longer expiry, reusable within the
+  window (matches `FILE_SERVICE_SETUP.md` §4.4's `PRESIGN_EXPIRY_STREAMING_SECONDS`
+  reasoning — a single-render rule doesn't work for seekable media, and the same logic
+  extends to "seekable" structured content).
+- **Open question, flagged not decided:** `PageBlock`'s own tier is arguably vestigial the
+  same way its `AccessLevel` already is today (`DATABASE_AND_AUTH_OVERVIEW.md` §5.3) — access
+  is actually gated by the parent `CustomPage`. Does a standalone `ContentViewingLink` for one
+  `PageBlock` (share just this one embedded block) carry real value, or should sharing always
+  happen at the `CustomPage` granularity and `PageBlock` inherit its parent's link/tier the
+  same way it inherits its parent's access check? Both are cheap to build given the
+  polymorphic table either way — worth a product call before shipping the `PageBlock` case
+  specifically, the other four kinds aren't in question.
 - Persisted in Postgres, not an in-process store — `DATABASE_AND_AUTH_OVERVIEW.md` §6.4
   already flags `AuthorizationCodeStore`'s in-memory-only design as a landmine for
   horizontal scaling; don't repeat that mistake for a second auth-adjacent store.
@@ -648,7 +699,11 @@ callers relying on "any editor role can fix any post" lose that ability and must
   redirect — same principle as `FILE_SERVICE_SETUP.md` §2.4/§4.2).
 - `GET /cdn/{token}` is a new, deliberately unauthenticated endpoint (no
   `[RequirePermission]`, no bearer token expected) — the token itself is the credential
-  (§2.3).
+  (§2.3). Only ever resolves `ContentKind = File` tokens (bytes redirect).
+- `GET /view/{token}` is the same idea for the other four kinds — unauthenticated, token-is-
+  the-credential, but returns the content's normal DTO instead of redirecting to object
+  storage (§2.3). Lives on `api.<domain>` directly, no special nginx rule needed (unlike
+  `files.<domain>` → `/cdn/{token}`, there's no separate byte-serving host to route around).
 
 ---
 
@@ -669,11 +724,16 @@ callers relying on "any editor role can fix any post" lose that ability and must
 - `File`/`Blog`/`Configuration`/`CustomPage`/`PageBlock` DTOs expose the computed
   `AccessLevel` (`Tier(...)`, §2.1) as a **read-only** field — it reflects the content's
   `PublishedAt`/grants/links state, it is never itself an input on create/update DTOs.
-  `File` metadata responses additionally drop any stored `Url` field in favor of a
-  `ViewingUrl` computed fresh per request (mints a `ContentViewingLink` server-side below
-  `PublicToNetwork`, or a stable public URL when `PublicToNetwork` resolves via an
-  `IsPublic` network, §0.3).
-- `GET /cdn/{token}` — public, anonymous, 302 redirect (§5).
+  All five DTOs (promoted onto `UserContentBaseDto`, not `File`-only) also expose a
+  `ViewingUrl` computed fresh per request: mints a `ContentViewingLink` server-side below
+  `PublicToNetwork` and points it at `GET /cdn/{token}` for `File` or `GET /view/{token}`
+  for the other four kinds, or a stable public URL/direct anonymous read when
+  `PublicToNetwork` resolves via an `IsPublic` network (§0.3) — same rule, one field name,
+  across every content type, matching §2.3's polymorphic `ContentViewingLink`. `File`
+  metadata responses additionally drop any stored `Url` field entirely (§2.2).
+- `GET /cdn/{token}` — public, anonymous, 302 redirect, `File` only (§5).
+- `GET /view/{token}` — public, anonymous, 200 + DTO body, `Blog`/`Configuration`/
+  `CustomPage`/`PageBlock` (§5).
 - Network settings surface (wherever `Network` update already lives) gains
   `ExternalContentKinds` read/write, gated by that network's `Administrator` permission — this is
   a network-wide policy knob, not per-content, so it doesn't belong on the content controllers.
@@ -713,13 +773,18 @@ callers relying on "any editor role can fix any post" lose that ability and must
       publish/unpublish actions (§6).
    Also update `EntitlementService`'s `GetByAuthorIdAsync`-style queries to the new
    `AuthorUserProxyId` column while in here.
-4. **`ContentViewingLink`** — model/migration/repository/service, `GET /cdn/{token}`,
-   `ViewingUrl` computation on read paths (including the `ExternalContentKinds` ceiling
-   check, §2.6), expiry cleanup sweep. (The `Mode=Permanent`/`Unlisted` interplay from
-   §2.1/§2.3 means this step and step 3 touch adjacent logic, but step 3 doesn't need
-   `ContentViewingLink` to exist to be internally consistent — `Tier()` just treats "no
-   permanent links yet" as "none found," same as any other empty grant set — so this one
-   can genuinely follow step 3 rather than merge into it.)
+4. **`ContentViewingLink`** — model/migration/repository/service, keyed by `ContentKind`+
+   `ContentId` from the start (§2.3) so all five kinds get it in one pass rather than
+   retrofitting the other four onto a `File`-only table later. `GET /cdn/{token}` (`File`
+   only) and `GET /view/{token}` (the other four kinds) share one lookup/validity/`UsedAt`
+   implementation, branching only on redirect-to-bytes vs. return-DTO. `ViewingUrl`
+   computation on read paths (including the `ExternalContentKinds` ceiling check, §2.6),
+   expiry cleanup sweep. Decide the `PageBlock` open question (§2.3) before wiring that one
+   kind's endpoints; the other four aren't blocked by it. (The `Mode=Permanent`/`Unlisted`
+   interplay from §2.1/§2.3 means this step and step 3 touch adjacent logic, but step 3
+   doesn't need `ContentViewingLink` to exist to be internally consistent — `Tier()` just
+   treats "no permanent links yet" as "none found," same as any other empty grant set — so
+   this one can genuinely follow step 3 rather than merge into it.)
 5. **`ContentModerationFlag`** — model/migration/repository/service, `Moderate<Type>`
    permissions, flag/hide read-path integration, narrowed `Manage<Type>` semantics (§4 —
    confirm sign-off before shipping this part).
