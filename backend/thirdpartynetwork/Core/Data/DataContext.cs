@@ -9,6 +9,9 @@ namespace thirdpartynetwork.Core.Data
     {
         public DbSet<CustomPage> CustomPages { get; set; }
         public DbSet<File> Files { get; set; }
+        public DbSet<ContentAccessGrant> ContentAccessGrants { get; set; }
+        public DbSet<ContentViewingLink> ContentViewingLinks { get; set; }
+        public DbSet<ContentModerationFlag> ContentModerationFlags { get; set; }
         public DbSet<Network> Networks { get; set; }
         public DbSet<NetworkAccess> NetworkAccesses { get; set; }
         public DbSet<NetworkEntitlement> NetworkEntitlements { get; set; }
@@ -201,6 +204,13 @@ namespace thirdpartynetwork.Core.Data
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.SetNull);
 
+            // PLAN.md §2.2: ObjectKey is unique — an object only ever lives in one bucket
+            // at a time (moved via ICDNService.MoveAsync, not duplicated), so a single
+            // storage location can't be claimed by two File rows.
+            modelBuilder.Entity<File>()
+                .HasIndex(f => f.ObjectKey)
+                .IsUnique();
+
             modelBuilder.Entity<PageBlock>()
                 .Property(pb => pb.Data)
                 .HasColumnType("jsonb");
@@ -244,16 +254,134 @@ namespace thirdpartynetwork.Core.Data
                     );
             }
 
+            // * ----------------------- *
+            //      ContentAccessGrant
+            // * ----------------------- *
+            // PLAN.md §2.4/§0.2 Q3: ContentKind+ContentId is app-enforced, no DB FK
+            // (polymorphic — same pattern as PageBlock.ParentPageId). Grantee* FKs cascade:
+            // if the grantee itself (Network/Role/Permission/UserProxy) is gone, the grant
+            // is meaningless, unlike AuthorUserProxyId above which protects the CONTENT
+            // from disappearing. GrantedByNetworkUserId is nullable + SetNull (audit
+            // pointer, same "don't tie a real thing to a transient membership" reasoning as
+            // AuthorUserProxyId) so a grant outlives the granter's own membership.
+            modelBuilder.Entity<ContentAccessGrant>()
+                .HasOne(g => g.GranteeNetwork)
+                .WithMany()
+                .HasForeignKey(g => g.GranteeNetworkId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ContentAccessGrant>()
+                .HasOne(g => g.GranteeRole)
+                .WithMany()
+                .HasForeignKey(g => g.GranteeRoleId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ContentAccessGrant>()
+                .HasOne(g => g.GranteePermission)
+                .WithMany()
+                .HasForeignKey(g => g.GranteePermissionId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ContentAccessGrant>()
+                .HasOne(g => g.GranteeUserProxy)
+                .WithMany()
+                .HasForeignKey(g => g.GranteeUserProxyId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ContentAccessGrant>()
+                .HasOne(g => g.GrantedByNetworkUser)
+                .WithMany()
+                .HasForeignKey(g => g.GrantedByNetworkUserId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Covering index for the EXISTS(...) semi-join AccessLevelVerifier runs on every
+            // non-author read — §0.2/Q3's whole efficiency argument depends on this being an
+            // index-only lookup, not a scan. Partial (WHERE RevokedAt IS NULL) since revoked
+            // rows are pure history and never participate in the check.
+            modelBuilder.Entity<ContentAccessGrant>()
+                .HasIndex(g => new { g.ContentKind, g.ContentId })
+                .HasFilter("\"RevokedAt\" IS NULL");
+
+            modelBuilder.Entity<ContentAccessGrant>()
+                .HasIndex(g => new { g.GranteeUserProxyId, g.ContentKind })
+                .HasFilter("\"RevokedAt\" IS NULL");
+
+            modelBuilder.Entity<ContentAccessGrant>()
+                .HasIndex(g => new { g.GranteeNetworkId, g.ContentKind })
+                .HasFilter("\"RevokedAt\" IS NULL");
+
+            // * ----------------------- *
+            //      ContentViewingLink
+            // * ----------------------- *
+            // PLAN.md §2.3: both grantee-ish FKs are nullable + SetNull — an issued-for
+            // link surviving its issuee/network being deleted is an access-log artifact at
+            // that point, not something that should cascade-delete a security-relevant row
+            // out from under an in-flight cleanup sweep.
+            modelBuilder.Entity<ContentViewingLink>()
+                .HasOne(l => l.IssuedForUserProxy)
+                .WithMany()
+                .HasForeignKey(l => l.IssuedForUserProxyId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<ContentViewingLink>()
+                .HasOne(l => l.IssuedForNetwork)
+                .WithMany()
+                .HasForeignKey(l => l.IssuedForNetworkId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Backs Tier()'s "has an active unaddressed link" check (§2.1) — same shape as
+            // ContentAccessGrant's covering index.
+            modelBuilder.Entity<ContentViewingLink>()
+                .HasIndex(l => new { l.ContentKind, l.ContentId });
+
+            // Backs the expiry cleanup sweep (§2.3).
+            modelBuilder.Entity<ContentViewingLink>()
+                .HasIndex(l => l.ExpiresAt);
+
+            // * ----------------------- *
+            //     ContentModerationFlag
+            // * ----------------------- *
+            modelBuilder.Entity<ContentModerationFlag>()
+                .HasOne(f => f.Network)
+                .WithMany()
+                .HasForeignKey(f => f.NetworkId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ContentModerationFlag>()
+                .HasOne(f => f.FlaggedByNetworkUser)
+                .WithMany()
+                .HasForeignKey(f => f.FlaggedByNetworkUserId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Backs AccessLevelVerifier's NOT EXISTS branch (§2.5/§3.3) — same EXISTS-based
+            // shape/indexing rationale as ContentAccessGrant (§0.2/Q3).
+            modelBuilder.Entity<ContentModerationFlag>()
+                .HasIndex(f => new { f.ContentKind, f.ContentId, f.NetworkId })
+                .HasFilter("\"HiddenInNetwork\" = true");
+
             base.OnModelCreating(modelBuilder);
             return;
 
             void AuthorToMany<T>() where T : UserContentBaseModel
             {
+                // PLAN.md §2.1: retargeted from NetworkUser to UserProxy, SetNull (not
+                // Cascade) — losing network membership must not delete what you authored;
+                // only a genuine UserProxy hard-delete nulls this out (handled as a
+                // NetworkOwned-equivalent fallback in IdentityVerifier.IsContentOwnerAsync).
                 modelBuilder.Entity<T>()
-                    .HasOne(m => m.Author)
+                    .HasOne(m => m.AuthorUserProxy)
                     .WithMany()
-                    .HasForeignKey(m => m.AuthorId)
-                    .OnDelete(DeleteBehavior.Cascade);
+                    .HasForeignKey(m => m.AuthorUserProxyId)
+                    .IsRequired(false)
+                    .OnDelete(DeleteBehavior.SetNull);
             }
         }
     }

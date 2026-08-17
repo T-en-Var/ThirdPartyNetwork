@@ -1,4 +1,6 @@
-﻿namespace thirdpartynetwork.Core.Models
+﻿using thirdpartynetwork.Core.Enum;
+
+namespace thirdpartynetwork.Core.Models
 {
     public class Network : BaseModel
     {
@@ -7,6 +9,12 @@
         public required bool IsPublic { get; set; }
         public required string Description { get; set; }
         public required string RedirectURI { get; set; }
+
+        // PLAN.md §2.6: which of this network's Public content kinds another network
+        // (never specifically invited via a ContentAccessGrant) may durably reuse/embed.
+        // Default File-only — the doc's own recurring example (shared branding/profile
+        // images) as the one kind reusable out of the box.
+        public ContentKindFlags ExternalContentKinds { get; set; } = ContentKindFlags.File;
 
         // One-to-one relationship
         public Guid? ImageFileId { get; set; }

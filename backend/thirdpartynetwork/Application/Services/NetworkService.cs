@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using AutoMapper;
 using thirdpartynetwork.Core;
+using thirdpartynetwork.Core.Enum;
 using thirdpartynetwork.Core.Models;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using thirdpartynetwork.Core.Interfaces.Auth;
@@ -16,6 +17,7 @@ namespace thirdpartynetwork.Application.Services
         IIdentityService identityService,
         ICDNService cdnService,
         IIdentityVerifier identityVerifier,
+        IAccessLevelVerifier accessLevelVerifier,
         IDynamicAudienceCache audienceCache,
         IFileRepository fileRepository // im sorry
     ) : INetworkService
@@ -100,6 +102,15 @@ namespace thirdpartynetwork.Application.Services
 
             if (createNetworkDto.FileLink != null)
             {
+                var imageFile = await fileRepository.GetByIdBypassingAccessAsync(createNetworkDto.FileLink.Id);
+                if (imageFile == null) throw new NotFoundHttpException("Image file not found");
+
+                // PLAN.md §2.6: a brand-new network can't yet own anything, so any existing
+                // file is "external" to it by definition — Guid.Empty never collides with a
+                // real NetworkId, which is all CanNetworkExternallyAdoptAsync needs here.
+                if (!await accessLevelVerifier.CanNetworkExternallyAdoptAsync(imageFile, ContentKind.File, Guid.Empty))
+                    throw new UnauthorizedHttpException("That file's network does not allow its files to be reused externally.");
+
                 network.ImageFileId = createNetworkDto.FileLink.Id;
             }
 
@@ -229,6 +240,12 @@ namespace thirdpartynetwork.Application.Services
 
             if (updateNetworkDto.FileLink != null)
             {
+                var imageFile = await fileRepository.GetByIdBypassingAccessAsync(updateNetworkDto.FileLink.Id);
+                if (imageFile == null) throw new NotFoundHttpException("Image file not found");
+
+                if (!await accessLevelVerifier.CanNetworkExternallyAdoptAsync(imageFile, ContentKind.File, id))
+                    throw new UnauthorizedHttpException("That file's network does not allow its files to be reused externally.");
+
                 network.ImageFileId = updateNetworkDto.FileLink.Id;
             }
 
@@ -314,7 +331,7 @@ namespace thirdpartynetwork.Application.Services
 
             foreach (var networkFile in files)
             {
-                await cdnService.DeleteAsync($"{networkFile.NetworkId}/{networkFile.PublicId}", networkFile.MediaType);
+                await cdnService.DeleteAsync(networkFile.Bucket, networkFile.ObjectKey);
             }
 
             await RefreshIssuerCacheAsync();

@@ -307,6 +307,12 @@ namespace thirdpartynetwork
                     new() { Name = Constants.Permissions.ManageConfiguration, Description = "", IsSystemProtected = true },
                     new() { Name = Constants.Permissions.ReadBlog, Description = "", IsSystemProtected = true },
                     new() { Name = Constants.Permissions.ManageBlog, Description = "", IsSystemProtected = true },
+                    new() { Name = Constants.Permissions.ManageContentAccess, Description = "", IsSystemProtected = true },
+                    new() { Name = Constants.Permissions.ModerateFile, Description = "", IsSystemProtected = true },
+                    new() { Name = Constants.Permissions.ModerateBlog, Description = "", IsSystemProtected = true },
+                    new() { Name = Constants.Permissions.ModerateConfiguration, Description = "", IsSystemProtected = true },
+                    new() { Name = Constants.Permissions.ModerateCustomPage, Description = "", IsSystemProtected = true },
+                    new() { Name = Constants.Permissions.ModeratePageBlock, Description = "", IsSystemProtected = true },
                 };
 
                 var accesses = new List<Access>
@@ -459,8 +465,14 @@ namespace thirdpartynetwork
 
                 var networkFile = new File
                 {
-                    PublicId = Guid.Parse("00000000-0000-0000-0000-000000000000"),
-                    Url = "https://res.cloudinary.com/dm77smcp6/image/upload/v1758720300/favicon-nobg_doh41c.png",
+                    // NOTE: seed metadata only — the actual bytes for these two
+                    // well-known system assets aren't re-uploaded here (PLAN.md §7 step 2's
+                    // "one-off re-upload of existing Cloudinary assets into MinIO" is a
+                    // real, separate migration task, not something a schema/code change can
+                    // do on its own). Object keys are stable/deterministic so that
+                    // re-upload step has an obvious target once it runs.
+                    Bucket = cdnService.PublicBucketName,
+                    ObjectKey = "system/network-icon.png",
                     Format = "png",
                     SizeBytes = 675110,
                     Width = 1024,
@@ -468,20 +480,23 @@ namespace thirdpartynetwork
                     MediaType = "image",
                     Name = "networkIcon.png",
                     Network = network,
-                    Author = adminNetworkUser,
+                    AuthorUserProxyId = adminNetworkUser.UserProxyId,
                     IsSystemProtected = true,
-                    AccessLevel = AccessLevel.Public
+                    // AccessLevel.Public is gone (§2.1) — published + a Network-type grant
+                    // naming this (IsPublic) network is the equivalent under the new model,
+                    // and covers anonymous visitors too (§0.3).
+                    PublishedAt = DateTime.UtcNow,
                 };
 
                 context.Files.Add(networkFile);
 
                 network.ImageFileId = networkFile.Id;
 
-                adminUser.ImageFile = new File
+                var adminAvatarFile = new File
                 {
-                    PublicId = Guid.Parse("00000000-0000-0000-0000-000000000000"),
-                    Url =
-                        "https://res.cloudinary.com/dm77smcp6/image/upload/v1758664348/01997890-52ad-7de0-8128-5e0b6b885f95/93adb17e-02d5-4fd3-b088-9ca793613a75.png",
+                    // Same seed-metadata-only caveat as networkFile above.
+                    Bucket = cdnService.PublicBucketName,
+                    ObjectKey = "system/admin-avatar.png",
                     Format = "png",
                     SizeBytes = 68212,
                     Width = 1024,
@@ -489,10 +504,35 @@ namespace thirdpartynetwork
                     MediaType = "image",
                     Name = "adminAvatar.png",
                     Network = network,
-                    Author = adminNetworkUser,
+                    AuthorUserProxyId = adminNetworkUser.UserProxyId,
                     IsSystemProtected = true,
-                    AccessLevel = AccessLevel.Public,
+                    PublishedAt = DateTime.UtcNow,
                 };
+                adminUser.ImageFile = adminAvatarFile;
+                context.Files.Add(adminAvatarFile);
+
+                // Grant the whole (IsPublic) network View access to both system assets, so
+                // they're actually reachable under the derived Tier() model — matches their
+                // old AccessLevel.Public intent as closely as §2.1's design allows.
+                context.ContentAccessGrants.AddRange(
+                    new ContentAccessGrant
+                    {
+                        ContentKind = ContentKind.File,
+                        ContentId = networkFile.Id,
+                        GranteeType = GranteeType.Network,
+                        GranteeNetworkId = network.Id,
+                        Capabilities = ContentCapabilities.View,
+                        GrantedByNetworkUserId = adminNetworkUser.Id,
+                    },
+                    new ContentAccessGrant
+                    {
+                        ContentKind = ContentKind.File,
+                        ContentId = adminAvatarFile.Id,
+                        GranteeType = GranteeType.Network,
+                        GranteeNetworkId = network.Id,
+                        Capabilities = ContentCapabilities.View,
+                        GrantedByNetworkUserId = adminNetworkUser.Id,
+                    });
 
                 await context.SaveChangesAsync();
             }
@@ -514,7 +554,7 @@ namespace thirdpartynetwork
             foreach (var file in storedFiles.Where(file => !file.IsSystemProtected))
             {
                 Console.WriteLine("Deleting file: " + file.Name);
-                await cdnService.DeleteAsync($"{file.NetworkId}/{file.PublicId}", file.MediaType);
+                await cdnService.DeleteAsync(file.Bucket, file.ObjectKey);
             }
 
             var dbSets = context.GetType().GetProperties()

@@ -1,6 +1,9 @@
 using AutoMapper;
+using thirdpartynetwork.Core.Enum;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
+using thirdpartynetwork.Core.Interfaces.Auth;
 using thirdpartynetwork.Core.Interfaces.Helpers;
+using thirdpartynetwork.Core.Interfaces.Repositories;
 using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Application.Services;
@@ -9,7 +12,9 @@ public class UserProxyManagerService(
     IUserService userService,
     INetworkService networkService,
     INetworkUserService networkUserService,
-    IUserProxyService userProxyService) : IUserProxyManagerService
+    IUserProxyService userProxyService,
+    IFileRepository fileRepository,
+    IAccessLevelVerifier accessLevelVerifier) : IUserProxyManagerService
 {
     public async Task<UserProxy> AddUserProxyAsync(Guid userId, AddUserProxyDto addUserProxy)
     {
@@ -34,6 +39,14 @@ public class UserProxyManagerService(
 
         if (addUserProxy.FileLink != null)
         {
+            var imageFile = await fileRepository.GetByIdBypassingAccessAsync(addUserProxy.FileLink.Id);
+            if (imageFile == null) throw new NotFoundHttpException("Image file not found");
+
+            // PLAN.md §2.6: this persona is created in the main network's context (below),
+            // so that's the "consuming network" for the avatar-reuse ceiling check.
+            if (!await accessLevelVerifier.CanNetworkExternallyAdoptAsync(imageFile, ContentKind.File, mainNetwork.Id))
+                throw new UnauthorizedHttpException("That file's network does not allow its files to be reused externally.");
+
             userProxy.ImageFileId = addUserProxy.FileLink.Id;
             // this *should* be saved in networkUserService.Create
         }

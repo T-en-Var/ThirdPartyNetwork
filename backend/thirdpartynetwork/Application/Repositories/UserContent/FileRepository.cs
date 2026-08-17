@@ -57,13 +57,19 @@ namespace thirdpartynetwork.Application.Repositories
         {
             var existing = await GetByIdAsync(networkId, fileId);
             if (existing == null) throw new Exception("File not found");
-            
+
             if (existing.IsSystemProtected) throw new UnauthorizedHttpException("File is system protected");
 
-            mapper.Map(updateFile, existing); 
+            mapper.Map(updateFile, existing);
 
             await SaveAndUpdateAsync(existing);
             return existing;
+        }
+
+        public async Task UpdateBucketAsync(File file, string bucket)
+        {
+            file.Bucket = bucket;
+            await SaveAndUpdateAsync(file);
         }
     }
 }
