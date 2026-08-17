@@ -161,7 +161,7 @@ public class EntitlementServiceTests
         {
             new()
             {
-                PublicId = Guid.NewGuid()
+                Bucket = "private", ObjectKey = Guid.NewGuid().ToString()
             }
         });
 
@@ -188,7 +188,7 @@ public class EntitlementServiceTests
             RedirectURI = "#",
             Entitlement = new NetworkEntitlement { AllowFiles = true, FileStorageLimit = 1, FileSizeLimit = 2048 }
         }; // 1 KB
-        var existingFile = new File { SizeBytes = 1000, PublicId = Guid.NewGuid() };
+        var existingFile = new File { SizeBytes = 1000, Bucket = "private", ObjectKey = Guid.NewGuid().ToString() };
         var newFile = new Mock<IFormFile>();
         newFile.Setup(f => f.Length).Returns(25); // 1000 + 25 > 1024
 
@@ -265,7 +265,7 @@ public class EntitlementServiceTests
             {
                 new()
                 {
-                    PublicId = Guid.NewGuid()
+                    Bucket = "private", ObjectKey = Guid.NewGuid().ToString()
                 }
             });
 
@@ -330,7 +330,7 @@ public class EntitlementServiceTests
             {
                 new()
                 {
-                    PublicId = Guid.NewGuid()
+                    Bucket = "private", ObjectKey = Guid.NewGuid().ToString()
                 }
             });
 

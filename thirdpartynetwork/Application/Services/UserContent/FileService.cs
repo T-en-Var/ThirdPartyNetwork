@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using thirdpartynetwork.Core.Enum;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using thirdpartynetwork.Core.Interfaces.Auth;
 using File = thirdpartynetwork.Core.Models.File;
@@ -40,7 +39,7 @@ namespace thirdpartynetwork.Application.Services
 
             var file = mapper.Map<File>(createFile);
             file.Network = network;
-            file.Author = networkUser;
+            file.AuthorUserProxyId = networkUser.UserProxyId;
 
             file = await repository.CreateAsync(networkId, file);
             return file;
@@ -52,20 +51,24 @@ namespace thirdpartynetwork.Application.Services
 
             var userProxy = await identityService.GetUserProxyAsync();
             var networkUser = await _networkUserService.GetByIdsAsync(networkId, userProxy.Id) ?? throw new NotFoundHttpException("NetworkUser not found");
-            
+
             if (!await entitlementService.CheckUserAddNetworkFileEntitlementAsync(networkUser.UserProxyId, networkId, file))
                 throw new UnauthorizedHttpException("You are exceeding a file upload limit.");
 
-            var publicId = Guid.NewGuid();
+            var objectId = Guid.NewGuid();
 
-            // Upload via your ICloudinaryService (which wraps Cloudinary SDK)
-            var uploadResult = await cdnService.UploadAsync(file, publicId, network.Id.ToString());
+            // Upload via ICDNService (MinioService, §0.1/§5) — objects always start in the
+            // private bucket. Whether a file's bytes ever get MoveAsync'd into the public
+            // bucket is now decided at ViewingUrl-computation time (§2.3, Task 4) — Tier()
+            // (PublishedAt + ContentAccessGrant, §2.1) can change from a grant expiring or
+            // being revoked, not only from an explicit update call, so bucket placement
+            // can't be pinned to this one write path anymore the way `AccessLevel` used to.
+            var uploadResult = await cdnService.UploadAsync(file, objectId, network.Id.ToString());
 
-            // Map to your File entity
             var newFile = new File
             {
-                PublicId = uploadResult.Id,
-                Url = uploadResult.SecureUrl,
+                Bucket = uploadResult.Bucket,
+                ObjectKey = uploadResult.ObjectKey,
                 Format = uploadResult.Format,
                 SizeBytes = uploadResult.Bytes,
                 Width = uploadResult.Width,
@@ -73,9 +76,8 @@ namespace thirdpartynetwork.Application.Services
                 Duration = uploadResult.Duration,
                 MediaType = uploadResult.ResourceType,
                 Network = network,
-                Author = networkUser,
+                AuthorUserProxyId = networkUser.UserProxyId,
                 Name = file.FileName,
-                AccessLevel = AccessLevel.Private
             };
 
             return await repository.CreateAsync(networkId, newFile);
@@ -88,9 +90,7 @@ namespace thirdpartynetwork.Application.Services
             var network = await networkService.GetByIdAsync(networkId);
             if (network == null) throw new NotFoundHttpException("Network not found");
 
-            var file = await repository.UpdateAsync(networkId, fileId, updateFile);
-            // return await GetByIdAsync(networkId, fileId);
-            return file;
+            return await repository.UpdateAsync(networkId, fileId, updateFile);
         }
 
         public async Task DeleteByIdAsync(Guid networkId, Guid fileId)
@@ -98,7 +98,7 @@ namespace thirdpartynetwork.Application.Services
             var file = await GetByIdAsync(networkId, fileId);
             if (file == null) return;
 
-            await cdnService.DeleteAsync($"{networkId}/{file.PublicId}", file.MediaType);
+            await cdnService.DeleteAsync(file.Bucket, file.ObjectKey);
 
             await repository.DeleteAsync(file);
         }

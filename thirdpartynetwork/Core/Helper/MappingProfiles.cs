@@ -14,7 +14,11 @@ public class MappingProfiles : Profile
         CreateMap<Network, NetworkDto>();
         CreateMap<Network, NetworkLightDto>();
         CreateMap<CreateNetworkDto, Network>();
-        CreateMap<UpdateNetworkDto, Network>();
+        CreateMap<UpdateNetworkDto, Network>()
+            // Null means "not specified" — leave the existing value alone rather than
+            // resetting it to ContentKindFlags.None (AutoMapper's default nullable->
+            // non-nullable unwrap would otherwise overwrite it on every unrelated edit).
+            .ForMember(dest => dest.ExternalContentKinds, opt => opt.Condition(src => src.ExternalContentKinds.HasValue));
 
         CreateMap<NetworkAccess, NetworkAccessDto>();
         CreateMap<NetworkAccess, NetworkAccessNtADto>();
@@ -212,6 +216,9 @@ public class MappingProfiles : Profile
         CreateMap<Configuration, ConfigurationLightDto>();
         CreateMap<CreateConfigurationDto, Configuration>();
         CreateMap<UpdateConfigurationDto, Configuration>();
+
+        CreateMap<ContentAccessGrant, ContentAccessGrantDto>();
+        CreateMap<ContentModerationFlag, ContentModerationFlagDto>();
 
         CreateMap<NetworkEntitlement, NetworkEntitlementDto>();
         CreateMap<CreateNetworkEntitlementDto, NetworkEntitlement>();
