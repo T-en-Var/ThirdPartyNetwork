@@ -47,14 +47,8 @@ public static class Constants
         public const string IsUserProxyOwner = "IsUserProxyOwner";
         public const string IsContentOwner = "IsContentOwner";
 
-        // PLAN.md §3.4: grant/revoke sharing (OR'd with IsContentOwner on the access-grant
-        // endpoints, §2.4/§6) — deliberately NOT one of the existing Manage<Type>
-        // permissions, which stay edit/delete-only per Q2.
         public const string ManageContentAccess = "Manage Content Access";
 
-        // PLAN.md §2.5/§3.4: flag/hide only, never mutate (Q2) — wired up in full in the
-        // ContentModerationFlag pass; declared here now since seeding/permission constants
-        // are naturally one place, not split across passes.
         public const string ModerateFile = "Moderate File";
         public const string ModerateBlog = "Moderate Blog";
         public const string ModerateConfiguration = "Moderate Configuration";
@@ -104,8 +98,8 @@ public static class Constants
         Permissions.ReadFile,
         // Permissions.ManageFile,
         Permissions.ReadConfiguration,
-            Permissions.ReadBlog,
         // Permissions.ManageConfiguration,
+        Permissions.ReadBlog,
     ];
     
     public static readonly string[] OwnerPermissions =
