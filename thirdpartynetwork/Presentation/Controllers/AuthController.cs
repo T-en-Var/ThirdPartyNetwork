@@ -5,25 +5,20 @@ namespace thirdpartynetwork.Presentation.Controllers;
 
 [Route("auth")]
 [ApiController]
-public class AuthController(IAuthService service, IWebHostEnvironment env) : ControllerBase
+public class AuthController(IAuthService service) : ControllerBase
 {
     private IActionResult TokensResponse(TokensDto tokens)
     {
-        var isLocalDev = env.IsDevelopment();
-        
         var cookieOptions = new CookieOptions
         {
             HttpOnly = true,
             Path = "/",
             Expires = DateTimeOffset.UtcNow.AddDays(7),
-            Secure = !isLocalDev,
-            SameSite = isLocalDev ? SameSiteMode.Lax : SameSiteMode.None,
+            Secure = true,
+            SameSite = SameSiteMode.None,
         };
         
-        Console.WriteLine("Adding cookies");
-
         Response.Cookies.Append("refreshToken", tokens.RefreshToken, cookieOptions);
-        Response.Cookies.Append("test", "hello world", cookieOptions);
 
         var responseDto = new AccessTokenDto
         {
@@ -35,11 +30,6 @@ public class AuthController(IAuthService service, IWebHostEnvironment env) : Con
 
     private RefreshTokenDto GetRefreshToken()
     {
-        if (!Request.Cookies.TryGetValue("test", out var test))
-        {
-            Console.WriteLine("Not found");
-        }
-        Console.WriteLine($"test: {test}");
         if (!Request.Cookies.TryGetValue("refreshToken", out var refreshTokenStr))
         {
             throw new UnauthorizedHttpException();
