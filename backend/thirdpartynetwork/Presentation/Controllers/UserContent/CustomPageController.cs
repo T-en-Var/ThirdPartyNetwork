@@ -16,7 +16,7 @@ public class CustomPageController(
     IMapper mapper) : ControllerBase
 {
     [HttpGet]
-    [RequirePermission(Constants.Permissions.ReadCustomPage)]
+    [RequirePermission(Constants.Permissions.ReadCustomPage, IsListEndpoint = true)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<PageDto>))]
     public async Task<IActionResult> GetNetworkCustomPages(Guid networkId)
     {

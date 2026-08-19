@@ -17,7 +17,7 @@ public class ConfigurationController(
     IMapper mapper) : ControllerBase
 {
     [HttpGet]
-    [RequirePermission(Constants.Permissions.ReadConfiguration)]
+    [RequirePermission(Constants.Permissions.ReadConfiguration, IsListEndpoint = true)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<ConfigurationDto>))]
     public async Task<IActionResult> GetNetworkConfigurations(Guid networkId)
     {

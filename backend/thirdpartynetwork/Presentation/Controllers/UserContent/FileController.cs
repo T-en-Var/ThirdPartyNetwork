@@ -16,7 +16,7 @@ public class FileController(
     IMapper mapper) : ControllerBase
 {
     [HttpGet]
-    [RequirePermission(Constants.Permissions.ReadFile)]
+    [RequirePermission(Constants.Permissions.ReadFile, IsListEndpoint = true)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<FileDto>))]
     public async Task<IActionResult> GetNetworkFiles(Guid networkId)
     {

@@ -18,11 +18,15 @@ public class DynamicPermissionPolicyProvider : IAuthorizationPolicyProvider
     {
         if (policyName.StartsWith("Permission:"))
         {
-            var permissionsCsv = policyName["Permission:".Length..];
-            var permissions = permissionsCsv.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            var body = policyName["Permission:".Length..];
+
+            var isListEndpoint = body.StartsWith("List:");
+            if (isListEndpoint) body = body["List:".Length..];
+
+            var permissions = body.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
             var policy = new AuthorizationPolicyBuilder()
-                .AddRequirements(new PermissionRequirement(permissions))
+                .AddRequirements(new PermissionRequirement(isListEndpoint, permissions))
                 .Build();
 
             return Task.FromResult<AuthorizationPolicy?>(policy);

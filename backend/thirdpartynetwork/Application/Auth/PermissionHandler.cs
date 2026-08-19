@@ -31,7 +31,7 @@ public class PermissionHandler(
                 break;
             }
 
-            var isAllowed = await CheckPermissionAsync(permission, isAuthenticated);
+            var isAllowed = await CheckPermissionAsync(permission, isAuthenticated, requirement.IsListEndpoint);
             
             Console.WriteLine(isAllowed
                 ? "[PermissionHandler] Passed"
@@ -48,13 +48,13 @@ public class PermissionHandler(
         Console.WriteLine("[PermissionHandler] Complete.");
     }
     
-    private async Task<bool> CheckPermissionAsync(string permission, bool isAuthenticated)
+    private async Task<bool> CheckPermissionAsync(string permission, bool isAuthenticated, bool isListEndpoint)
     {
         // If not logged in, they ONLY pass if the resource is publicly accessible enough.
         if (!isAuthenticated)
         {
-            return Constants.ContentPermissions.Contains(permission) 
-                   && await HandleContentRequirementAsync(permission);
+            return Constants.ContentPermissions.Contains(permission)
+                   && await HandleContentRequirementAsync(permission, isListEndpoint);
         }
 
         // specific Context Checks (Resource Owner or Content)
@@ -62,12 +62,12 @@ public class PermissionHandler(
         {
             return await HandleOwnerRequirementAsync(permission);
         }
-        
+
         if (Constants.ContentPermissions.Contains(permission))
         {
-            return await HandleContentRequirementAsync(permission);
+            return await HandleContentRequirementAsync(permission, isListEndpoint);
         }
-        
+
         if (Constants.ContentManagePermissions.Contains(permission))
         {
             return await HandleContentManageRequirementAsync(permission);
@@ -114,53 +114,41 @@ public class PermissionHandler(
         return false;
     }
 
-    private async Task<bool> HandleContentRequirementAsync(string permission)
+    private async Task<bool> HandleContentRequirementAsync(string permission, bool isListEndpoint)
     {
+        // Declared explicitly on the endpoint via [RequirePermission(..., IsListEndpoint = true)] —
+        // no single resource to check here, filtering is done per-resource in the service layer.
+        if (isListEndpoint) return true;
+
         var httpContext = httpContextAccessor.HttpContext;
         if (httpContext == null) throw new UnauthorizedHttpException();
 
         string compareString;
         if (Constants.SlugContentPermissions.Contains(permission))
         {
-            // Currently, ONLY blog has this, and it's addressable by EITHER "blogId" (guid
-            // route) or "slug" (string route) — a given request's route data has exactly one
-            // of the two, never both. Hardcoding "slug" here used to silently no-op for the
-            // "blogId" route (that key simply isn't present, so the "list request" fallback
-            // below fired and skipped the access check entirely) — pick whichever key the
-            // matched route actually populated instead of assuming.
+            // Currently, ONLY blog has this: /blogs/{blogId} and /blogs/{slug} are both
+            // legitimate single-item routes for ReadBlog, so this still has to look at the route.
             compareString = httpContext.Request.RouteValues.ContainsKey("blogId") ? "blogId" : "slug";
         }
-        else
+        else if (!Constants.ContentPermissionRouteKeys.TryGetValue(permission, out compareString))
         {
-            compareString = permission switch
-            {
-                Constants.Permissions.ReadFile => "fileId",
-                Constants.Permissions.ReadCustomPage => "customPageId",
-                Constants.Permissions.ReadPageBlock => "pageBlockId",
-                Constants.Permissions.ReadConfiguration => "configurationId",
-                _ => throw new Exception("Unknown permission")
-            };
+            throw new Exception($"Unknown content permission: {permission}");
         }
 
         Console.WriteLine($"[PermissionHandler] Checking content permission: {compareString}");
-
-        // In case the request is for getting a list of resources, but not a specific resource.
-        // Then we pass the filtering to the service layer to filter per resource.
-        // (Presence, not "is a Guid" — "slug" is a plain string route value, so
-        // HasGuidInHttpContextUrl would always report absent for it even when a slug IS
-        // present, which is the other half of the bypass above.)
-        if (!httpContext.Request.RouteValues.ContainsKey(compareString))
-            return true;
 
         var compareValue = httpContext.GetStringFromHttpContextUrl(compareString);
 
         if (compareValue == null)
         {
-            // This now assumes we call a route where we get a list of results, not singular.
-            // That is handled by the repository as we check per resource.
-            return true;
+            // This is a non-list endpoint, so its route is expected to always carry this id
+            // (it's a required route segment, e.g. "{fileId:guid}"). Getting here means the
+            // permission was attached to the wrong route, or IsListEndpoint should have been set.
+            throw new Exception(
+                $"[PermissionHandler] Expected route parameter '{compareString}' for permission " +
+                $"'{permission}', but none was found on this request.");
         }
-        
+
         var networkId = httpContext.GetGuidFromHttpContextUrl("networkId");
         var userProxy = await identityService.GetUserProxyAsync(true);
 
