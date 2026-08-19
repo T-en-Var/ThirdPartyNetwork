@@ -31,7 +31,7 @@ public class PermissionHandler(
                 break;
             }
 
-            var isAllowed = await CheckPermissionAsync(permission, isAuthenticated, requirement.IsListEndpoint);
+            var isAllowed = await CheckPermissionAsync(permission, isAuthenticated, requirement.IsListEndpoint, requirement.RouteKey);
             
             Console.WriteLine(isAllowed
                 ? "[PermissionHandler] Passed"
@@ -48,13 +48,13 @@ public class PermissionHandler(
         Console.WriteLine("[PermissionHandler] Complete.");
     }
     
-    private async Task<bool> CheckPermissionAsync(string permission, bool isAuthenticated, bool isListEndpoint)
+    private async Task<bool> CheckPermissionAsync(string permission, bool isAuthenticated, bool isListEndpoint, string? routeKey)
     {
         // If not logged in, they ONLY pass if the resource is publicly accessible enough.
         if (!isAuthenticated)
         {
             return Constants.ContentPermissions.Contains(permission)
-                   && await HandleContentRequirementAsync(permission, isListEndpoint);
+                   && await HandleContentRequirementAsync(permission, isListEndpoint, routeKey);
         }
 
         // specific Context Checks (Resource Owner or Content)
@@ -65,7 +65,7 @@ public class PermissionHandler(
 
         if (Constants.ContentPermissions.Contains(permission))
         {
-            return await HandleContentRequirementAsync(permission, isListEndpoint);
+            return await HandleContentRequirementAsync(permission, isListEndpoint, routeKey);
         }
 
         if (Constants.ContentManagePermissions.Contains(permission))
@@ -114,38 +114,28 @@ public class PermissionHandler(
         return false;
     }
 
-    private async Task<bool> HandleContentRequirementAsync(string permission, bool isListEndpoint)
+    private async Task<bool> HandleContentRequirementAsync(string permission, bool isListEndpoint, string? routeKey)
     {
-        // Declared explicitly on the endpoint via [RequirePermission(..., IsListEndpoint = true)] —
-        // no single resource to check here, filtering is done per-resource in the service layer.
         if (isListEndpoint) return true;
+
+        if (routeKey == null)
+        {
+            throw new Exception(
+                $"[PermissionHandler] [RequirePermission({permission})] needs RouteKey set " +
+                "(or IsListEndpoint = true if this is a list endpoint).");
+        }
 
         var httpContext = httpContextAccessor.HttpContext;
         if (httpContext == null) throw new UnauthorizedHttpException();
 
-        string compareString;
-        if (Constants.SlugContentPermissions.Contains(permission))
-        {
-            // Currently, ONLY blog has this: /blogs/{blogId} and /blogs/{slug} are both
-            // legitimate single-item routes for ReadBlog, so this still has to look at the route.
-            compareString = httpContext.Request.RouteValues.ContainsKey("blogId") ? "blogId" : "slug";
-        }
-        else if (!Constants.ContentPermissionRouteKeys.TryGetValue(permission, out compareString))
-        {
-            throw new Exception($"Unknown content permission: {permission}");
-        }
+        Console.WriteLine($"[PermissionHandler] Checking content permission: {routeKey}");
 
-        Console.WriteLine($"[PermissionHandler] Checking content permission: {compareString}");
-
-        var compareValue = httpContext.GetStringFromHttpContextUrl(compareString);
+        var compareValue = httpContext.GetStringFromHttpContextUrl(routeKey);
 
         if (compareValue == null)
         {
-            // This is a non-list endpoint, so its route is expected to always carry this id
-            // (it's a required route segment, e.g. "{fileId:guid}"). Getting here means the
-            // permission was attached to the wrong route, or IsListEndpoint should have been set.
             throw new Exception(
-                $"[PermissionHandler] Expected route parameter '{compareString}' for permission " +
+                $"[PermissionHandler] Expected route parameter '{routeKey}' for permission " +
                 $"'{permission}', but none was found on this request.");
         }
 

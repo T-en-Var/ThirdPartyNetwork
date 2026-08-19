@@ -16,7 +16,7 @@ public class PageBlockController(
     IMapper mapper) : ControllerBase
 {
     [HttpGet("{pageBlockId:guid}")]
-    [RequirePermission(Constants.Permissions.ReadPageBlock)]
+    [RequirePermission(Constants.Permissions.ReadPageBlock, RouteKey = "pageBlockId")]
     [ProducesResponseType(200, Type = typeof(PageBlockDto))]
     [ProducesResponseType(404)]
     public async Task<IActionResult> GetPageBlock(Guid networkId, Guid customPageId, Guid pageBlockId)
@@ -58,11 +58,6 @@ public class PageBlockController(
         return NoContent();
     }
 
-    // NOTE (PLAN.md §2.3 open question): PageBlock's own visibility is already vestigial —
-    // delegated to its parent CustomPage (DATABASE_AND_AUTH_OVERVIEW.md §5.3). These
-    // endpoints exist for symmetry with the other four content types, but whether a
-    // standalone PageBlock-level publish/grant is product-meaningful (vs. always managing
-    // sharing at the CustomPage level) is an open call, not decided here.
     [HttpPost("{pageBlockId:guid}/publish")]
     [RequirePermission(Constants.Permissions.IsContentOwner)]
     [ProducesResponseType(200, Type = typeof(PageBlockDto))]

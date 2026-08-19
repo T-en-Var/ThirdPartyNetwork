@@ -25,7 +25,7 @@ public class CustomPageController(
     }
 
     [HttpGet("{customPageId:guid}")]
-    [RequirePermission(Constants.Permissions.ReadCustomPage)]
+    [RequirePermission(Constants.Permissions.ReadCustomPage, RouteKey = "customPageId")]
     [ProducesResponseType(200, Type = typeof(PageDto))]
     [ProducesResponseType(404)]
     public async Task<IActionResult> GetCustomPage(Guid networkId, Guid customPageId)

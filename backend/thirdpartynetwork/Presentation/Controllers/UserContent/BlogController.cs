@@ -27,7 +27,7 @@ public class BlogController(
     }
 
     [HttpGet("{blogId:guid}")]
-    [RequirePermission(Constants.Permissions.ReadBlog)]
+    [RequirePermission(Constants.Permissions.ReadBlog, RouteKey = "blogId")]
     [ProducesResponseType(200, Type = typeof(BlogDto))]
     [ProducesResponseType(404)]
     public async Task<IActionResult> GetBlog(Guid networkId, Guid blogId)
@@ -38,7 +38,7 @@ public class BlogController(
     }
 
     [HttpGet("{slug}")]
-    [RequirePermission(Constants.Permissions.ReadBlog)]
+    [RequirePermission(Constants.Permissions.ReadBlog, RouteKey = "slug")]
     [ProducesResponseType(200, Type = typeof(BlogDto))]
     [ProducesResponseType(404)]
     public async Task<IActionResult> GetBySlug(Guid networkId, string slug)
