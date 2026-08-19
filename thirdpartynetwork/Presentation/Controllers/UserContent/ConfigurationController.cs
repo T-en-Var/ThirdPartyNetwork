@@ -26,7 +26,7 @@ public class ConfigurationController(
     }
 
     [HttpGet("{configurationId:guid}")]
-    [RequirePermission(Constants.Permissions.ReadConfiguration)]
+    [RequirePermission(Constants.Permissions.ReadConfiguration, RouteKey = "configurationId")]
     [ProducesResponseType(200, Type = typeof(ConfigurationDto))]
     [ProducesResponseType(404)]
     public async Task<IActionResult> GetConfiguration(Guid networkId, Guid configurationId)

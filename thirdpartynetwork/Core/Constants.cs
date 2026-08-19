@@ -86,10 +86,6 @@ public static class Constants
         Permissions.ReadPermission,
     ];
 
-    public static readonly string[] SlugContentPermissions = [
-        Permissions.ReadBlog,
-    ];
-
     public static readonly string[] ContentPermissions = [
         Permissions.ReadCustomPage,
         // Permissions.ManageCustomPage,
@@ -101,15 +97,6 @@ public static class Constants
         // Permissions.ManageConfiguration,
         Permissions.ReadBlog,
     ];
-
-    public static readonly IReadOnlyDictionary<string, string> ContentPermissionRouteKeys = new Dictionary<string, string>
-    {
-        [Permissions.ReadCustomPage] = "customPageId",
-        [Permissions.ReadPageBlock] = "pageBlockId",
-        [Permissions.ReadFile] = "fileId",
-        [Permissions.ReadConfiguration] = "configurationId",
-        [Permissions.ReadBlog] = "blogId",
-    };
 
     public static readonly string[] OwnerPermissions =
     [
