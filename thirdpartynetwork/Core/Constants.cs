@@ -101,7 +101,16 @@ public static class Constants
         // Permissions.ManageConfiguration,
         Permissions.ReadBlog,
     ];
-    
+
+    public static readonly IReadOnlyDictionary<string, string> ContentPermissionRouteKeys = new Dictionary<string, string>
+    {
+        [Permissions.ReadCustomPage] = "customPageId",
+        [Permissions.ReadPageBlock] = "pageBlockId",
+        [Permissions.ReadFile] = "fileId",
+        [Permissions.ReadConfiguration] = "configurationId",
+        [Permissions.ReadBlog] = "blogId",
+    };
+
     public static readonly string[] OwnerPermissions =
     [
         Permissions.IsUserOwner,
@@ -112,13 +121,6 @@ public static class Constants
         // Permissions.ReadUser,
     ];
 
-    // PLAN.md §4: narrows Manage<Type> from "any role-holder can edit/delete any member's
-    // content" to author-only (AuthorOwned) / author-or-admin (NetworkOwned) — i.e. exactly
-    // IsContentOwnerAsync, resolved via route content-id the same way ContentPermissions
-    // resolves theirs. Only applies when the route actually names a content id (Update/
-    // Delete); a bare Create action has nothing yet to own, so it falls through to the
-    // ordinary role/permission check untouched. **Explicitly flagged behavior change** — see
-    // PLAN.md §4 for the callers-relying-on-the-old-behavior caveat.
     public static readonly string[] ContentManagePermissions =
     [
         Permissions.ManageFile,

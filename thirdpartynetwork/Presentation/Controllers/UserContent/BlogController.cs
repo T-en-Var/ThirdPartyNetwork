@@ -18,7 +18,7 @@ public class BlogController(
     IMapper mapper) : ControllerBase
 {
     [HttpGet]
-    [RequirePermission(Constants.Permissions.ReadBlog)]
+    [RequirePermission(Constants.Permissions.ReadBlog, IsListEndpoint = true)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<BlogDto>))]
     public async Task<IActionResult> GetNetworkBlogs(Guid networkId)
     {
