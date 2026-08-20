@@ -7,5 +7,4 @@ public class UpdateConfigurationDto : UpdateUserContentBaseDto
 {
     public string? Key { get; set; }
     public JsonDocument? Value { get; set; }
-    // AccessLevel removed (§2.1/§6).
 }

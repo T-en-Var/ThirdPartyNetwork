@@ -9,5 +9,4 @@ public class UpdateBlogDto : UpdateUserContentBaseDto
     public required string Summary { get; set; }
     public Guid? CoverImageId { get; set; }
     public required JsonElement Body { get; set; }
-    // AccessLevel/PublishedAt removed (§2.1/§6) — same as CreateBlogDto.
 }
