@@ -11,8 +11,6 @@ namespace thirdpartynetwork.Application.Dtos.Network
         public FileDto? ImageFile { get; set; }
         public DateTime CreatedOn { get; set; }
         public required bool IsPublic { get; init; }
-        // PLAN.md §2.6: which of this network's Public content kinds other networks (never
-        // specifically invited via a ContentAccessGrant) may durably reuse/embed.
         public ContentKindFlags ExternalContentKinds { get; set; }
         public ICollection<NetworkAccessNtADto> NetworkAccesses { get; set; } = [];
         public ICollection<RoleLightDto> Roles { get; set; } = [];

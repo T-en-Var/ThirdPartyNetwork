@@ -10,7 +10,5 @@ public class CreateContentAccessGrantDto
     public Guid? GranteePermissionId { get; set; }
     public Guid? GranteeUserProxyId { get; set; }
     public ContentCapabilities Capabilities { get; set; } = ContentCapabilities.View;
-
-    // Self-expiring share (§2.4) — null means no automatic expiry, only a manual revoke.
     public DateTime? ExpiresAt { get; set; }
 }

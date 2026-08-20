@@ -16,10 +16,8 @@ public class RequirePermissionAttribute : AuthorizeAttribute
     }
 
     /// <summary>
-    /// Set on content-list endpoints (e.g. a GET with no resource id in the route, such as
-    /// "GET /networks/{networkId}/files"). Declares explicitly that this endpoint has no single
-    /// resource to check access on — filtering happens per-resource in the service layer instead.
-    /// This replaces inferring list-vs-single from route shape at request time.
+    /// Set on content-list endpoints. Declares explicitly that this endpoint has no single
+    /// resource to check access on. Filtering happens per-resource in the querying step instead.
     /// </summary>
     public bool IsListEndpoint
     {
@@ -28,11 +26,8 @@ public class RequirePermissionAttribute : AuthorizeAttribute
     }
 
     /// <summary>
-    /// The route parameter that names this endpoint's resource id (e.g. "fileId", "blogId",
-    /// "slug"). Required on every non-list content-permission endpoint. Declared right here,
-    /// next to the actual route template above it — not resolved via a separate permission →
-    /// route-key table, since one permission (e.g. ReadBlog) can legitimately mean a different
-    /// key on different endpoints (blogId vs. slug).
+    /// The route parameter that names this endpoint's resource identifeir. 
+    /// Required on every non-list content-permission endpoint.
     /// </summary>
     public string? RouteKey
     {

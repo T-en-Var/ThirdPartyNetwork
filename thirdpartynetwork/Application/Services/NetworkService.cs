@@ -4,6 +4,7 @@ using thirdpartynetwork.Core;
 using thirdpartynetwork.Core.Enum;
 using thirdpartynetwork.Core.Models;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
+using thirdpartynetwork.Core.Helper;
 using thirdpartynetwork.Core.Interfaces.Auth;
 using thirdpartynetwork.Core.Interfaces.Helpers;
 
@@ -234,6 +235,16 @@ namespace thirdpartynetwork.Application.Services
         public async Task<Network> UpdateAsync(Guid id, UpdateNetworkDto updateNetworkDto)
         {
             if (!await repository.ExistsAsync(id)) throw new NotFoundHttpException();
+
+            // Nothing upstream (model binding, AutoMapper, the "integer" DB column) rejects a
+            // bit pattern outside the enum's currently-defined flags — this is the one place that
+            // does. FlagsEnumValidator re-derives the valid mask from ContentKindFlags itself, so
+            // adding a new flag member later doesn't require touching this check.
+            if (updateNetworkDto.ExternalContentKinds is { } externalContentKinds &&
+                !FlagsEnumValidator.IsDefinedCombination(externalContentKinds))
+            {
+                throw new UnprocessableEntityHttpException("ExternalContentKinds contains an unknown flag.");
+            }
 
             var network = mapper.Map<Network>(updateNetworkDto);
             network.Id = id;
