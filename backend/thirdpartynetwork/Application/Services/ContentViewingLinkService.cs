@@ -10,7 +10,6 @@ using File = thirdpartynetwork.Core.Models.File;
 
 namespace thirdpartynetwork.Application.Services;
 
-/// <summary>PLAN.md §2.3.</summary>
 public class ContentViewingLinkService(
     IContentViewingLinkRepository repository,
     IFileRepository fileRepository,
@@ -48,8 +47,6 @@ public class ContentViewingLinkService(
         if (link == null) return null;
 
         if (expectedKind.HasValue && link.ContentKind != expectedKind.Value) return null;
-        // File only ever resolves through GET /cdn/{token} (bytes redirect) — GET
-        // /view/{token} (expectedKind == null) is for the other four kinds only (§2.3).
         if (!expectedKind.HasValue && link.ContentKind == ContentKind.File) return null;
 
         if (link.ExpiresAt.HasValue && link.ExpiresAt.Value <= DateTime.UtcNow) return null;
@@ -58,9 +55,6 @@ public class ContentViewingLinkService(
         var content = await GetContentAsync(link.ContentKind, link.ContentId);
         if (content == null) return null;
 
-        // PageBlock's own visibility is vestigial — delegate the actual recheck to its
-        // parent CustomPage, same as AccessLevelVerifier.CheckPageBlockAccessAsync already
-        // does for the authenticated per-item path (DATABASE_AND_AUTH_OVERVIEW.md §5.3).
         UserContentBaseModel? accessCheckContent = content;
         var accessCheckKind = link.ContentKind;
         if (link.ContentKind == ContentKind.PageBlock)

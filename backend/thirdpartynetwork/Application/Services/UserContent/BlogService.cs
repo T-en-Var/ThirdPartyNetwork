@@ -69,10 +69,6 @@ public class BlogService(
             var coverImage = await fileService.GetByIdAsync(networkId, createBlog.CoverImageId.Value);
             if (coverImage == null) throw new NotFoundHttpException("Cover image not found");
 
-            // PLAN.md §2.6: durably adopting another network's File as this Blog's cover
-            // image is exactly the "cross-network reuse" the ExternalContentKinds ceiling
-            // governs — fail fast here rather than silently allow it just because the
-            // caller could technically read the file.
             if (!await accessLevelVerifier.CanNetworkExternallyAdoptAsync(coverImage, ContentKind.File, networkId))
                 throw new UnauthorizedHttpException("That file's network does not allow its files to be reused externally.");
 

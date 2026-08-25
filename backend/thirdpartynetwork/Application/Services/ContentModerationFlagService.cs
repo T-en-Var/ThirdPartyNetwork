@@ -8,8 +8,6 @@ using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Application.Services;
 
-/// <summary>PLAN.md §2.5/§6: one shared service (parameterized by ContentKind) backs the
-/// thin `.../{id}/moderation-flags` controller methods on all five content controllers.</summary>
 public class ContentModerationFlagService(
     IContentModerationFlagRepository repository,
     IIdentityService identityService,

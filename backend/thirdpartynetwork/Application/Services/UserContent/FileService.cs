@@ -56,13 +56,6 @@ namespace thirdpartynetwork.Application.Services
                 throw new UnauthorizedHttpException("You are exceeding a file upload limit.");
 
             var objectId = Guid.NewGuid();
-
-            // Upload via ICDNService (MinioService, §0.1/§5) — objects always start in the
-            // private bucket. Whether a file's bytes ever get MoveAsync'd into the public
-            // bucket is now decided at ViewingUrl-computation time (§2.3, Task 4) — Tier()
-            // (PublishedAt + ContentAccessGrant, §2.1) can change from a grant expiring or
-            // being revoked, not only from an explicit update call, so bucket placement
-            // can't be pinned to this one write path anymore the way `AccessLevel` used to.
             var uploadResult = await cdnService.UploadAsync(file, objectId, network.Id.ToString());
 
             var newFile = new File

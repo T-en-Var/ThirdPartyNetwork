@@ -16,17 +16,12 @@ public abstract class UserContentBaseRepository<T>(DataContext context, IAccessL
 
     private static IQueryable<T> BaseIncludes(IQueryable<T> query)
     {
-        // Author is now a UserProxy (portable persona, §2.1), not a NetworkUser membership
-        // row — so there's no more per-network NetworkUserAccesses/Access chain to include
-        // off of it; the author's own profile image is the equivalent load.
         return query
             .Include(x => x.AuthorUserProxy)
             .ThenInclude(x => x!.ImageFile)
             .AsQueryable();
     }
 
-    // Base query excludes soft-deleted rows by default (§2.1) — callers that need to see
-    // deleted rows (restore flows) should query DeletedAt explicitly rather than bypass this.
     private static IQueryable<T> ExcludeDeleted(IQueryable<T> query) => query.Where(x => x.DeletedAt == null);
 
     protected async Task<IQueryable<T>> GetAccessibleQueryableAsync(Guid networkId, bool bypass = false)
@@ -54,8 +49,6 @@ public abstract class UserContentBaseRepository<T>(DataContext context, IAccessL
         return await query.ToListAsync();
     }
 
-    // Filters by the content's author persona directly (§2.1) — a plain column comparison,
-    // no join through NetworkUser needed now that AuthorUserProxyId lives on the row itself.
     public async Task<ICollection<T>> GetByAuthorIdAsync(Guid networkId, Guid authorUserProxyId, bool bypass = false)
     {
         var query = await GetAccessibleQueryableAsync(networkId, bypass);

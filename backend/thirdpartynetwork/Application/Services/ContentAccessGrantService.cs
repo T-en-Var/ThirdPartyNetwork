@@ -8,10 +8,6 @@ using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Application.Services;
 
-/// <summary>
-/// PLAN.md §2.4/§6: the one shared service parameterized by ContentKind backing the thin
-/// `.../{id}/access` controller methods on all five content controllers.
-/// </summary>
 public class ContentAccessGrantService(
     IContentAccessGrantRepository repository,
     IIdentityService identityService,
@@ -54,8 +50,6 @@ public class ContentAccessGrantService(
         await repository.RevokeAsync(grant);
     }
 
-    // Each GranteeType names exactly one FK — reject a request that's ambiguous or missing
-    // its target rather than silently creating a grant that can never match anyone (§2.4).
     private static void ValidateGranteeShape(CreateContentAccessGrantDto dto)
     {
         var required = dto.GranteeType switch
