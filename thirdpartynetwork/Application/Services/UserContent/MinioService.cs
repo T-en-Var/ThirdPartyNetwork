@@ -6,14 +6,6 @@ using thirdpartynetwork.Core.Helper;
 
 namespace thirdpartynetwork.Application.Services;
 
-/// <summary>
-/// PLAN.md §0.1/§5: replaces CloudinaryService as the sole ICDNService implementation.
-/// Two clients, deliberately — one for actual object operations (talks to MinIO over the
-/// internal Docker network), one used ONLY to mint presigned URLs (must be built against the
-/// external/public endpoint, because a presigned URL's signature covers the Host header the
-/// caller who receives it will actually hit — signing with the internal hostname would
-/// produce a URL that 403s the moment it's resolved from outside the Docker network).
-/// </summary>
 public sealed class MinioService : ICDNService
 {
     private readonly MinioOptions _opts;
@@ -37,9 +29,6 @@ public sealed class MinioService : ICDNService
             .Build();
     }
 
-    /// One-time bucket bootstrap (PLAN.md §5): creates the public/private buckets if
-    /// missing, and enables anonymous GET only on the public one. Called once at startup
-    /// (Program.cs), not per-request.
     public async Task EnsureBucketsExistAsync()
     {
         await EnsureBucketAsync(_opts.PrivateBucket, anonymousRead: false);
@@ -84,9 +73,6 @@ public sealed class MinioService : ICDNService
             : $"{folder}/{objectId}";
         if (!string.IsNullOrEmpty(ext)) objectKey += $".{ext}";
 
-        // New content is always private on upload (matches the pre-existing default of
-        // AccessLevel.Private, §2.1/§2.2) — moving to the public bucket happens later, via
-        // MoveAsync, only once the content's tier/AccessLevel actually changes.
         var targetBucket = _opts.PrivateBucket;
 
         await using var stream = file.OpenReadStream();
@@ -127,8 +113,6 @@ public sealed class MinioService : ICDNService
         }
         catch (Minio.Exceptions.MinioException ex)
         {
-            // Mirrors the previous CloudinaryService behaviour: a delete for an object that's
-            // already gone shouldn't blow up the caller (e.g. DatabaseSeeder's clean-sweep).
             Console.WriteLine($"MinIO delete failed for {bucket}/{objectKey} — but we don't care: {ex.Message}");
         }
     }

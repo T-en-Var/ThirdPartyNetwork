@@ -30,7 +30,6 @@ public class ContentAccessGrantRepository(DataContext context) : BaseRepository(
 
     public async Task RevokeAsync(ContentAccessGrant grant)
     {
-        // Soft revoke (§2.4) — the row (and its history) stays, it's just no longer active.
         grant.RevokedAt = DateTime.UtcNow;
         await SaveAndUpdateAsync(grant);
     }

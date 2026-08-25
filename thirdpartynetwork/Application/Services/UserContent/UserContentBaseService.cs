@@ -11,9 +11,6 @@ public abstract class UserContentBaseService<T>(IUserContentBaseRepository<T> re
 {
     public async Task<ICollection<T>> GetByAuthorIdAsync(Guid networkUserId)
     {
-        // §2.1: AuthorUserProxyId is what the row is actually filtered on now, not the
-        // NetworkUser's own id — resolve the membership row just to get its NetworkId and
-        // UserProxyId, then filter by the persona.
         var networkUser = await networkUserService.GetJustByIdAsync(networkUserId);
         if (networkUser == null) throw new NotFoundHttpException();
         return await repository.GetByAuthorIdAsync(networkUser.NetworkId, networkUser.UserProxyId);
