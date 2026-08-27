@@ -5,12 +5,6 @@ using File = thirdpartynetwork.Core.Models.File;
 
 namespace thirdpartynetwork.Core.Helper;
 
-/// <summary>
-/// Maps a UserContentBaseModel-derived CLR type to its ContentKind discriminator (§1) —
-/// needed wherever code is generic over T (AccessLevelVerifier's Tier()/predicate logic) but
-/// still has to name which polymorphic ContentAccessGrant/ContentViewingLink/
-/// ContentModerationFlag rows belong to it.
-/// </summary>
 public static class ContentKindMapper
 {
     public static ContentKind From<T>() where T : UserContentBaseModel => From(typeof(T));
@@ -26,8 +20,6 @@ public static class ContentKindMapper
         throw new NotSupportedException($"No ContentKind mapping for type {type.Name}");
     }
 
-    /// The Read&lt;Type&gt; permission name for a given ContentKind — used wherever code needs
-    /// to re-run AccessLevelVerifier generically (e.g. ContentViewingLink resolution, §2.3).
     public static string ReadPermissionFor(ContentKind kind) => kind switch
     {
         ContentKind.File => Constants.Permissions.ReadFile,

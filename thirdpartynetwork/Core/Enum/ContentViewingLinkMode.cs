@@ -1,6 +1,5 @@
 namespace thirdpartynetwork.Core.Enum;
 
-/// <summary>PLAN.md §2.3.</summary>
 public enum ContentViewingLinkMode
 {
     OneTimeView = 0,

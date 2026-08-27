@@ -10,5 +10,4 @@ public class Blog : UserContentBaseModel
     public File? CoverImage { get; set; }
     public Guid? CoverImageId { get; set; }
     public required JsonDocument Body { get; set; }
-    // PublishedAt moved to UserContentBaseModel (§2.1) — it's no longer Blog-only.
 }

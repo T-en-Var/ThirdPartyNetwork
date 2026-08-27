@@ -55,7 +55,6 @@ public static class Constants
         public const string ModerateCustomPage = "Moderate CustomPage";
         public const string ModeratePageBlock = "Moderate PageBlock";
 
-
         public const string ReadUser = "Read User";
         public const string ManageUser = "Manage User";
 

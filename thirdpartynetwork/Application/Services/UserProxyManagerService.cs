@@ -42,8 +42,6 @@ public class UserProxyManagerService(
             var imageFile = await fileRepository.GetByIdBypassingAccessAsync(addUserProxy.FileLink.Id);
             if (imageFile == null) throw new NotFoundHttpException("Image file not found");
 
-            // PLAN.md §2.6: this persona is created in the main network's context (below),
-            // so that's the "consuming network" for the avatar-reuse ceiling check.
             if (!await accessLevelVerifier.CanNetworkExternallyAdoptAsync(imageFile, ContentKind.File, mainNetwork.Id))
                 throw new UnauthorizedHttpException("That file's network does not allow its files to be reused externally.");
 
