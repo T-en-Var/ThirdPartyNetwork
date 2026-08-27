@@ -11,12 +11,7 @@ namespace thirdpartynetwork.Core.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            // NOTE (PLAN.md §7 step 2): renaming Url -> ObjectKey preserves whatever old
-            // Cloudinary URL string was in each existing row rather than dropping it, but
-            // that string is NOT a real MinIO object key — pre-existing File rows need the
-            // one-off re-upload into MinIO (their own separate, explicitly-flagged task)
-            // before their ObjectKey/Bucket values are actually valid storage locations.
-            // This migration only gets the schema shape right.
+            // NOTE all files in Coudinary are not in minio
             migrationBuilder.DropColumn(
                 name: "PublicId",
                 table: "Files");
