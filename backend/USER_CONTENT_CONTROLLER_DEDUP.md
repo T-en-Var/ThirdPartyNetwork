@@ -54,3 +54,56 @@ public class ConfigurationController(IConfigurationService service, ...)
 This gets you ~80% of the DRY benefit today with no changes to `PermissionHandler` or routing, and it's a natural stepping stone: if you later do want the single merged `{contentType}` route, `ResolveContentRouteMatch`'s rework becomes a separate, focused, reviewable change instead of being entangled with a big controller refactor.
 
 Want me to implement the base-controller version?
+
+---
+
+## Follow-up: can't we just tell PermissionHandler which route value to grab?
+
+Yes — and it's a smaller change than the rewrite I implied. You don't even need to touch the existing branches of `ResolveContentRouteMatch`; you can add a new one that reads the explicit route value instead of guessing.
+
+**The core move:** add a `ContentKindMapper.FromRouteSegment(string)` (mirrors the existing `ReadPermissionFor(ContentKind)`), and make `ResolveContentRouteMatch` check for the new convention *first*, falling back to the old name-sniffing for every route that hasn't moved:
+
+```csharp
+// ContentKindMapper.cs — reverse of the plural segment each controller's [Route] already uses
+public static ContentKind? FromRouteSegment(string segment) => segment switch
+{
+    "configurations" => ContentKind.Configuration,
+    "blogs" => ContentKind.Blog,
+    "files" => ContentKind.File,
+    "custom-pages" => ContentKind.CustomPage,
+    _ => null
+};
+
+// PermissionHandler.cs
+private static (ContentKind Kind, string CompareString)? ResolveContentRouteMatch(HttpContext httpContext)
+{
+    var routeValues = httpContext.Request.RouteValues;
+
+    // New generic-route convention: {networkId}/{contentType}/{id}/...
+    if (routeValues.TryGetValue("contentType", out var typeValue) &&
+        ContentKindMapper.FromRouteSegment(typeValue?.ToString() ?? "") is { } kind)
+    {
+        return (kind, "id");
+    }
+
+    // Existing per-kind controllers — unchanged
+    if (routeValues.ContainsKey("fileId")) return (ContentKind.File, "fileId");
+    if (routeValues.ContainsKey("blogId")) return (ContentKind.Blog, "blogId");
+    if (routeValues.ContainsKey("configurationId")) return (ContentKind.Configuration, "configurationId");
+    if (routeValues.ContainsKey("pageBlockId")) return (ContentKind.PageBlock, "pageBlockId");
+    if (routeValues.ContainsKey("customPageId")) return (ContentKind.CustomPage, "customPageId");
+
+    return null;
+}
+```
+
+Because it's additive, nothing that works today can regress from this alone — every existing literal route still matches exactly as before; only the new `{contentType}/{id}` shape goes through the new branch. That de-risks it a lot more than the blanket "rewrite" framing I gave last message.
+
+Two things worth doing alongside it, not strictly required but cheap and closes real gaps:
+
+1. **Constrain `{contentType}` at the routing layer, not just in code:** `{contentType:regex(^(configurations|blogs|files|custom-pages)$)}` on the route template. That way a typo'd or made-up segment 404s before it ever reaches `PermissionHandler`, instead of relying on `FromRouteSegment` returning `null` and everything downstream correctly treating that as "deny." Belt-and-suspenders, and it keeps `PermissionHandler` from being the only thing standing between garbage input and a confusing 403.
+2. **`HandleOwnerRequirementAsync`/`HandleContentManageRequirementAsync` currently don't take `RouteKey` at all** — they call `ResolveContentRouteMatch` with zero context from the attribute, purely inferring both kind and id-param-name from what's present in `RouteValues`. That's exactly why this trick works: the new branch is self-contained (checks for `contentType` + assumes `id`), no attribute plumbing needed. You do **not** need to add a `ContentTypeRouteKey` property to `RequirePermissionAttribute` for this to work, since `{contentType}` and `{id}` are just fixed, hardcoded names in the one new route template — only bother with a configurable attribute property if you anticipate more than one naming convention living side by side.
+
+One more thing this unlocks, free: `HandleContentRequirementAsync` (the path for `Read*` permissions) currently hardcodes a switch from the fixed `permission` string to a specific `accessLevelVerifier.CheckXAccessAsync` call. If you ever merge the GET-by-id endpoints too, that switch collapses the same way — once you have `kind` resolved from `{contentType}`, you don't need five separate `CheckFileAccessAsync`/`CheckBlogAccessAsync`/etc. methods at all; `ContentKindMapper.ReadPermissionFor(kind)` plus the per-kind service's `GetByIdAsync` gets you straight to `CheckAccessForCallerAsync`. Not needed for today's ask, but it's the same shape of fix, so worth knowing it's not a dead end.
+
+Net: this closes the blocker I raised. Want me to fold this into a concrete plan — `PermissionHandler` change + route constraint + the shared base controller from before — or keep it as a documented follow-up for now?
