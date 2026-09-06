@@ -106,14 +106,16 @@ namespace thirdpartynetwork.Application.Services
                 var imageFile = await fileRepository.GetByIdBypassingAccessAsync(createNetworkDto.FileLink.Id);
                 if (imageFile == null) throw new NotFoundHttpException("Image file not found");
 
-                // PLAN.md §2.6: a brand-new network can't yet own anything, so any existing
-                // file is "external" to it by definition — Guid.Empty never collides with a
-                // real NetworkId, which is all CanNetworkExternallyAdoptAsync needs here.
                 if (!await accessLevelVerifier.CanNetworkExternallyAdoptAsync(imageFile, ContentKind.File, Guid.Empty))
                     throw new UnauthorizedHttpException("That file's network does not allow its files to be reused externally.");
 
                 network.ImageFileId = createNetworkDto.FileLink.Id;
             }
+            
+            // TODO:
+            // These roles and their permissions should move to a file with readonly values
+            // or be configurable.
+            // The entitlements too.
 
             var userRole = new Role
             {
@@ -236,10 +238,6 @@ namespace thirdpartynetwork.Application.Services
         {
             if (!await repository.ExistsAsync(id)) throw new NotFoundHttpException();
 
-            // Nothing upstream (model binding, AutoMapper, the "integer" DB column) rejects a
-            // bit pattern outside the enum's currently-defined flags — this is the one place that
-            // does. FlagsEnumValidator re-derives the valid mask from ContentKindFlags itself, so
-            // adding a new flag member later doesn't require touching this check.
             if (updateNetworkDto.ExternalContentKinds is { } externalContentKinds &&
                 !FlagsEnumValidator.IsDefinedCombination(externalContentKinds))
             {

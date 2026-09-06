@@ -71,14 +71,6 @@ namespace thirdpartynetwork.Core.Migrations
                 name: "AuthorId",
                 table: "Blogs");
 
-            // NOT a rename: AccessLevel (Private=0/PublicToNetwork=1/Public=2) and
-            // OwnershipMode (AuthorOwned=0/NetworkOwned=1) are unrelated enums that happen
-            // to share a column "slot" in EF's diff — scaffolding this as RenameColumn would
-            // silently reinterpret every existing AccessLevel=2 (Public) row as an undefined
-            // OwnershipMode value. OwnershipMode is a genuinely NEW concept with no
-            // predecessor to derive from, so every existing row gets the model's own default
-            // (AuthorOwned=0) via a fresh column; the old AccessLevel column is read one more
-            // time for the ContentAccessGrant backfill below, then dropped for real.
             migrationBuilder.AddColumn<int>(
                 name: "OwnershipMode",
                 table: "PageBlocks",
@@ -357,32 +349,12 @@ namespace thirdpartynetwork.Core.Migrations
                 principalColumn: "Id",
                 onDelete: ReferentialAction.SetNull);
 
-            // --- PLAN.md §7 step 3.2: backfill, in this order, before AccessLevel is dropped ---
-
-            // Nothing was "draft" under the old schema, so nothing should retroactively
-            // become Draft — every existing row is published as of right now.
             migrationBuilder.Sql("UPDATE \"Files\" SET \"PublishedAt\" = \"CreatedOn\";");
             migrationBuilder.Sql("UPDATE \"Blogs\" SET \"PublishedAt\" = \"CreatedOn\";");
             migrationBuilder.Sql("UPDATE \"Configurations\" SET \"PublishedAt\" = \"CreatedOn\";");
             migrationBuilder.Sql("UPDATE \"CustomPages\" SET \"PublishedAt\" = \"CreatedOn\";");
             migrationBuilder.Sql("UPDATE \"PageBlocks\" SET \"PublishedAt\" = \"CreatedOn\";");
 
-            // Old AccessLevel.PublicToNetwork (1) rows: this is exactly "my own network can
-            // already see this," which is no longer free (§2.1) — insert the equivalent
-            // ContentAccessGrant{GranteeType=Network, GranteeNetworkId=own network} so
-            // existing sharing keeps working post-migration. ContentKind ints match
-            // Core/Enum/ContentKind.cs (File=0, Blog=1, Configuration=2, CustomPage=3,
-            // PageBlock=4); GranteeType=0 is Network; Capabilities=1 is View.
-            //
-            // Old AccessLevel.Public (2) rows get the SAME grant, on the mechanical
-            // majority-case assumption that the row's own network covers it — per §7 step
-            // 3.2 this is explicitly a case-by-case call for content whose network is NOT
-            // itself Network.IsPublic (§0.3's anonymous-reuse path only fires for IsPublic
-            // networks): such rows lose true anonymous/public-internet reachability until
-            // either the network sets IsPublic=true or someone adds a broader grant by hand.
-            // A migration can get the mechanical majority case right; it can't make that
-            // per-network product decision for you.
-            // gen_random_uuid() needs PostgreSQL 13+ (built into core, no extension needed).
             migrationBuilder.Sql("""
                 INSERT INTO "ContentAccessGrants" ("Id", "ContentKind", "ContentId", "GranteeType", "GranteeNetworkId", "Capabilities", "CreatedOn", "UpdatedAt")
                 SELECT gen_random_uuid(), 0, "Id", 0, "NetworkId", 1, now(), now() FROM "Files" WHERE "AccessLevel" > 0;
@@ -404,8 +376,6 @@ namespace thirdpartynetwork.Core.Migrations
                 SELECT gen_random_uuid(), 4, "Id", 0, "NetworkId", 1, now(), now() FROM "PageBlocks" WHERE "AccessLevel" > 0;
                 """);
 
-            // Only now is the old column safe to drop — every row that needs a
-            // ContentAccessGrant to keep working has one.
             migrationBuilder.DropColumn(name: "AccessLevel", table: "Files");
             migrationBuilder.DropColumn(name: "AccessLevel", table: "Blogs");
             migrationBuilder.DropColumn(name: "AccessLevel", table: "Configurations");
@@ -519,11 +489,6 @@ namespace thirdpartynetwork.Core.Migrations
                 name: "DeletedAt",
                 table: "Blogs");
 
-            // Best-effort schema-only reversal — NOT a data-preserving rename (see Up()):
-            // OwnershipMode is dropped and AccessLevel comes back as a fresh Private(0)
-            // column. The original AccessLevel values (and the ContentAccessGrant rows the
-            // Up() backfill derived from them) are not reconstructed; Down() migrations are
-            // schema rollback, not a data time machine.
             migrationBuilder.DropColumn(name: "OwnershipMode", table: "PageBlocks");
             migrationBuilder.DropColumn(name: "OwnershipMode", table: "Files");
             migrationBuilder.DropColumn(name: "OwnershipMode", table: "CustomPages");
