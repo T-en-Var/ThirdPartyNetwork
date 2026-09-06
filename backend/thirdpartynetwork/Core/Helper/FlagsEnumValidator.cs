@@ -1,24 +1,26 @@
 namespace thirdpartynetwork.Core.Helper;
 
 /// <summary>
-/// Validates that a [Flags] enum value only sets bits belonging to a currently-defined member.
-/// The "known bits" mask is computed via reflection (Enum.GetValues), once per closed TEnum,
-/// cached in a generic static field — so adding/removing a member on the enum is picked up
-/// automatically the next time it runs; nothing here needs to change alongside the enum.
-/// Only correct for enums backed by an integral type no larger than 64 bits signed (i.e. every
-/// [Flags] enum in this codebase today — the implicit `int` backing type).
+/// Validates that a [Flags] enum value doesn't set any bit above the highest currently-defined
+/// member. Assumes flag bits are only ever appended in order (1&lt;&lt;0, 1&lt;&lt;1, ...) and never
+/// removed or reordered, up to the 32-bit width of the enum's `int` backing type — under that
+/// assumption "defined" reduces to a plain range check against the largest declared flag, doubled
+/// minus one (e.g. highest flag 16 -&gt; valid range is 0..31, covering every combination of the
+/// bits below it). The bound is computed via reflection (Enum.GetValues) once per closed TEnum,
+/// cached in a generic static field, so a newly appended flag is picked up automatically.
 /// </summary>
 public static class FlagsEnumValidator
 {
-    public static bool IsDefinedCombination<TEnum>(TEnum value) where TEnum : struct, Enum
+    public static bool IsDefinedCombination<TEnum>(TEnum value) where TEnum : struct, System.Enum
     {
         var bits = Convert.ToInt64(value);
-        return (bits & ~KnownBits<TEnum>.Mask) == 0;
+        return bits >= 0 && bits <= UpperBound<TEnum>.Value;
     }
 
-    private static class KnownBits<TEnum> where TEnum : struct, Enum
+    private static class UpperBound<TEnum> where TEnum : struct, System.Enum
     {
-        public static readonly long Mask = Enum.GetValues<TEnum>()
-            .Aggregate(0L, (mask, member) => mask | Convert.ToInt64(member));
+        public static readonly long Value = Math.Max(
+            System.Enum.GetValues<TEnum>().Select(member => Convert.ToInt64(member)).DefaultIfEmpty(0).Max() * 2 - 1,
+            0);
     }
 }
