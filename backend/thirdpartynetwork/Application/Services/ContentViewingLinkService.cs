@@ -1,5 +1,3 @@
-using Microsoft.EntityFrameworkCore;
-using thirdpartynetwork.Core.Data;
 using thirdpartynetwork.Core.Enum;
 using thirdpartynetwork.Core.Helper;
 using thirdpartynetwork.Core.Interfaces.Auth;
@@ -19,8 +17,7 @@ public class ContentViewingLinkService(
     IPageBlockRepository pageBlockRepository,
     IAccessLevelVerifier accessLevelVerifier,
     IIdentityService identityService,
-    ICDNService cdnService,
-    DataContext dataContext) : IContentViewingLinkService
+    ICDNService cdnService) : IContentViewingLinkService
 {
     public async Task<ContentViewingLink> MintAsync(
         ContentKind kind, Guid contentId,
@@ -65,9 +62,6 @@ public class ContentViewingLinkService(
 
         if (accessCheckContent == null) return null;
 
-        // Defense in depth (§2.3): access may have been revoked after the link was minted
-        // but before it was used — re-check against the caller it was minted for, not
-        // whoever is making this particular (deliberately unauthenticated) HTTP request.
         var callerId = link.IssuedForUserProxyId ?? Guid.Empty;
         var readPermission = ContentKindMapper.ReadPermissionFor(accessCheckKind);
         var stillAllowed = await accessLevelVerifier.CheckAccessForCallerAsync(
@@ -106,18 +100,10 @@ public class ContentViewingLinkService(
         return $"{requestScheme}://{requestHost}/{path}/{link.Id}";
     }
 
-    // Mirrors AccessLevelVerifier's §0.3 anonymous-reachability check — used here only to
-    // decide the Mode=Permanent/no-row shortcut, not as an authorization decision itself.
-    private async Task<bool> IsFullyPublicAsync(UserContentBaseModel content, ContentKind kind)
+    private Task<bool> IsFullyPublicAsync(UserContentBaseModel content, ContentKind kind)
     {
-        if (content.PublishedAt == null) return false;
-
-        var now = DateTime.UtcNow;
-        return await dataContext.ContentAccessGrants.AnyAsync(g =>
-            g.ContentKind == kind && g.ContentId == content.Id &&
-            g.RevokedAt == null && (g.ExpiresAt == null || g.ExpiresAt > now) &&
-            (g.Capabilities & ContentCapabilities.View) == ContentCapabilities.View &&
-            g.GranteeType == GranteeType.Network && g.GranteeNetworkId != null && g.GranteeNetwork!.IsPublic);
+        return accessLevelVerifier.CheckAccessForCallerAsync(
+            content, content.NetworkId, Guid.Empty, ContentKindMapper.ReadPermissionFor(kind));
     }
 
     private async Task<UserContentBaseModel?> GetContentAsync(ContentKind kind, Guid id) => kind switch

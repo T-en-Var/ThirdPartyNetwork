@@ -1,9 +1,5 @@
 namespace thirdpartynetwork.Core.Enum;
 
-/// <summary>
-/// PLAN.md §2.4: what a ContentAccessGrant's grantee may do with the content. Comment/Like
-/// are reserved, not enforced yet (§8, out of scope for this pass).
-/// </summary>
 [Flags]
 public enum ContentCapabilities
 {
