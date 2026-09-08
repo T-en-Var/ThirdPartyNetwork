@@ -217,7 +217,7 @@ public class PermissionHandler(
     {
         var routeValues = httpContext.Request.RouteValues;
 
-        // pageBlockId before customPageId: PageBlock routes nest under custompages
+        // pageBlockId before customPageId: PageBlock routes nest under customPages
         // customPages/{customPageId}/pageBlocks/{pageBlockId}
         if (routeValues.ContainsKey("fileId")) return (Core.Enum.ContentKind.File, "fileId");
         if (routeValues.ContainsKey("blogId")) return (Core.Enum.ContentKind.Blog, "blogId");

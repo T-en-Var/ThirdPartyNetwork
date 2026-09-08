@@ -359,3 +359,7 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+// Marker partial class so WebApplicationFactory<Program> (integration tests) can bind to
+// this top-level-statements entry point. See Tests/Integration/.
+public partial class Program;
