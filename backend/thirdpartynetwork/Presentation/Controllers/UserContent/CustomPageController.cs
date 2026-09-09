@@ -39,7 +39,7 @@ public class CustomPageController(
     }
 
     [HttpPost]
-    [RequirePermission(Constants.Permissions.ManageCustomPage)]
+    [RequirePermission(Constants.Permissions.ManageCustomPage, IsCreateEndpoint = true)]
     [ProducesResponseType(201, Type = typeof(PageDto))]
     public async Task<IActionResult> CreateCustomPage(Guid networkId, [FromBody] CreateCustomPageDto customPage)
     {

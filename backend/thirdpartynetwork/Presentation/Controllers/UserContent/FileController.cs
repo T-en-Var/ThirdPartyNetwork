@@ -40,7 +40,7 @@ public class FileController(
     }
 
     [HttpPost]
-    [RequirePermission(Constants.Permissions.ManageFile)]
+    [RequirePermission(Constants.Permissions.ManageFile, IsCreateEndpoint = true)]
     [ProducesResponseType(201, Type = typeof(FileDto))]
     public async Task<IActionResult> UploadFile(Guid networkId, IFormFile file)
     {

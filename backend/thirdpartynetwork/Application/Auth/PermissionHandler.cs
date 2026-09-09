@@ -31,7 +31,8 @@ public class PermissionHandler(
                 break;
             }
 
-            var isAllowed = await CheckPermissionAsync(permission, isAuthenticated, requirement.IsListEndpoint, requirement.RouteKey);
+            var isAllowed = await CheckPermissionAsync(permission, isAuthenticated, requirement.IsListEndpoint,
+                requirement.RouteKey, requirement.IsCreateEndpoint);
             
             Console.WriteLine(isAllowed
                 ? "[PermissionHandler] Passed"
@@ -48,7 +49,8 @@ public class PermissionHandler(
         Console.WriteLine("[PermissionHandler] Complete.");
     }
     
-    private async Task<bool> CheckPermissionAsync(string permission, bool isAuthenticated, bool isListEndpoint, string? routeKey)
+    private async Task<bool> CheckPermissionAsync(string permission, bool isAuthenticated, bool isListEndpoint,
+        string? routeKey, bool isCreateEndpoint)
     {
         // If not logged in, they ONLY pass if the resource is publicly accessible enough.
         if (!isAuthenticated)
@@ -70,7 +72,9 @@ public class PermissionHandler(
 
         if (Constants.ContentManagePermissions.Contains(permission))
         {
-            return await HandleContentManageRequirementAsync(permission);
+            return isCreateEndpoint
+                ? await HandleRequirementAsync(permission)
+                : await HandleContentManageRequirementAsync(permission);
         }
 
         // role checking

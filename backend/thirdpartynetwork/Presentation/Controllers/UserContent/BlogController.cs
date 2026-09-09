@@ -56,7 +56,7 @@ public class BlogController(
     }
 
     [HttpPost]
-    [RequirePermission(Constants.Permissions.ManageBlog)]
+    [RequirePermission(Constants.Permissions.ManageBlog, IsCreateEndpoint = true)]
     [ProducesResponseType(201, Type = typeof(BlogDto))]
     public async Task<IActionResult> CreateBlog(Guid networkId, [FromBody] CreateBlogDto blog)
     {
