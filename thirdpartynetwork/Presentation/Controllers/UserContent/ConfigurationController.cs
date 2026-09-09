@@ -40,7 +40,7 @@ public class ConfigurationController(
     }
 
     [HttpPost]
-    [RequirePermission(Constants.Permissions.ManageConfiguration)]
+    [RequirePermission(Constants.Permissions.ManageConfiguration, IsCreateEndpoint = true)]
     [ProducesResponseType(201, Type = typeof(ConfigurationDto))]
     public async Task<IActionResult> CreateConfiguration(Guid networkId, [FromBody] CreateConfigurationDto configuration)
     {

@@ -7,6 +7,7 @@ public class RequirePermissionAttribute : AuthorizeAttribute
 {
     private readonly string _permissionsCsv;
     private bool _isListEndpoint;
+    private bool _isCreateEndpoint;
     private string? _routeKey;
 
     public RequirePermissionAttribute(params string[] permissions)
@@ -26,7 +27,18 @@ public class RequirePermissionAttribute : AuthorizeAttribute
     }
 
     /// <summary>
-    /// The route parameter that names this endpoint's resource identifeir. 
+    /// Set on content-create endpoints (e.g. <c>POST /files</c>). Declares explicitly that this
+    /// endpoint has no existing resource to check ownership on yet — a Manage&lt;Kind&gt; permission
+    /// here is checked as plain network-scoped RBAC instead of being resolved against a content id.
+    /// </summary>
+    public bool IsCreateEndpoint
+    {
+        get => _isCreateEndpoint;
+        set { _isCreateEndpoint = value; RecomputePolicy(); }
+    }
+
+    /// <summary>
+    /// The route parameter that names this endpoint's resource identifeir.
     /// Required on every non-list content-permission endpoint.
     /// </summary>
     public string? RouteKey
@@ -39,6 +51,7 @@ public class RequirePermissionAttribute : AuthorizeAttribute
     {
         var policy = "Permission:";
         if (_isListEndpoint) policy += "List:";
+        if (_isCreateEndpoint) policy += "Create:";
         if (_routeKey != null) policy += $"Route={_routeKey}:";
         Policy = policy + _permissionsCsv;
     }
