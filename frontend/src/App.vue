@@ -18,10 +18,10 @@
       @remove="global.removeToast"
     />
 
-    <div
+    <!-- <div
       class="fixed z-50 h-10 w-10 cursor-pointer bg-green-500"
       @click="authStore.refreshTokens()"
-    ></div>
+    ></div> -->
     <!-- <div class="fixed bg-red-500 w-10 h-10 z-50 cursor-pointer" @click="console.log((globalCache.get(`networks_019b722f-5d71-7631-812d-6646febcaef2`)))"></div> -->
   </main>
 </template>
