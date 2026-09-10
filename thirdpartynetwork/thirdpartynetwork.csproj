@@ -41,4 +41,13 @@
     <Folder Include="Tests\Networks\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Seed images (DatabaseSeeder uploads these as the main network's icon and the
+         seeded admin's avatar) — must ship next to the built app, not just live in source. -->
+    <Content Include="Assets\*.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>

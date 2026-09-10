@@ -1,7 +1,6 @@
 using Microsoft.Extensions.Options;
 using Minio;
 using Minio.DataModel.Args;
-using thirdpartynetwork.Application.Dtos.UserContent.File;
 using thirdpartynetwork.Core.Helper;
 
 namespace thirdpartynetwork.Application.Services;
@@ -114,6 +113,35 @@ public sealed class MinioService : ICDNService
         catch (Minio.Exceptions.MinioException ex)
         {
             Console.WriteLine($"MinIO delete failed for {bucket}/{objectKey} — but we don't care: {ex.Message}");
+        }
+    }
+
+    public async Task ClearAllFilesAsync()
+    {
+        await ClearBucketAsync(_opts.PublicBucket);
+        await ClearBucketAsync(_opts.PrivateBucket);
+    }
+
+    private async Task ClearBucketAsync(string bucket)
+    {
+        var exists = await _internalClient.BucketExistsAsync(new BucketExistsArgs().WithBucket(bucket));
+        if (!exists) return;
+
+        var objectKeys = new List<string>();
+        var listArgs = new ListObjectsArgs().WithBucket(bucket).WithRecursive(true);
+
+        await foreach (var item in _internalClient.ListObjectsEnumAsync(listArgs))
+        {
+            if (!item.IsDir) objectKeys.Add(item.Key);
+        }
+
+        if (objectKeys.Count == 0) return;
+
+        var removeArgs = new RemoveObjectsArgs().WithBucket(bucket).WithObjects(objectKeys);
+        var errors = await _internalClient.RemoveObjectsAsync(removeArgs);
+        foreach (var error in errors)
+        {
+            Console.WriteLine($"MinIO bulk delete failed for {bucket}/{error.Key}: {error.Message}");
         }
     }
 

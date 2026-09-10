@@ -1,13 +1,5 @@
-using thirdpartynetwork.Application.Dtos.UserContent.File;
-using thirdpartynetwork.Core.Interfaces.Services;
-
 namespace thirdpartynetwork.Tests.Integration;
 
-/// <summary>
-/// The authorization-gating tests in Tests/Integration don't exercise real object storage —
-/// only whether a caller is allowed to reach the endpoint at all. Swapped in for the real
-/// MinioService (which needs a live MinIO instance) via TestWebApplicationFactory.
-/// </summary>
 public class FakeCdnService : ICDNService
 {
     public string PublicBucketName => "public";
@@ -28,6 +20,8 @@ public class FakeCdnService : ICDNService
     }
 
     public Task DeleteAsync(string bucket, string objectKey) => Task.CompletedTask;
+
+    public Task ClearAllFilesAsync() => Task.CompletedTask;
 
     public Task<string> MoveAsync(string objectKey, string fromBucket, string toBucket) => Task.FromResult(objectKey);
 
