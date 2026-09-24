@@ -134,7 +134,7 @@ public static class ContentKindFixtures
                 var page = new CustomPage
                 {
                     Id = Guid.NewGuid(),
-                    Name = "Test Page",
+                    Name = "Test CustomPage",
                     Slug = $"test-page-{Guid.NewGuid():N}",
                     NetworkId = networkId,
                     AuthorUserProxyId = authorUserProxyId,
@@ -152,7 +152,7 @@ public static class ContentKindFixtures
                 var parent = new CustomPage
                 {
                     Id = Guid.NewGuid(),
-                    Name = "Parent Page",
+                    Name = "Parent CustomPage",
                     Slug = $"parent-page-{Guid.NewGuid():N}",
                     NetworkId = networkId,
                     AuthorUserProxyId = authorUserProxyId,
@@ -199,7 +199,7 @@ public static class ContentKindFixtures
         }),
         ContentKind.CustomPage => JsonContent(new
         {
-            name = "New Page", slug = $"new-page-{Guid.NewGuid():N}",
+            name = "New CustomPage", slug = $"new-page-{Guid.NewGuid():N}",
         }),
         ContentKind.PageBlock => JsonContent(new
         {
@@ -222,7 +222,7 @@ public static class ContentKindFixtures
         }),
         ContentKind.CustomPage => JsonContent(new
         {
-            name = "Updated Page", slug = $"updated-page-{Guid.NewGuid():N}",
+            name = "Updated CustomPage", slug = $"updated-page-{Guid.NewGuid():N}",
         }),
         ContentKind.PageBlock => JsonContent(new
         {

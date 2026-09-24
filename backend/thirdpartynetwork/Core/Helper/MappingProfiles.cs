@@ -170,8 +170,8 @@ public class MappingProfiles : Profile
         CreateMap<CreateFileDto, File>();
         CreateMap<UpdateFileDto, File>();
 
-        CreateMap<CustomPage, PageDto>();
-        CreateMap<CustomPage, PageLightDto>();
+        CreateMap<CustomPage, CustomPageDto>();
+        CreateMap<CustomPage, CustomPageLightDto>();
         CreateMap<CreateCustomPageDto, CustomPage>();
         CreateMap<UpdateCustomPageDto, CustomPage>();
 

@@ -798,7 +798,7 @@ public class EntitlementServiceTests
         var readConfigLimit = _entitlementService.ReadConfigurationCountLimitEntitlement(networkUser);
 
         // This will fail if WriteCustomPageCountLimitEntitlement uses the same key as WriteConfigurationCountLimitEntitlement
-        Assert.That(readCustomPageLimit, Is.EqualTo(customPageLimit), "Custom Page limit should be preserved.");
+        Assert.That(readCustomPageLimit, Is.EqualTo(customPageLimit), "Custom CustomPage limit should be preserved.");
         Assert.That(readConfigLimit, Is.EqualTo(configLimit), "Configuration limit should be preserved.");
     }
 

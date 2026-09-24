@@ -10,7 +10,7 @@ namespace thirdpartynetwork.Application.Dtos.UserContent.PageBlock
         public required int Position { get; set; }
         public JsonElement Data { get; set; }
         public required Guid CustomPageId { get; set; }
-        public required PageLightDto Page { get; set; }
+        public required CustomPageLightDto CustomPage { get; set; }
     }
     
     public class PageBlockLightDto : UserContentBaseLightDto
