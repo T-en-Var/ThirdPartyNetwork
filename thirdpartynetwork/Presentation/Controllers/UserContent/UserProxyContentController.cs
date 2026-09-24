@@ -35,11 +35,11 @@ public class UserProxyContentController(
     
     [HttpGet("customPages")]
     [RequirePermission(Constants.Permissions.IsUserOwner, Constants.Permissions.ReadCustomPage)]
-    [ProducesResponseType(200, Type = typeof(IEnumerable<PageDto>))]
+    [ProducesResponseType(200, Type = typeof(IEnumerable<CustomPageDto>))]
     public async Task<IActionResult> GetCustomPages(Guid userProxyId)
     {
         var customPages = await customPageService.GetByUserProxyIdAsync(userProxyId);
-        return Ok(mapper.Map<IEnumerable<PageDto>>(customPages, opts => { opts.Items["bypass"] = true; }));
+        return Ok(mapper.Map<IEnumerable<CustomPageDto>>(customPages, opts => { opts.Items["bypass"] = true; }));
     }
     
     [HttpGet("files")]

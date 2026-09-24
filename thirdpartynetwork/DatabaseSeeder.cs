@@ -17,7 +17,7 @@ namespace thirdpartynetwork
         public async Task SeedAsync()
         {
             var forceCleanSeed = false;
-            forceCleanSeed = true; // Easily comment or uncomment this line to toggle.
+            // forceCleanSeed = true; // Easily comment or uncomment this line to toggle.
 
             if (forceCleanSeed || !context.Networks.Any())
             {

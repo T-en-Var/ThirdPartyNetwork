@@ -9,7 +9,7 @@ namespace thirdpartynetwork.Presentation.Controllers;
 public class MeController(IMeService service, INetworkService networkService, IMapper mapper) : ControllerBase
 {
     [HttpGet("")]
-    [ProducesResponseType(200, Type = typeof(UserProxyDto))]
+    [ProducesResponseType(200, Type = typeof(UserProxyExtraCascadeDto))]
     [ProducesResponseType(401)]
     [Authorize]
     public async Task<IActionResult> GetMe()

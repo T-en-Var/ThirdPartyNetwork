@@ -1098,7 +1098,7 @@ namespace thirdpartynetwork.Core.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("thirdpartynetwork.Core.Models.CustomPage", "CustomPage")
-                        .WithMany("Pages")
+                        .WithMany("Blocks")
                         .HasForeignKey("CustomPageId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1181,7 +1181,7 @@ namespace thirdpartynetwork.Core.Migrations
 
             modelBuilder.Entity("thirdpartynetwork.Core.Models.CustomPage", b =>
                 {
-                    b.Navigation("Pages");
+                    b.Navigation("Blocks");
                 });
 
             modelBuilder.Entity("thirdpartynetwork.Core.Models.Network", b =>

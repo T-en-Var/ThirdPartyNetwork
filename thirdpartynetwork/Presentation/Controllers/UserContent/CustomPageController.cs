@@ -17,45 +17,45 @@ public class CustomPageController(
 {
     [HttpGet]
     [RequirePermission(Constants.Permissions.ReadCustomPage, IsListEndpoint = true)]
-    [ProducesResponseType(200, Type = typeof(IEnumerable<PageDto>))]
+    [ProducesResponseType(200, Type = typeof(IEnumerable<CustomPageDto>))]
     public async Task<IActionResult> GetNetworkCustomPages(Guid networkId)
     {
         var customPage = await service.GetByNetworkIdAsync(networkId);
-        return Ok(mapper.Map<IEnumerable<PageDto>>(customPage, opts => { opts.Items["networkId"] = networkId; }));
+        return Ok(mapper.Map<IEnumerable<CustomPageDto>>(customPage, opts => { opts.Items["networkId"] = networkId; }));
     }
 
     [HttpGet("{customPageId:guid}")]
     [RequirePermission(Constants.Permissions.ReadCustomPage, RouteKey = "customPageId")]
-    [ProducesResponseType(200, Type = typeof(PageDto))]
+    [ProducesResponseType(200, Type = typeof(CustomPageDto))]
     [ProducesResponseType(404)]
     public async Task<IActionResult> GetCustomPage(Guid networkId, Guid customPageId)
     {
         var customPage = await service.GetByIdAsync(networkId, customPageId);
         if (customPage == null) return NotFound();
 
-        var dto = mapper.Map<PageDto>(customPage, opts => { opts.Items["networkId"] = networkId; });
+        var dto = mapper.Map<CustomPageDto>(customPage, opts => { opts.Items["networkId"] = networkId; });
         dto.ViewingUrl = await viewingLinkService.ComputeViewingUrlAsync(customPage, ContentKind.CustomPage, Request.Scheme, Request.Host.ToString());
         return Ok(dto);
     }
 
     [HttpPost]
     [RequirePermission(Constants.Permissions.ManageCustomPage, IsCreateEndpoint = true)]
-    [ProducesResponseType(201, Type = typeof(PageDto))]
+    [ProducesResponseType(201, Type = typeof(CustomPageDto))]
     public async Task<IActionResult> CreateCustomPage(Guid networkId, [FromBody] CreateCustomPageDto customPage)
     {
         var uploadedCustomPage = await service.CreateAsync(networkId, customPage);
-        return Ok(mapper.Map<PageDto>(uploadedCustomPage, opts => { opts.Items["networkId"] = networkId; }));
+        return Ok(mapper.Map<CustomPageDto>(uploadedCustomPage, opts => { opts.Items["networkId"] = networkId; }));
     }
 
     [HttpPut("{customPageId:guid}")]
     [RequirePermission(Constants.Permissions.ManageCustomPage)]
-    [ProducesResponseType(200, Type = typeof(PageDto))]
+    [ProducesResponseType(200, Type = typeof(CustomPageDto))]
     [ProducesResponseType(404)]
     public async Task<IActionResult> UpdateCustomPage(Guid networkId, Guid customPageId,
         [FromBody] UpdateCustomPageDto updateCustomPage)
     {
         var customPage = await service.UpdateAsync(networkId, customPageId, updateCustomPage);
-        return Ok(mapper.Map<PageDto>(customPage, opts => { opts.Items["networkId"] = networkId; }));
+        return Ok(mapper.Map<CustomPageDto>(customPage, opts => { opts.Items["networkId"] = networkId; }));
     }
 
     [HttpDelete("{customPageId:guid}")]
@@ -69,38 +69,38 @@ public class CustomPageController(
 
     [HttpPost("{customPageId:guid}/publish")]
     [RequirePermission(Constants.Permissions.IsContentOwner)]
-    [ProducesResponseType(200, Type = typeof(PageDto))]
+    [ProducesResponseType(200, Type = typeof(CustomPageDto))]
     [ProducesResponseType(404)]
     public async Task<IActionResult> PublishCustomPage(Guid networkId, Guid customPageId)
     {
         var customPage = await service.GetByIdAsync(networkId, customPageId);
         if (customPage == null) return NotFound();
         var published = await service.PublishAsync(customPage);
-        return Ok(mapper.Map<PageDto>(published, opts => { opts.Items["networkId"] = networkId; }));
+        return Ok(mapper.Map<CustomPageDto>(published, opts => { opts.Items["networkId"] = networkId; }));
     }
 
     [HttpPost("{customPageId:guid}/unpublish")]
     [RequirePermission(Constants.Permissions.IsContentOwner)]
-    [ProducesResponseType(200, Type = typeof(PageDto))]
+    [ProducesResponseType(200, Type = typeof(CustomPageDto))]
     [ProducesResponseType(404)]
     public async Task<IActionResult> UnpublishCustomPage(Guid networkId, Guid customPageId)
     {
         var customPage = await service.GetByIdAsync(networkId, customPageId);
         if (customPage == null) return NotFound();
         var unpublished = await service.UnpublishAsync(customPage);
-        return Ok(mapper.Map<PageDto>(unpublished, opts => { opts.Items["networkId"] = networkId; }));
+        return Ok(mapper.Map<CustomPageDto>(unpublished, opts => { opts.Items["networkId"] = networkId; }));
     }
 
     [HttpPost("{customPageId:guid}/ownership")]
     [RequirePermission(Constants.Permissions.IsContentOwner)]
-    [ProducesResponseType(200, Type = typeof(PageDto))]
+    [ProducesResponseType(200, Type = typeof(CustomPageDto))]
     [ProducesResponseType(404)]
     public async Task<IActionResult> SetCustomPageOwnershipMode(Guid networkId, Guid customPageId, [FromBody] SetOwnershipModeDto dto)
     {
         var customPage = await service.GetByIdAsync(networkId, customPageId);
         if (customPage == null) return NotFound();
         var updated = await service.SetOwnershipModeAsync(customPage, dto.Mode);
-        return Ok(mapper.Map<PageDto>(updated, opts => { opts.Items["networkId"] = networkId; }));
+        return Ok(mapper.Map<CustomPageDto>(updated, opts => { opts.Items["networkId"] = networkId; }));
     }
 
     [HttpGet("{customPageId:guid}/access")]

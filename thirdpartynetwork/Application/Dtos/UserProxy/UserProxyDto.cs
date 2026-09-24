@@ -17,6 +17,11 @@ namespace thirdpartynetwork.Application.Dtos.UserProxy
         public ICollection<NetworkUserLightWithNetworkDto> NetworkUsers { get; set; } = [];
     }
     
+    public class UserProxyExtraCascadeDto : UserProxyDto
+    {
+        public ICollection<NetworkUserUserProxyCascadeDto> NetworkUsers { get; set; } = [];
+    }
+    
     public class UserProxyLightDto
     {
         public Guid Id { get; set; }
