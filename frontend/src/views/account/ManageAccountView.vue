@@ -94,8 +94,6 @@ import { useGlobalStore } from '@/stores/global';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import ConfirmationModal from '@/components/modals/ConfirmationModal.vue';
 
-import type { UserProxy } from '@/types';
-
 import AccountSidebar from '@/components/sidebar/AccountSidebar.vue';
 import { useAuthStore } from '@/stores/auth';
 import AddUserProxyModal from '@/components/modals/account/AddUserProxyModal.vue';
@@ -103,6 +101,7 @@ import AddFileModal from '@/components/modals/usercontent/AddFileModal.vue';
 import useNetworks from '@/composables/useNetworks';
 import useUsers from '@/composables/useUsers';
 import useAccountManageActions from '@/composables/useAccountManageActions';
+import type { UserProxyLightWithNetworksDto } from '@/types';
 
 const router = useRouter();
 
@@ -117,7 +116,7 @@ const composables = {
 
 const manage = useAccountManageActions();
 
-const userProxy = ref<UserProxy | null>(null);
+const userProxy = ref<UserProxyLightWithNetworksDto | null>(null);
 const { execute: fetchUser, data: user } = useUsers().fetchUser;
 
 onMounted(async () => {

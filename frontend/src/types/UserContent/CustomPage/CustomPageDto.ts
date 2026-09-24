@@ -1,13 +1,13 @@
 import type { UserContentBaseDto, UserContentBaseLightDto } from '../UserContentBase/UserContentBaseDto';
 import type { PageBlockLightDto } from '../PageBlock/PageBlockDto';
 
-export interface PageDto extends UserContentBaseDto {
+export interface CustomPageDto extends UserContentBaseDto {
   name: string;
   slug: string;
-  pages: PageBlockLightDto[];
+  blocks: PageBlockLightDto[];
 }
 
-export interface PageLightDto extends UserContentBaseLightDto {
+export interface CustomPageLightDto extends UserContentBaseLightDto {
   name: string;
   slug: string;
 }

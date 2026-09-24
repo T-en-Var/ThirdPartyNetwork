@@ -84,14 +84,14 @@ import { ref, computed, onMounted, watch } from 'vue';
 import ModalContainer from '@/components/modals/ModalContainer.vue';
 import ModalFormActions from '@/components/modals/ModalFormActions.vue';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
-import type { Network, NetworkAccessCreate } from '@/types';
+import type { CreateNetworkAccessForm, NetworkDto } from '@/types';
 import useAccesses from '@/composables/useAccesses';
 
 const accessesState = useAccesses().fetchAccesses;
 
 const props = withDefaults(
   defineProps<{
-    network: Network;
+    network: NetworkDto;
     isSubmitting?: boolean;
   }>(),
   {
@@ -108,10 +108,10 @@ watch(accessId, (newId) => {
 
 const emit = defineEmits<{
   (e: 'close'): void;
-  (e: 'add-access', networkAccess: NetworkAccessCreate): void;
+  (e: 'add-access', networkAccess: CreateNetworkAccessForm): void;
 }>();
 
-const form = ref<NetworkAccessCreate>({
+const form = ref<CreateNetworkAccessForm>({
   access: undefined,
   networkId: '',
   isRequired: false,

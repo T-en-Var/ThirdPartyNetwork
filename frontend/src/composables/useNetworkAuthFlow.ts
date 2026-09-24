@@ -5,14 +5,13 @@ import type {
   AccessTokenClaims,
   AuthorizationCode,
   ErrorMessage,
-  UserLogin,
-  UserSignup,
+  LoginDto,
+  CreateUserProxyDto,
 } from '@/types';
 import { decodeJWT, extractApiErrorMessage, safeBtoa } from '@/lib/utils';
 import rawApi from '@/api/rawApi';
 import useNetworks from '@/composables/useNetworks';
-
-export const TEMPORARY_ACCESS_TOKEN_KEY = 'temporaryAccessToken';
+import useTempAuth from './useTempAuth';
 
 export default function useNetworkAuthFlow() {
   const route = useRoute();
@@ -48,7 +47,7 @@ export default function useNetworkAuthFlow() {
 
   async function authorize(
     endpoint: 'login' | 'register',
-    payload: UserLogin | UserSignup,
+    payload: LoginDto | CreateUserProxyDto,
   ): Promise<AuthorizationCode> {
     const network = networkDetails.data.value;
     if (!network) throw new Error('Network details are not available yet.');
@@ -79,7 +78,7 @@ export default function useNetworkAuthFlow() {
     decodeJWT<AccessTokenClaims>(accessToken).AccessIncomplete === 'true';
 
   function goToCompleteAccess(accessToken: string, redirectUrl: string) {
-    localStorage.setItem(TEMPORARY_ACCESS_TOKEN_KEY, accessToken);
+    useTempAuth().setTemporaryAccessToken(accessToken);
     router.push({
       path: `/networks/${networkId.value}/complete-access`,
       query: { redirectUri: safeBtoa(redirectUrl) },

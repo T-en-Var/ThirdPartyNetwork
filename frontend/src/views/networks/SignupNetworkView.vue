@@ -159,7 +159,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import type { UserProxy, UserSignup } from '@/types';
+import type { UserProxyDto, CreateUserProxyDto } from '@/types';
 import { useGlobalStore } from '@/stores/global';
 import api from '@/api/api';
 import useNetworkAuthFlow from '@/composables/useNetworkAuthFlow';
@@ -185,11 +185,11 @@ const { buildInitialAccessState, applyAccessConsent } = useAccessConsent();
 const signUpStep = ref(1);
 const error = ref('');
 const isSubmitting = ref(false);
-const signupForm = ref<UserSignup | null>(null);
+const signupForm = ref<CreateUserProxyDto | null>(null);
 const userAccesses = ref<Record<string, AccessConsentState>>({});
 const incompleteAccess = ref<{ accessToken: string; redirectUrl: string } | null>(null);
 
-const initialSignupValues = computed<Partial<UserSignup>>(
+const initialSignupValues = computed<Partial<CreateUserProxyDto>>(
   () =>
     // Keep entered values when the user returns to step 1 (back button or a
     // failed submit); otherwise prefill from the query (return from the ToS page).
@@ -221,7 +221,7 @@ const goBackStep = () => {
   }
 };
 
-const completeStep1 = (form: UserSignup) => {
+const completeStep1 = (form: CreateUserProxyDto) => {
   error.value = '';
   signupForm.value = form;
   signUpStep.value = 2;
@@ -231,7 +231,7 @@ const onAccessChange = (accessId: string, isChecked: boolean) => {
   userAccesses.value[accessId] = { value: isChecked, userChecked: true };
 };
 
-const redirectToTos = (form: UserSignup) => {
+const redirectToTos = (form: CreateUserProxyDto) => {
   const target = router.resolve({
     path: route.path,
     query: {
@@ -271,7 +271,7 @@ async function handleSubmit() {
   try {
     const auth = await flow.authorize('register', signupForm.value);
 
-    const userResponse = await api.get<UserProxy>(`/me`, {
+    const userResponse = await api.get<UserProxyDto>(`/me`, {
       headers: { Authorization: `Bearer ${auth.accessToken}` },
     });
     const networkUserId = userResponse.data.networkUsers[0]?.id;

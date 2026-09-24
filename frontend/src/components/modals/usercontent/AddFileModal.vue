@@ -165,7 +165,7 @@ import { computed, onMounted, ref } from 'vue';
 import ModalContainer from '@/components/modals/ModalContainer.vue';
 import useFiles from '@/composables/account/useFiles';
 import { mapMediaType, readableSize } from '@/lib/utils';
-import type { UserProxy, NetworkFile, CreateUserContentForm } from '@/types';
+import type { UserProxyDto, FileDto, CreateUserContentForm } from '@/types';
 import { useAuthStore } from '@/stores/auth';
 import CloudinaryFile from '@/components/cdn/CloudinaryFile.vue';
 import ForceLoadModal from '../ForceWaitModal.vue';
@@ -199,11 +199,11 @@ withDefaults(
 
 const emit = defineEmits<{
   (e: 'close'): void;
-  (e: 'uploaded', file: NetworkFile): void;
+  (e: 'uploaded', file: FileDto): void;
 }>();
 
 const authStore = useAuthStore();
-const userProxy = ref<UserProxy | null>(null);
+const userProxy = ref<UserProxyDto | null>(null);
 const activeTab = ref<'upload' | 'existing'>('upload');
 
 onMounted(async () => {
@@ -245,7 +245,7 @@ function handleFileChange(e: Event) {
   }
 }
 
-const selectedExistingFile = ref<NetworkFile | null>(null);
+const selectedExistingFile = ref<FileDto | null>(null);
 
 const inputIsValid = computed(() => {
   if (activeTab.value === 'upload') {

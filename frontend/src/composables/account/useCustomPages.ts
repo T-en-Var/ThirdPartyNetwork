@@ -1,28 +1,28 @@
 import api from '@/api/api';
 import { userProxyKey } from '@/lib/cacheKeys';
-import type { CreateCustomPage, CreatePageBlock, CustomPage, PageBlock } from '@/types';
+import type { CreateCustomPageDto, CreatePageBlockDto, CustomPageDto, PageBlockDto, UpdatePageBlockDto } from '@/types';
 import { prependItem, useCachedApi, useMutation } from '../useApi';
 
 export default function useCustomPages() {
-  const fetchCustomPages = useCachedApi<CustomPage[], [userId: string, userProxyId: string]>(
+  const fetchCustomPages = useCachedApi<CustomPageDto[], [userId: string, userProxyId: string]>(
     (userId, userProxyId) => userProxyKey(userId, userProxyId, 'customPages'),
     async (userId, userProxyId) =>
-      await api.get<CustomPage[]>(`/users/${userId}/proxies/${userProxyId}/customPages`),
+      await api.get<CustomPageDto[]>(`/users/${userId}/proxies/${userProxyId}/customPages`),
   );
 
   const fetchCustomPage = useCachedApi<
-    CustomPage,
+    CustomPageDto,
     [networkId: string, userId: string, userProxyId: string, customPageId: string]
   >(
     (_networkId, userId, userProxyId, customPageId) =>
       userProxyKey(userId, userProxyId, 'customPages', customPageId),
     async (networkId, _userId, _userProxyId, customPageId) =>
-      await api.get<CustomPage>(`/networks/${networkId}/customPages/${customPageId}`),
+      await api.get<CustomPageDto>(`/networks/${networkId}/customPages/${customPageId}`),
   );
 
   const createCustomPage = useMutation<
-    CustomPage,
-    [networkId: string, userId: string, userProxyId: string, payload: CreateCustomPage]
+    CustomPageDto,
+    [networkId: string, userId: string, userProxyId: string, payload: CreateCustomPageDto]
   >(
     async (networkId, _userId, _userProxyId, payload) =>
       await api.post(`/networks/${networkId}/customPages/`, payload),
@@ -36,17 +36,17 @@ export default function useCustomPages() {
   );
 
   const updateCustomPage = useMutation<
-    CustomPage,
+    CustomPageDto,
     [
       networkId: string,
       userId: string,
       userProxyId: string,
       customPageId: string,
-      payload: CreateCustomPage,
+      payload: CreateCustomPageDto,
     ]
   >(
     async (networkId, _userId, _userProxyId, customPageId, payload) =>
-      await api.put<CustomPage, CreateCustomPage>(
+      await api.put<CustomPageDto, CreateCustomPageDto>(
         `/networks/${networkId}/customPages/${customPageId}`,
         payload,
       ),
@@ -64,7 +64,7 @@ export default function useCustomPages() {
   const deleteCustomPage = useMutation<
     void,
     [networkId: string, userId: string, userProxyId: string, customPageId: string],
-    CustomPage
+    CustomPageDto
   >(
     async (networkId, _userId, _userProxyId, customPageId) =>
       await api.delete(`/networks/${networkId}/customPages/${customPageId}/`),
@@ -80,13 +80,13 @@ export default function useCustomPages() {
   );
 
   const createPageBlock = useMutation<
-    PageBlock,
+    PageBlockDto,
     [
       networkId: string,
       userId: string,
       userProxyId: string,
       customPageId: string,
-      payload: CreatePageBlock,
+      payload: CreatePageBlockDto,
     ],
     unknown
   >(
@@ -98,27 +98,27 @@ export default function useCustomPages() {
       listKeyFactory: (_networkId, userId, userProxyId, customPageId) =>
         userProxyKey(userId, userProxyId, 'customPages', customPageId),
       listUpdater: (currentList, result) => {
-        const customPage = currentList as unknown as CustomPage;
-        customPage.pages = [result, ...customPage.pages];
-        return customPage as unknown as PageBlock[];
+        const customPage = currentList as unknown as CustomPageDto;
+        customPage.blocks = [result, ...customPage.blocks];
+        return customPage as unknown as PageBlockDto[];
       },
     },
   );
 
   const updatePageBlock = useMutation<
-    PageBlock,
+    PageBlockDto,
     [
       networkId: string,
       userId: string,
       userProxyId: string,
       customPageId: string,
       pageBlockId: string,
-      payload: PageBlock,
+      payload: UpdatePageBlockDto,
     ],
     unknown
   >(
     async (networkId, _userId, _userProxyId, customPageId, pageBlockId, payload) =>
-      await api.put<PageBlock, PageBlock>(
+      await api.put<PageBlockDto, UpdatePageBlockDto>(
         `/networks/${networkId}/customPages/${customPageId}/pageBlocks/${pageBlockId}`,
         payload,
       ),
@@ -129,8 +129,8 @@ export default function useCustomPages() {
       listKeyFactory: (_networkId, userId, userProxyId, customPageId) =>
         userProxyKey(userId, userProxyId, 'customPages', customPageId),
       listUpdater: (currentList, result) => {
-        const customPage = currentList as unknown as CustomPage;
-        customPage.pages = customPage.pages.map((item) => (item.id === result.id ? result : item));
+        const customPage = currentList as unknown as CustomPageDto;
+        customPage.blocks = customPage.blocks.map((item) => (item.id === result.id ? result : item));
         return customPage as unknown as unknown[];
       },
     },
@@ -166,8 +166,8 @@ export default function useCustomPages() {
         _customPageId,
         pageBlockId,
       ) => {
-        const customPage = currentList as unknown as CustomPage;
-        customPage.pages = customPage.pages.filter((item) => item.id !== pageBlockId);
+        const customPage = currentList as unknown as CustomPageDto;
+        customPage.blocks = customPage.blocks.filter((item) => item.id !== pageBlockId);
         return customPage as unknown as unknown[];
       },
     },

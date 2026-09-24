@@ -1,20 +1,14 @@
 import { ref, computed } from 'vue';
 import { defineStore } from 'pinia';
 import { type InternalAxiosRequestConfig } from 'axios';
-import type {
-  AccessTokenClaims,
-  Network,
-  NetworkPermissionCollection,
-  UserLogin,
-  UserProxy,
-  UserSignup,
-} from '@/types';
+
 import { decodeJWT } from '@/lib/utils';
 import { ClaimChecker } from '@/lib/claimChecker';
 import useNetworks from '@/composables/useNetworks';
 import { clearAllHistoryStores } from './history';
 import useAuthentication from '@/composables/useAuthentication';
 import useUserProxy from '@/composables/useUserProxy';
+import type { AccessTokenClaims, CreateUserProxyDto, LoginDto, NetworkDto, NetworkLightDto, NetworkPermissionsCollectionDto, UserProxyDto } from '@/types';
 
 const ACCESS_TOKEN_KEY = 'access_token';
 
@@ -38,11 +32,11 @@ export const useAuthStore = defineStore('auth', () => {
 
   const modalMode = ref<'signup' | 'login'>('signup');
 
-  const currentUserProxy = ref<UserProxy | null>(null);
+  const currentUserProxy = ref<UserProxyDto | null>(null);
   const loading = computed(() => auth.loading.value);
   const error = computed(() => auth.error.value);
   const accessToken = ref<string | null>(null);
-  const permissionCollection = ref<NetworkPermissionCollection[]>([]);
+  const permissionCollection = ref<NetworkPermissionsCollectionDto[]>([]);
 
   const isAuthenticated = computed(() => {
     loadTokens();
@@ -51,127 +45,127 @@ export const useAuthStore = defineStore('auth', () => {
   });
 
   const canI = {
-    bypassEverything: (network: Network) =>
+    bypassEverything: (network: NetworkDto | NetworkLightDto) =>
       claimChecker.hasPermission(
         permissionCollection.value,
         network.id,
         claimChecker.permissions.Administrator,
       ),
-    readNetwork: (network: Network) =>
+    readNetwork: (network: NetworkDto | NetworkLightDto) =>
       claimChecker.hasPermission(
         permissionCollection.value,
         network.id,
         claimChecker.permissions['Read Network'],
       ),
-    manageNetwork: (network: Network) =>
+    manageNetwork: (network: NetworkDto | NetworkLightDto) =>
       claimChecker.hasPermission(
         permissionCollection.value,
         network.id,
         claimChecker.permissions['Manage Network'],
       ),
-    readAccess: (network: Network) =>
+    readAccess: (network: NetworkDto | NetworkLightDto) =>
       claimChecker.hasPermission(
         permissionCollection.value,
         network.id,
         claimChecker.permissions['Read Access'],
       ),
-    manageAccess: (network: Network) =>
+    manageAccess: (network: NetworkDto | NetworkLightDto) =>
       claimChecker.hasPermission(
         permissionCollection.value,
         network.id,
         claimChecker.permissions['Manage Access'],
       ),
-    readPermission: (network: Network) =>
+    readPermission: (network: NetworkDto | NetworkLightDto) =>
       claimChecker.hasPermission(
         permissionCollection.value,
         network.id,
         claimChecker.permissions['Read Permission'],
       ),
-    managePermission: (network: Network) =>
+    managePermission: (network: NetworkDto | NetworkLightDto) =>
       claimChecker.hasPermission(
         permissionCollection.value,
         network.id,
         claimChecker.permissions['Manage Permission'],
       ),
-    readRole: (network: Network) =>
+    readRole: (network: NetworkDto | NetworkLightDto) =>
       claimChecker.hasPermission(
         permissionCollection.value,
         network.id,
         claimChecker.permissions['Read Role'],
       ),
-    manageRole: (network: Network) =>
+    manageRole: (network: NetworkDto | NetworkLightDto) =>
       claimChecker.hasPermission(
         permissionCollection.value,
         network.id,
         claimChecker.permissions['Manage Role'],
       ),
-    readUser: (network: Network) =>
+    readUser: (network: NetworkDto | NetworkLightDto) =>
       claimChecker.hasPermission(
         permissionCollection.value,
         network.id,
         claimChecker.permissions['Read User'],
       ),
-    manageUser: (network: Network) =>
+    manageUser: (network: NetworkDto | NetworkLightDto) =>
       claimChecker.hasPermission(
         permissionCollection.value,
         network.id,
         claimChecker.permissions['Manage User'],
       ),
-    readCustomPage: (network: Network) =>
+    readCustomPage: (network: NetworkDto | NetworkLightDto) =>
       claimChecker.hasPermission(
         permissionCollection.value,
         network.id,
         claimChecker.permissions['Read CustomPage'],
       ),
-    manageCustomPage: (network: Network) =>
+    manageCustomPage: (network: NetworkDto | NetworkLightDto) =>
       claimChecker.hasPermission(
         permissionCollection.value,
         network.id,
         claimChecker.permissions['Manage CustomPage'],
       ),
-    readPageBlock: (network: Network) =>
+    readPageBlock: (network: NetworkDto | NetworkLightDto) =>
       claimChecker.hasPermission(
         permissionCollection.value,
         network.id,
         claimChecker.permissions['Read PageBlock'],
       ),
-    managePageBlock: (network: Network) =>
+    managePageBlock: (network: NetworkDto | NetworkLightDto) =>
       claimChecker.hasPermission(
         permissionCollection.value,
         network.id,
         claimChecker.permissions['Manage PageBlock'],
       ),
-    readFile: (network: Network) =>
+    readFile: (network: NetworkDto | NetworkLightDto) =>
       claimChecker.hasPermission(
         permissionCollection.value,
         network.id,
         claimChecker.permissions['Read File'],
       ),
-    manageFile: (network: Network) =>
+    manageFile: (network: NetworkDto | NetworkLightDto) =>
       claimChecker.hasPermission(
         permissionCollection.value,
         network.id,
         claimChecker.permissions['Manage File'],
       ),
-    readConfiguration: (network: Network) =>
+    readConfiguration: (network: NetworkDto | NetworkLightDto) =>
       claimChecker.hasPermission(
         permissionCollection.value,
         network.id,
         claimChecker.permissions['Read Configuration'],
       ),
-    manageConfiguration: (network: Network) =>
+    manageConfiguration: (network: NetworkDto | NetworkLightDto) =>
       claimChecker.hasPermission(
         permissionCollection.value,
         network.id,
         claimChecker.permissions['Manage Configuration'],
       ),
-    readBlog: (network: Network) =>
+    readBlog: (network: NetworkDto | NetworkLightDto) =>
       claimChecker.hasPermission(
         permissionCollection.value,
         network.id,
         claimChecker.permissions['Read Blog'],
       ),
-    manageBlog: (network: Network) =>
+    manageBlog: (network: NetworkDto | NetworkLightDto) =>
       claimChecker.hasPermission(
         permissionCollection.value,
         network.id,
@@ -229,22 +223,22 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   // --- Authentication Flow ---
-  async function login(form: UserLogin) {
+  async function login(form: LoginDto) {
     await auth.login(form.email, form.password);
     await handleAuthenticated();
   }
 
-  async function signUp(form: UserSignup) {
+  async function signUp(form: CreateUserProxyDto) {
     await auth.signUp(form.username, form.email, form.firstName, form.lastName, form.password);
     await handleAuthenticated();
   }
 
-  async function networkLogin(networkId: string, form: UserLogin) {
+  async function networkLogin(networkId: string, form: LoginDto) {
     await auth.networkLogin(networkId, form.email, form.password);
     await handleAuthenticated();
   }
 
-  async function networkSignUp(networkId: string, form: UserSignup) {
+  async function networkSignUp(networkId: string, form: CreateUserProxyDto) {
     await auth.networkSignUp(
       networkId,
       form.username,

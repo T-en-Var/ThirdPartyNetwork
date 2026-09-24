@@ -47,3 +47,8 @@ export interface NetworkUserLightWithNetworkDto {
   entitlements: unknown;
   network: NetworkLightDto;
 }
+
+export interface NetworkUserUserProxyCascadeDto extends NetworkUserLightWithNetworkDto {
+  networkUserAccesses: NetworkUserAccessNtADto[];
+  networkUserRoles: NetworkUserRoleNtRDto[];
+} 

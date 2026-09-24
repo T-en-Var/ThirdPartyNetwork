@@ -1,6 +1,6 @@
 import type { FileDto, FileLightDto } from '../UserContent/File/FileDto';
 import type { UserLightDto } from '../User/UserDto';
-import type { NetworkUserLightWithNetworkDto } from '../NetworkUser/NetworkUserDto';
+import type { NetworkUserLightWithNetworkDto, NetworkUserUserProxyCascadeDto } from '../NetworkUser/NetworkUserDto';
 
 export interface UserProxyDto {
   id: string;
@@ -14,6 +14,10 @@ export interface UserProxyDto {
   createdOn: string;
   user: UserLightDto;
   networkUsers: NetworkUserLightWithNetworkDto[];
+}
+
+export interface UserProxyExtraCascadeDto extends UserProxyDto {
+  networkUsers: NetworkUserUserProxyCascadeDto[];
 }
 
 export interface UserProxyLightDto {

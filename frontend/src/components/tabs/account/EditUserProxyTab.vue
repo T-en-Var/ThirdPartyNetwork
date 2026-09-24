@@ -145,6 +145,7 @@
         <input
           v-model="form.email"
           type="email"
+          autocomplete="off"
           class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-600 focus:ring focus:ring-blue-100"
         />
       </section>
@@ -189,6 +190,7 @@
             <input
               v-model="form.password"
               type="password"
+              autocomplete="new-password"
               :class="[
                 'mt-1 block w-full rounded-lg border px-3 py-2 text-sm shadow-sm focus:ring focus:ring-blue-100',
                 form.isDefault && !userProxy.hasPassword && !form.password
@@ -209,6 +211,7 @@
             <input
               v-model="form.password_retype"
               type="password"
+              autocomplete="off"
               class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-600 focus:ring focus:ring-blue-100"
             />
             <p
@@ -300,7 +303,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import CloudinaryFile from '@/components/cdn/CloudinaryFile.vue';
-import type { Network, NetworkFile, UserProxy, UserProxyForm, UserProxyUpdate } from '@/types';
 import { useHistoryStore } from '@/stores/history';
 import { useRoute, useRouter } from 'vue-router';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
@@ -308,6 +310,7 @@ import NetworkCard from '@/components/NetworkCard.vue';
 import { useAuthStore } from '@/stores/auth';
 import AddFileModal from '@/components/modals/usercontent/AddFileModal.vue';
 import useUsers from '@/composables/useUsers';
+import type { FileDto, NetworkLightDto, UpdateUserProxyDto, UpdateUserProxyForm, UserProxyLightWithNetworksDto } from '@/types';
 
 const route = useRoute();
 const router = useRouter();
@@ -315,12 +318,12 @@ const authStore = useAuthStore();
 
 const { data: user, loading, error, execute: fetchUser } = useUsers().fetchUser;
 
-const uploadedFile = ref<NetworkFile | null>(null);
+const uploadedFile = ref<FileDto | null>(null);
 const showUploadModal = ref(false);
-const userProxy = ref<UserProxy | null>(null);
+const userProxy = ref<UserProxyLightWithNetworksDto | null>(null);
 
 const emit = defineEmits<{
-  (e: 'updateUserProxy', payload: UserProxyUpdate): void;
+  (e: 'updateUserProxy', id: string, payload: UpdateUserProxyDto): void;
   (e: 'deleteUserProxy', id: string): void;
 }>();
 
@@ -351,10 +354,10 @@ async function handleMounted() {
   historyStore.visit.userProxies(userProxy.value);
 
   form.value = {
-    username: userProxy.value.username,
-    firstName: userProxy.value.firstName,
-    lastName: userProxy.value.lastName,
-    email: userProxy.value.email,
+    username: userProxy.value.username ?? undefined,
+    firstName: userProxy.value.firstName ?? undefined,
+    lastName: userProxy.value.lastName ?? undefined,
+    email: userProxy.value.email ?? undefined,
     isDefault: userProxy.value.isDefault,
     keepPassword: true,
     password: '',
@@ -367,12 +370,12 @@ async function handleMounted() {
   original = JSON.stringify(form.value);
 }
 
-const form = ref<UserProxyForm>({ keepPassword: true, isDefault: false });
+const form = ref<UpdateUserProxyForm>({ keepPassword: true, isDefault: false });
 
 let original = '';
 const hasChanges = computed(() => JSON.stringify(form.value) !== original);
 
-const networks = computed<Network[]>(
+const networks = computed<NetworkLightDto[]>(
   () => userProxy.value?.networkUsers.map((nu) => nu.network) ?? [],
 );
 
@@ -384,18 +387,17 @@ function saveChanges() {
   if (!userProxy.value) return;
   if (form.value.password && form.value.password !== form.value.password_retype) return;
 
-  const payload: UserProxyUpdate = {
+  const payload: UpdateUserProxyDto = {
     ...form.value,
-    id: userProxy.value.id,
-    username: form.value.username || undefined,
-    firstName: form.value.firstName || undefined,
-    lastName: form.value.lastName || undefined,
-    email: form.value.email || undefined,
-    password: form.value.password || undefined,
-    fileLink: form.value.fileLink || undefined,
+    username: form.value.username || null,
+    firstName: form.value.firstName || null,
+    lastName: form.value.lastName || null,
+    email: form.value.email || null,
+    password: form.value.password || null,
+    fileLink: form.value.fileLink || null,
   };
 
-  emit('updateUserProxy', payload);
+  emit('updateUserProxy', userProxy.value.id, payload);
 
   setTimeout(async () => {
     await handleMounted();
@@ -408,13 +410,13 @@ function deleteProxy() {
   emit('deleteUserProxy', userProxy.value.id);
 }
 
-const checkCanManage = (network: Network) => authStore.canI.manageNetwork(network);
+const checkCanManage = (network: NetworkLightDto) => authStore.canI.manageNetwork(network);
 
 function openUploadModal() {
   showUploadModal.value = true;
 }
 
-function handleImageUploaded(file: NetworkFile) {
+function handleImageUploaded(file: FileDto) {
   form.value.fileLink = { id: file.id };
   uploadedFile.value = file;
   showUploadModal.value = false;

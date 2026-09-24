@@ -1,5 +1,5 @@
 import type { UserContentBaseDto, UserContentBaseLightDto } from '../UserContentBase/UserContentBaseDto';
-import type { PageLightDto } from '../CustomPage/PageDto';
+import type { CustomPageLightDto } from '../CustomPage/CustomPageDto';
 
 export interface PageBlockDto extends UserContentBaseDto {
   parentPageId: string | null;
@@ -7,7 +7,7 @@ export interface PageBlockDto extends UserContentBaseDto {
   position: number;
   data: unknown;
   customPageId: string;
-  page: PageLightDto;
+  page: CustomPageLightDto;
 }
 
 export interface PageBlockLightDto extends UserContentBaseLightDto {

@@ -1,56 +1,49 @@
 import api from '@/api/api';
-import type {
-  CreateUser,
-  User,
-  UpdateUser,
-  UserMetrics,
-  UserProxy,
-  UserProxyCreate,
-} from '@/types';
 import { globalCache, useCachedApi, useMutation } from './useApi';
+import type { CreateUserDto, CreateUserProxyDto, UpdateUserDto, UserDto, UserMetricsDto, UserProxyDto, UserWithNetworksDto } from '@/types';
 
 export default function useUsers() {
-  const fetchUsers = useCachedApi<User[], []>(
+  const fetchUsers = useCachedApi<UserWithNetworksDto[], []>(
     () => `users`,
     async () => {
-      const result = await api.get<User[]>(`/users/`);
+      const result = await api.get<UserWithNetworksDto[]>(`/users/`);
       return result;
     },
   );
-  const forceFetchUsers = useCachedApi<User[], []>(
+  const forceFetchUsers = useCachedApi<UserWithNetworksDto[], []>(
     () => `users`,
     async () => {
-      const result = await api.get<User[]>(`/users/`);
+      const result = await api.get<UserWithNetworksDto[]>(`/users/`);
       return result;
     },
     undefined,
     true,
   );
 
-  const fetchUser = useCachedApi<User, [userId: string]>(
+  const fetchUser = useCachedApi<UserWithNetworksDto, [userId: string]>(
     (userId) => `users_${userId}`,
-    async (userId) => await api.get<User>(`/users/${userId}/`),
+    async (userId) => await api.get<UserWithNetworksDto>(`/users/${userId}/`),
     undefined,
     undefined,
     {
       initialData: (userId) => {
-        const users = globalCache.get(`users`)?.data.value as User[] | undefined;
+        const users = globalCache.get(`users`)?.data.value as UserWithNetworksDto[] | undefined;
         return users?.find((u) => u.id == userId) ?? null;
       },
     },
   );
 
-  const fetchUsersMetrics = useCachedApi<UserMetrics[], []>(
+  const fetchUsersMetrics = useCachedApi<UserMetricsDto[], []>(
     () => `users_metrics`,
     async () => {
-      const result = await api.get<UserMetrics[]>(`/metrics/users/`);
+      const result = await api.get<UserMetricsDto[]>(`/metrics/users/`);
       return result;
     },
   );
 
-  const createUser = useMutation<User, [payload: CreateUser]>(
+  const createUser = useMutation<UserDto, [payload: CreateUserDto]>(
     async (payload) => {
-      const response = await api.post<User, CreateUser>(`/users/`, payload);
+      const response = await api.post<UserDto, CreateUserDto>(`/users/`, payload);
       return response;
     },
     {
@@ -63,7 +56,7 @@ export default function useUsers() {
     },
   );
 
-  const createUserProxy = useMutation<UserProxy, [userId: string, payload: UserProxyCreate], User>(
+  const createUserProxy = useMutation<UserProxyDto, [userId: string, payload: CreateUserProxyDto], UserDto>(
     async (userId, payload) => {
       return await api.post(`/users/${userId}/proxies/`, payload);
     },
@@ -71,16 +64,16 @@ export default function useUsers() {
       itemKeyFactory: (result, userId) => `users_${userId}_proxies_${result.id}`,
       listKeyFactory: (userId) => `users_${userId}`,
       listUpdater: (currentList, result) => {
-        const newList = currentList as unknown as User;
+        const newList = currentList as unknown as UserDto;
         newList.userProxies = [...newList.userProxies, result];
-        return newList as unknown as User[];
+        return newList as unknown as UserDto[];
       },
     },
   );
 
-  const updateUser = useMutation<User, [userId: string, payload: UpdateUser]>(
+  const updateUser = useMutation<UserDto, [userId: string, payload: UpdateUserDto]>(
     async (userId, payload) => {
-      const response = await api.put<User, UpdateUser>(`/users/${userId}`, payload);
+      const response = await api.put<UserDto, UpdateUserDto>(`/users/${userId}`, payload);
       return response;
     },
     {
@@ -93,7 +86,7 @@ export default function useUsers() {
     },
   );
 
-  const deleteUser = useMutation<void, [userId: string], User>(
+  const deleteUser = useMutation<void, [userId: string], UserDto>(
     async (userId) => {
       return await api.delete(`/users/${userId}/`);
     },

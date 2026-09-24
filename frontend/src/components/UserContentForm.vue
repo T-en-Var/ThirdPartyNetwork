@@ -73,7 +73,7 @@
 </template>
 
 <script setup lang="ts">
-import type { CreateUserContentForm, Network } from '@/types';
+import type { CreateUserContentForm, NetworkDto } from '@/types';
 import { computed, onMounted, ref, watch } from 'vue';
 import AccessLevelPicker from '@/components/fields/AccessLevelPicker.vue';
 import useNetworks from '@/composables/useNetworks';
@@ -100,8 +100,8 @@ const warningText = ref('');
 let warningTextTimeout: ReturnType<typeof setTimeout> | null = null;
 
 const showNetworkSelector = computed(() => !!props.networkIds);
-const selectedNetwork = ref<Network | null>(null);
-const networks = ref<Record<string, Network>>({});
+const selectedNetwork = ref<NetworkDto | null>(null);
+const networks = ref<Record<string, NetworkDto>>({});
 
 onMounted(() => {
   if (props.networkId === undefined && props.networkIds === undefined)

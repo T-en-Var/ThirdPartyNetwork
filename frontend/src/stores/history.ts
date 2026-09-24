@@ -1,4 +1,4 @@
-import type { Blog, Configuration, CustomPage, Network, PageBlock, User, UserProxy } from '@/types';
+import type { BlogDto, ConfigurationDto, CustomPageDto, NetworkDto, PageBlockDto, UserDto, UserProxyDto } from '@/types';
 import { defineStore } from 'pinia';
 import { reactive } from 'vue';
 
@@ -8,13 +8,13 @@ export const DEFAULT_STORES = {
 };
 
 export interface HistoryModelMap {
-  userProxies: UserProxy;
-  networks: Network;
-  users: User;
-  configurations: Configuration;
-  blogs: Blog;
-  customPages: CustomPage;
-  pageBlocks: PageBlock;
+  userProxies: UserProxyDto;
+  networks: NetworkDto;
+  users: UserDto;
+  configurations: ConfigurationDto;
+  blogs: BlogDto;
+  customPages: CustomPageDto;
+  pageBlocks: PageBlockDto;
 }
 
 export type HistoryType = keyof HistoryModelMap;

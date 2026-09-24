@@ -1,4 +1,4 @@
-import type { NetworkPermissionCollection } from '@/types';
+import type { NetworkPermissionsCollectionDto } from '@/types';
 
 export class ClaimChecker {
   permissions = {
@@ -31,7 +31,7 @@ export class ClaimChecker {
   constructor() {}
 
   private getNetworkCollection = (
-    collections: NetworkPermissionCollection[],
+    collections: NetworkPermissionsCollectionDto[],
     networkId: string,
   ) => {
     return collections.find((collection) => collection.id == networkId);
@@ -45,7 +45,7 @@ export class ClaimChecker {
     return value;
   };
 
-  hasPermission(collections: NetworkPermissionCollection[], networkId: string, permission: string) {
+  hasPermission(collections: NetworkPermissionsCollectionDto[], networkId: string, permission: string) {
     if (!collections) return false;
 
     const permissionValue = this.getPermissionValue(permission);

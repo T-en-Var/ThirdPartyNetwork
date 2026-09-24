@@ -119,7 +119,12 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import type { ErrorMessage, NetworkUser, UserProxy } from '@/types';
+import type {
+  ErrorMessage,
+  NetworkDto,
+  NetworkUserUserProxyCascadeDto,
+  UserProxyExtraCascadeDto,
+} from '@/types';
 import { useGlobalStore } from '@/stores/global';
 import type { AxiosError } from 'axios';
 
@@ -130,11 +135,10 @@ import NetworkLogo from '@/components/NetworkLogo.vue';
 
 import ErrorAlert from '@/components/ErrorAlert.vue';
 import UserProxyDisplay from '@/components/UserProxyDisplay.vue';
-import api from '@/api/api';
 import useNetworks from '@/composables/useNetworks';
 import useAccessConsent, { type AccessConsentState } from '@/composables/useAccessConsent';
-import { TEMPORARY_ACCESS_TOKEN_KEY } from '@/composables/useNetworkAuthFlow';
 import { safeAtob } from '@/lib/utils';
+import useTempAuth from '@/composables/useTempAuth';
 
 type UserAccessState = AccessConsentState;
 
@@ -142,19 +146,18 @@ const router = useRouter();
 const route = useRoute();
 const global = useGlobalStore();
 const { buildInitialAccessState, applyAccessConsent } = useAccessConsent();
+const tempUserState = useTempAuth();
 
 const networksState = useNetworks();
 const { data: network, loading, execute: fetchNetworkDetails } = networksState.fetchNetworkDetails;
 
 const isSubmitting = ref(false);
 const submitError = ref('');
-const currentUser = ref<UserProxy | null>(null);
-const currentNetworkUser = ref<NetworkUser | null>(null);
+const currentUser = ref<UserProxyExtraCascadeDto | null>(null);
+const currentNetworkUser = ref<NetworkUserUserProxyCascadeDto | null>(null);
 const userAccesses = ref<Record<string, UserAccessState>>({});
 const pageLoading = ref(true);
 const accessListRef = ref<InstanceType<typeof NetworkAccessList> | null>(null);
-
-let temporaryAccessToken = '';
 
 const networkId = computed(() => route.params.networkId as string);
 
@@ -168,8 +171,8 @@ const canSubmit = computed(() => {
   return requiredAccesses.every((na) => accessesRecord[na.access.id]?.value);
 });
 
-onMounted(async () => {
-  temporaryAccessToken = localStorage.getItem(TEMPORARY_ACCESS_TOKEN_KEY) || '';
+const initialize = async () => {
+  const temporaryAccessToken = tempUserState.getTemporaryAccessToken();
   if (!temporaryAccessToken) {
     router.push({
       path: `/networks/${networkId.value}/login`,
@@ -180,40 +183,33 @@ onMounted(async () => {
   }
 
   await fetchNetworkDetails(networkId.value);
-
-  if (network.value) {
-    try {
-      const userResponse = await api.get<UserProxy>(`/me`, {
-        headers: { Authorization: `Bearer ${temporaryAccessToken}` },
-      });
-
-      if (userResponse.status !== 200) {
-        throw new Error('Failed to fetch user data.');
-      }
-
-      currentUser.value = userResponse.data;
-
-      const networkUser = currentUser.value.networkUsers.find(
-        (nu) => nu.networkId === networkId.value,
-      );
-      if (!networkUser) {
-        throw new Error('User not linked to this network.');
-      }
-      currentNetworkUser.value = networkUser;
-
-      userAccesses.value = buildInitialAccessState(network.value.networkAccesses, (na) =>
-        networkUser.networkUserAccesses.some(
-          (nua) => nua.access.id === na.access.id && nua.isAccepted,
-        ),
-      );
-    } catch (e) {
-      console.error(e);
-      submitError.value = 'Authentication error. Please log in again.';
-    }
-  }
+  await buildData();
 
   pageLoading.value = false;
-});
+};
+
+const buildData = async () => {
+  if (!network.value) return;
+
+  try {
+    currentUser.value = await tempUserState.fetchUser();
+  } catch (e) {
+    console.error(e);
+    submitError.value = 'Authentication error. Please log in again.';
+    return;
+  }
+
+  const networkUser = currentUser.value.networkUsers.find((nu) => nu.networkId === networkId.value);
+  if (!networkUser) {
+    submitError.value = 'User not linked to this network.';
+    return;
+  }
+  currentNetworkUser.value = networkUser;
+
+  userAccesses.value = buildInitialAccessState(network.value.networkAccesses, (na) =>
+    networkUser.networkUserAccesses.some((nua) => nua.access.id === na.access.id && nua.isAccepted),
+  );
+};
 
 function updateAccessConsent(accessId: string, isChecked: boolean, isRequired: boolean) {
   void isRequired;
@@ -221,6 +217,46 @@ function updateAccessConsent(accessId: string, isChecked: boolean, isRequired: b
 
   userAccesses.value[accessId] = { value: isChecked, userChecked: true };
 }
+
+const splitAccesses = (
+  network: NetworkDto,
+  currentNetworkUser: NetworkUserUserProxyCascadeDto,
+  finalAccessState: Record<string, UserAccessState>,
+) => {
+  const acceptedAccesses: string[] = [];
+  const rejectedAccesses: string[] = [];
+
+  for (const access of network.networkAccesses) {
+    const isCurrentlyAccepted =
+      currentNetworkUser.networkUserAccesses.find((n) => n.access.id === access.access.id)
+        ?.isAccepted || false;
+
+    const shouldBeAccepted = finalAccessState[access.access.id]?.value ?? false;
+
+    if (shouldBeAccepted && !isCurrentlyAccepted) {
+      acceptedAccesses.push(access.access.id);
+    } else if (!shouldBeAccepted && isCurrentlyAccepted) {
+      rejectedAccesses.push(access.access.id);
+    }
+  }
+
+  return { acceptedAccesses, rejectedAccesses };
+};
+
+const triggerUpdate = async (
+  network: NetworkDto,
+  currentNetworkUser: NetworkUserUserProxyCascadeDto,
+) => {
+  const accessId = network.networkAccesses[0]?.access.id;
+
+  if (accessId) {
+    const isAccepted =
+      currentNetworkUser.networkUserAccesses.find((n) => n.access.id === accessId)?.isAccepted ||
+      false;
+
+    await applyAccessConsent(networkId.value, currentNetworkUser.id, [accessId], isAccepted);
+  }
+};
 
 async function handleUpdateAccesses() {
   if (!currentUser.value || !network.value || !currentNetworkUser.value) return;
@@ -233,81 +269,52 @@ async function handleUpdateAccesses() {
   isSubmitting.value = true;
 
   try {
-    const acceptedAccesses: string[] = [];
-    const rejectedAccesses: string[] = [];
-
-    for (const access of network.value.networkAccesses) {
-      const isCurrentlyAccepted =
-        currentNetworkUser.value.networkUserAccesses.find((n) => n.access.id === access.access.id)
-          ?.isAccepted || false;
-
-      const shouldBeAccepted = finalAccessState[access.access.id]?.value ?? false;
-
-      if (shouldBeAccepted && !isCurrentlyAccepted) {
-        acceptedAccesses.push(access.access.id);
-      } else if (!shouldBeAccepted && isCurrentlyAccepted) {
-        rejectedAccesses.push(access.access.id);
-      }
-    }
+    const { acceptedAccesses, rejectedAccesses } = splitAccesses(
+      network.value,
+      currentNetworkUser.value,
+      finalAccessState,
+    );
 
     await Promise.all([
-      applyAccessConsent(
-        networkId.value,
-        currentNetworkUser.value.id,
-        acceptedAccesses,
-        true,
-        temporaryAccessToken,
-      ),
-      applyAccessConsent(
-        networkId.value,
-        currentNetworkUser.value.id,
-        rejectedAccesses,
-        false,
-        temporaryAccessToken,
-      ),
+      applyAccessConsent(networkId.value, currentNetworkUser.value.id, acceptedAccesses, true),
+      applyAccessConsent(networkId.value, currentNetworkUser.value.id, rejectedAccesses, false),
     ]);
 
     if (acceptedAccesses.length === 0 && rejectedAccesses.length === 0) {
-      const accessId = network.value.networkAccesses[0]?.access.id;
-
-      if (accessId) {
-        const isAccepted =
-          currentNetworkUser.value.networkUserAccesses.find((n) => n.access.id === accessId)
-            ?.isAccepted || false;
-
-        await applyAccessConsent(
-          networkId.value,
-          currentNetworkUser.value.id,
-          [accessId],
-          isAccepted,
-          temporaryAccessToken,
-        );
-      }
+      await triggerUpdate(network.value, currentNetworkUser.value);
     }
 
-    const redirectUrl = safeAtob(route.query.redirectUri as string | undefined) || '/';
-    localStorage.removeItem(TEMPORARY_ACCESS_TOKEN_KEY);
-    window.location.href = redirectUrl;
+    handleRedirect();
   } catch (err) {
     const axiosError = err as AxiosError<ErrorMessage>;
-    submitError.value =
-      axiosError.response?.data?.message || 'Failed to update access. Please try again later.';
-
-    if (axiosError.response?.status === 403) {
-      submitError.value += '\nYour session has likely expired. Please log in again.';
-    }
+    handleUpdateError(axiosError);
   } finally {
     isSubmitting.value = false;
     global.stopFetching();
   }
 }
 
+const handleRedirect = () => {
+  const redirectUrl = safeAtob(route.query.redirectUri as string | undefined) || '/';
+  tempUserState.removeTemporaryAccessToken();
+  window.location.href = redirectUrl;
+};
+
+const handleUpdateError = (axiosError: AxiosError<ErrorMessage>) => {
+  submitError.value =
+    axiosError.response?.data?.message || 'Failed to update access. Please try again later.';
+
+  if (axiosError.response?.status === 403) {
+    submitError.value += '\nYour session has likely expired. Please log in again.';
+  }
+};
+
 function navigateBack() {
   router.back();
 }
 
 function switchAccount() {
-  localStorage.removeItem(TEMPORARY_ACCESS_TOKEN_KEY);
+  tempUserState.removeTemporaryAccessToken();
   router.push({
     path: `/networks/${networkId.value}/login`,
     query: { redirectUri: route.query.redirectUri },
@@ -317,4 +324,8 @@ function switchAccount() {
 function handleNetworkDetails() {
   router.push(`/networks/${networkId.value}`);
 }
+
+onMounted(async () => {
+  await initialize();
+});
 </script>

@@ -11,7 +11,7 @@ export interface NetworkDto {
   description: string;
   redirectURI: string;
   imageFile: FileDto | null;
-  createdOn: string;
+  createdOn: Date;
   isPublic: boolean;
   externalContentKinds: ContentKindFlags;
   networkAccesses: NetworkAccessNtADto[];

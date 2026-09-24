@@ -244,12 +244,13 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import type {
-  ErrorMessage,
-  Network,
-  CreateNetwork,
-  NetworkFile,
-  NetworkAccessCreate,
+import {
+  type ErrorMessage,
+  type NetworkDto,
+  type CreateNetworkDto,
+  type FileDto,
+  ContentKindFlags,
+  type CreateNetworkAccessForm,
 } from '@/types';
 import api from '@/api/api';
 import { useGlobalStore } from '@/stores/global';
@@ -271,7 +272,7 @@ const error = ref('');
 const titleValue = ref('');
 const progessValue = ref(0);
 
-const uploadedFile = ref<NetworkFile | null>(null);
+const uploadedFile = ref<FileDto | null>(null);
 const showUploadModal = ref(false);
 const showAddAccessModal = ref(false);
 
@@ -282,15 +283,15 @@ onMounted(async () => {
   await networkState.execute();
 });
 
-const form = ref<CreateNetwork>({
+const form = ref<CreateNetworkDto>({
   name: '',
   description: '',
   isPublic: false,
-  fileLink: undefined,
+  fileLink: null,
   redirectURI: '',
 });
 
-const fakeNetwork = ref<Network>({
+const fakeNetwork = ref<NetworkDto>({
   ...form.value,
   createdOn: new Date(),
   id: '',
@@ -298,14 +299,17 @@ const fakeNetwork = ref<Network>({
   networkAccesses: [],
   networkUsers: [],
   roles: [],
+  imageFile: null, 
+  externalContentKinds: ContentKindFlags.File, 
+  entitlement: null
 });
 
-function addAccessToNetwork(networkAccess: NetworkAccessCreate) {
+function addAccessToNetwork(networkAccess: CreateNetworkAccessForm) {
   if (!networkAccess.access) return;
   fakeNetwork.value.networkAccesses.push({
-    network: {} as Network,
-    access: networkAccess.access!,
+    accessId: networkAccess.access.id,
     isRequired: networkAccess.isRequired,
+    access: networkAccess.access,
   });
   showAddAccessModal.value = false;
 }
@@ -317,14 +321,14 @@ function removeAccess(index: number) {
 async function handleSubmit() {
   error.value = '';
   isSubmitting.value = true;
-  let newNetwork: Network;
+  let newNetwork: NetworkDto;
 
   titleValue.value = 'Uploading network data';
   progessValue.value = 0;
 
   try {
     global.startFetching();
-    const networkResponse = await api.post<Network, CreateNetwork>('/networks/', {
+    const networkResponse = await api.post<NetworkDto, CreateNetworkDto>('/networks/', {
       name: form.value.name.trim(),
       description: form.value.description.trim(),
       fileLink: form.value.fileLink,
@@ -418,13 +422,13 @@ function navigateBack() {
 function openUploadModal() {
   showUploadModal.value = true;
 }
-function handleImageUploaded(file: NetworkFile) {
+function handleImageUploaded(file: FileDto) {
   form.value.fileLink = { id: file.id };
   uploadedFile.value = file;
   showUploadModal.value = false;
 }
 function removeImage() {
-  form.value.fileLink = undefined;
+  form.value.fileLink = null;
   uploadedFile.value = null;
 }
 </script>

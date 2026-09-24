@@ -193,7 +193,7 @@ onUnmounted(() => {
 });
 
 watch(
-  () => fetchNetwork.data.value?.imageFile?.url,
+  () => fetchNetwork.data.value?.imageFile?.url, // Dynamically load visible links from `ContentViewingLink`?
   (newUrl) => {
     if (newUrl) {
       let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;

@@ -1,4 +1,4 @@
-import type { Blog, Configuration, CustomPage, NetworkFile, PageBlock } from '@/types';
+import type { BlogDto, ConfigurationDto, CustomPageDto, FileDto, PageBlockDto } from '@/types';
 import { defineStore } from 'pinia';
 
 export interface AppEventPayloads {
@@ -6,24 +6,24 @@ export interface AppEventPayloads {
     myevent: [payload: string];
   };
   file: {
-    openEdit: [file: NetworkFile];
-    update: [file: NetworkFile];
+    openEdit: [file: FileDto];
+    update: [file: FileDto];
   };
   blogs: {
-    create: [blog: Blog];
-    update: [blog: Blog];
+    create: [blog: BlogDto];
+    update: [blog: BlogDto];
   };
   configurations: {
-    create: [configuration: Configuration];
-    update: [configuration: Configuration];
+    create: [configuration: ConfigurationDto];
+    update: [configuration: ConfigurationDto];
   };
   customPages: {
-    create: [customPage: CustomPage];
-    update: [customPage: CustomPage];
+    create: [customPage: CustomPageDto];
+    update: [customPage: CustomPageDto];
   };
   pageBlocks: {
-    create: [pageBlock: PageBlock];
-    delete: [pageBlock: PageBlock];
+    create: [pageBlock: PageBlockDto];
+    delete: [pageBlock: PageBlockDto];
   };
 }
 

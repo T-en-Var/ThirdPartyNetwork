@@ -1,12 +1,12 @@
 import api from '@/api/api';
-import type { Permission } from '@/types';
+import type { PermissionDto } from '@/types';
 import { useCachedApi } from './useApi';
 
 export default function usePermissions() {
-  const fetchPermissions = useCachedApi<Permission[], []>(
+  const fetchPermissions = useCachedApi<PermissionDto[], []>(
     () => 'permissions',
     async () => {
-      const result = await api.get<Permission[]>('/permissions/');
+      const result = await api.get<PermissionDto[]>('/permissions/');
       result.data.sort((a, b) => a.name.localeCompare(b.name));
       return result;
     },

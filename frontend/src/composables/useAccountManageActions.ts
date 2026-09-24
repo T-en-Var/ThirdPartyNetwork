@@ -15,31 +15,23 @@ import useConfigurations from '@/composables/account/useConfigurations';
 import type { UseCachedApiReturn, UseMutationReturn } from '@/composables/useApi';
 
 import type {
+  BlogDto,
+  ConfigurationDto,
   ConfirmForm,
+  CreateBlogDto,
+  CreateConfigurationDto,
+  CreateCustomPageDto,
+  CreatePageBlockDto,
+  CreateUserProxyDto,
+  CustomPageDto,
+  FileDto,
+  PageBlockDto,
+  UpdateCustomPageDto,
   UpdateFile,
-  NetworkFile,
-  UserProxyCreate,
-  UserProxyUpdate,
-  CreateBlog,
-  Blog,
-  CreateConfiguration,
-  Configuration,
-  CreateCustomPage,
-  CustomPage,
-  CreatePageBlock,
-  PageBlock,
+  UpdatePageBlockDto,
+  UpdateUserProxyDto,
 } from '@/types';
 
-/**
- * Encapsulates all of the "manage account" action dispatch logic (blog / configuration /
- * custom page / page block / file mutations, plus user-proxy management) that used to live
- * inline in `ManageAccountView.vue`. The view is left responsible only for template wiring
- * and its own page-lifecycle concerns (fetching the current user/proxy, main network, etc).
- *
- * Because the acting user + user proxy are only known after an async fetch completes, the
- * per-entity `handle` dispatch table is built lazily via `initialize(userId, userProxyId)`
- * rather than being available synchronously (mirroring the previous `buildHandle` pattern).
- */
 export default function useAccountManageActions() {
   const router = useRouter();
   const authStore = useAuthStore();
@@ -91,7 +83,7 @@ export default function useAccountManageActions() {
     router.push(`/account/${section}`);
   }
 
-  async function createUserProxy(newUserProxy: UserProxyCreate) {
+  async function createUserProxy(newUserProxy: CreateUserProxyDto) {
     if (!currentUserId) return;
 
     const { execute: createUserProxyExecute } = useUsers().createUserProxy;
@@ -115,12 +107,12 @@ export default function useAccountManageActions() {
     alert('not implemented');
   }
 
-  async function handleUpdateProxy(userProxy: UserProxyUpdate) {
+  async function handleUpdateProxy(userProxyId: string, userProxy: UpdateUserProxyDto) {
     isSubmitting.value = true;
     globalStore.startFetching();
     try {
       await api.put(
-        `/users/${authStore.currentUserProxy!.user.id}/proxies/${userProxy.id}`,
+        `/users/${authStore.currentUserProxy!.user.id}/proxies/${userProxyId}`,
         userProxy,
       );
     } catch (err) {
@@ -231,17 +223,17 @@ export default function useAccountManageActions() {
         fetch: genericFetch(composables.blogs.fetchBlog)(userId, userProxyId),
         fetchAll: genericFetchAll(composables.blogs.fetchBlogs)(userId, userProxyId),
 
-        edit: (blog: Blog) => {
+        edit: (blog: BlogDto) => {
           history.visit.blogs(blog);
           router.push(`/networks/${blog.networkId}/manage/blogs/${blog.id}/edit`);
         },
 
-        create: async (networkId: string, payload: CreateBlog) =>
+        create: async (networkId: string, payload: CreateBlogDto) =>
           await genericMutation(composables.blogs.createBlog, {
             callback: (result) => events.emit.blogs.create(result),
           })(networkId, userId, userProxyId, payload),
 
-        delete: (blog: Blog) =>
+        delete: (blog: BlogDto) =>
           confirm({
             title: 'Remove Blog',
             message: `Are you sure you want to remove '${blog.title}'?`,
@@ -261,24 +253,24 @@ export default function useAccountManageActions() {
           userProxyId,
         ),
 
-        edit: (configuration: Configuration) => {
+        edit: (configuration: ConfigurationDto) => {
           history.visit.configurations(configuration);
           router.push(
             `/networks/${configuration.networkId}/manage/configurations/${configuration.id}/edit`,
           );
         },
 
-        create: async (networkId: string, payload: CreateConfiguration) =>
+        create: async (networkId: string, payload: CreateConfigurationDto) =>
           await genericMutation(composables.configurations.createConfiguration, {
             callback: (result) => events.emit.configurations.create(result),
           })(networkId, userId, userProxyId, payload),
 
-        update: async (networkId: string, customPageId: string, payload: Configuration) =>
+        update: async (networkId: string, customPageId: string, payload: ConfigurationDto) =>
           await genericMutation(composables.configurations.updateConfiguration, {
             callback: (result) => events.emit.configurations.update(result),
           })(networkId, userId, userProxyId, customPageId, payload),
 
-        delete: (configuration: Configuration) =>
+        delete: (configuration: ConfigurationDto) =>
           confirm({
             title: 'Remove Configuration',
             message: `Are you sure you want to remove '${configuration.key}'?`,
@@ -298,24 +290,24 @@ export default function useAccountManageActions() {
         fetch: genericFetch(composables.customPages.fetchCustomPage)(userId, userProxyId),
         fetchAll: genericFetchAll(composables.customPages.fetchCustomPages)(userId, userProxyId),
 
-        edit: (customPage: CustomPage) => {
+        edit: (customPage: CustomPageDto) => {
           history.visit.customPages(customPage);
           router.push(
             `/networks/${customPage.networkId}/manage/custom-pages/${customPage.id}/edit`,
           );
         },
 
-        create: async (networkId: string, payload: CreateCustomPage) =>
+        create: async (networkId: string, payload: CreateCustomPageDto) =>
           await genericMutation(composables.customPages.createCustomPage, {
             callback: (result) => events.emit.customPages.create(result),
           })(networkId, userId, userProxyId, payload),
 
-        update: async (networkId: string, customPageId: string, payload: CreateCustomPage) =>
+        update: async (networkId: string, customPageId: string, payload: UpdateCustomPageDto) =>
           await genericMutation(composables.customPages.updateCustomPage, {
             callback: (result) => events.emit.customPages.update(result),
           })(networkId, userId, userProxyId, customPageId, payload),
 
-        delete: (customPage: CustomPage) =>
+        delete: (customPage: CustomPageDto) =>
           confirm({
             title: 'Remove Custom Page',
             message: `Are you sure you want to remove '${customPage.name}'?`,
@@ -332,29 +324,29 @@ export default function useAccountManageActions() {
       },
 
       pageBlocks: {
-        edit: (pageBlock: PageBlock) => {
+        edit: (pageBlock: PageBlockDto) => {
           history.visit.pageBlocks(pageBlock);
           router.push(
             `/networks/${pageBlock.networkId}/manage/custom-pages/${pageBlock.customPageId}/blocks/${pageBlock.id}/edit`,
           );
         },
 
-        create: async (networkId: string, customPageId: string, pageBlock: CreatePageBlock) =>
+        create: async (networkId: string, customPageId: string, pageBlock: CreatePageBlockDto) =>
           await genericMutation(composables.customPages.createPageBlock, {
             callback: (result) => events.emit.pageBlocks.create(result),
           })(networkId, userId, userProxyId, customPageId, pageBlock),
 
-        update: async (networkId: string, customPageId: string, pageBlock: PageBlock) =>
+        update: async (networkId: string, customPageId: string, pageBlockId: string, pageBlock: UpdatePageBlockDto) =>
           await genericMutation(composables.customPages.updatePageBlock)(
             networkId,
             userId,
             userProxyId,
             customPageId,
-            pageBlock.id,
+            pageBlockId,
             pageBlock,
           ),
 
-        delete: (pageBlock: PageBlock) =>
+        delete: (pageBlock: PageBlockDto) =>
           confirm({
             title: 'Remove Page Block',
             message: `Are you sure you want to remove '${pageBlock.text}'?`,
@@ -379,7 +371,7 @@ export default function useAccountManageActions() {
             callback: (result) => events.emit.file.update(result),
           })(networkId, userId, userProxyId, id, networkFile),
 
-        delete: (file: NetworkFile) => {
+        delete: (file: FileDto) => {
           showEditFileModal.value = false;
           confirm({
             title: 'Delete File',
@@ -396,7 +388,7 @@ export default function useAccountManageActions() {
           });
         },
 
-        openEdit: (file: NetworkFile) => events.emit.file.openEdit(file),
+        openEdit: (file: FileDto) => events.emit.file.openEdit(file),
       },
     };
   };
@@ -418,12 +410,12 @@ export default function useAccountManageActions() {
     const customPage = await handle.value.customPages.fetch(networkId, customPageId);
     if (!customPage.value) return;
 
-    customPage.value.pages.forEach((block) => {
+    customPage.value.blocks.forEach((block) => {
       if (block.parentPageId !== pageBlockId) return;
 
-      handle.value!.pageBlocks.update(block.networkId, block.customPageId, {
+      handle.value!.pageBlocks.update(block.networkId, block.customPageId, pageBlockId, {
         ...block,
-        parentPageId: undefined,
+        parentPageId: null,
       });
     });
   }

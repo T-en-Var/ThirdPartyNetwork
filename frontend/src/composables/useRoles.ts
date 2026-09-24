@@ -1,12 +1,12 @@
 import api from '@/api/api';
-import type { CreateRole, Network, Role, UpdateRole } from '@/types';
+import type { CreateRoleDto, NetworkDto, RoleDto, UpdateRoleDto } from '@/types';
 import { globalCache, useCachedApi, useMutation } from './useApi';
 
 export default function useRoles() {
-  const fetchRoles = useCachedApi<Role[], [networkId: string]>(
+  const fetchRoles = useCachedApi<RoleDto[], [networkId: string]>(
     (networkId) => `networks_${networkId}_roles`,
     async (networkId) => {
-      const result = await api.get<Role[]>(`/networks/${networkId}/roles/`);
+      const result = await api.get<RoleDto[]>(`/networks/${networkId}/roles/`);
       result.data.sort((a, b) => a.name.localeCompare(b.name));
       return result;
     },
@@ -14,23 +14,23 @@ export default function useRoles() {
     undefined,
     {
       initialData: (networkId) => {
-        const network = globalCache.get(`networks_${networkId}`)?.data.value as Network | undefined;
-        return network?.roles ?? [];
+        const network = globalCache.get(`networks_${networkId}`)?.data.value as NetworkDto | undefined;
+        return network?.roles as RoleDto[] ?? [];
       },
     },
   );
 
-  const fetchRole = useCachedApi<Role, [networkId: string, roleId: string]>(
+  const fetchRole = useCachedApi<RoleDto, [networkId: string, roleId: string]>(
     (networkId, roleId) => `networks_${networkId}_roles_${roleId}`,
-    async (networkId, roleId) => await api.get<Role>(`/networks/${networkId}/roles/${roleId}/`),
+    async (networkId, roleId) => await api.get<RoleDto>(`/networks/${networkId}/roles/${roleId}/`),
   );
 
   const createRole = useMutation<
-    Role,
-    [networkId: string, payload: CreateRole, permissionIds: string[]]
+    RoleDto,
+    [networkId: string, payload: CreateRoleDto, permissionIds: string[]]
   >(
     async (networkId, payload, permissionIds) => {
-      const response = await api.post<Role, CreateRole>(`/networks/${networkId}/roles/`, payload);
+      const response = await api.post<RoleDto, CreateRoleDto>(`/networks/${networkId}/roles/`, payload);
       const roleId = response.data.id;
 
       if (permissionIds.length > 0) {
@@ -40,7 +40,7 @@ export default function useRoles() {
           ),
         );
 
-        return await api.get<Role>(`/networks/${networkId}/roles/${roleId}/`);
+        return await api.get<RoleDto>(`/networks/${networkId}/roles/${roleId}/`);
       }
 
       return response;
@@ -56,17 +56,17 @@ export default function useRoles() {
   );
 
   const updateRole = useMutation<
-    Role,
+    RoleDto,
     [
       networkId: string,
       roleId: string,
-      payload: UpdateRole,
+      payload: UpdateRoleDto,
       addedPerms: string[],
       removedPerms: string[],
     ]
   >(
     async (networkId, roleId, payload, addedPerms, removedPerms) => {
-      let response = await api.put<Role, UpdateRole>(
+      let response = await api.put<RoleDto, UpdateRoleDto>(
         `/networks/${networkId}/roles/${roleId}`,
         payload,
       );
@@ -81,7 +81,7 @@ export default function useRoles() {
             api.delete(`/networks/${networkId}/roles/${roleId}/permissions/${permId}/`),
           ),
         ]);
-        response = await api.get<Role>(`/networks/${networkId}/roles/${roleId}/`);
+        response = await api.get<RoleDto>(`/networks/${networkId}/roles/${roleId}/`);
       }
 
       return response;
@@ -96,7 +96,7 @@ export default function useRoles() {
     },
   );
 
-  const deleteRole = useMutation<void, [networkId: string, roleId: string], Role>(
+  const deleteRole = useMutation<void, [networkId: string, roleId: string], RoleDto>(
     async (networkId, roleId) => {
       return await api.delete(`/networks/${networkId}/roles/${roleId}/`);
     },

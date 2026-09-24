@@ -97,7 +97,7 @@ export * from './UserContent/Configuration/ConfigurationDto';
 export * from './UserContent/Configuration/CreateConfigurationDto';
 export * from './UserContent/Configuration/UpdateConfigurationDto';
 
-export * from './UserContent/CustomPage/PageDto';
+export * from './UserContent/CustomPage/CustomPageDto';
 export * from './UserContent/CustomPage/CreateCustomPageDto';
 export * from './UserContent/CustomPage/UpdateCustomPageDto';
 
