@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using thirdpartynetwork.Core.Models;
-using File = thirdpartynetwork.Core.Models.File;
 
 namespace thirdpartynetwork.Application.Services
 {
@@ -10,7 +9,6 @@ namespace thirdpartynetwork.Application.Services
         INetworkUserRepository repository,
         INetworkService networkService,
         IUserProxyService userProxyService,
-        IFileRepository fileRepository,
         IMapper mapper) : INetworkUserService
     {
         private static ICollection<NetworkUser> MultiApplyDefaults(ICollection<NetworkUser> networkUsers)
@@ -72,14 +70,6 @@ namespace thirdpartynetwork.Application.Services
             
             var networks = networkUsers.Select(nu => nu.Network).ToList();
             return networks;
-        }
-
-        public async Task<ICollection<File>> GetFilesByUserProxyIdAsync(Guid userProxyId)
-        {
-            if (await userProxyService.GetByIdAsync(userProxyId) == null) throw new NotFoundHttpException("UserProxy not Found");
-
-            var files = await fileRepository.GetByUserProxyIdAsync(userProxyId);
-            return files;
         }
 
         public async Task<NetworkUser?> GetByIdAsync(Guid networkId, Guid id)

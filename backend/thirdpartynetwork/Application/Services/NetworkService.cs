@@ -20,7 +20,8 @@ namespace thirdpartynetwork.Application.Services
         IIdentityVerifier identityVerifier,
         IAccessLevelVerifier accessLevelVerifier,
         IDynamicAudienceCache audienceCache,
-        IFileRepository fileRepository // im sorry
+        IFileRepository fileRepository, // im sorry
+        IPublicImageService publicImageService
     ) : INetworkService
     {
         private static Network? _cachedMainNetwork;
@@ -110,6 +111,7 @@ namespace thirdpartynetwork.Application.Services
                     throw new UnauthorizedHttpException("That file's network does not allow its files to be reused externally.");
 
                 network.ImageFileId = createNetworkDto.FileLink.Id;
+                await publicImageService.MakePubliclyViewableAsync(createNetworkDto.FileLink.Id);
             }
             
             // TODO:
@@ -256,6 +258,7 @@ namespace thirdpartynetwork.Application.Services
                     throw new UnauthorizedHttpException("That file's network does not allow its files to be reused externally.");
 
                 network.ImageFileId = updateNetworkDto.FileLink.Id;
+                await publicImageService.MakePubliclyViewableAsync(updateNetworkDto.FileLink.Id);
             }
 
             await RefreshIssuerCacheAsync();

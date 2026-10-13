@@ -42,6 +42,7 @@ namespace thirdpartynetwork.Application.Repositories
         private async Task<IQueryable<Network>> GetQueryableReduced(bool bypass = false)
         {
             var query = _context.Networks
+                .Include(x => x.ImageFile)
                 .Include(x => x.NetworkUsers)
                 .Include(x => x.Roles)
                 .Include(x => x.Entitlement)

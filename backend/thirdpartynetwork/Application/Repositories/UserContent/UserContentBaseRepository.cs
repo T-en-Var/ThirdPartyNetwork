@@ -16,10 +16,12 @@ public abstract class UserContentBaseRepository<T>(DataContext context, IAccessL
 
     private static IQueryable<T> BaseIncludes(IQueryable<T> query)
     {
-        return query
+        query = query
             .Include(x => x.AuthorUserProxy)
             .ThenInclude(x => x!.ImageFile)
             .AsQueryable();
+
+        return query;
     }
 
     private static IQueryable<T> ExcludeDeleted(IQueryable<T> query) => query.Where(x => x.DeletedAt == null);
@@ -60,10 +62,10 @@ public abstract class UserContentBaseRepository<T>(DataContext context, IAccessL
 
     public async Task<ICollection<T>> GetByUserProxyIdAsync(Guid userProxyId)
     {
-        var query = ExcludeDeleted(await GetQueryableAsync());
+        var query = BaseIncludes(ExcludeDeleted(await GetQueryableAsync()));
 
-        query = BaseIncludes(query);
-        query = query.Where(x => x.AuthorUserProxyId == userProxyId);
+        var accessPredicate = await accessLevelVerifier.GetCrossNetworkAccessPredicateAsync<T>(ReadPermissionName);
+        query = query.Where(accessPredicate).Where(x => x.AuthorUserProxyId == userProxyId);
 
         return await query.ToListAsync();
     }

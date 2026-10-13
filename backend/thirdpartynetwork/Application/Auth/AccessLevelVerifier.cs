@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
+using thirdpartynetwork.Core;
 using thirdpartynetwork.Core.Data;
 using thirdpartynetwork.Core.Enum;
 using thirdpartynetwork.Core.Helper;
@@ -74,39 +75,10 @@ public class AccessLevelVerifier(
         if (model.PublishedAt == null) return false;
 
         var now = DateTime.UtcNow;
+        var caller = await LoadCallerAccessContextAsync(callerUserProxyId);
 
-        var grants = dataContext.ContentAccessGrants.Where(g =>
-            g.ContentKind == kind && g.ContentId == model.Id &&
-            g.RevokedAt == null && (g.ExpiresAt == null || g.ExpiresAt > now) &&
-            (g.Capabilities & ContentCapabilities.View) == ContentCapabilities.View);
-
-        if (!isRealUser)
-        {
-            return await grants.AnyAsync(g =>
-                g.GranteeType == GranteeType.Network && g.GranteeNetworkId != null && g.GranteeNetwork!.IsPublic);
-        }
-
-        var callerNetworkIds = await dataContext.NetworkUsers
-            .Where(nu => nu.UserProxyId == callerUserProxyId)
-            .Select(nu => nu.NetworkId)
-            .ToListAsync();
-        var callerRoleIds = await dataContext.NetworkUserRoles
-            .Where(nur => nur.NetworkUser.UserProxyId == callerUserProxyId)
-            .Select(nur => nur.RoleId)
-            .ToListAsync();
-        var callerPermissionIds = await dataContext.RolePermissions
-            .Where(rp => callerRoleIds.Contains(rp.RoleId))
-            .Select(rp => rp.PermissionId)
-            .ToListAsync();
-
-        return await grants.AnyAsync(g =>
-            (g.GranteeType == GranteeType.User && g.GranteeUserProxyId == callerUserProxyId)
-            || (g.GranteeType == GranteeType.Network && g.GranteeNetworkId != null &&
-                (callerNetworkIds.Contains(g.GranteeNetworkId.Value) || g.GranteeNetwork!.IsPublic))
-            || (g.GranteeType == GranteeType.NetworkRole && g.GranteeRoleId != null &&
-                callerRoleIds.Contains(g.GranteeRoleId.Value))
-            || (g.GranteeType == GranteeType.NetworkPermission && g.GranteePermissionId != null &&
-                callerPermissionIds.Contains(g.GranteePermissionId.Value)));
+        var liveGrants = dataContext.ContentAccessGrants.Where(BuildLiveViewableGrantFilter(kind, model.Id, now));
+        return await liveGrants.AnyAsync(BuildGranteeMatchPredicate(caller));
     }
 
     public async Task<Expression<Func<T, bool>>> GetAccessPredicateAsync<T>(Guid requestedNetworkId, string permissionName)
@@ -115,58 +87,76 @@ public class AccessLevelVerifier(
         var kind = ContentKindMapper.From<T>();
         var now = DateTime.UtcNow;
 
-        Guid? currentUserId = null;
-        var hasPermission = false;
-        var callerNetworkIds = new List<Guid>();
-        var callerRoleIds = new List<Guid>();
-        var callerPermissionIds = new List<Guid>();
-
         var userProxy = await identityService.GetUserProxyAsync(omitThrow: true);
-        var isRealUser = userProxy.Id != Guid.Empty;
+        var caller = await LoadCallerAccessContextAsync(userProxy.Id);
 
-        if (isRealUser)
-        {
-            currentUserId = userProxy.Id;
+        var hasPermission = caller.IsRealUser
+            && await identityVerifier.IsAllowedAsync(requestedNetworkId, caller.CurrentUserId!.Value, permissionName);
 
-            hasPermission = await identityVerifier.IsAllowedAsync(requestedNetworkId, currentUserId.Value, permissionName);
-
-            callerNetworkIds = await dataContext.NetworkUsers
-                .Where(nu => nu.UserProxyId == currentUserId.Value)
-                .Select(nu => nu.NetworkId)
-                .ToListAsync();
-            callerRoleIds = await dataContext.NetworkUserRoles
-                .Where(nur => nur.NetworkUser.UserProxyId == currentUserId.Value)
-                .Select(nur => nur.RoleId)
-                .ToListAsync();
-            callerPermissionIds = await dataContext.RolePermissions
-                .Where(rp => callerRoleIds.Contains(rp.RoleId))
-                .Select(rp => rp.PermissionId)
-                .ToListAsync();
-        }
+        var granteeMatches = BuildGranteeMatchPredicate(caller);
 
         return model =>
             model.DeletedAt == null
             && (
-                (currentUserId.HasValue && model.AuthorUserProxyId == currentUserId.Value)
+                (caller.CurrentUserId.HasValue && model.AuthorUserProxyId == caller.CurrentUserId.Value)
                 || (
                     !dataContext.ContentModerationFlags.Any(f =>
                         f.ContentKind == kind && f.ContentId == model.Id &&
                         f.NetworkId == requestedNetworkId && f.HiddenInNetwork)
                     && (
                         hasPermission
-                        || (model.PublishedAt != null && dataContext.ContentAccessGrants.Any(g =>
-                                g.ContentKind == kind && g.ContentId == model.Id &&
-                                g.RevokedAt == null && (g.ExpiresAt == null || g.ExpiresAt > now) &&
-                                (g.Capabilities & ContentCapabilities.View) == ContentCapabilities.View &&
-                                (
-                                    (currentUserId.HasValue && g.GranteeType == GranteeType.User && g.GranteeUserProxyId == currentUserId.Value)
-                                    || (g.GranteeType == GranteeType.Network && g.GranteeNetworkId != null &&
-                                        (callerNetworkIds.Contains(g.GranteeNetworkId.Value) || g.GranteeNetwork!.IsPublic))
-                                    || (currentUserId.HasValue && g.GranteeType == GranteeType.NetworkRole && g.GranteeRoleId != null &&
-                                        callerRoleIds.Contains(g.GranteeRoleId.Value))
-                                    || (currentUserId.HasValue && g.GranteeType == GranteeType.NetworkPermission && g.GranteePermissionId != null &&
-                                        callerPermissionIds.Contains(g.GranteePermissionId.Value))
-                                )))
+                        || (model.PublishedAt != null && dataContext.ContentAccessGrants
+                                .Where(g => g.ContentKind == kind && g.ContentId == model.Id &&
+                                            g.RevokedAt == null && (g.ExpiresAt == null || g.ExpiresAt > now) &&
+                                            (g.Capabilities & ContentCapabilities.View) == ContentCapabilities.View)
+                                .Any(granteeMatches))
+                    )
+                )
+            );
+    }
+
+    public async Task<Expression<Func<T, bool>>> GetCrossNetworkAccessPredicateAsync<T>(string permissionName)
+        where T : UserContentBaseModel
+    {
+        var kind = ContentKindMapper.From<T>();
+        var now = DateTime.UtcNow;
+
+        var userProxy = await identityService.GetUserProxyAsync(omitThrow: true);
+        var caller = await LoadCallerAccessContextAsync(userProxy.Id);
+
+        var hasUnlimitedAccess = caller.IsRealUser
+            && await identityVerifier.IsSuperAdminOrHasSuperPermissionAsync(caller.CurrentUserId!.Value, permissionName);
+
+        var permittedNetworkIds = new List<Guid>();
+        if (caller.IsRealUser && !hasUnlimitedAccess)
+        {
+            permittedNetworkIds = await dataContext.NetworkUserRoles
+                .Where(nur => nur.NetworkUser.UserProxyId == caller.CurrentUserId!.Value
+                              && nur.Role.RolePermissions.Any(rp =>
+                                  rp.Permission.Name == permissionName || rp.Permission.Name == Constants.Permissions.Administrator))
+                .Select(nur => nur.NetworkUser.NetworkId)
+                .Distinct()
+                .ToListAsync();
+        }
+
+        var granteeMatches = BuildGranteeMatchPredicate(caller);
+
+        return model =>
+            model.DeletedAt == null
+            && (
+                (caller.CurrentUserId.HasValue && model.AuthorUserProxyId == caller.CurrentUserId.Value)
+                || (
+                    !dataContext.ContentModerationFlags.Any(f =>
+                        f.ContentKind == kind && f.ContentId == model.Id &&
+                        f.NetworkId == model.NetworkId && f.HiddenInNetwork)
+                    && (
+                        hasUnlimitedAccess
+                        || permittedNetworkIds.Contains(model.NetworkId)
+                        || (model.PublishedAt != null && dataContext.ContentAccessGrants
+                                .Where(g => g.ContentKind == kind && g.ContentId == model.Id &&
+                                            g.RevokedAt == null && (g.ExpiresAt == null || g.ExpiresAt > now) &&
+                                            (g.Capabilities & ContentCapabilities.View) == ContentCapabilities.View)
+                                .Any(granteeMatches))
                     )
                 )
             );
@@ -210,5 +200,56 @@ public class AccessLevelVerifier(
     private static Guid ValueToGuid(string value)
     {
         return Guid.TryParse(value, out var result) ? result : Guid.Empty;
+    }
+
+    private sealed record CallerAccessContext(
+        Guid? CurrentUserId,
+        List<Guid> NetworkIds,
+        List<Guid> RoleIds,
+        List<Guid> PermissionIds)
+    {
+        public bool IsRealUser => CurrentUserId.HasValue;
+    }
+
+    private async Task<CallerAccessContext> LoadCallerAccessContextAsync(Guid callerUserProxyId)
+    {
+        if (callerUserProxyId == Guid.Empty)
+            return new CallerAccessContext(null, [], [], []);
+
+        var networkIds = await dataContext.NetworkUsers
+            .Where(nu => nu.UserProxyId == callerUserProxyId)
+            .Select(nu => nu.NetworkId)
+            .ToListAsync();
+        var roleIds = await dataContext.NetworkUserRoles
+            .Where(nur => nur.NetworkUser.UserProxyId == callerUserProxyId)
+            .Select(nur => nur.RoleId)
+            .ToListAsync();
+        var permissionIds = await dataContext.RolePermissions
+            .Where(rp => roleIds.Contains(rp.RoleId))
+            .Select(rp => rp.PermissionId)
+            .ToListAsync();
+
+        return new CallerAccessContext(callerUserProxyId, networkIds, roleIds, permissionIds);
+    }
+
+    private static Expression<Func<ContentAccessGrant, bool>> BuildLiveViewableGrantFilter(
+        ContentKind kind, Guid contentId, DateTime now)
+    {
+        return g =>
+            g.ContentKind == kind && g.ContentId == contentId &&
+            g.RevokedAt == null && (g.ExpiresAt == null || g.ExpiresAt > now) &&
+            (g.Capabilities & ContentCapabilities.View) == ContentCapabilities.View;
+    }
+
+    private static Expression<Func<ContentAccessGrant, bool>> BuildGranteeMatchPredicate(CallerAccessContext caller)
+    {
+        return g =>
+            (caller.CurrentUserId.HasValue && g.GranteeType == GranteeType.User && g.GranteeUserProxyId == caller.CurrentUserId.Value)
+            || (g.GranteeType == GranteeType.Network && g.GranteeNetworkId != null &&
+                (caller.NetworkIds.Contains(g.GranteeNetworkId.Value) || g.GranteeNetwork!.IsPublic))
+            || (caller.CurrentUserId.HasValue && g.GranteeType == GranteeType.NetworkRole && g.GranteeRoleId != null &&
+                caller.RoleIds.Contains(g.GranteeRoleId.Value))
+            || (caller.CurrentUserId.HasValue && g.GranteeType == GranteeType.NetworkPermission && g.GranteePermissionId != null &&
+                caller.PermissionIds.Contains(g.GranteePermissionId.Value));
     }
 }
