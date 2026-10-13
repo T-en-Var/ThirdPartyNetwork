@@ -165,7 +165,8 @@ public class MappingProfiles : Profile
         CreateMap<UpdateUserProxyDto, UserProxy>();
         CreateMap<AddUserProxyDto, UserProxy>();
 
-        CreateMap<File, FileDto>();
+        CreateMap<File, FileDto>()
+            .ForMember(dest => dest.ViewingUrl, opt => opt.MapFrom<FileViewingUrlResolver>());
         CreateMap<File, FileLightDto>();
         CreateMap<CreateFileDto, File>();
         CreateMap<UpdateFileDto, File>();

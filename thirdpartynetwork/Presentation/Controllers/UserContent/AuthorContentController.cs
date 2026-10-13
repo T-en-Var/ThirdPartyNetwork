@@ -1,14 +1,18 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using thirdpartynetwork.Application.Auth.Requirements;
 using thirdpartynetwork.Application.Dtos.UserContent.Blog;
-using thirdpartynetwork.Core;
+using thirdpartynetwork.Application.Dtos.UserContent.Configuration;
+using thirdpartynetwork.Application.Dtos.UserContent.CustomPage;
+using thirdpartynetwork.Application.Dtos.UserContent.File;
 
 namespace thirdpartynetwork.Presentation.Controllers;
 
-[Route("users/{userId:guid}/proxies/{userProxyId:guid}")]
+// No [Authorize]/[RequirePermission] here on purpose: this is a public, anonymous-reachable
+// endpoint. Visibility is enforced per item by AccessLevelVerifier.GetCrossNetworkAccessPredicateAsync
+// inside UserContentBaseRepository.GetByUserProxyIdAsync, not by a controller-level gate.
+[Route("authors/{userProxyId:guid}")]
 [ApiController]
-public class UserProxyContentController(
+public class AuthorContentController(
     IBlogService blogService,
     IConfigurationService configurationService,
     ICustomPageService customPageService,
@@ -16,38 +20,42 @@ public class UserProxyContentController(
     IMapper mapper) : ControllerBase
 {
     [HttpGet("blogs")]
-    [RequirePermission(Constants.Permissions.IsUserOwner, Constants.Permissions.ReadBlog)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<BlogDto>))]
     public async Task<IActionResult> GetBlogs(Guid userProxyId)
     {
         var blogs = await blogService.GetByUserProxyIdAsync(userProxyId);
-        return Ok(mapper.Map<IEnumerable<BlogDto>>(blogs, opts => { opts.Items["bypass"] = true; }));
+        return Ok(blogs.Select(MapWithNetworkContext<BlogDto>));
     }
-    
+
     [HttpGet("configurations")]
-    [RequirePermission(Constants.Permissions.IsUserOwner, Constants.Permissions.ReadConfiguration)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<ConfigurationDto>))]
     public async Task<IActionResult> GetConfigurations(Guid userProxyId)
     {
         var configurations = await configurationService.GetByUserProxyIdAsync(userProxyId);
-        return Ok(mapper.Map<IEnumerable<ConfigurationDto>>(configurations, opts => { opts.Items["bypass"] = true; }));
+        return Ok(configurations.Select(MapWithNetworkContext<ConfigurationDto>));
     }
-    
+
     [HttpGet("customPages")]
-    [RequirePermission(Constants.Permissions.IsUserOwner, Constants.Permissions.ReadCustomPage)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<CustomPageDto>))]
     public async Task<IActionResult> GetCustomPages(Guid userProxyId)
     {
         var customPages = await customPageService.GetByUserProxyIdAsync(userProxyId);
-        return Ok(mapper.Map<IEnumerable<CustomPageDto>>(customPages, opts => { opts.Items["bypass"] = true; }));
+        return Ok(customPages.Select(MapWithNetworkContext<CustomPageDto>));
     }
-    
+
     [HttpGet("files")]
-    [RequirePermission(Constants.Permissions.IsUserOwner, Constants.Permissions.ReadFile)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<FileDto>))]
     public async Task<IActionResult> GetFiles(Guid userProxyId)
     {
         var files = await fileService.GetByUserProxyIdAsync(userProxyId);
-        return Ok(mapper.Map<IEnumerable<FileDto>>(files, opts => { opts.Items["bypass"] = true; }));
+        return Ok(files.Select(MapWithNetworkContext<FileDto>));
+    }
+
+    // Content spans whichever networks this author belongs to, so each item is mapped with its
+    // OWN NetworkId as context. That keeps the per-network profile-visibility consent check
+    // (MapFieldIfAccessGranted) scoped correctly instead of bypassing it for the whole list.
+    private TDto MapWithNetworkContext<TDto>(Core.Models.UserContentBaseModel source)
+    {
+        return mapper.Map<TDto>(source, opts => opts.Items["networkId"] = source.NetworkId);
     }
 }

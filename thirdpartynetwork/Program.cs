@@ -172,7 +172,7 @@ builder.Services.Configure<MinioOptions>(options =>
 {
     options.RootUser = Environment.GetEnvironmentVariable("MINIO_ROOT_USER")!;
     options.RootPassword = Environment.GetEnvironmentVariable("MINIO_ROOT_PASSWORD")!;
-    options.InternalEndpoint = Environment.GetEnvironmentVariable("MINIO_INTERNAL_ENDPOINT") ?? "minio:9000";
+    options.InternalEndpoint = Environment.GetEnvironmentVariable("MINIO_INTERNAL_ENDPOINT")!;
     options.InternalUseSsl = bool.TryParse(Environment.GetEnvironmentVariable("MINIO_INTERNAL_USE_SSL"), out var internalSsl) && internalSsl;
     options.ExternalEndpoint = Environment.GetEnvironmentVariable("MINIO_EXTERNAL_ENDPOINT")!;
     options.ExternalUseSsl = !bool.TryParse(Environment.GetEnvironmentVariable("MINIO_EXTERNAL_USE_SSL"), out var externalSsl) || externalSsl;
@@ -233,6 +233,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICustomPageService, CustomPageService>();
 builder.Services.AddScoped<IEntitlementService, EntitlementService>();
 builder.Services.AddScoped<IFileService, FileService>();
+builder.Services.AddScoped<IPublicImageService, PublicImageService>();
 builder.Services.AddScoped<IConfigurationService, ConfigurationService>();
 builder.Services.AddScoped<IBlogService, BlogService>();
 builder.Services.AddScoped<IMeService, MeService>();
