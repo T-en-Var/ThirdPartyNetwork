@@ -1,10 +1,9 @@
 <template>
-  <div class="container mx-auto px-4 py-8">
-    <div class="overflow-hidden rounded-lg bg-white py-16 text-center shadow-md">
-      <div class="flex flex-col items-center justify-center">
-        <div class="mb-6 rounded-full bg-yellow-50 p-6">
+  <div class="status-page">
+    <div class="status-page__card">
+      <div class="status-page__content">
+        <div class="status-page__icon status-page__icon--warning">
           <svg
-            class="h-16 w-16 text-yellow-500"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
@@ -24,29 +23,29 @@
             />
           </svg>
         </div>
-        <h1 class="mb-2 text-6xl font-bold text-gray-800">403</h1>
-        <p class="mb-3 text-xl text-gray-600">Unauthorized Access</p>
-        <p class="mx-auto mb-8 max-w-lg text-gray-500">
+        <h1 class="status-page__code">403</h1>
+        <p class="status-page__subtitle">Unauthorized Access</p>
+        <p class="status-page__description">
           You are not allowed to access this resource.<br />
           Sometimes something goes wrong and you have to log in again.<br />
           If there is another issue at hand, please contact your administrator.
         </p>
-        <div class="flex space-x-4">
+        <div class="status-page__actions">
           <button
             @click="handleBack"
-            class="rounded-md border border-gray-300 px-6 py-3 text-gray-700 transition-colors duration-200 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+            class="btn btn--outline"
           >
             Go back
           </button>
           <button
             @click="handleLogin"
-            class="rounded-md border border-gray-300 px-6 py-3 text-gray-700 transition-colors duration-200 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+            class="btn btn--outline"
           >
             Login
           </button>
           <router-link
             to="/"
-            class="rounded-md bg-blue-600 px-6 py-3 text-white transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            class="btn btn--primary"
           >
             Return Home
           </router-link>

@@ -1,9 +1,9 @@
 <template>
-  <div class="flex h-full pt-16">
+  <div class="admin-view">
     <!-- Main Content -->
     <AdminSidebar />
 
-    <div class="flex-1 overflow-auto p-6">
+    <div class="admin-view__content">
       <RouterView @delete-network="confirmDeleteNetwork" />
 
       <!-- Modals -->

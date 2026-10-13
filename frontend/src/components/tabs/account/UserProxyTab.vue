@@ -1,48 +1,48 @@
 <template>
-  <div class="space-y-8 overflow-hidden rounded-lg bg-white p-6 shadow-md">
+  <div class="user-proxy-tab">
     <!-- Active Proxy -->
     <div v-if="activeProxy">
-      <h3 class="text-lg font-medium text-gray-700">Currently logged in as</h3>
-      <div class="mt-4 rounded-lg border border-blue-200 bg-blue-50 p-6">
-        <div class="mb-4 flex items-center">
+      <h3 class="user-proxy-tab__subtitle">Currently logged in as</h3>
+      <div class="user-proxy-tab__active-card">
+        <div class="user-proxy-tab__active-card-header">
           <CloudinaryFile
             v-if="activeProxy.imageFile"
             :file="activeProxy.imageFile"
             :display-only="true"
-            class="h-16 w-16 rounded-full object-cover"
+            class="avatar__image user-proxy-tab__avatar--lg"
           />
           <img
             v-else
             :src="getAvatarSrc(activeProxy)"
             :alt="activeProxy.username"
-            class="h-16 w-16 rounded-full object-cover"
+            class="avatar__image user-proxy-tab__avatar--lg"
           />
 
-          <div class="ml-4">
-            <h2 class="text-xl font-semibold text-gray-900">
+          <div class="user-proxy-tab__active-card-text">
+            <h2 class="user-proxy-tab__active-card-name">
               {{ getFullName(activeProxy) }}
               <span
-                class="ml-2 rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800"
+                class="badge badge--success"
                 v-if="activeProxy.isDefault"
               >
                 Default
               </span>
             </h2>
-            <p class="text-sm text-gray-500">@{{ activeProxy.username }}</p>
-            <p class="text-sm text-gray-500">{{ activeProxy.email }}</p>
+            <p class="user-proxy-tab__muted-text">@{{ activeProxy.username }}</p>
+            <p class="user-proxy-tab__muted-text">{{ activeProxy.email }}</p>
           </div>
         </div>
-        <div class="flex space-x-3">
+        <div class="user-proxy-tab__active-card-actions">
           <button
             @click="$emit('editProxy', activeProxy.id)"
-            class="rounded-md border border-blue-300 px-4 py-2 text-blue-700 hover:bg-blue-50"
+            class="btn btn--outline"
           >
             Edit Proxy
           </button>
           <button
             v-if="!isActiveProxy(activeProxy)"
             @click="$emit('switchProxy', activeProxy.id)"
-            class="rounded-md border border-green-300 px-4 py-2 text-green-700 hover:bg-green-50"
+            class="btn btn--outline"
           >
             Switch Proxy
           </button>
@@ -52,11 +52,11 @@
 
     <!-- Proxy List -->
     <div>
-      <div class="mb-4 flex items-center justify-between">
-        <h3 class="text-lg font-medium text-gray-700">All Proxies</h3>
+      <div class="user-proxy-tab__section-header">
+        <h3 class="user-proxy-tab__subtitle">All Proxies</h3>
         <button
           @click="$emit('createProxy')"
-          class="rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
+          class="btn btn--primary btn--sm"
         >
           + Create New Proxy
         </button>
@@ -64,61 +64,67 @@
 
       <div
         v-if="allProxies.length === 0"
-        class="rounded-lg bg-gray-50 py-8 text-center"
+        class="empty-state"
       >
-        <p class="text-gray-500">No proxies found. Add your first proxy.</p>
+        <p class="empty-state__message">No proxies found. Add your first proxy.</p>
       </div>
 
       <div
         v-else
-        class="grid grid-cols-1 gap-6 pb-16 md:grid-cols-2"
+        class="user-proxy-tab__proxy-grid"
       >
         <div
           v-for="proxy in allProxies"
           :key="proxy.id"
-          class="rounded-lg border bg-white p-4 transition hover:shadow-md"
+          class="user-proxy-tab__proxy-card"
         >
-          <div class="flex w-full items-start justify-between">
-            <div class="mb-3 flex items-center">
+          <div class="user-proxy-tab__proxy-card-top">
+            <div class="user-proxy-tab__proxy-card-header">
               <CloudinaryFile
                 v-if="proxy.imageFile"
                 :file="proxy.imageFile"
                 :display-only="true"
-                class="h-16 w-16 rounded-full object-cover"
+                class="avatar__image user-proxy-tab__avatar--lg"
               />
               <img
                 v-else
                 :src="getAvatarSrc(proxy)"
                 :alt="proxy.username"
-                class="h-16 w-16 rounded-full object-cover"
+                class="avatar__image user-proxy-tab__avatar--lg"
               />
-              <div class="ml-3">
-                <h4 class="text-sm font-medium text-gray-900">
+              <div class="user-proxy-tab__proxy-card-text">
+                <h4 class="user-proxy-tab__proxy-card-name">
                   {{ getFullName(proxy) || 'Unnamed Proxy' }}
                   <span
                     v-if="proxy.isDefault"
-                    class="ml-2 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800"
+                    class="badge badge--success"
                   >
                     Default
                   </span>
                 </h4>
-                <p class="text-xs text-gray-500">@{{ proxy.username }}</p>
-                <p class="truncate text-xs text-gray-500">{{ proxy.email }}</p>
+                <p class="user-proxy-tab__muted-text user-proxy-tab__muted-text--xs">
+                  @{{ proxy.username }}
+                </p>
+                <p
+                  class="user-proxy-tab__muted-text user-proxy-tab__muted-text--xs user-proxy-tab__muted-text--truncate"
+                >
+                  {{ proxy.email }}
+                </p>
               </div>
             </div>
 
             <!-- Actions -->
-            <div class="flex space-x-2">
+            <div class="user-proxy-tab__proxy-card-actions">
               <button
                 @click="$emit('editProxy', proxy.id)"
-                class="rounded-md border border-blue-300 px-3 py-1 text-xs text-blue-700 hover:bg-blue-50"
+                class="btn btn--outline btn--sm"
               >
                 Edit
               </button>
               <button
                 v-if="!isActiveProxy(proxy)"
                 @click="$emit('switchProxy', proxy.id)"
-                class="rounded-md border border-green-300 px-3 py-1 text-xs text-green-700 hover:bg-green-50"
+                class="btn btn--outline btn--sm"
               >
                 Switch
               </button>
@@ -127,36 +133,36 @@
 
           <!-- Networks -->
           <div>
-            <h5 class="mb-2 text-xs font-semibold text-gray-600">Joined Networks</h5>
-            <div class="flex flex-wrap gap-2">
+            <h5 class="user-proxy-tab__networks-title">Joined Networks</h5>
+            <div class="user-proxy-tab__networks-list">
               <div
                 v-for="network in getNetworksForProxy(proxy)"
                 :key="network.id"
-                class="group relative"
+                class="user-proxy-tab__network-item"
               >
                 <a
                   :href="`/networks/${network.id}`"
-                  class="block"
+                  class="user-proxy-tab__network-link"
                 >
                   <CloudinaryFile
                     v-if="network.imageFile"
                     :file="network.imageFile"
                     :display-only="true"
-                    class="h-10 w-10 rounded-full object-cover"
+                    class="avatar__image user-proxy-tab__avatar--sm"
                   />
                   <img
                     v-else
                     :src="`https://ui-avatars.com/api/?name=${encodeURIComponent(network.name)}&background=random`"
                     :alt="network.name"
-                    class="h-10 w-10 rounded-full object-cover"
+                    class="avatar__image user-proxy-tab__avatar--sm"
                   />
                 </a>
                 <!-- Hover Card -->
-                <div
-                  class="absolute left-0 top-12 z-10 hidden w-56 rounded-md border border-gray-200 bg-white p-3 shadow-lg group-hover:block"
-                >
-                  <h6 class="font-medium text-gray-900">{{ network.name }}</h6>
-                  <p class="truncate text-xs text-gray-500">{{ network.description }}</p>
+                <div class="user-proxy-tab__network-hover-card">
+                  <h6 class="user-proxy-tab__network-hover-title">{{ network.name }}</h6>
+                  <p class="user-proxy-tab__muted-text user-proxy-tab__muted-text--xs user-proxy-tab__muted-text--truncate">
+                    {{ network.description }}
+                  </p>
                 </div>
               </div>
             </div>
@@ -167,28 +173,28 @@
 
     <!-- Proxy List -->
     <div>
-      <div class="mb-4 flex items-center justify-between">
-        <h3 class="text-lg font-medium text-gray-700">Proxy Previews</h3>
+      <div class="user-proxy-tab__section-header">
+        <h3 class="user-proxy-tab__subtitle">Proxy Previews</h3>
       </div>
 
       <div
-        class="mb-4 flex flex-row gap-2"
+        class="user-proxy-tab__access-filters"
         v-if="accesses && accesses.length"
       >
         <label
           v-for="access in accesses"
           :key="access.id"
-          class="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 p-3 px-4 transition-colors hover:bg-slate-50"
+          class="user-proxy-tab__access-filter"
         >
-          <div class="mt-0.5 flex h-5 items-center">
+          <div class="user-proxy-tab__access-filter-checkbox">
             <input
               type="checkbox"
               v-model="activeAccessFilters[access.name]"
-              class="h-4 w-4 cursor-pointer rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+              class="checkbox"
             />
           </div>
-          <div class="flex flex-col">
-            <span class="text-sm font-medium text-slate-700">
+          <div>
+            <span class="user-proxy-tab__access-filter-label">
               {{ access.name }}
             </span>
           </div>
@@ -197,38 +203,44 @@
 
       <div
         v-if="allProxies.length === 0"
-        class="rounded-lg bg-gray-50 py-8 text-center"
+        class="empty-state"
       >
-        <p class="text-gray-500">No proxies found. Add your first proxy.</p>
+        <p class="empty-state__message">No proxies found. Add your first proxy.</p>
       </div>
 
       <div
         v-else
-        class="grid grid-cols-1 gap-6 pb-16 md:grid-cols-2"
+        class="user-proxy-tab__proxy-grid"
       >
         <div
           v-for="proxy in proxyPreviews"
           :key="proxy.id"
-          class="rounded-lg border bg-white p-4 transition hover:shadow-md"
+          class="user-proxy-tab__proxy-card"
         >
-          <div class="flex w-full items-start justify-between">
-            <div class="mb-3 flex items-center">
+          <div class="user-proxy-tab__proxy-card-top">
+            <div class="user-proxy-tab__proxy-card-header">
               <ProfileAvatar
                 :user-proxy="proxy"
-                class="h-16 w-16"
+                class="user-proxy-tab__avatar--lg"
               />
-              <div class="ml-3">
-                <h4 class="text-sm font-medium text-gray-900">
+              <div class="user-proxy-tab__proxy-card-text">
+                <h4 class="user-proxy-tab__proxy-card-name">
                   {{ getFullName(proxy) }}
                   <span
                     v-if="proxy.isDefault"
-                    class="ml-2 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800"
+                    class="badge badge--success"
                   >
                     Default
                   </span>
                 </h4>
-                <p class="text-xs text-gray-500">@{{ proxy.username }}</p>
-                <p class="truncate text-xs text-gray-500">{{ proxy.email }}</p>
+                <p class="user-proxy-tab__muted-text user-proxy-tab__muted-text--xs">
+                  @{{ proxy.username }}
+                </p>
+                <p
+                  class="user-proxy-tab__muted-text user-proxy-tab__muted-text--xs user-proxy-tab__muted-text--truncate"
+                >
+                  {{ proxy.email }}
+                </p>
               </div>
             </div>
           </div>

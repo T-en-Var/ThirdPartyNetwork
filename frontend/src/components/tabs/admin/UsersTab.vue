@@ -1,18 +1,19 @@
 <template>
   <div>
-    <div class="mb-8 flex items-center justify-between">
+    <div class="admin-users-tab__header">
       <div>
-        <h1 class="text-2xl font-bold text-slate-900">Manage Users</h1>
-        <p class="mt-1 text-slate-500">Global user registry, metrics, and effective entitlements</p>
+        <h1 class="admin-users-tab__title">Manage Users</h1>
+        <p class="admin-users-tab__subtitle">
+          Global user registry, metrics, and effective entitlements
+        </p>
       </div>
       <button
         @click="refreshUsers"
-        class="p-2 text-slate-400 transition-colors hover:text-purple-600"
+        class="admin-users-tab__refresh-btn"
         title="Refresh"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          class="h-5 w-5"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -35,14 +36,13 @@
 
     <div
       v-if="!!users && !loading"
-      class="flex flex-col gap-4"
+      class="admin-users-tab__body"
     >
-      <div class="mb-4 rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div class="flex flex-wrap items-center justify-between gap-4 p-3">
-          <div class="relative min-w-[300px] flex-1">
-            <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+      <div class="card admin-users-tab__filters-card">
+        <div class="admin-users-tab__filters-bar">
+          <div class="admin-users-tab__search">
+            <span class="admin-users-tab__search-icon">
               <svg
-                class="h-4 w-4 text-slate-400"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -59,38 +59,33 @@
               v-model="searchQuery"
               type="text"
               placeholder="Search user name or ID..."
-              class="block w-full rounded-lg border border-slate-200 py-2 pl-10 pr-3 text-sm outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
+              class="form-input admin-users-tab__search-input"
             />
           </div>
 
-          <div class="flex items-center gap-2">
+          <div class="admin-users-tab__filters-actions">
             <button
               v-if="
                 Object.keys(activeBooleanFilters).length || Object.keys(activeRangeFilters).length
               "
               @click="resetFilters"
-              class="px-2 text-xs font-semibold text-slate-400 transition-colors hover:text-red-500"
+              class="admin-users-tab__clear-link"
             >
               Clear All
             </button>
             <button
               @click="showFilters = !showFilters"
-              :class="
-                showFilters
-                  ? 'border-purple-200 bg-purple-50 text-purple-700'
-                  : 'border-slate-200 bg-white text-slate-600'
-              "
-              class="relative flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-all hover:bg-slate-50"
+              class="admin-users-tab__filters-toggle"
+              :class="{ 'admin-users-tab__filters-toggle--active': showFilters }"
             >
               <span
                 v-if="activeFilterCount > 0 && !showFilters"
-                class="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-purple-600 text-[10px] text-white shadow-sm"
+                class="admin-users-tab__filters-count"
               >
                 {{ activeFilterCount }}
               </span>
 
               <svg
-                class="h-4 w-4"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -109,35 +104,29 @@
 
         <div
           v-if="showFilters"
-          class="space-y-6 border-t border-slate-100 bg-slate-50/30 px-4 py-4"
+          class="admin-users-tab__advanced-filters"
         >
-          <div class="flex flex-wrap gap-6 rounded-lg border border-indigo-100 bg-indigo-50/50 p-3">
+          <div class="admin-users-tab__calc-box">
             <div>
-              <p class="mb-1 text-[10px] font-bold uppercase tracking-widest text-indigo-400">
-                Calculate Limits Using
-              </p>
-              <p class="mb-2 text-xs text-slate-500">
+              <p class="admin-users-tab__calc-box-title">Calculate Limits Using</p>
+              <p class="admin-users-tab__calc-box-text">
                 Select which entitlement rules apply when calculating global limits.
               </p>
             </div>
-            <div class="flex items-center gap-4">
-              <label
-                class="flex cursor-pointer items-center gap-2 text-sm font-medium text-slate-700"
-              >
+            <div class="admin-users-tab__calc-box-options">
+              <label class="admin-users-tab__checkbox-label">
                 <input
                   type="checkbox"
                   v-model="includeRoleEntitlements"
-                  class="rounded text-indigo-600 focus:ring-indigo-500"
+                  class="checkbox"
                 />
                 Include Role Entitlements
               </label>
-              <label
-                class="flex cursor-pointer items-center gap-2 text-sm font-medium text-slate-700"
-              >
+              <label class="admin-users-tab__checkbox-label">
                 <input
                   type="checkbox"
                   v-model="includeUserEntitlements"
-                  class="rounded text-indigo-600 focus:ring-indigo-500"
+                  class="checkbox"
                 />
                 Include User Entitlements (Overrides)
               </label>
@@ -145,21 +134,17 @@
           </div>
 
           <div>
-            <p class="mb-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">
-              Feature Entitlements
-            </p>
-            <div class="flex flex-wrap gap-2">
+            <p class="admin-users-tab__filters-label">Feature Entitlements</p>
+            <div class="admin-users-tab__filter-chips">
               <button
                 v-for="key in allEntitlementKeys.filter((k) => k.startsWith('allow'))"
                 :key="key"
                 @click="toggleBooleanFilter(key)"
+                class="admin-users-tab__filter-chip"
                 :class="{
-                  'border-green-600 bg-green-600 text-white': activeBooleanFilters[key] === true,
-                  'border-red-600 bg-red-600 text-white': activeBooleanFilters[key] === false,
-                  'border-slate-200 bg-white text-slate-600':
-                    activeBooleanFilters[key] === null || activeBooleanFilters[key] === undefined,
+                  'admin-users-tab__filter-chip--true': activeBooleanFilters[key] === true,
+                  'admin-users-tab__filter-chip--false': activeBooleanFilters[key] === false,
                 }"
-                class="flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium shadow-sm transition-all"
               >
                 <span v-if="activeBooleanFilters[key] === true">✓</span>
                 <span v-if="activeBooleanFilters[key] === false">✕</span>
@@ -169,22 +154,16 @@
           </div>
 
           <div>
-            <p class="mb-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">
-              Capacity Thresholds
-            </p>
-            <div class="flex flex-row flex-wrap items-start gap-4">
+            <p class="admin-users-tab__filters-label">Capacity Thresholds</p>
+            <div class="admin-users-tab__threshold-list">
               <div
                 v-for="key in userMetricKeys"
                 :key="key"
-                class="rounded-lg border border-slate-200 bg-white p-3 shadow-sm"
-                :class="[
-                  !!activeRangeFilters[key]
-                    ? 'basis-[calc(33.333%-1rem)]'
-                    : 'basis-[calc(16.666%-1rem)]',
-                ]"
+                class="admin-users-tab__threshold-card"
+                :class="{ 'admin-users-tab__threshold-card--expanded': !!activeRangeFilters[key] }"
               >
-                <div class="mb-2 flex items-center justify-between">
-                  <span class="text-[11px] font-bold text-slate-700">
+                <div class="admin-users-tab__threshold-card-header">
+                  <span class="admin-users-tab__threshold-card-title">
                     {{ capitalize(key.replace(/([A-Z])/g, ' $1')) }}
                   </span>
                   <input
@@ -196,30 +175,28 @@
                           ? (activeRangeFilters[key] = [0, maxSliderLimits[key]])
                           : delete activeRangeFilters[key]
                     "
-                    class="rounded text-purple-600"
+                    class="checkbox"
                   />
                 </div>
 
                 <div v-if="activeRangeFilters[key]">
-                  <span class="pt-2 text-[10px] font-bold uppercase tracking-widest text-slate-400"
-                    >Used</span
-                  >
-                  <div class="flex items-center gap-2">
+                  <span class="admin-users-tab__threshold-sub-label">Used</span>
+                  <div class="admin-users-tab__threshold-range-inputs">
                     <input
                       type="number"
                       v-model.number="activeRangeFilters[key][0]"
-                      class="w-full rounded border p-1 text-[11px]"
+                      class="form-input admin-users-tab__threshold-number"
                       placeholder="Min"
                     />
-                    <span class="text-slate-400">-</span>
+                    <span class="admin-users-tab__threshold-range-sep">-</span>
                     <input
                       type="number"
                       v-model.number="activeRangeFilters[key][1]"
-                      class="w-full rounded border p-1 text-[11px]"
+                      class="form-input admin-users-tab__threshold-number"
                       placeholder="Max"
                     />
                   </div>
-                  <div class="flex flex-row flex-nowrap gap-6">
+                  <div class="admin-users-tab__threshold-slider">
                     <DualSlider
                       v-model="activeRangeFilters[key]"
                       :min="0"
@@ -229,7 +206,7 @@
                 </div>
                 <div
                   v-else
-                  class="text-[10px] italic text-slate-400"
+                  class="admin-users-tab__threshold-inactive"
                 >
                   Filter inactive
                 </div>
@@ -237,44 +214,32 @@
             </div>
           </div>
 
-          <div class="flex flex-row flex-wrap gap-2 pt-4 lg:flex-nowrap">
+          <div class="admin-users-tab__sort-row">
             <div>
-              <p
-                class="mb-3 text-nowrap text-[10px] font-bold uppercase tracking-widest text-slate-400"
-              >
+              <p class="admin-users-tab__filters-label admin-users-tab__filters-label--nowrap">
                 Sort Results By
               </p>
-              <div class="flex flex-wrap gap-2">
+              <div class="admin-users-tab__filter-chips">
                 <button
                   v-for="key in ['name', 'id', 'networks']"
                   :key="key"
                   @click="toggleSort(key)"
-                  :class="
-                    sortBy === key
-                      ? 'border-purple-600 bg-purple-600 text-white'
-                      : 'border-slate-200 bg-white text-slate-600'
-                  "
-                  class="flex items-center gap-1 rounded-md border px-3 py-1.5 text-xs font-medium capitalize shadow-sm"
+                  class="admin-users-tab__sort-chip"
+                  :class="{ 'admin-users-tab__sort-chip--active': sortBy === key }"
                 >
                   {{ key }} <span v-if="sortBy === key">{{ sortOrder === 'asc' ? '↑' : '↓' }}</span>
                 </button>
               </div>
             </div>
             <div>
-              <p class="mb-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                Sort By Used
-              </p>
-              <div class="flex flex-wrap gap-2">
+              <p class="admin-users-tab__filters-label">Sort By Used</p>
+              <div class="admin-users-tab__filter-chips">
                 <button
                   v-for="key in userMetricKeys"
                   :key="key"
                   @click="toggleSort(key)"
-                  :class="
-                    sortBy === key
-                      ? 'border-purple-600 bg-purple-600 text-white'
-                      : 'border-slate-200 bg-white text-slate-600'
-                  "
-                  class="flex items-center gap-1 rounded-md border px-3 py-1.5 text-xs font-medium capitalize shadow-sm"
+                  class="admin-users-tab__sort-chip"
+                  :class="{ 'admin-users-tab__sort-chip--active': sortBy === key }"
                 >
                   {{ key.replace(/([A-Z])/g, ' $1') }}
                   <span v-if="sortBy === key">{{ sortOrder === 'asc' ? '↑' : '↓' }}</span>
@@ -284,66 +249,48 @@
           </div>
         </div>
 
-        <span
-          class="mb-4 block pl-4 text-[10px] font-bold uppercase leading-none tracking-widest text-slate-400"
-        >
+        <span class="admin-users-tab__results-count">
           Showing
-          <span class="pl-1 text-lg font-black leading-none text-slate-900">{{
-            filteredUsers.length
-          }}</span>
-          <span class="text-xs font-medium text-slate-400"> / {{ allComboUsers.length }}</span>
+          <span class="admin-users-tab__results-count-value">{{ filteredUsers.length }}</span>
+          <span class="admin-users-tab__results-count-total"> / {{ allComboUsers.length }}</span>
           Users
         </span>
       </div>
 
-      <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div class="overflow-x-auto">
-          <table class="w-full border-collapse text-left">
+      <div class="card admin-users-tab__table-card">
+        <div class="admin-users-tab__table-scroll">
+          <table class="table">
             <thead>
-              <tr class="border-b border-slate-200 bg-slate-50">
-                <th
-                  class="w-48 px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-500"
-                >
-                  User
-                </th>
-                <th class="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-500">
-                  ID
-                </th>
-                <th
-                  class="w-1/2 px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-500"
-                >
+              <tr class="table__row">
+                <th class="table__cell table__cell--head admin-users-tab__col-user">User</th>
+                <th class="table__cell table__cell--head">ID</th>
+                <th class="table__cell table__cell--head admin-users-tab__col-content">
                   Created Content
                 </th>
-                <th class="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-500">
-                  Networks
-                </th>
-                <th
-                  class="w-32 px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-slate-500"
-                >
-                  Actions
-                </th>
+                <th class="table__cell table__cell--head">Networks</th>
+                <th class="table__cell table__cell--head admin-users-tab__col-actions">Actions</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-slate-100">
+            <tbody>
               <tr
                 v-for="user in filteredUsers"
                 :key="user.id"
-                class="transition-colors hover:bg-slate-50/50"
+                class="table__row"
               >
-                <td class="px-6 py-4">
-                  <div class="font-medium text-slate-900">
+                <td class="table__cell">
+                  <div class="admin-users-tab__user-name">
                     {{ defaultProxy(user).firstName }} {{ defaultProxy(user).lastName }}
                   </div>
-                  <div class="text-sm text-slate-500">@{{ defaultProxy(user).username }}</div>
+                  <div class="admin-users-tab__user-handle">@{{ defaultProxy(user).username }}</div>
                 </td>
-                <td class="px-6 py-4 font-mono text-sm text-slate-600">
+                <td class="table__cell admin-users-tab__id-cell">
                   <SecurableField
                     :value="user.id"
                     :sensitive="true"
                   />
                 </td>
-                <td class="max-w-md px-6 py-4">
-                  <div class="flex flex-wrap gap-1.5">
+                <td class="table__cell admin-users-tab__content-cell">
+                  <div class="admin-users-tab__metric-chips">
                     <template v-if="userMetricKeys.some((k) => ((user[k] as number) || 0) > 0)">
                       <template
                         v-for="key in userMetricKeys"
@@ -351,9 +298,9 @@
                       >
                         <span
                           v-if="((user[key] as number) || 0) > 0"
-                          class="transition-hover inline-flex items-center rounded-md border border-slate-200 bg-white px-2 py-0.5 text-[11px] font-medium shadow-sm hover:border-blue-300"
+                          class="admin-users-tab__metric-chip"
                         >
-                          <span class="mr-1 font-normal uppercase tracking-tighter text-slate-400">
+                          <span class="admin-users-tab__metric-chip-key">
                             {{
                               key
                                 .replace('Count', '')
@@ -363,10 +310,8 @@
                             }}
                           </span>
 
-                          <span
-                            class="ml-0.5 border-l border-slate-200 pl-1.5 font-normal text-slate-700"
-                          >
-                            <span class="font-bold">{{
+                          <span class="admin-users-tab__metric-chip-value">
+                            <span class="admin-users-tab__metric-chip-value-number">{{
                               (user[key] || 0).toLocaleString('nl-NL')
                             }}</span>
                           </span>
@@ -376,10 +321,10 @@
 
                     <span
                       v-else
-                      class="flex items-center text-xs italic text-slate-400"
+                      class="admin-users-tab__no-metrics"
                     >
                       <svg
-                        class="mr-1 h-3 w-3 opacity-50"
+                        class="admin-users-tab__no-metrics-icon"
                         fill="currentColor"
                         viewBox="0 0 20 20"
                       >
@@ -393,54 +338,52 @@
                     </span>
                   </div>
                 </td>
-                <td class="px-6 py-4">
-                  <div class="flex flex-wrap gap-1">
+                <td class="table__cell">
+                  <div class="admin-users-tab__networks-list">
                     <div
                       v-for="network in getNetworksForUser(user)"
                       :key="network.id"
-                      class="group relative"
+                      class="admin-users-tab__network-item"
                     >
                       <a
                         :href="`/networks/${network.id}`"
-                        class="block"
+                        class="admin-users-tab__network-link"
                       >
                         <CloudinaryFile
                           v-if="network.imageFile"
                           :file="network.imageFile"
                           :display-only="true"
-                          class="h-8 w-8 rounded-full object-cover"
+                          class="avatar__image admin-users-tab__network-avatar"
                         />
                         <img
                           v-else
                           :src="`https://ui-avatars.com/api/?name=${encodeURIComponent(network.name)}&background=random`"
                           :alt="network.name"
-                          class="h-8 w-8 rounded-full object-cover"
+                          class="avatar__image admin-users-tab__network-avatar"
                         />
                       </a>
-                      <div
-                        class="absolute left-0 top-12 z-10 hidden w-56 rounded-md border border-gray-200 bg-white p-3 shadow-lg group-hover:block"
-                      >
-                        <h6 class="font-medium text-gray-900">{{ network.name }}</h6>
-                        <p class="truncate text-xs text-gray-500">{{ network.description }}</p>
+                      <div class="admin-users-tab__network-hover-card">
+                        <h6 class="admin-users-tab__network-hover-title">{{ network.name }}</h6>
+                        <p class="admin-users-tab__network-hover-desc">{{ network.description }}</p>
                       </div>
                     </div>
                     <span
                       v-if="getNetworksForUser(user).length === 0"
-                      class="text-sm italic text-slate-400"
+                      class="admin-users-tab__no-networks"
                       >No networks</span
                     >
                   </div>
                 </td>
-                <td class="px-6 py-4 text-right">
+                <td class="table__cell admin-users-tab__actions-cell">
                   <button
                     @click="showTempModal = true"
-                    class="text-sm font-medium text-indigo-600 hover:text-indigo-800"
+                    class="admin-users-tab__action-link"
                   >
                     Manage
                   </button>
                   <button
                     @click="openEntitlementsModal(user)"
-                    class="text-sm font-medium text-purple-600 hover:text-purple-800"
+                    class="admin-users-tab__action-link admin-users-tab__action-link--entitlements"
                   >
                     Entitlements
                   </button>
@@ -449,7 +392,7 @@
               <tr v-if="filteredUsers.length === 0">
                 <td
                   colspan="5"
-                  class="px-6 py-12 text-center text-slate-500"
+                  class="table__cell admin-users-tab__empty-cell"
                 >
                   No users matched the filters.
                 </td>

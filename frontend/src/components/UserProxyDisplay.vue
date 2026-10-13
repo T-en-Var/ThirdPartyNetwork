@@ -1,35 +1,35 @@
 <template>
-  <div class="space-y-4 rounded-xl border border-gray-300 bg-white p-6 shadow-md">
-    <div class="flex items-start space-x-6">
+  <div class="user-proxy-display">
+    <div class="user-proxy-display__row">
       <!-- User Avatar -->
       <div>
         <div
           v-if="userProxy?.imageFile"
-          class="h-20 w-20 overflow-hidden rounded-full border border-gray-300"
+          class="user-proxy-display__avatar"
         >
           <ProfileAvatar
             :userProxy="userProxy"
-            :size="20"
+            :size="80"
           />
         </div>
         <div
           v-else
-          class="flex h-20 w-20 items-center justify-center rounded-full border border-gray-300 bg-gray-100"
+          class="user-proxy-display__avatar user-proxy-display__avatar--fallback"
         >
-          <span class="text-2xl font-semibold text-gray-500">{{ getInitials() }}</span>
+          <span class="user-proxy-display__initials">{{ getInitials() }}</span>
         </div>
       </div>
 
       <!-- User Information -->
-      <div class="flex-1">
-        <div class="flex items-center justify-between">
+      <div class="user-proxy-display__info">
+        <div class="user-proxy-display__header">
           <div>
-            <h3 class="text-xl font-semibold text-gray-900">
+            <h3 class="user-proxy-display__name">
               {{ userProxy ? getNameDisplayUserProxy(userProxy) : 'Unknown User' }}
             </h3>
             <span
               v-if="userProxy?.isDefault"
-              class="mt-1 inline-block rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700"
+              class="badge badge--info"
             >
               Default Proxy
             </span>
@@ -39,21 +39,21 @@
           <button
             v-if="showSwitch"
             @click="emit('switch-account')"
-            class="rounded-md border border-gray-300 bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-200"
+            class="btn btn--secondary"
           >
             Switch Account
           </button>
         </div>
 
         <!-- UserProxy Fields -->
-        <div class="mt-4 space-y-2">
+        <div class="user-proxy-display__fields">
           <div
             v-for="(field, key) in displayFields"
             :key="key"
-            class="text-sm text-gray-700"
+            class="user-proxy-display__field"
           >
-            <div class="flex items-center">
-              <span class="w-32 font-medium text-gray-600">{{ formatFieldName(key) }}:</span>
+            <div class="user-proxy-display__field-row">
+              <span class="user-proxy-display__field-label">{{ formatFieldName(key) }}:</span>
               <SecurableField
                 :value="field.value"
                 :sensitive="field.sensitive"
@@ -67,7 +67,7 @@
       <!-- Optional Slot for Custom Actions -->
       <div
         v-if="$slots.actions"
-        class="ml-4"
+        class="user-proxy-display__actions"
       >
         <slot name="actions"></slot>
       </div>

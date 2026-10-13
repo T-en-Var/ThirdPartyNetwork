@@ -1,41 +1,37 @@
 <template>
-  <div class="overflow-hidden rounded-lg bg-white p-6 shadow-md">
-    <div class="mb-6 flex items-center justify-between">
-      <h2 class="text-xl font-medium text-gray-800">Network Accesses</h2>
+  <div class="network-list-panel">
+    <div class="network-list-panel__header">
+      <h2 class="network-list-panel__title">Network Accesses</h2>
       <button
         @click="$emit('addAccess')"
-        class="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+        class="btn btn--primary"
       >
         Add Access
       </button>
     </div>
 
-    <div class="space-y-4">
+    <div class="network-list-panel__items">
       <div
         v-for="networkAccess in network.networkAccesses"
         :key="networkAccess.access.id"
-        class="rounded-lg border border-gray-200 bg-gray-50 p-4"
+        class="network-list-panel__item"
       >
-        <div class="flex items-center justify-between">
+        <div class="network-list-panel__item-header">
           <div>
-            <h3 class="text-lg font-medium text-gray-900">{{ networkAccess.access.name }}</h3>
-            <p class="text-sm text-gray-600">{{ networkAccess.access.description }}</p>
+            <h3 class="network-list-panel__item-title">{{ networkAccess.access.name }}</h3>
+            <p class="network-list-panel__item-description">{{ networkAccess.access.description }}</p>
           </div>
-          <div>
+          <div class="network-list-panel__item-actions">
             <button
               @click="$emit('toggleAccessRequired', networkAccess)"
-              class="mr-3 rounded-md border px-4 py-2 text-sm"
-              :class="
-                networkAccess.isRequired
-                  ? 'border-green-200 bg-green-100 text-green-800'
-                  : 'border-gray-200 bg-gray-100 text-gray-800'
-              "
+              class="network-list-panel__toggle-btn"
+              :class="{ 'network-list-panel__toggle-btn--active': networkAccess.isRequired }"
             >
               {{ networkAccess.isRequired ? 'Required' : 'Optional' }}
             </button>
             <button
               @click="$emit('removeAccess', networkAccess)"
-              class="text-red-600 hover:text-red-900"
+              class="network-list-panel__remove-btn"
             >
               Remove
             </button>
@@ -45,7 +41,7 @@
 
       <div
         v-if="!network.networkAccesses?.length"
-        class="p-6 text-center text-gray-500"
+        class="network-list-panel__empty"
       >
         No accesses defined in this network
       </div>

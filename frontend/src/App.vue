@@ -1,13 +1,13 @@
 <template>
   <header
     v-if="showNavbar"
-    class="static"
+    class="app-shell__header"
   >
     <NavBar />
   </header>
 
-  <main class="flex flex-col">
-    <div class="flex-grow">
+  <main class="app-main">
+    <div class="app-main__content">
       <RouterView />
     </div>
 
@@ -17,12 +17,6 @@
       :is-fetching="global.isFetching"
       @remove="global.removeToast"
     />
-
-    <!-- <div
-      class="fixed z-50 h-10 w-10 cursor-pointer bg-green-500"
-      @click="authStore.refreshTokens()"
-    ></div> -->
-    <!-- <div class="fixed bg-red-500 w-10 h-10 z-50 cursor-pointer" @click="console.log((globalCache.get(`networks_019b722f-5d71-7631-812d-6646febcaef2`)))"></div> -->
   </main>
 </template>
 
@@ -52,19 +46,3 @@ const showNavbar = computed(() => {
   return !(route.meta.showNavbar === false || route.query.hideNavbar !== undefined);
 });
 </script>
-
-<style>
-main {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-
-#app {
-  height: 100vh;
-  background-color: #f8f8fb;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-</style>

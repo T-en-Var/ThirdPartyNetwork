@@ -1,7 +1,6 @@
-@ -1,351 +0,0 @@
 <!-- EditUserProxyPage.vue -->
 <template>
-  <div class="mx-auto max-w-4xl overflow-hidden rounded-lg bg-white p-6 shadow-md">
+  <div class="edit-user-proxy-tab">
     <LoadingErrorComponent
       :loading="loading"
       :error="error ?? undefined"
@@ -12,55 +11,56 @@
 
     <div
       v-if="!loading && !error && userProxy"
-      class="space-y-10"
+      class="edit-user-proxy-tab__body"
     >
-      <div class="flex items-stretch justify-between gap-10">
-        <section class="flex-grow">
-          <h2 class="mb-4 text-lg font-semibold text-gray-800">Profile Info</h2>
-          <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+      <div class="edit-user-proxy-tab__top-row">
+        <section class="edit-user-proxy-tab__profile-section">
+          <h2 class="edit-user-proxy-tab__section-title">Profile Info</h2>
+          <div class="edit-user-proxy-tab__field-grid">
             <div>
-              <label class="block text-sm font-medium text-gray-700">Username</label>
-              <div class="relative mt-1">
-                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">@</span>
+              <label class="form-label">Username</label>
+              <div class="edit-user-proxy-tab__username-field">
+                <span class="edit-user-proxy-tab__username-prefix">@</span>
                 <input
                   v-model="form.username"
                   type="text"
-                  class="block w-full rounded-lg border border-gray-300 py-2 pl-7 pr-3 text-sm shadow-sm focus:border-blue-600 focus:ring focus:ring-blue-100"
+                  class="form-input edit-user-proxy-tab__username-input"
                 />
               </div>
             </div>
 
             <div></div>
             <div>
-              <label class="block text-sm font-medium text-gray-700">First Name</label>
+              <label class="form-label">First Name</label>
               <input
                 v-model="form.firstName"
                 type="text"
-                class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-600 focus:ring focus:ring-blue-100"
+                class="form-input"
               />
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700">Last Name</label>
+              <label class="form-label">Last Name</label>
               <input
                 v-model="form.lastName"
                 type="text"
-                class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-600 focus:ring focus:ring-blue-100"
+                class="form-input"
               />
             </div>
 
-            <div class="col-span-full">
+            <div class="edit-user-proxy-tab__field-grid-full">
               <label
-                :class="`mt-2 flex items-center gap-2 ${userProxy.isDefault ? '' : 'cursor-pointer'}`"
+                class="edit-user-proxy-tab__checkbox-label"
+                :class="{ 'edit-user-proxy-tab__checkbox-label--disabled': userProxy.isDefault }"
               >
                 <input
                   type="checkbox"
                   v-model="form.isDefault"
                   :disabled="userProxy.isDefault"
-                  class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  class="checkbox"
                 />
-                <span class="text-sm font-medium text-gray-800">Set as default proxy</span>
+                <span class="edit-user-proxy-tab__checkbox-text">Set as default proxy</span>
               </label>
-              <p class="mt-1 text-xs text-gray-500">
+              <p class="form-help">
                 <span v-if="userProxy.isDefault">
                   This proxy is currently your default. You cannot uncheck it because you must
                   always have one default proxy.
@@ -75,30 +75,30 @@
         </section>
 
         <!-- Profile Image -->
-        <section class="flex flex-col">
-          <h2 class="mb-4 text-lg font-semibold text-gray-800">Profile Image</h2>
-          <div class="flex flex-grow flex-col items-center">
+        <section class="edit-user-proxy-tab__image-section">
+          <h2 class="edit-user-proxy-tab__section-title">Profile Image</h2>
+          <div class="edit-user-proxy-tab__image-section-body">
             <!-- If an image is already set -->
             <div
               v-if="uploadedFile"
-              class="flex flex-grow flex-col items-center"
+              class="edit-user-proxy-tab__image-section-body"
             >
               <CloudinaryFile
                 :file="uploadedFile"
                 :display-only="true"
-                class="h-24 w-24 rounded-full object-cover"
+                class="avatar__image edit-user-proxy-tab__avatar"
               />
-              <div class="mt-6 flex gap-3">
+              <div class="edit-user-proxy-tab__image-actions">
                 <button
                   type="button"
-                  class="text-sm text-red-600 hover:underline"
+                  class="edit-user-proxy-tab__link-btn edit-user-proxy-tab__link-btn--danger"
                   @click="removeImage"
                 >
                   Remove
                 </button>
                 <button
                   type="button"
-                  class="text-sm text-blue-600 hover:underline"
+                  class="edit-user-proxy-tab__link-btn"
                   @click="openUploadModal"
                 >
                   Change
@@ -109,16 +109,12 @@
             <!-- If no image yet -->
             <div
               v-else
-              class="flex flex-grow flex-col items-center justify-center"
+              class="edit-user-proxy-tab__image-section-empty"
             >
-              <div
-                class="flex h-24 w-24 items-center justify-center rounded-full bg-gray-200 text-gray-500"
-              >
-                No Image
-              </div>
+              <div class="edit-user-proxy-tab__avatar-placeholder">No Image</div>
               <button
                 type="button"
-                class="mt-4 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm text-gray-700 shadow-sm hover:bg-gray-50"
+                class="btn btn--outline"
                 @click="openUploadModal"
               >
                 Upload Image
@@ -137,86 +133,85 @@
         </section>
       </div>
 
-      <div class="w-full border-b border-gray-200"></div>
+      <div class="divider"></div>
 
       <!-- Email -->
       <section>
-        <h2 class="mb-4 text-lg font-semibold text-gray-800">Email</h2>
+        <h2 class="edit-user-proxy-tab__section-title">Email</h2>
         <input
           v-model="form.email"
           type="email"
           autocomplete="off"
-          class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-600 focus:ring focus:ring-blue-100"
+          class="form-input"
         />
       </section>
 
-      <div class="w-full border-b border-gray-200"></div>
+      <div class="divider"></div>
 
       <!-- Password -->
       <section>
-        <h2 class="mb-4 text-lg font-semibold text-gray-800">Password</h2>
+        <h2 class="edit-user-proxy-tab__section-title">Password</h2>
 
         <!-- Existing password -->
         <div
           v-if="userProxy.hasPassword || form.isDefault"
-          class="mb-4 space-y-3 rounded-md border border-gray-200 bg-gray-50 p-4"
+          class="edit-user-proxy-tab__password-box"
         >
-          <label class="flex cursor-pointer items-center gap-2">
+          <label class="edit-user-proxy-tab__checkbox-label">
             <input
               type="checkbox"
               v-model="form.keepPassword"
               :disabled="form.isDefault"
-              class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              class="checkbox"
             />
-            <span class="text-sm font-medium text-gray-800"> Keep existing password </span>
+            <span class="edit-user-proxy-tab__checkbox-text"> Keep existing password </span>
           </label>
 
-          <p class="text-xs text-gray-600">
+          <p class="edit-user-proxy-tab__password-note">
             <span v-if="form.isDefault">
               This proxy is set as default and must have a password. You cannot remove it. Leaving
               the field empty will keep the old password.
             </span>
             <span v-else>
               Uncheck to remove the password. If you enter a new one below, it will
-              <span class="font-semibold text-red-600">overwrite</span> the old password.
+              <span class="edit-user-proxy-tab__password-note-emphasis">overwrite</span> the old
+              password.
             </span>
           </p>
         </div>
 
         <!-- Password inputs -->
-        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div class="edit-user-proxy-tab__field-grid">
           <div>
-            <label class="block text-sm font-medium text-gray-700">New Password</label>
+            <label class="form-label">New Password</label>
             <input
               v-model="form.password"
               type="password"
               autocomplete="new-password"
-              :class="[
-                'mt-1 block w-full rounded-lg border px-3 py-2 text-sm shadow-sm focus:ring focus:ring-blue-100',
-                form.isDefault && !userProxy.hasPassword && !form.password
-                  ? 'border-red-500'
-                  : 'border-gray-300 focus:border-blue-600',
-              ]"
+              class="form-input"
+              :class="{
+                'form-input--error': form.isDefault && !userProxy.hasPassword && !form.password,
+              }"
             />
             <p
               v-if="form.isDefault && !userProxy.hasPassword && !form.password"
-              class="mt-1 text-xs text-red-500"
+              class="form-error"
             >
               Default proxies must have a password.
             </p>
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-700">Retype Password</label>
+            <label class="form-label">Retype Password</label>
             <input
               v-model="form.password_retype"
               type="password"
               autocomplete="off"
-              class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-600 focus:ring focus:ring-blue-100"
+              class="form-input"
             />
             <p
               v-if="form.password && form.password !== form.password_retype"
-              class="mt-1 text-xs text-red-500"
+              class="form-error"
             >
               Passwords do not match
             </p>
@@ -226,18 +221,18 @@
         <!-- If no password exists and not default -->
         <div
           v-if="!userProxy.hasPassword && !form.isDefault"
-          class="mt-2 text-xs text-gray-500"
+          class="edit-user-proxy-tab__password-hint"
         >
           You currently do not have a password for this proxy. It's recommended to set one.
         </div>
       </section>
 
-      <div class="w-full border-b border-gray-200"></div>
+      <div class="divider"></div>
 
       <!-- Networks -->
       <section>
-        <h2 class="mb-4 text-lg font-semibold text-gray-800">Networks</h2>
-        <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <h2 class="edit-user-proxy-tab__section-title">Networks</h2>
+        <div class="edit-user-proxy-tab__network-grid">
           <NetworkCard
             v-for="network in networks"
             :key="network.id"
@@ -246,24 +241,24 @@
           />
           <div
             v-if="!networks.length"
-            class="col-span-full p-10 text-center text-gray-500"
+            class="empty-state edit-user-proxy-tab__network-empty"
           >
             You haven't joined any networks yet. Browse available networks to join.
           </div>
         </div>
       </section>
 
-      <div class="w-full border-b border-gray-200"></div>
+      <div class="divider"></div>
 
       <!-- Danger Zone -->
-      <section class="rounded-lg border border-red-300 bg-red-50 p-6">
-        <h2 class="mb-4 text-lg font-semibold text-red-700">Danger Zone</h2>
-        <p class="mb-4 text-sm text-red-600">
+      <section class="edit-user-proxy-tab__danger-zone">
+        <h2 class="edit-user-proxy-tab__danger-zone-title">Danger Zone</h2>
+        <p class="edit-user-proxy-tab__danger-zone-text">
           Deleting this proxy is permanent and cannot be undone. Please proceed with caution.
         </p>
         <button
           @click="deleteProxy"
-          class="rounded-md bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400"
+          class="btn btn--danger"
         >
           Delete Proxy
         </button>
@@ -273,22 +268,20 @@
       <transition name="fade">
         <div
           v-if="hasChanges"
-          class="fixed bottom-0 left-0 flex w-screen justify-center"
+          class="edit-user-proxy-tab__save-bar"
         >
-          <div
-            class="mb-3 flex w-fit items-center justify-between gap-10 rounded-md bg-gray-900 px-6 py-3 text-white shadow-lg"
-          >
-            <span class="text-sm">You have unsaved changes</span>
-            <div class="flex gap-3">
+          <div class="edit-user-proxy-tab__save-bar-inner">
+            <span class="edit-user-proxy-tab__save-bar-text">You have unsaved changes</span>
+            <div class="edit-user-proxy-tab__save-bar-actions">
               <button
                 @click="resetForm"
-                class="rounded-md bg-gray-700 px-3 py-1 text-sm hover:bg-gray-600"
+                class="btn btn--secondary btn--sm"
               >
                 Undo Changes
               </button>
               <button
                 @click="saveChanges"
-                class="rounded-md bg-green-600 px-4 py-2 text-sm hover:bg-green-700"
+                class="btn btn--success btn--sm"
               >
                 Save Changes
               </button>
@@ -427,15 +420,3 @@ function removeImage() {
   uploadedFile.value = null;
 }
 </script>
-
-<style scoped>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-</style>

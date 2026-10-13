@@ -1,43 +1,43 @@
 <template>
-  <div class="container mx-auto mt-8 px-4 py-8">
-    <div class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md">
-      <div class="flex items-center justify-between border-b border-gray-200 bg-gray-100 px-6 py-4">
-        <h1 class="text-2xl font-semibold text-gray-800">Join Network</h1>
+  <div class="join-network-view">
+    <div class="join-network-view__panel">
+      <div class="join-network-view__header">
+        <h1 class="join-network-view__heading">Join Network</h1>
       </div>
 
-      <div class="p-6">
+      <div class="join-network-view__body">
         <!-- Network Information -->
         <div
-          class="mb-8 cursor-pointer overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md"
+          class="join-network-view__network-card"
           @click="handleNetworkDetails"
         >
-          <div class="p-4">
-            <div class="mb-4 flex items-center">
-              <div class="mr-4">
+          <div class="join-network-view__network-card-body">
+            <div class="join-network-view__network-row">
+              <div class="join-network-view__network-logo">
                 <NetworkLogo
                   :loading="loading"
                   :image-file="network?.imageFile"
                   :network-name="network?.name ?? ''"
                 />
               </div>
-              <div class="flex-1">
-                <div class="flex items-center justify-between">
+              <div class="join-network-view__network-info">
+                <div class="join-network-view__network-title-row">
                   <div>
-                    <h2 class="text-xl font-semibold text-gray-800">{{ network?.name }}</h2>
-                    <p class="text-sm text-gray-600">
+                    <h2 class="join-network-view__network-title">{{ network?.name }}</h2>
+                    <p class="join-network-view__network-subtitle">
                       {{ network?.networkUsers?.length || 0 }} members
                     </p>
                   </div>
                   <span
                     v-if="network?.isSystemProtected"
-                    class="rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800"
+                    class="badge badge--success"
                   >
                     Protected
                   </span>
                 </div>
               </div>
             </div>
-            <p class="text-sm text-gray-600">
+            <p class="join-network-view__network-description">
               {{ network?.description || 'No description available.' }}
             </p>
           </div>
@@ -45,61 +45,59 @@
 
         <!-- Required Accesses Section -->
         <div
-          class="mb-8"
+          class="join-network-view__accesses-loading"
           v-if="loading"
         >
-          <div class="flex justify-center">
-            <div class="spinner-border"></div>
-          </div>
+          <div class="spinner-border"></div>
         </div>
 
         <div v-else-if="network && network.networkAccesses.length > 0">
-          <h3 class="mb-4 text-lg font-medium text-gray-800">Required Data Access</h3>
-          <p class="mb-4 text-gray-600">
+          <h3 class="join-network-view__section-title">Required Data Access</h3>
+          <p class="join-network-view__section-subtitle">
             This network requests access the following information to function properly:
           </p>
 
-          <div class="mb-6 space-y-4">
+          <div class="join-network-view__accesses-list">
             <div
               v-for="access in network.networkAccesses"
               :key="access.access.id"
-              class="rounded-md border border-gray-200 p-4"
+              class="join-network-view__access-item"
             >
-              <div class="flex items-start">
-                <div class="flex h-6 items-center">
+              <div class="join-network-view__access-row">
+                <div class="join-network-view__access-checkbox-wrap">
                   <input
                     :id="access.access.id"
                     v-model="userAccesses[access.access.id].value"
                     type="checkbox"
-                    class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    class="checkbox"
                     :disabled="access.isRequired"
                     @change="validateRequiredAccesses"
                   />
                 </div>
-                <div class="ml-3">
+                <div class="join-network-view__access-copy">
                   <label
                     :for="access.access.id"
-                    class="block text-sm font-medium text-gray-700"
+                    class="form-label"
                   >
                     {{ access.access.name }}
                     <span
                       v-if="access.isRequired"
-                      class="ml-1 text-red-500"
+                      class="join-network-view__required-tag"
                       >(Required)</span
                     >
                   </label>
-                  <p class="text-sm text-gray-500">{{ access.access.description }}</p>
+                  <p class="join-network-view__access-description">{{ access.access.description }}</p>
                 </div>
               </div>
             </div>
           </div>
         </div>
         <div v-else-if="network">
-          <p class="text-gray-600">This network does not require any special permissions.</p>
+          <p class="join-network-view__no-accesses">This network does not require any special permissions.</p>
         </div>
 
-        <div class="mb-8">
-          <h2 class="mb-4 text-lg font-medium text-gray-800">Currently Logged In As</h2>
+        <div class="join-network-view__current-user">
+          <h2 class="join-network-view__current-user-title">Currently Logged In As</h2>
           <UserProxyDisplay
             :userProxy="currentUserProxy"
             :sensitiveFields="['email', 'lastName']"
@@ -109,7 +107,7 @@
           </UserProxyDisplay>
         </div>
 
-        <div class="m-6">
+        <div class="join-network-view__error">
           <ErrorAlert
             :message="submitError"
             @dismiss="submitError = ''"
@@ -119,26 +117,24 @@
         <!-- Join Network Form -->
         <form @submit.prevent="handleJoinNetwork">
           <!-- Form Actions -->
-          <div class="flex justify-end space-x-3 border-t border-gray-200 pt-4">
+          <div class="form__actions">
             <button
               type="button"
-              class="rounded-md border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50"
+              class="btn btn--outline"
               @click="navigateBack"
             >
               Cancel
             </button>
             <button
               type="submit"
-              class="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+              class="btn btn--primary"
               :disabled="isSubmitting"
             >
               <span
                 v-if="isSubmitting"
-                class="flex items-center"
+                class="join-network-view__submitting"
               >
-                <span
-                  class="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent"
-                ></span>
+                <span class="spinner-border spinner-border--xs"></span>
                 Joining...
               </span>
               <span v-else>Join Network</span>
@@ -254,20 +250,3 @@ function handleNetworkDetails() {
   router.push(`/networks/${networkId}`);
 }
 </script>
-
-<style scoped>
-.spinner-border {
-  width: 1.5rem;
-  height: 1.5rem;
-  border: 2px solid currentColor;
-  border-right-color: transparent;
-  border-radius: 50%;
-  animation: spinner-border 0.75s linear infinite;
-}
-
-@keyframes spinner-border {
-  100% {
-    transform: rotate(360deg);
-  }
-}
-</style>

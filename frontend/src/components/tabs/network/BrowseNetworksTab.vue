@@ -1,17 +1,15 @@
 <template>
-  <div class="mb-4 flex items-center justify-between">
-    <h2 class="text-xl font-medium text-gray-800">Public Networks</h2>
-    <div class="relative">
-      <input
-        type="text"
-        v-model="searchQuery"
-        placeholder="Search networks..."
-        class="rounded-md border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-      />
-    </div>
+  <div class="browse-networks-tab__header">
+    <h2 class="browse-networks-tab__title">Public Networks</h2>
+    <input
+      type="text"
+      v-model="searchQuery"
+      placeholder="Search networks..."
+      class="form-input"
+    />
   </div>
 
-  <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+  <div class="network-card-grid">
     <NetworkCard
       v-for="network in filteredNetworks"
       :key="network.id"
@@ -22,7 +20,7 @@
     />
     <div
       v-if="!filteredNetworks.length"
-      class="col-span-full p-10 text-center text-gray-500"
+      class="network-card-grid__empty"
     >
       No networks found matching your search.
     </div>

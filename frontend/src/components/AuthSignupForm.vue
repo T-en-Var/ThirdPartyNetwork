@@ -1,13 +1,13 @@
 <template>
   <form
     @submit.prevent="handleSubmit"
-    class="flex flex-col gap-5"
+    class="form"
   >
-    <div class="flex flex-wrap gap-5">
-      <div class="min-w-[140px] flex-1">
+    <div class="auth-signup-form__row">
+      <div class="auth-signup-form__col form-field">
         <label
           :for="`${idPrefix}-firstname`"
-          class="mb-2 block text-sm font-medium text-gray-700"
+          class="form-label"
           >First Name</label
         >
         <input
@@ -18,13 +18,13 @@
           autocomplete="given-name"
           placeholder="Your first name"
           aria-required="true"
-          class="w-full rounded-md border border-gray-300 px-4 py-3 text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          class="form-input"
         />
       </div>
-      <div class="min-w-[140px] flex-1">
+      <div class="auth-signup-form__col form-field">
         <label
           :for="`${idPrefix}-lastname`"
-          class="mb-2 block text-sm font-medium text-gray-700"
+          class="form-label"
           >Last Name</label
         >
         <input
@@ -35,16 +35,16 @@
           autocomplete="family-name"
           placeholder="Your last name"
           aria-required="true"
-          class="w-full rounded-md border border-gray-300 px-4 py-3 text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          class="form-input"
         />
       </div>
     </div>
 
-    <div class="flex flex-wrap gap-5">
-      <div class="min-w-[140px] flex-1">
+    <div class="auth-signup-form__row">
+      <div class="auth-signup-form__col form-field">
         <label
           :for="`${idPrefix}-username`"
-          class="mb-2 block text-sm font-medium text-gray-700"
+          class="form-label"
           >Username</label
         >
         <input
@@ -55,13 +55,13 @@
           autocomplete="username"
           placeholder="Choose a username"
           aria-required="true"
-          class="w-full rounded-md border border-gray-300 px-4 py-3 text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          class="form-input"
         />
       </div>
-      <div class="min-w-[140px] flex-1">
+      <div class="auth-signup-form__col form-field">
         <label
           :for="`${idPrefix}-email`"
-          class="mb-2 block text-sm font-medium text-gray-700"
+          class="form-label"
           >Email</label
         >
         <input
@@ -72,16 +72,16 @@
           autocomplete="email"
           placeholder="Your email"
           aria-required="true"
-          class="w-full rounded-md border border-gray-300 px-4 py-3 text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          class="form-input"
         />
       </div>
     </div>
 
-    <div class="flex flex-wrap gap-5">
-      <div class="min-w-[140px] flex-1">
+    <div class="auth-signup-form__row">
+      <div class="auth-signup-form__col form-field">
         <label
           :for="`${idPrefix}-password`"
-          class="mb-2 block text-sm font-medium text-gray-700"
+          class="form-label"
           >Password</label
         >
         <input
@@ -92,13 +92,13 @@
           autocomplete="new-password"
           placeholder="Create a password"
           aria-required="true"
-          class="w-full rounded-md border border-gray-300 px-4 py-3 text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          class="form-input"
         />
       </div>
-      <div class="min-w-[140px] flex-1">
+      <div class="auth-signup-form__col form-field">
         <label
           :for="`${idPrefix}-confirm-password`"
-          class="mb-2 block text-sm font-medium text-gray-700"
+          class="form-label"
           >Confirm Password</label
         >
         <input
@@ -109,11 +109,11 @@
           autocomplete="new-password"
           placeholder="Confirm your password"
           aria-required="true"
-          class="w-full rounded-md border border-gray-300 px-4 py-3 text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          class="form-input"
         />
         <p
           v-if="passwordMismatch"
-          class="mt-1 text-sm text-red-600"
+          class="form-error"
           role="alert"
         >
           Passwords do not match.
@@ -121,24 +121,24 @@
       </div>
     </div>
 
-    <div class="mt-1 flex items-center gap-3">
+    <div class="auth-signup-form__tos">
       <input
         :id="`${idPrefix}-tos`"
         v-model="confirmToS"
         type="checkbox"
         required
         aria-required="true"
-        class="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+        class="checkbox"
       />
       <label
         :for="`${idPrefix}-tos`"
-        class="text-sm text-gray-700"
+        class="auth-signup-form__tos-label"
       >
         I accept the
         <a
           href="#"
           @click.prevent="emit('tos', { ...form })"
-          class="cursor-pointer font-medium text-blue-600 hover:underline"
+          class="auth-signup-form__tos-link"
           >Terms and Conditions</a
         >.
       </label>
@@ -146,7 +146,7 @@
 
     <button
       type="submit"
-      class="mt-3 w-full rounded-md bg-blue-600 py-3 font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
+      class="btn btn--primary btn--full"
       :disabled="submitting"
       aria-live="polite"
     >

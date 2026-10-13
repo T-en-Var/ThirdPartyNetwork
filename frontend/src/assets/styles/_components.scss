@@ -1,0 +1,199 @@
+// Shared, reusable building blocks used across many features.
+// Prefer reusing a class from this file over inventing a new one when an
+// element is "just a button", "just a badge", etc. Everything below is an
+// empty placeholder on purpose - fill it in with real styling.
+
+// --- Buttons ---------------------------------------------------------------
+.btn {
+}
+.btn--primary {
+}
+.btn--secondary {
+}
+.btn--danger {
+}
+.btn--success {
+}
+.btn--warning {
+}
+.btn--outline {
+}
+.btn--ghost {
+}
+.btn--white {
+}
+.btn--full {
+}
+.btn--sm {
+}
+.btn--icon {
+}
+.btn:disabled {
+}
+
+// --- Badges / pills ----------------------------------------------------
+.badge {
+}
+.badge--neutral {
+}
+.badge--success {
+}
+.badge--danger {
+}
+.badge--warning {
+}
+.badge--info {
+}
+.badge--on-dark {
+}
+
+// --- Alerts --------------------------------------------------------------
+.alert {
+}
+.alert--error {
+}
+.alert--success {
+}
+.alert--warning {
+}
+.alert--info {
+}
+.alert__icon {
+}
+.alert__content {
+}
+.alert__title {
+}
+.alert__message {
+}
+.alert__close-wrap {
+}
+.alert__close {
+}
+
+// --- Cards -----------------------------------------------------------------
+.card {
+}
+.card__header {
+}
+.card__body {
+}
+.card__footer {
+}
+.card__icon {
+}
+.card__title {
+}
+.card__text {
+}
+
+// --- Long-form rich text content -------------------------------------------
+.prose {
+}
+
+// --- Avatar ------------------------------------------------------------
+.avatar {
+}
+.avatar__image {
+}
+
+// --- Spinner (already has real styling, kept for reference/reuse) -----
+.spinner-border {
+  display: inline-block;
+  vertical-align: middle;
+  border-style: solid;
+  border-color: currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spinner-border 0.75s linear infinite;
+}
+.spinner-border--xs {
+}
+.spinner-border--sm {
+}
+.spinner-border--md {
+}
+.spinner-border--lg {
+}
+.spinner-border--xl {
+}
+.spinner-border--primary {
+}
+
+@keyframes spinner-border {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// --- Dropdown menus ------------------------------------------------------
+.dropdown {
+}
+.dropdown__trigger {
+}
+.dropdown__menu {
+}
+.dropdown__item {
+}
+.dropdown__divider {
+}
+
+// --- Tables ------------------------------------------------------------
+.table {
+}
+.table__head {
+}
+.table__row {
+}
+.table__cell {
+}
+
+// --- Loading state ---------------------------------------------------------
+.loading-state {
+}
+.loading-state__label {
+}
+
+// --- Empty state ---------------------------------------------------------
+.empty-state {
+}
+.empty-state__icon {
+}
+.empty-state__title {
+}
+.empty-state__message {
+}
+
+// --- Forms -----------------------------------------------------------------
+.form {
+}
+.form__actions {
+}
+.form-field {
+}
+.form-label {
+}
+.form-input {
+}
+.form-textarea {
+}
+.form-select {
+}
+.form-error {
+}
+.form-help {
+}
+.checkbox {
+}
+.checkbox-list {
+}
+
+// --- Misc layout helpers ---------------------------------------------------
+.section {
+}
+.section__title {
+}
+.section__subtitle {
+}
+.divider {
+}

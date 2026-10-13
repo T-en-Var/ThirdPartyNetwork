@@ -1,22 +1,22 @@
 <template>
   <div
     v-if="showLoader"
-    class="py-12 text-center"
+    class="loading-state"
   >
     <LoadingSpinner size="lg" />
-    <p class="mt-4 text-gray-600">Loading...</p>
+    <p class="loading-state__label">Loading...</p>
   </div>
 
   <div
     v-else-if="error"
-    class="mb-6 rounded-lg bg-red-50 p-6 text-red-700"
+    class="alert alert--error"
   >
-    <h2 class="mb-2 text-xl font-semibold">Error</h2>
-    <p>{{ error }}</p>
+    <h2 class="alert__title">Error</h2>
+    <p class="alert__message">{{ error }}</p>
     <button
       v-if="buttonValue"
       @click="$emit('buttonAction')"
-      class="mt-4 rounded-md bg-gray-600 px-4 py-2 text-white hover:bg-gray-700"
+      class="btn btn--secondary"
     >
       {{ buttonValue }}
     </button>

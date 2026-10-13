@@ -3,8 +3,5 @@
   "$schema": "https://json.schemastore.org/prettierrc",
   "singleQuote": true,
   "singleAttributePerLine": true,
-  "printWidth": 100,
-  "plugins": ["prettier-plugin-tailwindcss"],
-  "tailwindStylesheet": "src/assets/index.css",
-  "tailwindConfig": "./tailwind.config.js"
+  "printWidth": 100
 }

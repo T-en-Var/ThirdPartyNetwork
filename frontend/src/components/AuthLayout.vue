@@ -1,12 +1,12 @@
 <template>
-  <div class="relative flex min-h-screen w-full items-center justify-center bg-gray-100 p-5">
+  <div class="auth-layout">
     <button
-      class="absolute left-5 top-5 flex cursor-pointer items-center justify-center gap-1 rounded bg-white px-4 py-2 text-sm text-slate-700 shadow transition hover:bg-gray-100 hover:shadow-md"
+      class="auth-layout__back-btn"
       @click="goBack"
       aria-label="Go back to previous page or application"
     >
       <span
-        class="relative h-4 w-4"
+        class="auth-layout__back-icon"
         aria-hidden="true"
       >
         <svg
@@ -25,7 +25,7 @@
       <span> Back </span>
     </button>
 
-    <div :class="['w-full', widthClasses[maxWidth]]">
+    <div :class="['auth-layout__content', widthClasses[maxWidth]]">
       <slot />
     </div>
   </div>
@@ -47,14 +47,12 @@ const props = withDefaults(
 
 const emit = defineEmits(['go-back-step']);
 
-// Tailwind only generates classes it can see verbatim at build time,
-// so the max-width variants must be spelled out.
 const widthClasses = {
-  sm: 'max-w-sm',
-  md: 'max-w-md',
-  lg: 'max-w-lg',
-  xl: 'max-w-xl',
-  '2xl': 'max-w-2xl',
+  sm: 'auth-layout__content--sm',
+  md: 'auth-layout__content--md',
+  lg: 'auth-layout__content--lg',
+  xl: 'auth-layout__content--xl',
+  '2xl': 'auth-layout__content--2xl',
 } as const;
 
 const goBack = () => {

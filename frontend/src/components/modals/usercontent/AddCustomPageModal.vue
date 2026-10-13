@@ -11,10 +11,10 @@
       button-text="Add Custom Page"
       @submit="handleSubmit"
     >
-      <div>
+      <div class="form-field">
         <label
           for="pageName"
-          class="mb-2 block text-sm font-semibold text-gray-800"
+          class="form-label"
         >
           Page Name
         </label>
@@ -23,15 +23,15 @@
           v-model="name"
           type="text"
           placeholder="Enter page name"
-          class="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-900 shadow-sm transition-all focus:border-blue-600 focus:ring focus:ring-blue-100 disabled:bg-gray-100 disabled:text-gray-500"
+          class="form-input"
           required
         />
       </div>
 
-      <div>
+      <div class="form-field">
         <label
           for="pageSlug"
-          class="mb-2 block text-sm font-semibold text-gray-800"
+          class="form-label"
         >
           Page Slug
         </label>
@@ -40,16 +40,14 @@
           v-model="slug"
           type="text"
           placeholder="Enter page slug"
-          class="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-900 shadow-sm transition-all focus:border-blue-600 focus:ring focus:ring-blue-100 disabled:bg-gray-100 disabled:text-gray-500"
+          class="form-input"
           required
         />
-        <p class="mt-1 text-xs text-gray-500">
-          Information which should make it easier to look up.
-        </p>
+        <p class="form-help">Information which should make it easier to look up.</p>
         <transition name="fade">
           <p
             v-if="slugExists"
-            class="mt-2 rounded-lg border border-amber-200 bg-amber-100/50 p-2 text-[11px] text-amber-700"
+            class="add-custom-page-modal__slug-warning"
           >
             This slug is already taken. The system will append a unique ID to your link.
           </p>

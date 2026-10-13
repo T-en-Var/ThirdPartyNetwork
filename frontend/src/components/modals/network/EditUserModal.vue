@@ -4,50 +4,39 @@
     @close="$emit('close')"
     :close-on-outside-click="false"
   >
-    <div>
-      <div class="flex items-center gap-2">
-        <span class="text-[10px] font-black uppercase tracking-widest text-slate-400"
-          >Network User ID</span
-        >
-        <span
-          class="rounded-md border border-slate-200 bg-slate-100 px-2 py-0.5 font-mono text-xs font-medium text-slate-600 shadow-sm"
-        >
+    <div class="edit-user-modal__ids">
+      <div class="edit-user-modal__id-row">
+        <span class="edit-user-modal__id-label">Network User ID</span>
+        <span class="edit-user-modal__id-value">
           {{ selectedUser.id }}
         </span>
       </div>
-      <div class="flex items-center gap-2">
-        <span class="text-[10px] font-black uppercase tracking-widest text-slate-400"
-          >User Proxy ID</span
-        >
-        <span
-          class="rounded-md border border-slate-200 bg-slate-100 px-2 py-0.5 font-mono text-xs font-medium text-slate-600 shadow-sm"
-        >
+      <div class="edit-user-modal__id-row">
+        <span class="edit-user-modal__id-label">User Proxy ID</span>
+        <span class="edit-user-modal__id-value">
           {{ selectedUser.userProxyId }}
         </span>
       </div>
     </div>
 
-    <div class="space-y-6">
+    <div class="edit-user-modal__body">
       <!-- Roles Section -->
       <div>
-        <h3 class="text-lg font-medium leading-6 text-gray-900">User Roles</h3>
-        <p class="mt-1 text-sm text-gray-500">Manage roles assigned to this user</p>
+        <h3 class="edit-user-modal__section-title">User Roles</h3>
+        <p class="edit-user-modal__section-subtitle">Manage roles assigned to this user</p>
 
         <checkbox-list
           :items="availableRoles"
           v-model="localForm.roleIds"
           id-prefix="role"
           empty-message="No roles available in this network"
-          container-class="mt-4 max-h-48 overflow-y-auto rounded-md border p-2"
+          container-class="edit-user-modal__roles-list"
         />
       </div>
 
-      <div class="flex items-center gap-3 rounded-xl border border-blue-100 bg-blue-50/50 p-3">
-        <span
-          class="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-blue-100 text-[10px] font-black italic text-blue-600"
-          >i</span
-        >
-        <p class="text-[11px] leading-tight text-blue-800">
+      <div class="network-modal__info-banner">
+        <span class="network-modal__info-icon">i</span>
+        <p class="network-modal__info-text">
           Unspecified entitlements will default to role-specific/network-wide limits.
         </p>
       </div>

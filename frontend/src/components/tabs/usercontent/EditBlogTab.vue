@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto max-w-4xl py-8">
+  <div class="edit-blog-tab">
     <LoadingErrorComponent
       :loading="loading"
       :error="error ?? undefined"
@@ -10,14 +10,14 @@
 
     <div
       v-if="!loading && !error"
-      class="space-y-8 overflow-hidden rounded-xl bg-white p-8 shadow-lg"
+      class="edit-blog-tab__card"
     >
-      <div class="flex items-end justify-between border-b border-gray-100 pb-4">
-        <div class="flex items-center gap-3">
-          <h2 class="text-2xl font-bold text-gray-800">
+      <div class="edit-blog-tab__header">
+        <div class="edit-blog-tab__heading">
+          <h2 class="edit-blog-tab__title">
             {{ isPreviewing ? 'Preview Mode' : 'Edit Blog Post' }}
           </h2>
-          <span class="rounded bg-gray-100 px-2 py-1 text-xs text-gray-500">
+          <span class="badge badge--neutral">
             {{ published ? (+form.publishedAt! > Date.now() ? 'Published' : 'Planned') : 'Draft' }}
           </span>
         </div>
@@ -25,12 +25,8 @@
         <button
           type="button"
           @click="isPreviewing = !isPreviewing"
-          class="flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm font-medium transition-all"
-          :class="
-            isPreviewing
-              ? 'border-blue-200 bg-blue-50 text-blue-700'
-              : 'border-gray-300 bg-white text-gray-600 hover:bg-gray-50'
-          "
+          class="edit-blog-tab__preview-toggle"
+          :class="isPreviewing ? 'edit-blog-tab__preview-toggle--active' : ''"
         >
           <svg
             v-if="!isPreviewing"
@@ -74,22 +70,22 @@
       <form
         v-if="!isPreviewing"
         @submit.prevent="handleUpdate"
-        class="space-y-6"
+        class="form"
       >
-        <div class="grid grid-cols-1 gap-6 md:grid-cols-4">
-          <div class="md:col-span-3">
-            <label class="mb-2 block text-sm font-semibold text-gray-700">Title</label>
+        <div class="edit-blog-tab__row">
+          <div class="form-field edit-blog-tab__field--title">
+            <label class="form-label">Title</label>
             <input
               v-model="form.title"
               type="text"
               @keydown.enter.prevent
               placeholder="Enter an engaging title..."
-              class="block w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+              class="form-input"
               required
             />
           </div>
 
-          <div>
+          <div class="form-field">
             <AccessLevelPicker
               v-model="form.accessLevel"
               label="Access Level"
@@ -97,64 +93,62 @@
           </div>
         </div>
 
-        <div>
-          <label class="mb-2 block text-sm font-semibold text-gray-700">Summary (SEO)</label>
+        <div class="form-field">
+          <label class="form-label">Summary (SEO)</label>
           <textarea
             v-model="form.summary"
             rows="2"
             placeholder="A short description for search engines and card previews..."
-            class="block w-full resize-none rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+            class="form-textarea"
           ></textarea>
         </div>
 
-        <div>
-          <label class="mb-2 block text-sm font-semibold text-gray-700">Content</label>
+        <div class="form-field">
+          <label class="form-label">Content</label>
           <RichTextEditor
             ref="editorRef"
             v-model="form.body"
-            class="min-h-[400px]"
+            class="edit-blog-tab__editor"
             @request-image="showImageModal = true"
           />
         </div>
 
-        <div
-          class="flex flex-wrap items-center gap-6 rounded-lg border border-gray-200 bg-gray-50 p-4"
-        >
-          <label class="flex cursor-pointer items-center gap-3">
+        <div class="edit-blog-tab__publish-row">
+          <label class="edit-blog-tab__publish-checkbox-label">
             <input
               type="checkbox"
               v-model="published"
-              class="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              class="checkbox"
             />
-            <span class="text-sm font-medium text-gray-700">Publish</span>
+            <span>Publish</span>
           </label>
 
           <div
             v-if="published"
-            class="flex items-center gap-2"
+            class="edit-blog-tab__publish-date"
           >
-            <span class="text-sm text-gray-500">Date:</span>
+            <span class="edit-blog-tab__publish-date-label">Date:</span>
             <input
               v-model="publishedAtLocal"
               type="datetime-local"
               @keydown.enter.prevent
-              class="rounded border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:ring-blue-500"
+              class="form-input"
             />
           </div>
         </div>
 
-        <div class="flex justify-end border-t border-gray-100 pt-4">
+        <div class="form__actions">
           <button
             type="button"
             @click="router.back()"
-            class="mr-4 rounded-lg border border-gray-300 bg-white px-6 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+            class="btn btn--outline"
           >
             Cancel
           </button>
           <button
             type="submit"
             :disabled="isSaving"
-            class="flex items-center gap-2 rounded-lg bg-blue-600 px-8 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
+            class="btn btn--primary"
           >
             <span v-if="isSaving">Saving...</span>
             <span v-else>Save Changes</span>
@@ -164,7 +158,7 @@
 
       <div
         v-if="isPreviewing"
-        class="duration-300 animate-in fade-in"
+        class="edit-blog-tab__preview"
       >
         <BlogRenderer
           :title="form.title"

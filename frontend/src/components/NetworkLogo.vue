@@ -1,8 +1,8 @@
 <template>
-  <div class="flex h-14 w-14 items-center justify-center rounded-md bg-white p-2 shadow">
+  <div class="network-logo">
     <div
       v-if="loading"
-      class="h-7 w-7 animate-spin rounded-full border-4 border-gray-300 border-t-indigo-500"
+      class="spinner-border network-logo__spinner"
       role="progressbar"
       aria-valuenow="0"
       aria-valuemin="0"
@@ -14,18 +14,18 @@
       v-else-if="imageFile"
       :display-only="true"
       :file="imageFile"
-      class="h-full w-full object-contain"
+      class="network-logo__image"
       alt="Network Logo"
     />
 
     <div
       v-else
-      class="flex h-full w-full items-center justify-center"
+      class="network-logo__fallback"
     >
       <img
         :src="`https://ui-avatars.com/api/?name=${networkName}&size=24&background=random`"
         :alt="`${networkName} logo`"
-        class="max-h-full max-w-full rounded-md object-contain"
+        class="network-logo__fallback-image"
       />
     </div>
   </div>

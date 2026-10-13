@@ -1,8 +1,8 @@
 <template>
-  <div class="space-y-8">
-    <div class="overflow-hidden rounded-lg bg-white p-6 shadow-md">
+  <div class="admin-home-tab">
+    <div class="admin-home-tab__card">
       <div>
-        <h1 class="text-2xl font-semibold text-gray-800">Admin Dashboard</h1>
+        <h1 class="admin-home-tab__title">Admin Dashboard</h1>
       </div>
     </div>
   </div>

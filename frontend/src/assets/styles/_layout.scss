@@ -1,0 +1,213 @@
+// Styles for the "layout" part of the application: the app shell (App.vue),
+// navbar, footer, content layout wrapper and the profile dropdown.
+// Classes are placeholders (empty) - the visual design is added later.
+
+// --- App shell (App.vue) ---
+#app {
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-shell__header {
+}
+
+.app-main {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-main__content {
+  flex-grow: 1;
+}
+
+// --- NavBar ---
+.navbar {
+}
+.navbar__inner {
+}
+.navbar__logo {
+  flex: 0 0 auto;
+}
+.navbar__logo-text {
+  font-family: 'Rufina', serif;
+  padding: 1rem 2rem;
+  cursor: pointer;
+  display: inline-block;
+  transition: 0.3s;
+
+  &:hover {
+    translate: -5px -5px;
+    text-shadow: 10px 10px 1px rgba(0, 0, 0, 0.3);
+    scale: 1.05;
+  }
+}
+.navbar__links {
+}
+.navbar__link {
+}
+.navbar__link--active {
+}
+.navbar__actions {
+}
+.navbar__login-btn {
+}
+.navbar__signup-btn {
+}
+
+// --- AppFooter ---
+.footer {
+}
+.footer__inner {
+}
+.footer__brand {
+}
+.footer__logo {
+}
+.footer__divider {
+}
+.footer__copyright {
+}
+.footer__links {
+}
+.footer__link {
+}
+
+// --- ContentLayout ---
+.content-layout {
+}
+
+// --- UserProfileDropdown ---
+.user-dropdown {
+  position: relative;
+}
+
+.user-dropdown__trigger {
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: #f0f0f0;
+  }
+}
+
+.user-dropdown__avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #e1e4e8;
+  color: #555;
+}
+
+.user-dropdown__arrow {
+  margin-left: 4px;
+  display: flex;
+  align-items: center;
+  transform: rotate(0deg);
+  transition: transform 0.2s ease;
+}
+
+.user-dropdown__arrow--open {
+  transform: rotate(180deg);
+}
+
+.user-dropdown__arrow-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.user-dropdown__menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  width: 200px;
+  background-color: white;
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  margin-top: 8px;
+  z-index: 1000;
+  overflow: hidden;
+  border: 1px solid #eaeaea;
+}
+
+.user-dropdown__header {
+  padding: 1rem;
+}
+
+.user-dropdown__user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.user-dropdown__user-name {
+  font-weight: 600;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.user-dropdown__user-email {
+  color: #666;
+  margin: 0;
+  font-size: 0.8rem;
+}
+
+.user-dropdown__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.user-dropdown__item {
+  display: block;
+  padding: 0.75rem 1rem;
+  color: #333;
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: background-color 0.2s ease;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  border: none;
+  background: none;
+
+  &:hover {
+    background-color: #f6f8fa;
+    color: #0066cc;
+  }
+}
+
+.user-dropdown__item--logout {
+  color: #d73a49;
+
+  &:hover {
+    background-color: #ffdce0;
+    color: #d73a49;
+  }
+}
+
+.user-dropdown__divider {
+  height: 1px;
+  background-color: #eaeaea;
+  margin: 4px 0;
+}
+
+.user-dropdown__skeleton {
+}
+
+.user-dropdown__skeleton-icon {
+}

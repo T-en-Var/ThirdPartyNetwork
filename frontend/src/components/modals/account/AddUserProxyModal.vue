@@ -6,10 +6,10 @@
   >
     <form
       @submit.prevent="handleSubmit"
-      class="space-y-4"
+      class="form add-user-proxy-modal"
     >
       <!-- Info message -->
-      <div class="rounded-lg border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-800">
+      <div class="alert alert--warning">
         Any empty fields will be automatically filled with values from your
         <strong>default proxy</strong>.
       </div>
@@ -18,7 +18,7 @@
       <div>
         <label
           for="username"
-          class="mb-2 block text-sm font-semibold text-gray-800"
+          class="form-label"
           >Username</label
         >
         <input
@@ -26,7 +26,7 @@
           v-model="form.username"
           type="text"
           :placeholder="`Defaults to: ${defaultProxy.username}`"
-          class="block w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-900 shadow-sm transition-all focus:border-blue-600 focus:ring focus:ring-blue-100"
+          class="form-input"
         />
       </div>
 
@@ -34,7 +34,7 @@
       <div>
         <label
           for="firstName"
-          class="mb-2 block text-sm font-semibold text-gray-800"
+          class="form-label"
           >Firstname</label
         >
         <input
@@ -42,7 +42,7 @@
           v-model="form.firstName"
           type="text"
           :placeholder="`Defaults to: ${defaultProxy.firstName}`"
-          class="block w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-900 shadow-sm transition-all focus:border-blue-600 focus:ring focus:ring-blue-100"
+          class="form-input"
         />
       </div>
 
@@ -50,7 +50,7 @@
       <div>
         <label
           for="lastName"
-          class="mb-2 block text-sm font-semibold text-gray-800"
+          class="form-label"
           >Lastname</label
         >
         <input
@@ -58,7 +58,7 @@
           v-model="form.lastName"
           type="text"
           :placeholder="`Defaults to: ${defaultProxy.lastName}`"
-          class="block w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-900 shadow-sm transition-all focus:border-blue-600 focus:ring focus:ring-blue-100"
+          class="form-input"
         />
       </div>
 
@@ -66,7 +66,7 @@
       <div>
         <label
           for="email"
-          class="mb-2 block text-sm font-semibold text-gray-800"
+          class="form-label"
           >Email</label
         >
         <input
@@ -74,7 +74,7 @@
           v-model="form.email"
           type="email"
           :placeholder="`Defaults to: ${defaultProxy.email}`"
-          class="block w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-900 shadow-sm transition-all focus:border-blue-600 focus:ring focus:ring-blue-100"
+          class="form-input"
         />
       </div>
 
@@ -82,7 +82,7 @@
       <div>
         <label
           for="password"
-          class="mb-2 block text-sm font-semibold text-gray-800"
+          class="form-label"
           >Password</label
         >
         <input
@@ -90,19 +90,19 @@
           v-model="form.password"
           type="password"
           placeholder="Defaults to your default proxy's password"
-          class="block w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-900 shadow-sm transition-all focus:border-blue-600 focus:ring focus:ring-blue-100"
+          class="form-input"
         />
       </div>
 
       <div v-if="form.password">
         <span
-          class="text-xs text-red-500"
+          class="form-error"
           v-if="form.password != form.password_retype"
           >Passwords do not match!</span
         >
         <label
           for="password_retype"
-          class="mb-2 block text-sm font-semibold text-gray-800"
+          class="form-label"
           >Retype Password</label
         >
         <input
@@ -110,28 +110,28 @@
           v-model="form.password_retype"
           type="password"
           placeholder="Defaults to your default proxy's password"
-          class="block w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-900 shadow-sm transition-all focus:border-blue-600 focus:ring focus:ring-blue-100"
+          class="form-input"
         />
       </div>
 
       <!-- Image Upload Section -->
-      <div class="flex gap-8">
+      <div class="add-user-proxy-modal__image-row">
         <div>
-          <label class="mb-2 block text-sm font-semibold text-gray-800">Profile Image</label>
+          <label class="form-label">Profile Image</label>
 
           <!-- If image is uploaded -->
           <div
             v-if="uploadedFile"
-            class="space-y-2"
+            class="add-user-proxy-modal__image-preview"
           >
             <CloudinaryFile
               :file="uploadedFile"
               :display-only="true"
-              class="max-h-48 rounded-lg"
+              class="add-user-proxy-modal__image"
             />
             <button
               type="button"
-              class="text-sm text-red-600 hover:underline"
+              class="add-user-proxy-modal__link-btn add-user-proxy-modal__link-btn--danger"
               @click="removeImage"
             >
               Remove Image
@@ -142,7 +142,7 @@
           <div v-else>
             <button
               type="button"
-              class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm text-gray-700 shadow-sm hover:bg-gray-50"
+              class="btn btn--outline"
               @click="openUploadModal"
             >
               Upload Image
@@ -151,24 +151,24 @@
         </div>
 
         <div v-if="!uploadedFile">
-          <span class="mb-2 block text-sm font-semibold text-gray-800">Defaults to</span>
+          <span class="form-label">Defaults to</span>
           <CloudinaryFile
             v-if="defaultProxy.imageFile"
             :file="defaultProxy.imageFile"
             :display-only="true"
-            class="max-h-16 rounded-full"
+            class="avatar__image add-user-proxy-modal__default-image"
           />
           <span
-            class="text-sm"
+            class="add-user-proxy-modal__no-image-text"
             v-else
             >Your default proxy has no image to default to.</span
           >
         </div>
       </div>
 
-      <div class="flex items-center gap-2 text-sm">
+      <div class="add-user-proxy-modal__info-row">
         <svg
-          class="h-6 min-w-6"
+          class="add-user-proxy-modal__info-icon"
           viewBox="-0.5 0 25 25"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
@@ -206,10 +206,10 @@
       </div>
 
       <!-- Actions -->
-      <div class="flex justify-end space-x-3 border-t border-gray-200 pt-4">
+      <div class="form__actions">
         <button
           type="button"
-          class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
+          class="btn btn--outline"
           @click="$emit('close')"
           :disabled="isSubmitting"
         >
@@ -217,7 +217,7 @@
         </button>
         <button
           type="submit"
-          class="rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700"
+          class="btn btn--primary"
           :disabled="isSubmitting"
         >
           <span v-if="isSubmitting">Creating...</span>

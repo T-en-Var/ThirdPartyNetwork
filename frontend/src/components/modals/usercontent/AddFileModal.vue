@@ -5,9 +5,9 @@
     :close-on-escape="!loading"
   >
     <div>
-      <div class="mb-4 border-b border-gray-200">
+      <div class="add-file-modal__tabs-wrap">
         <nav
-          class="-mb-px flex space-x-6"
+          class="add-file-modal__tabs"
           aria-label="Tabs"
         >
           <button
@@ -15,12 +15,8 @@
             @click="activeTab = 'upload'"
             :disabled="loading"
             :class="[
-              'whitespace-nowrap border-b-2 px-1 py-2 text-sm font-medium',
-              loading
-                ? 'cursor-not-allowed text-gray-300'
-                : activeTab === 'upload'
-                  ? 'border-indigo-500 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700',
+              'add-file-modal__tab',
+              activeTab === 'upload' ? 'add-file-modal__tab--active' : '',
             ]"
           >
             Upload Image
@@ -30,12 +26,8 @@
             @click="activeTab = 'existing'"
             :disabled="loading"
             :class="[
-              'whitespace-nowrap border-b-2 px-1 py-2 text-sm font-medium',
-              loading
-                ? 'cursor-not-allowed text-gray-300'
-                : activeTab === 'existing'
-                  ? 'border-indigo-500 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700',
+              'add-file-modal__tab',
+              activeTab === 'existing' ? 'add-file-modal__tab--active' : '',
             ]"
           >
             My Files
@@ -59,28 +51,26 @@
           @dragenter.prevent="handleDragEnter"
           @dragleave.prevent="handleDragLeave"
           @drop.prevent="handleDrop"
-          class="cursor-pointer rounded-lg border-2 border-dashed p-6 text-center transition-colors"
-          :class="[
-            dragging ? 'border-indigo-500 bg-indigo-50' : 'border-gray-300 hover:bg-gray-50',
-          ]"
+          class="add-file-modal__dropzone"
+          :class="[dragging ? 'add-file-modal__dropzone--active' : '']"
           @click="triggerFileInput"
         >
           <input
             ref="fileInput"
             type="file"
-            class="hidden"
+            class="add-file-modal__file-input"
             :accept="mapMediaType[mediaType]"
             @change="handleFileChange"
             :disabled="loading"
           />
 
           <div v-if="selectedFile">
-            <p class="font-semibold text-gray-800">{{ selectedFile.name }}</p>
-            <p class="text-sm text-gray-500">{{ readableSize(selectedFile.size) }}</p>
+            <p class="add-file-modal__file-name">{{ selectedFile.name }}</p>
+            <p class="add-file-modal__file-size">{{ readableSize(selectedFile.size) }}</p>
           </div>
           <div
             v-else
-            class="text-gray-500"
+            class="add-file-modal__dropzone-placeholder"
           >
             Drag & drop a file here or click to select
           </div>
@@ -88,18 +78,16 @@
       </UserContentForm>
 
       <div v-if="activeTab === 'existing'">
-        <div class="space-y-2">
-          <label class="block text-sm font-medium text-gray-700"> Choose one of your images </label>
-          <div class="grid max-h-96 grid-cols-3 gap-3 overflow-y-auto p-2">
+        <div class="add-file-modal__picker">
+          <label class="form-label">Choose one of your images</label>
+          <div class="add-file-modal__file-grid">
             <label
               v-for="f in files"
               :key="f.id"
-              class="relative cursor-pointer rounded-lg border transition hover:shadow-sm"
-              :class="
-                selectedExistingFile?.id === f.id
-                  ? 'border-indigo-500 ring-2 ring-indigo-500'
-                  : 'border-gray-300'
-              "
+              class="add-file-modal__file-option"
+              :class="[
+                selectedExistingFile?.id === f.id ? 'add-file-modal__file-option--selected' : '',
+              ]"
             >
               <!-- Radio input (hidden, but accessible) -->
               <input
@@ -114,27 +102,27 @@
                 v-if="f"
                 :display-only="true"
                 :file="f"
-                class="h-32 w-full rounded-t-md object-cover"
+                class="add-file-modal__file-option-preview"
               />
 
               <!-- Name overlay -->
-              <div class="truncate px-2 py-1 text-center text-xs text-gray-700">
+              <div class="add-file-modal__file-option-name">
                 {{ f.name }}
               </div>
             </label>
           </div>
           <p
             v-if="!files?.length"
-            class="text-sm text-gray-500"
+            class="add-file-modal__no-files"
           >
             No images available.
           </p>
         </div>
 
-        <div class="flex justify-end space-x-3 border-t border-gray-200 pt-4">
+        <div class="form__actions">
           <button
             type="button"
-            class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
+            class="btn btn--outline"
             @click="$emit('close')"
             :disabled="isSubmitting"
           >
@@ -142,7 +130,7 @@
           </button>
           <button
             type="submit"
-            class="rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700"
+            class="btn btn--primary"
             :disabled="isSubmitting || !inputIsValid"
           >
             <span v-if="isSubmitting">Submitted...</span>

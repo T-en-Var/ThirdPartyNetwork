@@ -1,7 +1,7 @@
 <template>
   <form
     @submit.prevent="handleSubmit"
-    class="space-y-4"
+    class="user-content-form"
   >
     <slot></slot>
 
@@ -12,49 +12,49 @@
 
     <div
       v-if="showNetworkSelector"
-      class="space-y-2"
+      class="form-field"
     >
-      <label class="block text-sm font-medium text-gray-700">
-        Select a Network to store the image
-      </label>
-      <div class="space-y-2">
+      <label class="form-label"> Select a Network to store the image </label>
+      <div class="user-content-form__network-options">
         <label
           v-for="networkId in props.networkIds"
           :key="networkId"
-          class="flex cursor-pointer items-center space-x-2 rounded-lg border p-2 transition hover:bg-gray-50"
+          class="user-content-form__network-option"
           :class="
-            selectedNetwork?.id === networkId ? 'border-indigo-500 bg-indigo-50' : 'border-gray-300'
+            selectedNetwork?.id === networkId ? 'user-content-form__network-option--selected' : ''
           "
         >
           <input
             type="radio"
-            class="text-indigo-600 focus:ring-indigo-500"
+            class="user-content-form__network-option-radio"
             :value="networks[networkId]"
             v-model="selectedNetwork"
           />
-          <span class="text-sm text-gray-700">{{ networks[networkId].name }}</span>
+          <span class="user-content-form__network-option-name">{{
+            networks[networkId].name
+          }}</span>
         </label>
       </div>
     </div>
 
     <p
       v-if="error"
-      class="mt-2 text-sm text-red-600"
+      class="form-error"
     >
       {{ error }}
     </p>
 
     <div
       v-if="warningText"
-      class="rounded-md border border-yellow-500 bg-yellow-200 p-2 text-yellow-600"
+      class="alert alert--warning"
     >
       <span>{{ warningText }}</span>
     </div>
 
-    <div class="flex justify-end space-x-3 border-t border-gray-200 pt-4">
+    <div class="form__actions">
       <button
         type="button"
-        class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
+        class="btn btn--outline"
         @click="$emit('close')"
         :disabled="isSubmitting"
       >
@@ -62,7 +62,7 @@
       </button>
       <button
         type="submit"
-        class="rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-indigo-600"
+        class="btn btn--primary"
         :disabled="isSubmitting || !inputIsValid"
       >
         <span v-if="isSubmitting">Submitted...</span>

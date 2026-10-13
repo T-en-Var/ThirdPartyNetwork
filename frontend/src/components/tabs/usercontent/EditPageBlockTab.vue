@@ -1,16 +1,16 @@
 <template>
-  <div class="space-y-6">
+  <div class="edit-page-block-tab">
     <!-- Back button -->
-    <div class="flex justify-start">
+    <div class="edit-page-block-tab__back-wrap">
       <button
         @click="handleReturn"
-        class="inline-flex items-center gap-2 rounded-md bg-gray-100 px-3 py-1.5 text-sm text-gray-700 transition hover:bg-gray-200"
+        class="back-link"
       >
         ← Back to Custom Page
       </button>
     </div>
 
-    <div class="rounded-lg bg-white p-6 shadow-md">
+    <div class="card">
       <LoadingErrorComponent
         :loading="loading"
         :error="error ?? undefined"
@@ -21,12 +21,12 @@
 
       <div
         v-if="!loading && !error && currentPageBlock"
-        class="space-y-6"
+        class="edit-page-block-tab__body"
       >
-        <h2 class="mb-4 text-xl font-semibold text-gray-800">Edit Page Block</h2>
-        <div class="space-y-4">
-          <div>
-            <label class="mb-1 block text-sm font-medium text-gray-700">Parent Block</label>
+        <h2 class="edit-page-block-tab__title">Edit Page Block</h2>
+        <div class="edit-page-block-tab__fields">
+          <div class="form-field">
+            <label class="form-label">Parent Block</label>
             <SearchableSelect
               v-model="form.parentPageId"
               :options="parentOptions"
@@ -35,34 +35,32 @@
             />
           </div>
 
-          <div>
-            <label class="mb-1 block text-sm font-medium text-gray-700">Text</label>
+          <div class="form-field">
+            <label class="form-label">Text</label>
             <input
               v-model="form.text"
               type="text"
-              class="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-600 focus:ring focus:ring-blue-100"
+              class="form-input"
             />
           </div>
 
-          <div>
-            <label class="mb-1 block text-sm font-medium text-gray-700">Position</label>
+          <div class="form-field">
+            <label class="form-label">Position</label>
             <input
               v-model.number="form.position"
               type="number"
-              class="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-600 focus:ring focus:ring-blue-100"
+              class="form-input"
             />
           </div>
 
-          <div>
-            <label class="mb-2 block text-sm font-medium text-gray-700">Block Data</label>
+          <div class="form-field">
+            <label class="form-label">Block Data</label>
 
             <div v-if="!editDataMode">
-              <pre class="overflow-x-auto rounded-md border bg-gray-50 p-2 text-xs">{{
-                formattedJson
-              }}</pre>
+              <pre class="json-preview">{{ formattedJson }}</pre>
               <button
                 type="button"
-                class="mt-2 rounded-md bg-blue-600 px-3 py-1 text-sm text-white hover:bg-blue-700"
+                class="btn btn--primary btn--sm"
                 @click="editDataMode = true"
               >
                 Edit JSON
@@ -71,24 +69,24 @@
 
             <div
               v-else
-              class="relative"
+              class="edit-page-block-tab__json-editor-wrap"
             >
               <JsonEditorVue
                 v-model="jsonEditorValue"
                 :stringified="false"
-                class="h-64 rounded-md border"
+                class="edit-page-block-tab__json-editor"
               />
-              <div class="mt-2 flex justify-end space-x-2">
+              <div class="edit-page-block-tab__json-actions">
                 <button
                   type="button"
-                  class="rounded-md bg-gray-200 px-3 py-1 text-sm text-gray-700 hover:bg-gray-300"
+                  class="btn btn--outline btn--sm"
                   @click="cancelEditData"
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
-                  class="rounded-md bg-green-600 px-3 py-1 text-sm text-white hover:bg-green-700"
+                  class="btn btn--success btn--sm"
                   @click="saveJsonData"
                 >
                   Save JSON
@@ -97,16 +95,16 @@
             </div>
           </div>
 
-          <div class="flex justify-end gap-4">
+          <div class="form__actions">
             <button
               @click="handleDelete"
-              class="rounded-md bg-red-600 px-4 py-2 text-white hover:bg-red-700"
+              class="btn btn--danger"
             >
               Delete Block
             </button>
             <button
               @click="handleUpdate"
-              class="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+              class="btn btn--primary"
             >
               Update Block
             </button>
@@ -115,22 +113,22 @@
       </div>
     </div>
 
-    <div class="rounded-lg bg-white p-4 shadow">
-      <h3 class="mb-3 text-sm font-semibold text-gray-700">Navigate Page Blocks</h3>
+    <div class="card">
+      <h3 class="edit-page-block-tab__nav-title">Navigate Page Blocks</h3>
 
       <!-- Previous / Next -->
-      <div class="flex items-center justify-between">
+      <div class="edit-page-block-tab__prev-next">
         <!-- Previous -->
         <RouterLink
           v-if="previousBlock"
           :to="`/networks/${networkId}/manage/custom-pages/${customPageId}/blocks/${previousBlock.id}/edit`"
-          class="rounded-md bg-gray-100 px-3 py-1 text-sm text-gray-700 transition hover:bg-gray-200"
+          class="edit-page-block-tab__nav-link"
         >
           ← Previous (#{{ previousBlock.position }})
         </RouterLink>
         <span
           v-else
-          class="text-xs text-gray-400"
+          class="edit-page-block-tab__nav-empty"
           >No previous block</span
         >
 
@@ -138,63 +136,61 @@
         <RouterLink
           v-if="nextBlock"
           :to="`/networks/${networkId}/manage/custom-pages/${customPageId}/blocks/${nextBlock.id}/edit`"
-          class="rounded-md bg-gray-100 px-3 py-1 text-sm text-gray-700 transition hover:bg-gray-200"
+          class="edit-page-block-tab__nav-link"
         >
           Next (#{{ nextBlock.position }}) →
         </RouterLink>
         <span
           v-else
-          class="text-xs text-gray-400"
+          class="edit-page-block-tab__nav-empty"
           >No next block</span
         >
       </div>
 
       <div
         v-if="parentBlock || childBlocks.length"
-        class="mt-6 flex gap-6"
+        class="edit-page-block-tab__relations"
       >
         <!-- Parent -->
         <div v-if="parentBlock">
-          <h4 class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-            Parent Block
-          </h4>
+          <h4 class="edit-page-block-tab__relation-heading">Parent Block</h4>
           <RouterLink
             :to="`/networks/${networkId}/manage/custom-pages/${customPageId}/blocks/${parentBlock.id}/edit`"
-            class="flex flex-col space-y-1 rounded-md border bg-gray-50 px-5 py-3 transition hover:bg-gray-100"
+            class="edit-page-block-tab__relation-card"
           >
-            <span class="truncate text-sm font-medium text-gray-800">↑ {{ parentBlock.text }}</span>
-            <span class="text-xs text-gray-500"> Position: {{ parentBlock.position }} </span>
+            <span class="edit-page-block-tab__relation-card-title">↑ {{ parentBlock.text }}</span>
+            <span class="edit-page-block-tab__relation-card-meta">
+              Position: {{ parentBlock.position }}
+            </span>
           </RouterLink>
         </div>
 
         <!-- Children -->
         <div v-if="childBlocks.length">
-          <h4 class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-            Child Blocks
-          </h4>
-          <div class="flex justify-center gap-3">
+          <h4 class="edit-page-block-tab__relation-heading">Child Blocks</h4>
+          <div class="edit-page-block-tab__relation-children">
             <RouterLink
               v-for="child in childBlocks"
               :key="child.id"
               :to="`/networks/${networkId}/manage/custom-pages/${customPageId}/blocks/${child.id}/edit`"
-              class="flex flex-col space-y-1 rounded-md border bg-gray-50 px-5 py-3 transition hover:bg-gray-100"
+              class="edit-page-block-tab__relation-card"
             >
-              <span class="truncate text-sm font-medium text-gray-800">
+              <span class="edit-page-block-tab__relation-card-title">
                 {{ child.text }}
               </span>
-              <span class="text-xs text-gray-500"> Position: {{ child.position }} </span>
+              <span class="edit-page-block-tab__relation-card-meta">
+                Position: {{ child.position }}
+              </span>
             </RouterLink>
           </div>
         </div>
       </div>
 
-      <div class="mt-6 flex gap-6">
+      <div class="edit-page-block-tab__tree-section">
         <!-- Tree display -->
         <div v-if="tree.length">
-          <h4 class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-            Tree Display
-          </h4>
-          <div class="text-xs">
+          <h4 class="edit-page-block-tab__relation-heading">Tree Display</h4>
+          <div class="edit-page-block-tab__tree">
             <TreeNodeComponent
               v-for="root in tree"
               :key="root.id"
@@ -210,17 +206,15 @@
 
       <div
         v-if="history.data.pageBlocks.length"
-        class="mt-4"
+        class="edit-page-block-tab__history-section"
       >
-        <h4 class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-          Recently Visited
-        </h4>
-        <div class="flex flex-wrap gap-2">
+        <h4 class="edit-page-block-tab__relation-heading">Recently Visited</h4>
+        <div class="edit-page-block-tab__history-list">
           <RouterLink
             v-for="pb in [...history.data.pageBlocks].reverse()"
             :key="pb.id"
             :to="`/networks/${networkId}/manage/custom-pages/${customPageId}/blocks/${pb.id}/edit`"
-            class="rounded bg-blue-50 px-2 py-1 text-xs text-blue-700 transition hover:bg-blue-100"
+            class="edit-page-block-tab__history-pill"
           >
             {{ pb.text }}
           </RouterLink>
@@ -228,7 +222,7 @@
       </div>
     </div>
 
-    <div class="h-96"></div>
+    <div class="edit-page-block-tab__spacer"></div>
   </div>
 </template>
 

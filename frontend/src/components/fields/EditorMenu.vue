@@ -1,7 +1,7 @@
 <template>
-  <div class="flex flex-wrap items-center">
+  <div class="editor-menu">
     <!-- Undo/Redo -->
-    <div class="my-0.5 mr-2 flex gap-0.5 border-r border-gray-300 pr-2">
+    <div class="editor-menu__group">
       <button
         type="button"
         @click="editor.chain().focus().undo().run()"
@@ -47,50 +47,50 @@
     </div>
 
     <!-- Headings -->
-    <div class="my-0.5 mr-2 flex gap-0.5 border-r border-gray-300 pr-2">
+    <div class="editor-menu__group">
       <button
         type="button"
         @click="editor.chain().focus().toggleHeading({ level: 1 }).run()"
-        :class="['editor-btn text-xs font-bold', isActive('heading', { level: 1 })]"
+        :class="['editor-btn', 'editor-btn--heading', isActive('heading', { level: 1 })]"
       >
         H1
       </button>
       <button
         type="button"
         @click="editor.chain().focus().toggleHeading({ level: 2 }).run()"
-        :class="['editor-btn text-xs font-bold', isActive('heading', { level: 2 })]"
+        :class="['editor-btn', 'editor-btn--heading', isActive('heading', { level: 2 })]"
       >
         H2
       </button>
       <button
         type="button"
         @click="editor.chain().focus().toggleHeading({ level: 3 }).run()"
-        :class="['editor-btn text-xs font-bold', isActive('heading', { level: 3 })]"
+        :class="['editor-btn', 'editor-btn--heading', isActive('heading', { level: 3 })]"
       >
         H3
       </button>
       <button
         type="button"
         @click="editor.chain().focus().toggleHeading({ level: 4 }).run()"
-        :class="['editor-btn text-xs font-bold', isActive('heading', { level: 4 })]"
+        :class="['editor-btn', 'editor-btn--heading', isActive('heading', { level: 4 })]"
       >
         H4
       </button>
     </div>
 
     <!-- Formatting -->
-    <div class="my-0.5 mr-2 flex gap-0.5 border-r border-gray-300 pr-2">
+    <div class="editor-menu__group">
       <button
         type="button"
         @click="editor.chain().focus().toggleBold().run()"
-        :class="['editor-btn font-bold', isActive('bold')]"
+        :class="['editor-btn', 'editor-btn--bold', isActive('bold')]"
       >
         B
       </button>
       <button
         type="button"
         @click="editor.chain().focus().toggleItalic().run()"
-        :class="['editor-btn italic', isActive('italic')]"
+        :class="['editor-btn', 'editor-btn--italic', isActive('italic')]"
       >
         I
       </button>
@@ -99,12 +99,12 @@
         @click="editor.chain().focus().toggleUnderline().run()"
         :class="['editor-btn', isActive('underline')]"
       >
-        <span class="underline">U</span>
+        <span class="editor-menu__underline-label">U</span>
       </button>
       <button
         type="button"
         @click="editor.chain().focus().toggleStrike().run()"
-        :class="['editor-btn line-through', isActive('strike')]"
+        :class="['editor-btn', 'editor-btn--strike', isActive('strike')]"
       >
         S
       </button>
@@ -113,12 +113,12 @@
         @click="editor.chain().focus().toggleHighlight().run()"
         :class="['editor-btn', isActive('highlight')]"
       >
-        <span class="rounded-sm bg-yellow-300 px-1 text-xs">H</span>
+        <span class="editor-menu__highlight-label">H</span>
       </button>
     </div>
 
     <!-- Alignment -->
-    <div class="my-0.5 mr-2 flex gap-0.5 border-r border-gray-300 pr-2">
+    <div class="editor-menu__group">
       <button
         type="button"
         @click="editor.chain().focus().setTextAlign('left').run()"
@@ -290,7 +290,7 @@
     </div>
 
     <!-- Lists -->
-    <div class="my-0.5 mr-2 flex gap-0.5 border-r border-gray-300 pr-2">
+    <div class="editor-menu__group">
       <button
         type="button"
         @click="editor.chain().focus().toggleBulletList().run()"
@@ -387,7 +387,7 @@
     </div>
 
     <!-- Insert -->
-    <div class="my-0.5 flex gap-0.5">
+    <div class="editor-menu__group">
       <button
         type="button"
         @click="$emit('set-link')"
@@ -411,7 +411,7 @@
       <button
         type="button"
         @click="$emit('request-image')"
-        class="editor-btn text-gray-600 hover:bg-gray-100"
+        class="editor-btn"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -454,13 +454,5 @@ const props = defineProps<{
 defineEmits(['set-link', 'request-image']);
 
 const isActive = (name: string, opts?: object | undefined) =>
-  props.editor.isActive(name, opts)
-    ? 'bg-blue-100 text-blue-700'
-    : 'text-gray-600 hover:bg-gray-100';
+  props.editor.isActive(name, opts) ? 'editor-btn--active' : '';
 </script>
-
-<style scoped>
-.editor-btn {
-  @apply flex h-[28px] min-w-[28px] items-center justify-center rounded p-1.5 transition;
-}
-</style>

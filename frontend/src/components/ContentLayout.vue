@@ -1,18 +1,16 @@
 <template>
-  <div class="container mx-auto mt-8 max-w-4xl px-4 py-8">
-    <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl">
-      <header
-        class="flex items-center justify-between border-b border-gray-200 bg-gray-50 px-6 py-4"
-      >
-        <h1 class="text-2xl font-bold text-gray-800">{{ title }}</h1>
+  <div class="content-layout">
+    <div class="card">
+      <header class="card__header">
+        <h1 class="card__title">{{ title }}</h1>
         <slot name="header-actions" />
       </header>
-      <main class="p-6">
+      <main class="card__body">
         <slot />
       </main>
       <footer
         v-if="$slots.footer"
-        class="border-t border-gray-200 px-6 py-4"
+        class="card__footer"
       >
         <slot name="footer" />
       </footer>

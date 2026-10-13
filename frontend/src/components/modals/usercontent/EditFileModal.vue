@@ -6,13 +6,13 @@
   >
     <form
       @submit.prevent="handleSubmit"
-      class="space-y-4"
+      class="form"
     >
       <!-- File Name -->
-      <div>
+      <div class="form-field">
         <label
           for="fileName"
-          class="mb-2 block text-sm font-semibold text-gray-800"
+          class="form-label"
           >File Name</label
         >
         <input
@@ -20,7 +20,7 @@
           v-model="form.name"
           type="text"
           required
-          class="block w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-900 shadow-sm transition-all focus:border-blue-600 focus:ring focus:ring-blue-100"
+          class="form-input"
         />
       </div>
 
@@ -32,16 +32,16 @@
       </div>
 
       <!-- Visibility -->
-      <div class="flex items-center">
+      <div class="edit-file-modal__checkbox-row">
         <input
           id="isPublic"
           v-model="form.isPublic"
           type="checkbox"
-          class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+          class="checkbox"
         />
         <label
           for="isPublic"
-          class="ml-2 block text-sm text-gray-700"
+          class="edit-file-modal__checkbox-label"
         >
           Make file public
         </label>
@@ -51,11 +51,11 @@
       <AccessLevelPicker v-model="form.accessLevel" />
 
       <!-- Actions -->
-      <div class="flex justify-between border-t border-gray-200 pt-4">
-        <div>
+      <div class="edit-file-modal__actions">
+        <div class="edit-file-modal__actions-start">
           <button
             type="button"
-            class="rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-700"
+            class="btn btn--danger"
             @click="$emit('delete-file', file)"
             :disabled="isSubmitting"
           >
@@ -63,10 +63,10 @@
           </button>
         </div>
 
-        <div class="flex space-x-3">
+        <div class="edit-file-modal__actions-end">
           <button
             type="button"
-            class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
+            class="btn btn--outline"
             @click="$emit('close')"
             :disabled="isSubmitting"
           >
@@ -74,7 +74,7 @@
           </button>
           <button
             type="submit"
-            class="rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700"
+            class="btn btn--primary"
             :disabled="isSubmitting || !form.name"
           >
             <span v-if="isSubmitting">Saving...</span>

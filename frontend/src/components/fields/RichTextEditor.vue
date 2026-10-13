@@ -1,10 +1,8 @@
 <template>
-  <div
-    class="group flex h-full flex-col overflow-hidden rounded-lg border border-gray-300 bg-white shadow-sm"
-  >
+  <div class="rich-text-editor">
     <div
       v-if="editor"
-      class="sticky top-0 z-10 border-b border-gray-200 bg-gray-50 p-2"
+      class="rich-text-editor__toolbar"
     >
       <editor-menu
         :editor="editor"
@@ -18,7 +16,7 @@
         :tippy-options="{ duration: 100, maxWidth: 600 }"
         :should-show="shouldShowMainBubble"
       >
-        <div class="max-w-md rounded border border-gray-200 bg-white p-1 shadow-lg">
+        <div class="rich-text-editor__bubble-menu">
           <editor-menu
             :editor="editor"
             @set-link="setLink"
@@ -33,24 +31,24 @@
         :tippy-options="{ duration: 100, placement: 'bottom' }"
         :should-show="shouldShowLinkBubble"
       >
-        <div class="flex items-center gap-2 rounded border border-gray-200 bg-white p-2 shadow-lg">
+        <div class="rich-text-editor__link-bubble">
           <template v-if="isEditingLink">
             <input
               v-model="linkMenuUrl"
               type="text"
-              class="min-w-[200px] rounded border border-gray-300 px-2 py-1 text-sm focus:border-blue-500 focus:outline-none"
+              class="rich-text-editor__link-input"
               placeholder="https://"
               @keydown.enter.prevent="saveLink"
             />
             <button
               @click="saveLink"
-              class="rounded bg-blue-600 px-2 py-1 text-xs text-white hover:bg-blue-700"
+              class="btn btn--primary btn--sm"
             >
               Save
             </button>
             <button
               @click="cancelLinkEdit"
-              class="rounded px-2 py-1 text-xs text-gray-600 hover:bg-gray-100"
+              class="btn btn--ghost btn--sm"
             >
               Cancel
             </button>
@@ -59,15 +57,15 @@
             <a
               :href="editor.getAttributes('link').href"
               target="_blank"
-              class="block max-w-[200px] truncate text-sm text-blue-600 underline"
+              class="rich-text-editor__link-preview"
               rel="noopener noreferrer"
             >
               {{ editor.getAttributes('link').href }}
             </a>
-            <div class="mx-1 h-4 w-px bg-gray-300"></div>
+            <div class="rich-text-editor__divider"></div>
             <button
               @click="editLink"
-              class="editor-btn text-gray-600 hover:text-blue-600"
+              class="editor-btn"
               title="Edit Link"
             >
               <svg
@@ -87,7 +85,7 @@
             </button>
             <button
               @click="editor.chain().focus().unsetLink().run()"
-              class="editor-btn text-gray-600 hover:text-red-600"
+              class="editor-btn"
               title="Remove Link"
             >
               <svg
@@ -114,7 +112,7 @@
 
     <editor-content
       :editor="editor"
-      class="prose prose-lg mx-auto min-h-[500px] w-full max-w-3xl flex-grow p-6 outline-none focus:outline-none prose-p:mb-6 prose-p:leading-relaxed"
+      class="rich-text-editor__content"
     />
   </div>
 </template>
@@ -148,7 +146,7 @@ const editor = useEditor({
       link: {
         openOnClick: false,
         HTMLAttributes: {
-          class: 'text-blue-600 underline hover:text-blue-800 cursor-pointer',
+          class: 'rich-text-editor__content-link',
         },
       },
     }),
@@ -180,7 +178,7 @@ const editor = useEditor({
   ],
   content: props.modelValue,
   editorProps: {
-    attributes: { class: 'outline-none focus:outline-none h-full' },
+    attributes: { class: 'rich-text-editor__prosemirror' },
   },
   onUpdate: ({ editor }) => emit('update:modelValue', editor.getJSON()),
 });
@@ -275,27 +273,3 @@ watch(
 
 onBeforeUnmount(() => editor.value?.destroy());
 </script>
-
-<style scoped>
-/* Force images to respect Text Align in the editor view */
-:deep(.ProseMirror img) {
-  display: inline-block;
-  max-width: 100%;
-  height: auto;
-}
-
-:deep(.ProseMirror p[style*='text-align: center']),
-:deep(.ProseMirror h1[style*='text-align: center']),
-:deep(.ProseMirror h2[style*='text-align: center']),
-:deep(.ProseMirror h3[style*='text-align: center']) {
-  text-align: center;
-}
-
-:deep(.ProseMirror p[style*='text-align: right']) {
-  text-align: right;
-}
-
-:deep(.ProseMirror p[style*='text-align: justify']) {
-  text-align: justify;
-}
-</style>

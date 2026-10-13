@@ -1,0 +1,243 @@
+// Styles for the "account" part of the application.
+// Classes are placeholders (empty) - the visual design is added later.
+
+// --- ManageAccountView ---
+.manage-account-view {
+}
+.manage-account-view__content {
+}
+
+// --- AccountHomeTab ---
+.account-home-tab {
+}
+.account-home-tab__header {
+}
+.account-home-tab__title {
+}
+.account-home-tab__content {
+}
+.account-home-tab__section {
+}
+.account-home-tab__section-title {
+}
+.account-home-tab__user-info {
+}
+.account-home-tab__user-info-text {
+}
+.account-home-tab__user-info-line {
+}
+.account-home-tab__user-info-line--muted {
+}
+.account-home-tab__proxy-grid {
+}
+.account-home-tab__proxy-card {
+}
+.account-home-tab__proxy-card-inner {
+}
+.account-home-tab__proxy-card-text {
+}
+.account-home-tab__proxy-card-name {
+}
+.account-home-tab__proxy-card-meta {
+}
+.account-home-tab__proxy-card-meta--truncate {
+}
+.account-home-tab__proxy-card-meta--faint {
+}
+
+// --- UserProxyTab ---
+.user-proxy-tab {
+}
+.user-proxy-tab__subtitle {
+}
+.user-proxy-tab__active-card {
+}
+.user-proxy-tab__active-card-header {
+}
+.user-proxy-tab__active-card-text {
+}
+.user-proxy-tab__active-card-name {
+}
+.user-proxy-tab__active-card-actions {
+}
+.user-proxy-tab__muted-text {
+}
+.user-proxy-tab__muted-text--xs {
+}
+.user-proxy-tab__muted-text--truncate {
+}
+.user-proxy-tab__section-header {
+}
+.user-proxy-tab__proxy-grid {
+}
+.user-proxy-tab__proxy-card {
+}
+.user-proxy-tab__proxy-card-top {
+}
+.user-proxy-tab__proxy-card-header {
+}
+.user-proxy-tab__proxy-card-text {
+}
+.user-proxy-tab__proxy-card-name {
+}
+.user-proxy-tab__proxy-card-actions {
+}
+.user-proxy-tab__avatar--lg {
+}
+.user-proxy-tab__avatar--sm {
+}
+.user-proxy-tab__networks-title {
+}
+.user-proxy-tab__networks-list {
+}
+.user-proxy-tab__network-item {
+}
+.user-proxy-tab__network-link {
+}
+.user-proxy-tab__network-hover-card {
+}
+.user-proxy-tab__network-hover-title {
+}
+.user-proxy-tab__access-filters {
+}
+.user-proxy-tab__access-filter {
+}
+.user-proxy-tab__access-filter-checkbox {
+}
+.user-proxy-tab__access-filter-label {
+}
+
+// --- EditUserProxyTab ---
+.edit-user-proxy-tab {
+}
+.edit-user-proxy-tab__body {
+}
+.edit-user-proxy-tab__top-row {
+}
+.edit-user-proxy-tab__profile-section {
+}
+.edit-user-proxy-tab__section-title {
+}
+.edit-user-proxy-tab__field-grid {
+}
+.edit-user-proxy-tab__field-grid-full {
+}
+.edit-user-proxy-tab__username-field {
+}
+.edit-user-proxy-tab__username-prefix {
+}
+.edit-user-proxy-tab__username-input {
+}
+.edit-user-proxy-tab__checkbox-label {
+}
+.edit-user-proxy-tab__checkbox-label--disabled {
+}
+.edit-user-proxy-tab__checkbox-text {
+}
+.edit-user-proxy-tab__image-section {
+}
+.edit-user-proxy-tab__image-section-body {
+}
+.edit-user-proxy-tab__image-section-empty {
+}
+.edit-user-proxy-tab__avatar {
+}
+.edit-user-proxy-tab__avatar-placeholder {
+}
+.edit-user-proxy-tab__image-actions {
+}
+.edit-user-proxy-tab__link-btn {
+}
+.edit-user-proxy-tab__link-btn--danger {
+}
+.edit-user-proxy-tab__password-box {
+}
+.edit-user-proxy-tab__password-note {
+}
+.edit-user-proxy-tab__password-note-emphasis {
+}
+.edit-user-proxy-tab__password-hint {
+}
+.edit-user-proxy-tab__network-grid {
+}
+.edit-user-proxy-tab__network-empty {
+}
+.edit-user-proxy-tab__danger-zone {
+}
+.edit-user-proxy-tab__danger-zone-title {
+}
+.edit-user-proxy-tab__danger-zone-text {
+}
+.edit-user-proxy-tab__save-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100vw;
+  display: flex;
+  justify-content: center;
+}
+.edit-user-proxy-tab__save-bar-inner {
+}
+.edit-user-proxy-tab__save-bar-text {
+}
+.edit-user-proxy-tab__save-bar-actions {
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+// --- AddUserProxyModal ---
+.add-user-proxy-modal {
+}
+.add-user-proxy-modal__image-row {
+}
+.add-user-proxy-modal__image-preview {
+}
+.add-user-proxy-modal__image {
+}
+.add-user-proxy-modal__link-btn {
+}
+.add-user-proxy-modal__link-btn--danger {
+}
+.add-user-proxy-modal__default-image {
+}
+.add-user-proxy-modal__no-image-text {
+}
+.add-user-proxy-modal__info-row {
+}
+.add-user-proxy-modal__info-icon {
+}
+
+// --- UserProxyDisplay ---
+.user-proxy-display {
+}
+.user-proxy-display__row {
+}
+.user-proxy-display__avatar {
+}
+.user-proxy-display__avatar--fallback {
+}
+.user-proxy-display__initials {
+}
+.user-proxy-display__info {
+}
+.user-proxy-display__header {
+}
+.user-proxy-display__name {
+}
+.user-proxy-display__fields {
+}
+.user-proxy-display__field {
+}
+.user-proxy-display__field-row {
+}
+.user-proxy-display__field-label {
+}
+.user-proxy-display__actions {
+}

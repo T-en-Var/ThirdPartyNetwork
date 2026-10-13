@@ -11,21 +11,19 @@
       <label
         v-for="item in items"
         :key="item.id"
-        class="group flex cursor-pointer items-center rounded-md px-4 py-3 transition-colors hover:bg-slate-50"
+        class="checkbox-list__card-item"
       >
         <input
           type="checkbox"
           :value="item.id"
           v-model="selected"
-          class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+          class="checkbox"
         />
-        <div class="ml-3">
-          <span class="block text-sm font-semibold text-slate-700 group-hover:text-blue-600">{{
-            item.name
-          }}</span>
+        <div class="checkbox-list__card-item-content">
+          <span class="checkbox-list__card-item-name">{{ item.name }}</span>
           <span
             v-if="showId"
-            class="block font-mono text-[10px] uppercase tracking-tighter text-slate-400"
+            class="checkbox-list__card-item-id"
             >{{ item.id }}</span
           >
         </div>
@@ -43,16 +41,16 @@
           type="checkbox"
           :value="item.id"
           v-model="selected"
-          class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+          class="checkbox"
         />
         <label
           :for="`${idPrefix}-${item.id}`"
-          class="ml-2 block text-sm text-gray-700"
+          class="checkbox-list__item-label"
         >
           {{ item.name }}
           <span
             v-if="showId"
-            class="ml-1 text-xs text-gray-500"
+            class="checkbox-list__item-id"
             >({{ item.id }})</span
           >
         </label>
@@ -94,9 +92,9 @@ const props = withDefaults(
     emptyMessage: 'No items available',
     showId: false,
     variant: 'list',
-    containerClass: 'mt-2 max-h-48 overflow-y-auto rounded-md border p-2',
-    itemClass: 'flex items-center py-1',
-    emptyClass: 'text-sm text-gray-500',
+    containerClass: 'checkbox-list',
+    itemClass: 'checkbox-list__item',
+    emptyClass: 'checkbox-list__empty',
   },
 );
 

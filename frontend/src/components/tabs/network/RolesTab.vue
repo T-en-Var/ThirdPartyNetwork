@@ -1,11 +1,11 @@
 <template>
-  <div class="overflow-hidden rounded-lg bg-white p-6 shadow-md">
-    <div class="mb-6 flex items-center justify-between">
-      <h2 class="text-xl font-medium text-gray-800">Network Roles</h2>
+  <div class="network-list-panel">
+    <div class="network-list-panel__header">
+      <h2 class="network-list-panel__title">Network Roles</h2>
       <button
         v-if="!loading && !error"
         @click="$emit('addRole')"
-        class="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+        class="btn btn--primary"
       >
         Add Role
       </button>
@@ -22,28 +22,28 @@
 
     <div
       v-else
-      class="space-y-4"
+      class="network-list-panel__items"
     >
       <div
         v-for="role in roles"
         :key="role.id"
-        class="rounded-lg border border-gray-200 bg-gray-50 p-4"
+        class="network-list-panel__item"
       >
-        <div class="flex items-center justify-between">
+        <div class="network-list-panel__item-header">
           <div>
-            <h3 class="text-lg font-medium text-gray-900">{{ role.name }}</h3>
-            <p class="text-sm text-gray-600">{{ role.description }}</p>
+            <h3 class="network-list-panel__item-title">{{ role.name }}</h3>
+            <p class="network-list-panel__item-description">{{ role.description }}</p>
           </div>
-          <div class="mr-1">
+          <div class="network-list-panel__item-actions">
             <button
               @click="$emit('manageRole', role)"
-              class="mr-3 text-blue-600 hover:text-blue-900"
+              class="roles-tab__edit-btn"
             >
               Edit
             </button>
             <button
               @click="$emit('removeRole', role)"
-              class="text-red-600 hover:text-red-900"
+              class="network-list-panel__remove-btn"
             >
               Remove
             </button>
@@ -51,53 +51,53 @@
         </div>
 
         <template v-if="!isFetching">
-          <div class="mt-4 flex items-center justify-between">
+          <div class="roles-tab__detail-row">
             <div>
-              <h4 class="mb-2 text-sm font-medium text-gray-700">Permissions:</h4>
-              <div class="flex flex-wrap gap-2">
+              <h4 class="roles-tab__detail-label">Permissions:</h4>
+              <div class="roles-tab__permissions">
                 <span
                   v-for="rolePermission in role.rolePermissions"
                   :key="rolePermission.permissionId"
-                  class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-800"
+                  class="badge badge--neutral"
                 >
                   {{ rolePermission.permission.name }}
                 </span>
                 <span
                   v-if="!role.rolePermissions?.length"
-                  class="text-sm text-gray-500"
+                  class="roles-tab__empty-note"
                   >No permissions assigned</span
                 >
               </div>
             </div>
 
             <div v-if="role.isDefault">
-              <span
-                class="rounded-md border border-gray-200 bg-gray-100 px-4 py-2 text-sm text-gray-800"
-              >
+              <span class="badge badge--neutral">
                 Default
               </span>
             </div>
           </div>
 
-          <div class="mt-4">
-            <h4 class="mb-2 text-sm font-medium text-gray-700">Users with this access:</h4>
-            <div class="flex flex-wrap gap-2">
+          <div class="roles-tab__users-section">
+            <h4 class="roles-tab__detail-label">Users with this access:</h4>
+            <div class="roles-tab__users">
               <div
                 v-for="networkUser in role.networkUserRoles.map((r) => r.networkUser)"
                 :key="networkUser.id"
-                class="flex items-center rounded-md border border-gray-200 bg-white px-2 py-1"
+                class="roles-tab__user-chip"
               >
-                <div class="mr-2 h-6 w-6 flex-shrink-0">
+                <div class="roles-tab__user-avatar">
                   <ProfileAvatar
                     :userProxy="networkUser.userProxy"
-                    :size="6"
+                    :size="24"
                   />
                 </div>
-                <span class="text-xs">{{ networkUser.userProxy.username ?? 'Unknown User' }}</span>
+                <span class="roles-tab__user-name">{{
+                  networkUser.userProxy.username ?? 'Unknown User'
+                }}</span>
               </div>
               <span
                 v-if="role.networkUserRoles.length === 0"
-                class="text-sm text-gray-500"
+                class="roles-tab__empty-note"
               >
                 No users have this role assigned
               </span>
@@ -106,7 +106,7 @@
         </template>
 
         <template v-else>
-          <div class="pt-8 text-sm text-gray-500">
+          <div class="roles-tab__loading-row">
             <LoadingSpinner size="sm" /> Fetching more information...
           </div>
         </template>
@@ -114,7 +114,7 @@
 
       <div
         v-if="!network.roles.length"
-        class="p-6 text-center text-gray-500"
+        class="network-list-panel__empty"
       >
         No roles in this network
       </div>

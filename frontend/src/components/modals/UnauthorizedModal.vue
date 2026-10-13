@@ -4,11 +4,10 @@
     :title="'Unauthorized Access'"
     @close="closeModal"
   >
-    <div class="flex items-start space-x-4">
-      <div class="flex-shrink-0">
-        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-50">
+    <div class="unauthorized-modal__notice">
+      <div class="unauthorized-modal__icon-wrap">
+        <div class="unauthorized-modal__icon">
           <svg
-            class="h-8 w-8 text-yellow-500"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
@@ -30,25 +29,25 @@
         </div>
       </div>
       <div>
-        <p class="text-sm text-gray-500">
+        <p class="unauthorized-modal__message">
           You don't have permission to access this resource. Please contact your administrator if
           you believe this is a mistake.
         </p>
       </div>
     </div>
 
-    <div class="flex justify-end space-x-3 pt-6">
+    <div class="form__actions">
       <button
         type="button"
         title="Go back in browser history."
-        class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
+        class="btn btn--outline"
         @click="goBack"
       >
         Go back
       </button>
       <button
         type="button"
-        class="rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+        class="btn btn--primary"
         @click="closeModal"
       >
         Got it

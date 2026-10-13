@@ -2,44 +2,44 @@
   <Teleport to="body">
     <div
       v-if="authStore.isModalOpen"
-      class="fixed inset-0 z-[1000] flex items-center justify-center overflow-auto bg-black/60 p-5 backdrop-blur-sm max-sm:p-0"
+      class="auth-modal__overlay"
       @click.self="closeModal"
     >
       <div
         role="dialog"
         aria-modal="true"
         :aria-label="isLoginMode ? 'Sign in' : 'Create account'"
-        class="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-lg bg-white shadow-xl max-sm:max-h-full max-sm:rounded-none"
+        class="auth-modal__panel"
       >
-        <div class="absolute left-4 top-4 z-10 flex h-9 w-9 items-center justify-center">
+        <div class="auth-modal__logo">
           <img
             src="@/images/favicon-nobg.png"
             alt="Company Logo"
-            class="max-h-full max-w-full object-contain"
+            class="auth-modal__logo-image"
           />
         </div>
 
         <button
-          class="absolute right-4 top-3 z-10 flex h-8 w-8 items-center justify-center rounded text-2xl text-gray-500 transition hover:bg-gray-100 hover:text-gray-800"
+          class="auth-modal__close"
           @click="closeModal"
           aria-label="Close"
         >
           ×
         </button>
 
-        <div class="px-8 pb-8 pt-14 max-sm:px-5">
-          <div class="mb-6 text-center">
-            <h2 class="mb-1 text-2xl font-semibold text-gray-800">
+        <div class="auth-modal__body">
+          <div class="auth-modal__heading">
+            <h2 class="auth-modal__title">
               {{ isLoginMode ? 'Sign In' : 'Create Account' }}
             </h2>
-            <p class="text-sm text-gray-600">
+            <p class="auth-modal__subtitle">
               {{ isLoginMode ? 'Access your account' : 'Join the platform' }}
             </p>
           </div>
 
           <p
             v-if="error"
-            class="mb-4 rounded bg-red-100 px-4 py-2 text-center text-sm text-red-700"
+            class="alert alert--error"
             role="alert"
           >
             {{ error }}
@@ -47,17 +47,17 @@
 
           <div
             v-if="isInDevelopment && isLoginMode"
-            class="mb-4 flex flex-row items-center justify-center gap-8 text-sm"
+            class="auth-modal__dev-accounts"
           >
             <div
               v-for="account in devAccounts"
               :key="account.email"
-              class="flex flex-col items-center"
+              class="auth-modal__dev-account"
             >
               <span>Log in as</span>
               <button
                 type="button"
-                class="cursor-pointer text-blue-500 underline"
+                class="auth-modal__dev-account-btn"
                 @click="login({ email: account.email, password: account.email })"
               >
                 {{ account.label }}
@@ -82,13 +82,11 @@
             @tos="redirectToTos"
           />
 
-          <div
-            class="mt-6 flex flex-wrap items-center justify-center gap-2 text-center text-sm text-gray-600"
-          >
+          <div class="auth-modal__switch">
             <p>{{ isLoginMode ? "Don't have an account?" : 'Already have an account?' }}</p>
             <button
               @click="switchMode"
-              class="font-medium text-blue-600 hover:underline"
+              class="auth-modal__switch-btn"
             >
               {{ isLoginMode ? 'Create Account' : 'Sign In' }}
             </button>

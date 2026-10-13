@@ -1,8 +1,8 @@
 <template>
-  <div class="flex h-full pt-16">
+  <div class="manage-network-view">
     <NetworkSidebar />
 
-    <div class="flex-1 overflow-auto p-6">
+    <div class="manage-network-view__content">
       <LoadingErrorComponent
         :loading="fetchNetwork.loading.value"
         :error="fetchNetwork.error.value"

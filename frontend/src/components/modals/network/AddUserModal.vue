@@ -5,37 +5,35 @@
   >
     <form
       @submit.prevent="handleSubmit"
-      class="space-y-4"
+      class="form"
     >
-      <div>
+      <div class="form-field">
         <label
           for="user"
-          class="block text-sm font-medium text-gray-700"
+          class="form-label"
           >Select User</label
         >
-        <div class="relative mt-1">
-          <select
-            id="user"
-            v-model="form.userId"
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-            required
+        <select
+          id="user"
+          v-model="form.userId"
+          class="form-select"
+          required
+        >
+          <option
+            value=""
+            disabled
+            selected
           >
-            <option
-              value=""
-              disabled
-              selected
-            >
-              Select a user
-            </option>
-            <option
-              v-for="user in availableUsers"
-              :key="user.id"
-              :value="user.id"
-            >
-              {{ user.firstName }} {{ user.lastName }} ({{ user.email }})
-            </option>
-          </select>
-        </div>
+            Select a user
+          </option>
+          <option
+            v-for="user in availableUsers"
+            :key="user.id"
+            :value="user.id"
+          >
+            {{ user.firstName }} {{ user.lastName }} ({{ user.email }})
+          </option>
+        </select>
         <loading-error-component
           :loading="usersLoading"
           :error="usersError"
@@ -43,14 +41,14 @@
         />
       </div>
 
-      <div>
-        <label class="block text-sm font-medium text-gray-700">Assign Roles</label>
+      <div class="form-field">
+        <label class="form-label">Assign Roles</label>
         <checkbox-list
           :items="availableRoles"
           v-model="form.roleIds"
           id-prefix="role"
           empty-message="No roles available in this network"
-          container-class="mt-2 max-h-48 overflow-y-auto rounded-md border p-2"
+          container-class="add-user-modal__roles-list"
         />
       </div>
 

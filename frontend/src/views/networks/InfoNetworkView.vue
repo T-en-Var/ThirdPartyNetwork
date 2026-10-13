@@ -1,19 +1,19 @@
 <template>
-  <div class="container mx-auto mt-8 px-4 py-8">
-    <div class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md">
-      <div class="flex items-center justify-between border-b border-gray-200 bg-gray-100 px-6 py-4">
-        <h1 class="text-2xl font-semibold text-gray-800">Network Details</h1>
-        <div class="flex space-x-3">
+  <div class="info-network-view">
+    <div class="info-network-view__panel">
+      <div class="info-network-view__header">
+        <h1 class="info-network-view__heading">Network Details</h1>
+        <div class="info-network-view__header-actions">
           <button
             @click="handleNavigateBack"
-            class="rounded-md border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50"
+            class="btn btn--outline"
           >
             Back to Networks
           </button>
           <button
             v-if="canManageNetwork"
             @click="handleManageNetwork"
-            class="rounded-md bg-blue-600 px-4 py-2 text-white shadow-sm hover:bg-blue-700"
+            class="btn btn--primary"
           >
             Manage Network
           </button>
@@ -23,24 +23,24 @@
       <!-- Loading State -->
       <div
         v-if="loading"
-        class="flex h-64 items-center justify-center"
+        class="info-network-view__loading"
       >
-        <div class="h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600"></div>
+        <div class="spinner-border spinner-border--lg"></div>
       </div>
 
       <!-- Error State -->
       <div
         v-else-if="error"
-        class="mx-6 my-6"
+        class="info-network-view__error"
       >
         <ErrorAlert
           :message="error"
           @dismiss="error = ''"
         />
-        <div class="mt-4 flex justify-center">
+        <div class="info-network-view__error-actions">
           <button
             @click="router.push('/networks')"
-            class="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+            class="btn btn--primary"
           >
             Return to Networks
           </button>
@@ -50,12 +50,12 @@
       <!-- Network Content -->
       <div
         v-else-if="network"
-        class="p-6"
+        class="info-network-view__content"
       >
         <!-- Network Header with Logo -->
-        <div class="flex justify-between">
-          <div class="mb-6 flex items-center">
-            <div class="mr-4">
+        <div class="info-network-view__network-header">
+          <div class="info-network-view__network-identity">
+            <div class="info-network-view__network-logo">
               <NetworkLogo
                 :loading="loading"
                 :image-file="network.imageFile"
@@ -63,86 +63,84 @@
               />
             </div>
             <div>
-              <h2 class="flex items-center text-xl font-bold text-gray-800">
+              <h2 class="info-network-view__network-title">
                 {{ network.name }}
                 <span
                   v-if="network.isSystemProtected"
-                  class="ml-3 rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800"
+                  class="badge badge--success"
                 >
                   Protected
                 </span>
                 <span
                   v-if="network.isPublic"
-                  class="ml-3 rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800"
+                  class="badge badge--info"
                 >
                   Public
                 </span>
               </h2>
-              <p class="text-gray-600">{{ network.description || 'No description available' }}</p>
+              <p class="info-network-view__network-description">
+                {{ network.description || 'No description available' }}
+              </p>
             </div>
           </div>
 
           <div>
-            <div>
-              <button
-                v-if="!isUserInNetwork"
-                @click="handleJoinNetwork"
-                class="w-full rounded-md bg-blue-600 px-16 py-3 text-white shadow-sm hover:bg-blue-700"
-              >
-                Join Network
-              </button>
+            <button
+              v-if="!isUserInNetwork"
+              @click="handleJoinNetwork"
+              class="btn btn--primary btn--full"
+            >
+              Join Network
+            </button>
 
-              <button
-                v-else-if="!network.isSystemProtected"
-                @click="handleLeaveNetwork"
-                class="w-full rounded-md bg-red-500 px-16 py-3 text-white shadow-sm hover:bg-red-600"
-              >
-                Leave Network
-              </button>
-            </div>
+            <button
+              v-else-if="!network.isSystemProtected"
+              @click="handleLeaveNetwork"
+              class="btn btn--danger btn--full"
+            >
+              Leave Network
+            </button>
           </div>
         </div>
 
         <!-- Network Access Requirements -->
-        <div class="mb-6">
-          <h3 class="mb-3 text-lg font-medium text-gray-800">Access Requirements</h3>
+        <div class="info-network-view__section">
+          <h3 class="info-network-view__section-title">Access Requirements</h3>
 
           <div
             v-if="network?.networkAccesses.length > 0"
-            class="rounded-lg border border-gray-200 bg-gray-50 p-4"
+            class="info-network-view__box"
           >
-            <details class="group">
-              <summary
-                class="flex cursor-pointer items-center justify-between text-sm font-semibold text-gray-700"
-              >
+            <details class="info-network-view__disclosure">
+              <summary class="info-network-view__summary">
                 Network Accesses ({{ network?.networkAccesses.length }})
-                <span class="ml-2 transition-transform group-open:rotate-180">&#9660;</span>
+                <span class="info-network-view__summary-icon">&#9660;</span>
               </summary>
-              <ul class="mt-4 space-y-3">
+              <ul class="info-network-view__list">
                 <li
                   v-for="networkAccess in network?.networkAccesses"
                   :key="networkAccess.access.id"
-                  class="flex items-start rounded-md border border-gray-200 bg-gray-50 p-3"
+                  class="info-network-view__list-item"
                 >
-                  <div class="mt-1 flex-shrink-0">
+                  <div class="info-network-view__list-item-badge">
                     <span
                       v-if="networkAccess.isRequired"
-                      class="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800"
+                      class="badge badge--success"
                     >
                       Required
                     </span>
                     <span
                       v-else
-                      class="inline-flex items-center rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-800"
+                      class="badge badge--warning"
                     >
                       Optional
                     </span>
                   </div>
-                  <div class="ml-4">
-                    <div class="text-sm font-semibold text-gray-800">
+                  <div class="info-network-view__list-item-copy">
+                    <div class="info-network-view__list-item-name">
                       {{ networkAccess.access.name }}
                     </div>
-                    <div class="text-sm text-gray-600">
+                    <div class="info-network-view__list-item-description">
                       {{ networkAccess.access.description }}
                     </div>
                   </div>
@@ -153,38 +151,36 @@
 
           <div
             v-else
-            class="rounded-lg border border-gray-200 bg-gray-50 p-6 text-center"
+            class="info-network-view__empty-box"
           >
-            <p class="text-gray-600">This network has no required accesses.</p>
+            <p>This network has no required accesses.</p>
           </div>
         </div>
 
         <!-- Connected Websites -->
-        <div class="mb-6">
-          <h3 class="mb-3 text-lg font-medium text-gray-800">Connected Websites</h3>
+        <div class="info-network-view__section">
+          <h3 class="info-network-view__section-title">Connected Websites</h3>
 
-          <div class="rounded-lg border border-gray-200 bg-gray-50 p-6 text-center">
-            <p class="text-gray-600">
-              No websites are currently using this network for authentication.
-            </p>
+          <div class="info-network-view__empty-box">
+            <p>No websites are currently using this network for authentication.</p>
           </div>
         </div>
 
         <!-- Network Information -->
-        <div class="mb-6">
-          <h3 class="mb-3 text-lg font-medium text-gray-800">Network Information</h3>
+        <div class="info-network-view__section">
+          <h3 class="info-network-view__section-title">Network Information</h3>
 
-          <div class="rounded-lg border border-gray-200 bg-gray-50 p-6">
-            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div class="info-network-view__box">
+            <div class="info-network-view__detail-grid">
               <div>
-                <h4 class="text-sm font-medium text-gray-500">Network ID</h4>
-                <p class="mt-1 rounded bg-gray-100 px-2 py-1 font-mono text-gray-800">
+                <h4 class="info-network-view__detail-label">Network ID</h4>
+                <p class="info-network-view__detail-value info-network-view__detail-value--mono">
                   {{ network.id }}
                 </p>
               </div>
               <div>
-                <h4 class="text-sm font-medium text-gray-500">Created</h4>
-                <p class="mt-1 text-gray-800">
+                <h4 class="info-network-view__detail-label">Created</h4>
+                <p class="info-network-view__detail-value">
                   {{
                     network.createdOn
                       ? new Date(network.createdOn).toLocaleString('nl-NL')
@@ -198,19 +194,19 @@
 
         <!-- User Information -->
         <div v-if="isUserInNetwork && currentNetworkUser">
-          <h3 class="mb-3 text-lg font-medium text-gray-800">User Information</h3>
+          <h3 class="info-network-view__section-title">User Information</h3>
 
-          <div class="rounded-lg border border-gray-200 bg-gray-50 p-6">
-            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div class="info-network-view__box">
+            <div class="info-network-view__detail-grid">
               <div>
-                <h4 class="text-sm font-medium text-gray-500">Network User ID</h4>
-                <p class="mt-1 rounded bg-gray-100 px-2 py-1 font-mono text-gray-800">
+                <h4 class="info-network-view__detail-label">Network User ID</h4>
+                <p class="info-network-view__detail-value info-network-view__detail-value--mono">
                   {{ currentNetworkUser.id }}
                 </p>
               </div>
               <div>
-                <h4 class="text-sm font-medium text-gray-500">Joined</h4>
-                <p class="mt-1 text-gray-800">
+                <h4 class="info-network-view__detail-label">Joined</h4>
+                <p class="info-network-view__detail-value">
                   {{
                     currentNetworkUser.createdOn
                       ? new Date(currentNetworkUser.createdOn).toLocaleString('nl-NL')
@@ -223,48 +219,46 @@
             <!-- Dropdown / details block -->
             <div
               v-if="network.networkAccesses?.length"
-              class="mt-6"
+              class="info-network-view__user-accesses"
             >
-              <details class="group">
-                <summary
-                  class="flex cursor-pointer items-center justify-between text-sm font-semibold text-gray-700"
-                >
+              <details class="info-network-view__disclosure">
+                <summary class="info-network-view__summary">
                   User Accesses ({{ network.networkAccesses.length }})
-                  <span class="ml-2 transition-transform group-open:rotate-180">&#9660;</span>
+                  <span class="info-network-view__summary-icon">&#9660;</span>
                 </summary>
-                <ul class="mt-4 space-y-3">
+                <ul class="info-network-view__list">
                   <li
                     v-for="access in network.networkAccesses"
                     :key="access.access.id"
-                    class="flex justify-between rounded-md border border-gray-200 bg-gray-50 p-3"
+                    class="info-network-view__list-item info-network-view__list-item--split"
                   >
-                    <div class="flex items-start">
-                      <div class="mt-1 flex-shrink-0">
-                        <span
-                          v-if="
-                            currentNetworkUser.networkUserAccesses.find(
-                              (nua) => nua.access.id === access.access.id,
-                            )?.isAccepted
-                          "
-                          class="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800"
-                        >
-                          Accepted
-                        </span>
-                        <span
-                          v-else
-                          class="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800"
-                        >
-                          Rejected
-                        </span>
+                    <div class="info-network-view__list-item-badge">
+                      <span
+                        v-if="
+                          currentNetworkUser.networkUserAccesses.find(
+                            (nua) => nua.access.id === access.access.id,
+                          )?.isAccepted
+                        "
+                        class="badge badge--success"
+                      >
+                        Accepted
+                      </span>
+                      <span
+                        v-else
+                        class="badge badge--danger"
+                      >
+                        Rejected
+                      </span>
+                    </div>
+                    <div class="info-network-view__list-item-copy">
+                      <div class="info-network-view__list-item-name">
+                        {{ access.access.name }}
                       </div>
-                      <div class="ml-4">
-                        <div class="text-sm font-semibold text-gray-800">
-                          {{ access.access.name }}
-                        </div>
-                        <div class="text-sm text-gray-600">{{ access.access.description }}</div>
+                      <div class="info-network-view__list-item-description">
+                        {{ access.access.description }}
                       </div>
                     </div>
-                    <div class="flex items-center">
+                    <div class="info-network-view__list-item-actions">
                       <button
                         v-if="
                           !access.isRequired ||
@@ -273,13 +267,13 @@
                           )?.isAccepted
                         "
                         @click="handleToggle(access.access.id)"
-                        class="mr-3 rounded-md border border-gray-200 bg-gray-100 px-4 py-2 text-sm text-gray-800"
+                        class="btn btn--outline btn--sm"
                       >
                         Toggle
                       </button>
                       <span
                         v-if="access.isRequired"
-                        class="mr-3 rounded-md border border-gray-200 bg-gray-100 px-4 py-2 text-sm text-gray-500"
+                        class="badge badge--neutral"
                       >
                         Required
                       </span>
@@ -290,7 +284,7 @@
             </div>
             <div
               v-else
-              class="mt-6 text-sm text-gray-500"
+              class="info-network-view__no-accesses"
             >
               This user has no recorded network accesses.
             </div>
@@ -298,10 +292,10 @@
         </div>
 
         <!-- Action Buttons -->
-        <div class="mt-6 flex justify-end space-x-3 border-t border-gray-200 pt-4">
+        <div class="info-network-view__footer-actions">
           <button
             type="button"
-            class="rounded-md border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50"
+            class="btn btn--outline"
             @click="router.push('/networks')"
           >
             Back to Networks

@@ -4,13 +4,13 @@
     @close="$emit('close')"
     :close-on-outside-click="false"
   >
-    <div class="space-y-8 overflow-y-auto px-1">
-      <section class="space-y-4">
-        <div class="grid grid-cols-1 gap-4">
-          <div>
+    <div class="edit-role-modal">
+      <section class="edit-role-modal__details">
+        <div class="edit-role-modal__fields">
+          <div class="form-field">
             <label
               for="name"
-              class="mb-1.5 ml-1 block text-xs font-bold uppercase tracking-wider text-slate-500"
+              class="form-label"
             >
               Role Name
             </label>
@@ -19,15 +19,15 @@
               v-model="localForm.name"
               type="text"
               placeholder="e.g. Content Manager"
-              class="block w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
+              class="form-input"
               required
             />
           </div>
 
-          <div>
+          <div class="form-field">
             <label
               for="description"
-              class="mb-1.5 ml-1 block text-xs font-bold uppercase tracking-wider text-slate-500"
+              class="form-label"
             >
               Role Description
             </label>
@@ -36,61 +36,49 @@
               v-model="localForm.description"
               rows="2"
               placeholder="What can this role do?"
-              class="block w-full resize-none rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
+              class="form-textarea"
             ></textarea>
           </div>
         </div>
 
-        <label
-          class="group flex cursor-pointer items-center rounded-xl border border-slate-100 bg-slate-50/50 p-3 transition-colors hover:bg-slate-50"
-        >
-          <div class="relative inline-flex items-center">
+        <label class="edit-role-modal__toggle">
+          <div class="edit-role-modal__toggle-control">
             <input
               type="checkbox"
               v-model="localForm.isDefault"
-              class="peer sr-only"
+              class="sr-only"
             />
-            <div
-              class="peer h-5 w-9 rounded-full bg-slate-200 after:absolute after:left-[2px] after:top-[2px] after:h-4 after:w-4 after:rounded-full after:bg-white after:transition-all after:content-[''] peer-checked:bg-indigo-600 peer-checked:after:translate-x-full"
-            ></div>
+            <div class="edit-role-modal__toggle-track"></div>
           </div>
-          <div class="ml-3">
-            <span class="block text-sm font-semibold text-slate-700">Auto-assign to new users</span>
-            <span class="block text-xs text-slate-500"
+          <div class="edit-role-modal__toggle-copy">
+            <span class="edit-role-modal__toggle-title">Auto-assign to new users</span>
+            <span class="edit-role-modal__toggle-subtitle"
               >New network members will receive this role by default.</span
             >
           </div>
         </label>
       </section>
 
-      <div class="flex rounded-xl bg-slate-100 p-1">
+      <div class="edit-role-modal__subtabs">
         <button
           @click="activeTab = 'permissions'"
-          :class="
-            activeTab === 'permissions'
-              ? 'bg-white text-blue-600 shadow-sm'
-              : 'text-slate-500 hover:text-slate-700'
-          "
-          class="flex flex-1 items-center justify-center gap-2 rounded-lg py-2 text-xs font-bold uppercase tracking-wider transition-all"
+          :class="{ 'edit-role-modal__subtab--active': activeTab === 'permissions' }"
+          class="edit-role-modal__subtab"
         >
           <span
-            class="h-2 w-2 rounded-full"
-            :class="activeTab === 'permissions' ? 'bg-blue-600' : 'bg-slate-300'"
+            class="edit-role-modal__subtab-dot"
+            :class="{ 'edit-role-modal__subtab-dot--active': activeTab === 'permissions' }"
           ></span>
           Permissions
         </button>
         <button
           @click="activeTab = 'entitlements'"
-          :class="
-            activeTab === 'entitlements'
-              ? 'bg-white text-blue-600 shadow-sm'
-              : 'text-slate-500 hover:text-slate-700'
-          "
-          class="flex flex-1 items-center justify-center gap-2 rounded-lg py-2 text-xs font-bold uppercase tracking-wider transition-all"
+          :class="{ 'edit-role-modal__subtab--active': activeTab === 'entitlements' }"
+          class="edit-role-modal__subtab"
         >
           <span
-            class="h-2 w-2 rounded-full"
-            :class="activeTab === 'entitlements' ? 'bg-blue-600' : 'bg-slate-300'"
+            class="edit-role-modal__subtab-dot"
+            :class="{ 'edit-role-modal__subtab-dot--active': activeTab === 'entitlements' }"
           ></span>
           Entitlements
         </button>
@@ -98,7 +86,7 @@
 
       <div
         v-if="activeTab === 'permissions'"
-        class="space-y-4 duration-300 animate-in fade-in"
+        class="edit-role-modal__panel"
       >
         <loading-error-component
           :loading="loading"
@@ -112,8 +100,8 @@
             v-model="localForm.permissionIds"
             variant="card"
             empty-message="No permissions available"
-            empty-class="p-8 text-center text-sm italic text-slate-400"
-            container-class="divide-y divide-slate-50 overflow-y-auto"
+            empty-class="edit-role-modal__permissions-empty"
+            container-class="edit-role-modal__permissions-list"
             show-id
           />
         </div>
@@ -121,14 +109,11 @@
 
       <div
         v-if="activeTab === 'entitlements'"
-        class="space-y-6 duration-300 animate-in fade-in"
+        class="edit-role-modal__panel"
       >
-        <div class="flex items-center gap-3 rounded-xl border border-blue-100 bg-blue-50/50 p-3">
-          <span
-            class="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-blue-100 text-[10px] font-black italic text-blue-600"
-            >i</span
-          >
-          <p class="text-[11px] leading-tight text-blue-800">
+        <div class="network-modal__info-banner">
+          <span class="network-modal__info-icon">i</span>
+          <p class="network-modal__info-text">
             Unspecified entitlements will default to network-wide limits.
           </p>
         </div>

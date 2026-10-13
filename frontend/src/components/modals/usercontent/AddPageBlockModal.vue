@@ -12,10 +12,10 @@
       @submit="handleSubmit"
       @close="emit('close')"
     >
-      <div>
+      <div class="form-field">
         <label
           for="pageText"
-          class="mb-2 block text-sm font-semibold text-gray-800"
+          class="form-label"
         >
           Page Block Text
         </label>
@@ -24,15 +24,15 @@
           v-model="form.text"
           type="text"
           placeholder="Enter text"
-          class="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-900 shadow-sm transition-all focus:border-blue-600 focus:ring focus:ring-blue-100 disabled:bg-gray-100 disabled:text-gray-500"
+          class="form-input"
           required
         />
       </div>
 
-      <div>
+      <div class="form-field">
         <label
           for="pagePosition"
-          class="mb-2 block text-sm font-semibold text-gray-800"
+          class="form-label"
         >
           Page Block Posistion
         </label>
@@ -40,10 +40,10 @@
           id="pagePosition"
           v-model="form.position"
           type="number"
-          class="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-900 shadow-sm transition-all focus:border-blue-600 focus:ring focus:ring-blue-100 disabled:bg-gray-100 disabled:text-gray-500"
+          class="form-input"
           required
         />
-        <p class="mt-1 text-xs text-gray-500">You can change all this later as well.</p>
+        <p class="form-help">You can change all this later as well.</p>
       </div>
     </UserContentForm>
   </modal-container>

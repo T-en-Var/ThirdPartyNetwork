@@ -1,6 +1,6 @@
 <!-- EditNetworkPage.vue -->
 <template>
-  <div class="overflow-hidden rounded-lg bg-white p-6 shadow-md">
+  <div class="edit-network-tab">
     <LoadingErrorComponent
       :loading="loading"
       :error="error"
@@ -11,50 +11,50 @@
 
     <div
       v-if="!loading && !error && network"
-      class="space-y-10"
+      class="edit-network-tab__content"
     >
-      <h2 class="mb-4 text-xl font-medium text-gray-800">Network Details</h2>
+      <h2 class="edit-network-tab__heading">Network Details</h2>
 
-      <div class="flex items-stretch justify-between gap-10">
-        <section class="flex-grow">
-          <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <div>
-              <label class="block text-sm font-medium text-gray-700">Name</label>
+      <div class="edit-network-tab__main">
+        <section class="edit-network-tab__fields">
+          <div class="edit-network-tab__fields-grid">
+            <div class="form-field">
+              <label class="form-label">Name</label>
               <input
                 v-model="form.name"
                 type="text"
-                class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-600 focus:ring focus:ring-blue-100"
+                class="form-input"
               />
             </div>
 
-            <div>
-              <label class="block text-sm font-medium text-gray-700">Callback URL</label>
+            <div class="form-field">
+              <label class="form-label">Callback URL</label>
               <input
                 v-model="form.redirectURI"
                 type="url"
-                class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-600 focus:ring focus:ring-blue-100"
+                class="form-input"
               />
             </div>
 
-            <div class="col-span-full">
-              <label class="block text-sm font-medium text-gray-700">Description</label>
+            <div class="form-field edit-network-tab__field--full">
+              <label class="form-label">Description</label>
               <textarea
                 v-model="form.description"
                 rows="4"
-                class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-600 focus:ring focus:ring-blue-100"
+                class="form-textarea"
               />
             </div>
 
-            <div class="col-span-full">
-              <label class="flex cursor-pointer items-center gap-2">
+            <div class="form-field edit-network-tab__field--full">
+              <label class="edit-network-tab__checkbox-label">
                 <input
                   type="checkbox"
                   v-model="form.isPublic"
-                  class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  class="checkbox"
                 />
-                <span class="text-sm font-medium text-gray-800">Public Network</span>
+                <span class="edit-network-tab__checkbox-text">Public Network</span>
               </label>
-              <p class="mt-1 text-xs text-gray-500">
+              <p class="edit-network-tab__checkbox-hint">
                 Toggle this on to make the network visible to anyone. Otherwise, access will be
                 restricted.
               </p>
@@ -62,30 +62,30 @@
           </div>
         </section>
 
-        <section class="mr-6 flex flex-col">
-          <h2 class="block text-center text-sm font-medium text-gray-700">Network Image</h2>
-          <div class="flex flex-grow flex-col items-center">
+        <section class="edit-network-tab__image-section">
+          <h2 class="edit-network-tab__image-heading">Network Image</h2>
+          <div class="edit-network-tab__image-wrap">
             <!-- If an image is already set -->
             <div
               v-if="uploadedFile"
-              class="flex flex-grow flex-col items-center"
+              class="edit-network-tab__image-current"
             >
               <CloudinaryFile
                 :file="uploadedFile"
                 :display-only="true"
-                class="h-24 w-24 rounded-full object-cover"
+                class="edit-network-tab__image-preview"
               />
-              <div class="flex gap-3">
+              <div class="edit-network-tab__image-actions">
                 <button
                   type="button"
-                  class="text-sm text-red-600 hover:underline"
+                  class="edit-network-tab__image-remove-btn"
                   @click="removeImage"
                 >
                   Remove
                 </button>
                 <button
                   type="button"
-                  class="text-sm text-blue-600 hover:underline"
+                  class="edit-network-tab__image-change-btn"
                   @click="openUploadModal"
                 >
                   Change
@@ -95,16 +95,12 @@
 
             <div
               v-else
-              class="flex flex-grow flex-col items-center justify-center"
+              class="edit-network-tab__image-empty"
             >
-              <div
-                class="flex h-24 w-24 items-center justify-center rounded-full bg-gray-200 text-gray-500"
-              >
-                No Image
-              </div>
+              <div class="edit-network-tab__image-placeholder">No Image</div>
               <button
                 type="button"
-                class="mt-4 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm text-gray-700 shadow-sm hover:bg-gray-50"
+                class="btn btn--outline"
                 @click="openUploadModal"
               >
                 Upload Image
@@ -124,15 +120,15 @@
 
       <section
         v-if="!network.isSystemProtected"
-        class="rounded-lg border border-red-300 bg-red-50 p-6"
+        class="edit-network-tab__danger-zone"
       >
-        <h2 class="mb-4 text-lg font-semibold text-red-700">Danger Zone</h2>
-        <p class="mb-4 text-sm text-red-600">
+        <h2 class="edit-network-tab__danger-zone-title">Danger Zone</h2>
+        <p class="edit-network-tab__danger-zone-text">
           Deleting this network is permanent and cannot be undone. Please proceed with caution.
         </p>
         <button
           @click="deleteNetwork"
-          class="rounded-md bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400"
+          class="btn btn--danger"
         >
           Delete Network
         </button>
@@ -141,22 +137,20 @@
       <transition name="fade">
         <div
           v-if="hasChanges"
-          class="fixed bottom-0 left-0 flex w-screen justify-center"
+          class="edit-network-tab__unsaved-bar"
         >
-          <div
-            class="mb-3 flex w-fit items-center justify-between gap-10 rounded-md bg-gray-900 px-6 py-3 text-white shadow-lg"
-          >
-            <span class="text-sm">You have unsaved changes</span>
-            <div class="flex gap-3">
+          <div class="edit-network-tab__unsaved-panel">
+            <span class="edit-network-tab__unsaved-text">You have unsaved changes</span>
+            <div class="edit-network-tab__unsaved-actions">
               <button
                 @click="resetForm"
-                class="rounded-md bg-gray-700 px-3 py-1 text-sm hover:bg-gray-600"
+                class="btn btn--secondary"
               >
                 Undo Changes
               </button>
               <button
                 @click="saveChanges"
-                class="rounded-md bg-green-600 px-4 py-2 text-sm hover:bg-green-700"
+                class="btn btn--success"
               >
                 Save Changes
               </button>
@@ -262,15 +256,3 @@ function removeImage() {
   uploadedFile.value = null;
 }
 </script>
-
-<style scoped>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-</style>

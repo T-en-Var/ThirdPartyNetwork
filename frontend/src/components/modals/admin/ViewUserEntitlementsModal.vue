@@ -6,17 +6,17 @@
   >
     <div
       v-if="proxy"
-      class="custom-scrollbar max-h-[75vh] space-y-6 overflow-y-auto pr-2"
+      class="view-user-entitlements-modal__scroll"
     >
-      <div class="mb-4">
-        <h2 class="text-lg font-bold text-slate-900">{{ proxy.firstName }} {{ proxy.lastName }}</h2>
-        <p class="text-sm text-slate-500">@{{ proxy.username }}</p>
+      <div class="view-user-entitlements-modal__header">
+        <h2 class="view-user-entitlements-modal__name">{{ proxy.firstName }} {{ proxy.lastName }}</h2>
+        <p class="view-user-entitlements-modal__handle">@{{ proxy.username }}</p>
       </div>
 
       <div>
         <div
           v-if="breakdown.length === 0"
-          class="text-sm italic text-slate-500"
+          class="view-user-entitlements-modal__empty"
         >
           This user is not a member of any networks.
         </div>
@@ -24,110 +24,115 @@
         <div
           v-for="nw in breakdown"
           :key="nw.networkId"
-          class="mb-6 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm"
+          class="card view-user-entitlements-modal__network-card"
         >
-          <div
-            class="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-4 py-3"
-          >
+          <div class="view-user-entitlements-modal__network-header">
             <div>
-              <span class="font-semibold text-slate-700">{{ nw.networkName }}</span>
-              <div class="flex gap-1">
+              <span class="view-user-entitlements-modal__network-name">{{ nw.networkName }}</span>
+              <div class="view-user-entitlements-modal__network-badges">
                 <span
                   v-for="(val, key) in nw.baseEnt"
                   v-show="key.startsWith('allow')"
                   :key="key"
-                  class="inline-flex items-center rounded-md border border-slate-200 bg-white px-2 text-[11px] font-medium shadow-sm"
+                  class="badge badge--neutral"
                 >
-                  <span class="mr-1 font-normal uppercase tracking-tighter text-slate-400">{{
+                  <span class="view-user-entitlements-modal__badge-key">{{
                     key.replace('allow', '')
                   }}</span>
                   <span
-                    class="ml-0.5 border-l border-slate-200 pl-1.5 font-normal"
-                    :class="{ 'text-green-500': val === true, 'text-red-500': val === false }"
+                    class="view-user-entitlements-modal__badge-value"
+                    :class="{
+                      'view-user-entitlements-modal__badge-value--true': val === true,
+                      'view-user-entitlements-modal__badge-value--false': val === false,
+                    }"
                   >
                     {{ val }}
                   </span>
                 </span>
               </div>
             </div>
-            <div class="flex gap-4">
+            <div class="view-user-entitlements-modal__network-actions">
               <RouterLink
                 :to="`/networks/${nw.networkId}/manage`"
-                class="text-sm font-medium text-indigo-600 hover:text-indigo-800"
+                class="view-user-entitlements-modal__action-link"
                 >Go to network</RouterLink
               >
               <button
                 @click="$emit('edit-user-entitlement', nw.networkId)"
-                class="text-sm font-medium text-purple-600 hover:text-purple-800"
+                class="view-user-entitlements-modal__action-link view-user-entitlements-modal__action-link--edit"
               >
                 Edit entitlements
               </button>
             </div>
           </div>
 
-          <div class="overflow-x-auto">
-            <table class="w-full border-collapse text-left text-sm">
+          <div class="view-user-entitlements-modal__table-scroll">
+            <table class="table">
               <thead>
-                <tr
-                  class="border-b border-slate-100 bg-slate-50/50 text-[11px] uppercase tracking-wider text-slate-500"
-                >
-                  <th class="px-4 py-2 font-semibold">Entitlement</th>
-                  <th class="px-4 py-2 font-semibold text-slate-400">Network Base</th>
-                  <th class="px-4 py-2 font-semibold text-blue-500">Role Overrides</th>
-                  <th class="px-4 py-2 font-semibold text-purple-500">User Overrides</th>
-                  <th class="bg-slate-50 px-4 py-2 font-bold text-slate-800">Effective</th>
+                <tr class="table__row">
+                  <th class="table__cell table__cell--head">Entitlement</th>
+                  <th class="table__cell table__cell--head">Network Base</th>
+                  <th class="table__cell table__cell--head view-user-entitlements-modal__col-role">
+                    Role Overrides
+                  </th>
+                  <th class="table__cell table__cell--head view-user-entitlements-modal__col-user">
+                    User Overrides
+                  </th>
+                  <th
+                    class="table__cell table__cell--head view-user-entitlements-modal__col-effective"
+                  >
+                    Effective
+                  </th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-slate-100">
+              <tbody>
                 <tr
                   v-for="key in nw.activeKeys"
                   :key="key"
-                  class="transition-colors hover:bg-slate-50/30"
+                  class="table__row"
                 >
-                  <td class="px-4 py-2 font-medium text-slate-600">{{ formatKey(key) }}</td>
+                  <td class="table__cell">{{ formatKey(key) }}</td>
 
-                  <td class="px-4 py-2 text-slate-400">
+                  <td class="table__cell view-user-entitlements-modal__base-cell">
                     {{ formatValue(nw.baseEnt[key]) }}
                   </td>
 
-                  <td class="px-4 py-2 font-medium text-blue-600">
+                  <td class="table__cell view-user-entitlements-modal__role-cell">
                     <span
                       v-if="nw.roleEnt[key] !== undefined"
-                      class="rounded bg-blue-50 px-1.5 py-0.5"
+                      class="view-user-entitlements-modal__override-pill view-user-entitlements-modal__override-pill--role"
                     >
                       {{ formatValue(nw.roleEnt[key]) }}
                     </span>
                     <span
                       v-else
-                      class="text-slate-300"
+                      class="view-user-entitlements-modal__empty-value"
                       >-</span
                     >
                   </td>
 
-                  <td class="px-4 py-2 font-medium text-purple-600">
+                  <td class="table__cell view-user-entitlements-modal__user-cell">
                     <span
                       v-if="nw.userEnt[key] !== undefined"
-                      class="rounded bg-purple-50 px-1.5 py-0.5"
+                      class="view-user-entitlements-modal__override-pill view-user-entitlements-modal__override-pill--user"
                     >
                       {{ formatValue(nw.userEnt[key]) }}
                     </span>
                     <span
                       v-else
-                      class="text-slate-300"
+                      class="view-user-entitlements-modal__empty-value"
                       >-</span
                     >
                   </td>
 
-                  <td
-                    class="border-l border-slate-100 bg-slate-50 px-4 py-2 font-bold text-slate-800"
-                  >
+                  <td class="table__cell view-user-entitlements-modal__effective-cell">
                     {{ formatValue(nw.effective[key]) }}
                   </td>
                 </tr>
                 <tr v-if="nw.activeKeys.length === 0">
                   <td
                     colspan="5"
-                    class="px-4 py-4 text-center text-xs italic text-slate-400"
+                    class="table__cell view-user-entitlements-modal__no-limits"
                   >
                     No limits configured for this network.
                   </td>
@@ -139,10 +144,10 @@
       </div>
     </div>
 
-    <div class="mt-4 flex justify-end border-t border-slate-200 pt-4">
+    <div class="view-user-entitlements-modal__footer">
       <button
         type="button"
-        class="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+        class="btn btn--outline"
         @click="$emit('close')"
       >
         Close
@@ -232,18 +237,3 @@ const breakdown = computed(() => {
   });
 });
 </script>
-
-<style scoped>
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #cbd5e1;
-  border-radius: 10px;
-}
-</style>

@@ -1,73 +1,65 @@
 <template>
-  <div class="space-y-6">
+  <div class="entitlements-form">
     <div
       v-for="group in entitlementGroups"
       :key="group.title"
     >
       <section
         v-if="network.entitlement && (autoIncreaseMax || network.entitlement?.[group.allowKey])"
-        class="mb-4 overflow-hidden rounded-xl border border-slate-200"
+        class="entitlements-form__group"
       >
-        <div class="flex flex-row justify-between border-b border-slate-200 bg-slate-50 px-4 py-2">
-          <h3 class="text-[10px] font-black uppercase tracking-widest text-slate-500">
+        <div class="entitlements-form__group-header">
+          <h3 class="entitlements-form__group-title">
             {{ group.title }}
           </h3>
 
-          <label class="group relative inline-flex cursor-pointer items-center">
+          <label class="toggle-switch">
             <input
               type="checkbox"
               v-model="localValue[group.allowKey as keyof SettableEntitlementForm]"
-              class="peer sr-only"
+              class="toggle-switch__input"
             />
-            <div
-              class="peer h-5 w-9 rounded-full bg-slate-200 after:absolute after:left-[2px] after:top-[2px] after:h-4 after:w-4 after:rounded-full after:bg-white after:transition-all after:content-[''] group-hover:after:scale-110 peer-checked:bg-blue-600 peer-checked:after:translate-x-full"
-            ></div>
+            <div class="toggle-switch__track"></div>
           </label>
         </div>
 
         <div
           v-if="localValue[group.allowKey as keyof SettableEntitlementForm]"
-          class="space-y-6 p-4"
+          class="entitlements-form__group-body"
         >
           <div
             v-for="limit in group.limits"
             :key="limit.key"
-            class="space-y-3"
+            class="entitlements-form__limit"
           >
-            <div class="flex items-center justify-between">
-              <span class="text-sm font-bold text-slate-700">{{ limit.label }}</span>
-              <label class="group relative inline-flex cursor-pointer items-center">
+            <div class="entitlements-form__limit-header">
+              <span class="entitlements-form__limit-label">{{ limit.label }}</span>
+              <label class="toggle-switch">
                 <input
                   type="checkbox"
                   v-model="localValue[limit.setKey]"
-                  class="peer sr-only"
+                  class="toggle-switch__input"
                 />
-                <div
-                  class="peer h-5 w-9 rounded-full bg-slate-200 after:absolute after:left-[2px] after:top-[2px] after:h-4 after:w-4 after:rounded-full after:bg-white after:transition-all after:content-[''] group-hover:after:scale-110 peer-checked:bg-blue-600 peer-checked:after:translate-x-full"
-                ></div>
+                <div class="toggle-switch__track"></div>
               </label>
             </div>
 
             <div
               :class="[
-                'transition-all duration-300',
-                localValue[limit.setKey]
-                  ? 'opacity-100'
-                  : 'pointer-events-none opacity-30 grayscale',
+                'entitlements-form__limit-content',
+                { 'entitlements-form__limit-content--active': localValue[limit.setKey] },
               ]"
             >
-              <div class="mb-2 flex items-center justify-between">
+              <div class="entitlements-form__limit-meta">
                 <span
                   v-if="!autoIncreaseMax"
-                  class="text-[10px] font-bold uppercase text-slate-400"
+                  class="entitlements-form__limit-range"
                 >
                   Range: 0 - {{ Number(network.entitlement[limit.key]) }}
                 </span>
                 <span v-else></span>
 
-                <div
-                  class="flex items-center gap-1 rounded border border-slate-200 bg-white px-2 py-0.5 shadow-sm transition-colors focus-within:border-blue-400"
-                >
+                <div class="entitlements-form__limit-input-wrap">
                   <input
                     type="number"
                     v-model.number="localValue[limit.key as keyof SettableEntitlementForm]"
@@ -83,11 +75,11 @@
                         network.entitlement[limit.key] as number,
                       )
                     "
-                    class="w-20 appearance-none bg-transparent text-right text-xs font-bold text-blue-600 outline-none"
+                    class="entitlements-form__limit-input"
                   />
                   <span
                     v-if="limit.unit"
-                    class="text-[9px] font-black uppercase text-slate-400"
+                    class="entitlements-form__limit-unit"
                   >
                     {{ limit.unit }}
                   </span>
@@ -100,7 +92,7 @@
                 v-model.number="localValue[limit.key as keyof SettableEntitlementForm]"
                 :min="0"
                 :max="Number(network.entitlement[limit.key])"
-                class="h-1 w-full cursor-pointer appearance-none rounded-lg bg-slate-200 accent-blue-600 transition-all hover:accent-blue-700"
+                class="entitlements-form__limit-slider"
               />
             </div>
           </div>

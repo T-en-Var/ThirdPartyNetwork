@@ -1,0 +1,306 @@
+// Styles for the "usercontent" part of the application.
+// Classes are placeholders (empty) - the visual design is added later.
+
+// --- Shared within this feature area ---
+.back-link {
+}
+.json-preview {
+}
+
+// --- AddBlogModal ---
+.add-blog-modal__slug-preview {
+}
+.add-blog-modal__slug-preview-label {
+}
+.add-blog-modal__slug-row {
+}
+.add-blog-modal__slug-prefix {
+}
+.add-blog-modal__slug-value {
+}
+.add-blog-modal__slug-value--taken {
+}
+.add-blog-modal__slug-value--ok {
+}
+.add-blog-modal__slug-value--empty {
+}
+.add-blog-modal__slug-status {
+}
+.add-blog-modal__slug-status-icon {
+}
+.add-blog-modal__slug-status-icon--warning {
+}
+.add-blog-modal__slug-status-icon--success {
+}
+.add-blog-modal__slug-warning {
+}
+
+// --- AddConfigurationModal ---
+.add-configuration-modal__json-wrap {
+}
+.add-configuration-modal__json-editor {
+}
+
+// --- AddCustomPageModal ---
+.add-custom-page-modal__slug-warning {
+}
+
+// --- EditFileModal ---
+.edit-file-modal__checkbox-row {
+}
+.edit-file-modal__checkbox-label {
+}
+.edit-file-modal__actions {
+}
+.edit-file-modal__actions-start {
+}
+.edit-file-modal__actions-end {
+}
+
+// --- AddFileModal ---
+.add-file-modal__tabs-wrap {
+}
+.add-file-modal__tabs {
+}
+.add-file-modal__tab {
+}
+.add-file-modal__tab--active {
+}
+.add-file-modal__dropzone {
+}
+.add-file-modal__dropzone--active {
+}
+.add-file-modal__file-input {
+}
+.add-file-modal__file-name {
+}
+.add-file-modal__file-size {
+}
+.add-file-modal__dropzone-placeholder {
+}
+.add-file-modal__picker {
+}
+.add-file-modal__file-grid {
+}
+.add-file-modal__file-option {
+}
+.add-file-modal__file-option--selected {
+}
+.add-file-modal__file-option-preview {
+}
+.add-file-modal__file-option-name {
+}
+.add-file-modal__no-files {
+}
+
+// --- BlogsTab / ConfigurationsTab / CustomPagesTab / FilesTab (list wrapper) ---
+.blogs-tab__content {
+}
+.configurations-tab__content {
+}
+.custom-pages-tab__content {
+}
+.files-tab__content {
+}
+
+// --- EditBlogTab ---
+.edit-blog-tab {
+}
+.edit-blog-tab__card {
+}
+.edit-blog-tab__header {
+}
+.edit-blog-tab__heading {
+}
+.edit-blog-tab__title {
+}
+.edit-blog-tab__preview-toggle {
+}
+.edit-blog-tab__preview-toggle--active {
+}
+.edit-blog-tab__row {
+}
+.edit-blog-tab__field--title {
+}
+.edit-blog-tab__editor {
+}
+.edit-blog-tab__publish-row {
+}
+.edit-blog-tab__publish-checkbox-label {
+}
+.edit-blog-tab__publish-date {
+}
+.edit-blog-tab__publish-date-label {
+}
+.edit-blog-tab__preview {
+}
+
+// --- EditConfigurationTab ---
+.edit-configuration-tab {
+}
+.edit-configuration-tab__back-wrap {
+}
+.edit-configuration-tab__body {
+}
+.edit-configuration-tab__title {
+}
+.edit-configuration-tab__json-editor {
+}
+.edit-configuration-tab__json-actions {
+}
+
+// --- EditCustomPageTab ---
+.edit-custom-page-tab {
+}
+.edit-custom-page-tab__title {
+}
+.edit-custom-page-tab__row {
+}
+.edit-custom-page-tab__blocks-header {
+}
+.edit-custom-page-tab__blocks-heading {
+}
+.edit-custom-page-tab__blocks-title {
+}
+.edit-custom-page-tab__view-btn {
+}
+.edit-custom-page-tab__view-btn--active {
+}
+.edit-custom-page-tab__blocks-list {
+}
+.edit-custom-page-tab__block-card {
+}
+.edit-custom-page-tab__block-card-header {
+}
+.edit-custom-page-tab__block-card-title {
+}
+.edit-custom-page-tab__block-card-actions {
+}
+.edit-custom-page-tab__block-card-action {
+}
+.edit-custom-page-tab__block-card-action--danger {
+}
+.edit-custom-page-tab__block-card-meta {
+}
+.edit-custom-page-tab__grouped {
+}
+.edit-custom-page-tab__grouped-group {
+}
+.edit-custom-page-tab__group-heading {
+}
+.edit-custom-page-tab__group-heading-name {
+}
+
+// --- EditPageBlockTab ---
+.edit-page-block-tab {
+}
+.edit-page-block-tab__back-wrap {
+}
+.edit-page-block-tab__body {
+}
+.edit-page-block-tab__title {
+}
+.edit-page-block-tab__fields {
+}
+.edit-page-block-tab__json-editor-wrap {
+}
+.edit-page-block-tab__json-editor {
+}
+.edit-page-block-tab__json-actions {
+}
+.edit-page-block-tab__nav-title {
+}
+.edit-page-block-tab__prev-next {
+}
+.edit-page-block-tab__nav-link {
+}
+.edit-page-block-tab__nav-empty {
+}
+.edit-page-block-tab__relations {
+}
+.edit-page-block-tab__relation-heading {
+}
+.edit-page-block-tab__relation-card {
+}
+.edit-page-block-tab__relation-card-title {
+}
+.edit-page-block-tab__relation-card-meta {
+}
+.edit-page-block-tab__relation-children {
+}
+.edit-page-block-tab__tree-section {
+}
+.edit-page-block-tab__tree {
+}
+.edit-page-block-tab__history-section {
+}
+.edit-page-block-tab__history-list {
+}
+.edit-page-block-tab__history-pill {
+}
+.edit-page-block-tab__spacer {
+}
+
+// --- UserContentForm ---
+.user-content-form {
+}
+.user-content-form__network-options {
+}
+.user-content-form__network-option {
+}
+.user-content-form__network-option--selected {
+}
+.user-content-form__network-option-radio {
+}
+.user-content-form__network-option-name {
+}
+
+// --- UserContentViewer ---
+.user-content-viewer__toolbar {
+}
+.user-content-viewer__toolbar-left {
+}
+.user-content-viewer__title {
+}
+.user-content-viewer__toolbar-right {
+}
+.user-content-viewer__search {
+}
+.user-content-viewer__content {
+}
+.user-content-viewer__filters {
+}
+.user-content-viewer__filters-header {
+}
+.user-content-viewer__filters-title {
+}
+.user-content-viewer__filters-reset {
+}
+.user-content-viewer__filter-groups {
+}
+.user-content-viewer__filter-group-title {
+}
+.user-content-viewer__filter-checkbox-row {
+}
+.user-content-viewer__filter-checkbox-label {
+}
+.user-content-viewer__filter-options {
+}
+.user-content-viewer__filter-range {
+}
+.user-content-viewer__table-col {
+}
+.user-content-viewer__table-wrap {
+}
+.user-content-viewer__cell--numeric {
+}
+.user-content-viewer__author-cell {
+}
+.user-content-viewer__author-name {
+}
+.user-content-viewer__row-action {
+}
+.user-content-viewer__row-action--danger {
+}
+.user-content-viewer__empty-row {
+}

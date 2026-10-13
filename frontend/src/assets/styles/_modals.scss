@@ -1,0 +1,68 @@
+// Styles for the "modals" part of the application: the generic modal shell
+// (ModalContainer.vue) and the small shared modal components built on top of
+// it. Classes are placeholders (empty) - the visual design is added later.
+
+// --- ModalContainer (generic shell used by every feature-specific modal) ---
+.modal-overlay {
+}
+.modal-overlay__wrapper {
+}
+.modal-overlay__backdrop {
+}
+.modal-overlay__spacer {
+}
+.modal {
+}
+.modal--sm {
+}
+.modal--md {
+}
+.modal--lg {
+}
+.modal__body {
+}
+.modal__content {
+}
+.modal__text {
+}
+.modal__title {
+}
+.modal__main {
+}
+
+// --- ModalFormActions (shared Cancel/Submit footer) ---
+// Note: .form__actions / .form-field etc live in _components.scss; this
+// bordered variant is additive and scoped here to avoid touching that
+// shared file from multiple agents at once.
+.form__actions--bordered {
+}
+
+// --- ConfirmationModal ---
+.confirmation-modal {
+}
+.confirmation-modal__message {
+}
+.confirmation-modal__actions {
+}
+
+// --- ForceWaitModal ---
+.force-wait-modal {
+}
+.force-wait-modal__message {
+}
+.force-wait-modal__progress {
+}
+.force-wait-modal__progress-bar {
+}
+.force-wait-modal__spinner {
+}
+
+// --- UnauthorizedModal ---
+.unauthorized-modal__notice {
+}
+.unauthorized-modal__icon-wrap {
+}
+.unauthorized-modal__icon {
+}
+.unauthorized-modal__message {
+}

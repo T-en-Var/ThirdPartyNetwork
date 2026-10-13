@@ -1,16 +1,16 @@
 <template>
-  <div class="flex flex-col">
-    <div class="flex items-center gap-1.5">
+  <div class="tree-node">
+    <div class="tree-node__row">
       <button
         v-if="!node.recursive && node.children?.length"
         @click.stop="toggle"
-        class="flex h-5 w-5 shrink-0 items-center justify-center rounded text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-700 focus:outline-none"
+        class="tree-node__toggle"
         aria-label="Toggle children"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          class="h-3.5 w-3.5 transform transition-transform duration-200"
-          :class="{ 'rotate-90': open }"
+          class="tree-node__toggle-icon"
+          :class="{ 'tree-node__toggle-icon--open': open }"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -26,28 +26,28 @@
 
       <div
         v-else
-        class="h-5 w-5 shrink-0"
+        class="tree-node__spacer"
       ></div>
 
       <div
         @click="!node.recursive ? handleNavigate(node.id) : null"
-        class="group flex flex-1 items-center rounded-md border-b border-l-2 px-2.5 py-1 text-sm transition-all"
+        class="tree-node__label"
         :class="[
           node.recursive
-            ? 'border-orange-200 bg-orange-50 text-orange-800'
+            ? 'tree-node__label--recursive'
             : node.id === currentId
-              ? 'border-blue-200 bg-blue-50 font-medium text-blue-700'
-              : 'cursor-pointer border-slate-300 text-gray-700 hover:border-slate-600 hover:bg-gray-100',
+              ? 'tree-node__label--current'
+              : 'tree-node__label--clickable',
         ]"
       >
-        <span class="truncate"
-          ><span class="pr-2 text-xs italic text-gray-500">#{{ node.position }}</span
+        <span class="tree-node__text"
+          ><span class="tree-node__index">#{{ node.position }}</span
           >{{ node.text || '(untitled)' }}</span
         >
 
         <span
           v-if="node.recursive"
-          class="ml-2 rounded bg-orange-200/60 px-1.5 text-[10px] font-bold uppercase tracking-wider text-orange-700"
+          class="badge badge--warning"
         >
           Recursive
         </span>
@@ -57,7 +57,7 @@
     <div
       v-if="!node.recursive"
       v-show="open && node.children?.length"
-      class="ml-[9px] border-l border-gray-200 pl-3"
+      class="tree-node__children"
     >
       <TreeNodeComponent
         v-for="child in node.children"

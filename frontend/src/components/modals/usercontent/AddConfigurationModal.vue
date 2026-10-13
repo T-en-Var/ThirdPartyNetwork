@@ -11,24 +11,24 @@
       button-text="Add Configuration"
       @submit="handleSubmit"
     >
-      <div>
-        <label class="mb-2 block text-sm font-semibold text-gray-800">Key</label>
+      <div class="form-field">
+        <label class="form-label">Key</label>
         <input
           v-model="key"
           type="text"
           placeholder="Enter unique key"
-          class="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-600 focus:ring focus:ring-blue-100"
+          class="form-input"
           required
         />
       </div>
 
-      <div>
-        <label class="mb-2 block text-sm font-semibold text-gray-800">Value (JSON)</label>
-        <div class="overflow-visible">
+      <div class="form-field">
+        <label class="form-label">Value (JSON)</label>
+        <div class="add-configuration-modal__json-wrap">
           <JsonEditorVue
             v-model="jsonValue"
             :stringified="false"
-            class="h-64 rounded-md border"
+            class="add-configuration-modal__json-editor"
           />
         </div>
       </div>

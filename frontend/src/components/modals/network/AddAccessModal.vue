@@ -5,38 +5,36 @@
   >
     <form
       @submit.prevent="handleSubmit"
-      class="space-y-4"
+      class="form"
     >
-      <div class="mb-6">
+      <div class="form-field">
         <label
           for="access"
-          class="mb-2 block text-sm font-semibold text-gray-800"
+          class="form-label"
         >
           Select Access Requirement
         </label>
-        <div class="relative">
-          <select
-            id="access"
-            v-model="accessId"
-            class="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-900 shadow-sm transition-all focus:border-blue-600 focus:ring focus:ring-blue-100 disabled:bg-gray-100 disabled:text-gray-500"
-            required
+        <select
+          id="access"
+          v-model="accessId"
+          class="form-select"
+          required
+        >
+          <option
+            value=""
+            disabled
+            selected
           >
-            <option
-              value=""
-              disabled
-              selected
-            >
-              Select an access requirement
-            </option>
-            <option
-              v-for="access in availableAccesses"
-              :key="access.id"
-              :value="access.id"
-            >
-              {{ access.name }}
-            </option>
-          </select>
-        </div>
+            Select an access requirement
+          </option>
+          <option
+            v-for="access in availableAccesses"
+            :key="access.id"
+            :value="access.id"
+          >
+            {{ access.name }}
+          </option>
+        </select>
         <loading-error-component
           :loading="accessesState.loading.value"
           :error="accessesState.error.value"
@@ -47,22 +45,22 @@
       <!-- Access description if one is selected -->
       <div
         v-if="selectedAccessDescription"
-        class="rounded-md bg-gray-50 p-3"
+        class="add-access-modal__description"
       >
-        <h4 class="text-sm font-medium text-gray-700">Access Description:</h4>
-        <p class="text-sm text-gray-600">{{ selectedAccessDescription }}</p>
+        <h4 class="add-access-modal__description-title">Access Description:</h4>
+        <p class="add-access-modal__description-text">{{ selectedAccessDescription }}</p>
       </div>
 
-      <div class="flex items-center">
+      <div class="add-access-modal__required-row">
         <input
           id="isRequired"
           v-model="form.isRequired"
           type="checkbox"
-          class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+          class="checkbox"
         />
         <label
           for="isRequired"
-          class="ml-2 block text-sm text-gray-700"
+          class="form-label"
         >
           Access is required
         </label>

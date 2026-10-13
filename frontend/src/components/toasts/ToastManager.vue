@@ -1,5 +1,5 @@
 <template>
-  <div class="pointer-events-none fixed bottom-6 left-6 z-[9999] flex w-80 flex-col">
+  <div class="toast-container">
     <TransitionGroup name="toast">
       <div
         v-for="toast in displayToasts"
@@ -8,21 +8,21 @@
       >
         <div class="toast-sizer">
           <div
-            class="toast-content pointer-events-auto relative flex w-full items-center justify-between overflow-hidden rounded-lg px-4 py-2 text-sm font-medium shadow-xl"
+            class="toast-content"
             :class="getToastStyle(toast.type)"
             @mouseenter="pauseTimer(toast.id)"
             @mouseleave="resumeTimer(toast.id)"
           >
-            <div class="flex items-center gap-3">
+            <div class="toast-content__body">
               <svg
                 v-if="toast.id === 'system-fetching'"
-                class="h-5 w-5 animate-spin"
+                class="toast-icon toast-icon--spin"
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
               >
                 <circle
-                  class="opacity-25"
+                  class="toast-icon__track"
                   cx="12"
                   cy="12"
                   r="10"
@@ -30,7 +30,7 @@
                   stroke-width="4"
                 ></circle>
                 <path
-                  class="opacity-75"
+                  class="toast-icon__indicator"
                   fill="currentColor"
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                 ></path>
@@ -38,7 +38,7 @@
 
               <svg
                 v-else-if="toast.type === 'success'"
-                class="h-5 w-5"
+                class="toast-icon"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -53,7 +53,7 @@
 
               <svg
                 v-else-if="toast.type === 'error'"
-                class="h-5 w-5"
+                class="toast-icon"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -68,7 +68,7 @@
 
               <svg
                 v-else-if="toast.type === 'warning'"
-                class="h-5 w-5"
+                class="toast-icon"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -83,7 +83,7 @@
 
               <svg
                 v-else
-                class="h-5 w-5"
+                class="toast-icon"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -102,10 +102,10 @@
             <button
               v-if="toast.id !== 'system-fetching'"
               @click="$emit('remove', toast.id)"
-              class="relative z-10 flex h-6 w-6 items-center justify-center rounded-md transition-colors hover:bg-black/20"
+              class="toast-dismiss"
             >
               <svg
-                class="h-4 w-4"
+                class="toast-dismiss__icon"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -121,7 +121,7 @@
 
             <div
               v-if="toast.duration"
-              class="progress-bar absolute bottom-0 left-0 h-1 bg-white/30"
+              class="toast-progress-bar"
               :style="{ '--duration': `${toast.duration}ms` }"
             ></div>
           </div>
@@ -158,14 +158,14 @@ const activeTimers = new Map<string, PausableTimer>();
 const getToastStyle = (type?: ToastType | string) => {
   switch (type) {
     case 'success':
-      return 'bg-emerald-600 text-white';
+      return 'toast-content--success';
     case 'error':
-      return 'bg-red-600 text-white';
+      return 'toast-content--error';
     case 'warning':
-      return 'bg-amber-500 text-white';
+      return 'toast-content--warning';
     case 'info':
     default:
-      return 'bg-gray-900 text-white';
+      return 'toast-content--info';
   }
 };
 
@@ -243,44 +243,3 @@ onUnmounted(() => {
   activeTimers.clear();
 });
 </script>
-
-<style scoped>
-.toast-wrapper {
-  display: grid;
-  grid-template-rows: 1fr;
-  margin-top: 12px;
-  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-
-.toast-sizer {
-  overflow: hidden;
-  min-height: 0;
-}
-
-.toast-enter-from,
-.toast-leave-to {
-  grid-template-rows: 0fr;
-  margin-top: 0;
-  opacity: 0;
-  transform: translateX(-20px);
-}
-
-.progress-bar {
-  animation: shrink linear forwards;
-  animation-duration: var(--duration);
-  animation-play-state: running;
-}
-
-.toast-content:hover .progress-bar {
-  animation-play-state: paused;
-}
-
-@keyframes shrink {
-  from {
-    width: 100%;
-  }
-  to {
-    width: 0%;
-  }
-}
-</style>

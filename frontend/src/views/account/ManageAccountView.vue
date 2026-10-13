@@ -1,10 +1,10 @@
 <template>
-  <div class="flex h-full pt-16">
+  <div class="manage-account-view">
     <!-- Sidebar -->
     <AccountSidebar />
 
     <!-- Main Content -->
-    <div class="flex-1 overflow-auto p-6">
+    <div class="manage-account-view__content">
       <!-- Loading and Error States -->
       <LoadingErrorComponent
         :loading="authStore.loading"

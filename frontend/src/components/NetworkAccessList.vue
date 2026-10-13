@@ -1,61 +1,61 @@
 <template>
   <div
     v-if="loading || networkAccesses.length === 0"
-    class="mb-8"
+    class="network-access-list__status"
   >
     <LoadingSpinner v-if="loading" />
     <p
       v-else-if="networkAccesses.length === 0"
-      class="text-gray-600"
+      class="network-access-list__empty-message"
     >
       This network does not require any special permissions.
     </p>
   </div>
 
   <div v-else>
-    <h3 class="mb-4 text-lg font-medium text-gray-800">Required Data Access</h3>
-    <p class="mb-4 text-gray-600">Update your consent for the following data accesses:</p>
+    <h3 class="network-access-list__title">Required Data Access</h3>
+    <p class="network-access-list__subtitle">Update your consent for the following data accesses:</p>
 
-    <div class="mb-6 space-y-4">
+    <div class="network-access-list__items">
       <div
         v-for="networkAccess in networkAccesses"
         :key="networkAccess.access.id"
-        class="rounded-md border border-gray-200 p-4"
+        class="network-access-list__item"
       >
         <div
-          class="flex items-start"
+          class="network-access-list__item-row"
           v-if="internalAccesses[networkAccess.access.id]"
         >
-          <div class="flex h-6 items-center">
+          <div class="network-access-list__checkbox-wrap">
             <input
               :id="networkAccess.access.id"
               v-model="internalAccesses[networkAccess.access.id].value"
               type="checkbox"
-              class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              class="checkbox"
               :disabled="networkAccess.isRequired && isAlreadyAccepted(networkAccess.access.id)"
               @change="handleAccessChange"
               :aria-required="networkAccess.isRequired ? 'true' : 'false'"
             />
           </div>
-          <div class="ml-3">
+          <div class="network-access-list__item-copy">
             <label
               :for="networkAccess.access.id"
-              class="block text-sm font-medium text-gray-700"
+              class="form-label"
             >
               {{ networkAccess.access.name }}
               <span
                 v-if="networkAccess.isRequired"
-                class="ml-1 text-red-500"
+                class="network-access-list__required-tag"
                 >(Required)</span
               >
               <span
                 v-if="isAlreadyAccepted(networkAccess.access.id)"
-                class="ml-1 text-xs text-green-500"
+                class="network-access-list__accepted-tag"
               >
                 (Accepted)</span
               >
             </label>
-            <p class="text-sm text-gray-500">{{ networkAccess.access.description }}</p>
+            <p class="network-access-list__item-description">{{ networkAccess.access.description }}</p>
           </div>
         </div>
       </div>

@@ -1,38 +1,30 @@
 <!-- NetworksPage.vue -->
 <template>
-  <div class="container mx-auto mt-8 px-4 py-8">
-    <div class="overflow-hidden rounded-lg bg-white shadow-md">
-      <div class="flex items-center justify-between border-b border-gray-200 bg-gray-100 px-6 py-4">
-        <h1 class="text-2xl font-semibold text-gray-800">Networks</h1>
+  <div class="networks-view">
+    <div class="networks-view__panel">
+      <div class="networks-view__header">
+        <h1 class="networks-view__heading">Networks</h1>
         <RouterLink
           to="/networks/create"
-          class="rounded bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
+          class="btn btn--primary"
         >
           + Create Network
         </RouterLink>
       </div>
 
-      <div class="border-b border-gray-200">
-        <nav class="flex">
+      <div class="networks-view__tabs-wrap">
+        <nav class="networks-view__tabs">
           <button
             @click="activeTab = 'my-networks'"
-            class="px-6 py-4 text-sm font-medium"
-            :class="
-              activeTab === 'my-networks'
-                ? 'border-b-2 border-blue-600 text-blue-600'
-                : 'text-gray-600 hover:text-gray-800'
-            "
+            class="networks-view__tab"
+            :class="{ 'networks-view__tab--active': activeTab === 'my-networks' }"
           >
             My Networks
           </button>
           <button
             @click="activeTab = 'browse-networks'"
-            class="px-6 py-4 text-sm font-medium"
-            :class="
-              activeTab === 'browse-networks'
-                ? 'border-b-2 border-blue-600 text-blue-600'
-                : 'text-gray-600 hover:text-gray-800'
-            "
+            class="networks-view__tab"
+            :class="{ 'networks-view__tab--active': activeTab === 'browse-networks' }"
           >
             Browse Networks
           </button>
@@ -47,7 +39,7 @@
         @button-action="router.go(0)"
       />
 
-      <div class="p-6">
+      <div class="networks-view__content">
         <my-networks-tab
           v-if="activeTab === 'my-networks'"
           :networks="userNetworksState.data.value ?? []"
@@ -92,20 +84,3 @@ const filteredNetworks = computed(() => {
   return networksState.data.value!.filter((n) => !userNetworkIds.has(n.id));
 });
 </script>
-
-<style scoped>
-.spinner-border {
-  width: 3rem;
-  height: 3rem;
-  border: 3px solid currentColor;
-  border-right-color: transparent;
-  border-radius: 50%;
-  animation: spinner-border 0.75s linear infinite;
-}
-
-@keyframes spinner-border {
-  100% {
-    transform: rotate(360deg);
-  }
-}
-</style>

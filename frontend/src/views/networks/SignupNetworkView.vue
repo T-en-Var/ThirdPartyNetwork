@@ -7,27 +7,27 @@
   >
     <div
       v-if="networkDetails.loading.value"
-      class="w-full text-center"
+      class="network-auth-status"
     >
-      <p class="text-sm text-gray-600">Loading network details...</p>
-      <div class="mt-4 flex justify-center">
+      <p class="network-auth-status__text">Loading network details...</p>
+      <div class="network-auth-status__spinner">
         <LoadingSpinner />
       </div>
     </div>
 
     <div
       v-else-if="networkNotFound"
-      class="w-full text-center"
+      class="network-auth-status"
     >
       <NetworkNotFound :network-id="networkId" />
     </div>
 
     <div
       v-else-if="!isValidUrl"
-      class="w-full text-center"
+      class="network-auth-status"
     >
       <p
-        class="mb-4 rounded bg-red-100 px-4 py-2 text-sm text-red-700"
+        class="alert alert--error"
         role="alert"
         aria-live="assertive"
       >
@@ -52,11 +52,11 @@
       />
 
       <template #footer>
-        <div class="mt-6 flex items-center justify-center gap-2 text-sm text-gray-600">
+        <div class="signup-network-view__footer">
           <p>Already have an account?</p>
           <button
             @click="goToLogin"
-            class="font-medium text-blue-600 hover:underline"
+            class="signup-network-view__login-link"
           >
             Sign In
           </button>
@@ -72,9 +72,9 @@
       :error="error"
       :network-details="networkDetails"
     >
-      <div class="mb-8 overflow-hidden rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-        <h2 class="text-xl font-semibold text-gray-800">{{ networkDetails.data.value?.name }}</h2>
-        <p class="mt-1 text-sm text-gray-600">
+      <div class="signup-network-view__network-card">
+        <h2 class="signup-network-view__network-title">{{ networkDetails.data.value?.name }}</h2>
+        <p class="signup-network-view__network-description">
           {{ networkDetails.data.value?.description || 'No description available.' }}
         </p>
       </div>
@@ -87,8 +87,8 @@
         @access-change="onAccessChange"
       />
 
-      <div class="mb-8">
-        <h2 class="mb-4 text-lg font-medium text-gray-800">Your account</h2>
+      <div class="signup-network-view__account-preview">
+        <h2 class="signup-network-view__account-preview-title">Your account</h2>
         <UserProxyDisplay
           v-if="signupForm"
           :userProxy="{
@@ -110,20 +110,20 @@
       </div>
 
       <form @submit.prevent="handleSubmit">
-        <div class="flex justify-end space-x-3 border-t border-gray-200 pt-4">
+        <div class="form__actions">
           <button
             type="submit"
-            :class="`rounded-md px-4 py-2 text-white transition ${canSubmit ? 'bg-blue-600 hover:bg-blue-700' : 'cursor-not-allowed bg-gray-400'}`"
+            class="btn btn--primary"
             :disabled="!canSubmit"
             aria-label="Create account and confirm access"
             aria-live="polite"
           >
             <span
               v-if="isSubmitting"
-              class="flex items-center"
+              class="signup-network-view__submitting"
             >
               <span
-                class="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent"
+                class="spinner-border spinner-border--xs"
                 aria-hidden="true"
               ></span>
               Creating...
@@ -137,10 +137,10 @@
     <!-- Step 3: Finalizing -->
     <div
       v-else
-      class="w-full space-y-4 text-center"
+      class="signup-network-view__finalizing"
     >
-      <h1 class="text-2xl font-semibold text-gray-800">Hold on, we're creating your account...</h1>
-      <p class="text-gray-600">Please wait while we complete your authentication.</p>
+      <h1 class="signup-network-view__finalizing-title">Hold on, we're creating your account...</h1>
+      <p class="signup-network-view__finalizing-text">Please wait while we complete your authentication.</p>
       <LoadingSpinner />
     </div>
 

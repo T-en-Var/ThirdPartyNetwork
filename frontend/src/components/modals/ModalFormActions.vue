@@ -2,7 +2,7 @@
   <div :class="wrapperClass">
     <button
       type="button"
-      class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
+      class="btn btn--outline"
       :disabled="isSubmitting"
       @click="$emit('cancel')"
     >
@@ -10,7 +10,7 @@
     </button>
     <button
       :type="submitType"
-      class="rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+      class="btn btn--primary"
       :disabled="isSubmitting || disableSubmit"
       @click="submitType === 'button' && $emit('submit')"
     >
@@ -40,7 +40,7 @@ const props = withDefaults(
     cancelLabel?: string;
     disableSubmit?: boolean;
     submitType?: 'button' | 'submit';
-    /** Whether to render the `border-t border-gray-200` divider above the actions. */
+    /** Whether to render the divider above the actions. */
     bordered?: boolean;
   }>(),
   {
@@ -57,8 +57,6 @@ defineEmits<{
 }>();
 
 const wrapperClass = computed(() =>
-  props.bordered
-    ? 'flex justify-end space-x-3 border-t border-gray-200 pt-4'
-    : 'flex justify-end space-x-3 pt-4',
+  props.bordered ? 'form__actions form__actions--bordered' : 'form__actions',
 );
 </script>

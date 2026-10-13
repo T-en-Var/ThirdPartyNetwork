@@ -1,6 +1,6 @@
 <template>
-  <div class="container mx-auto mt-6 px-4 py-10">
-    <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg">
+  <div class="create-network-view">
+    <div class="create-network-view__panel">
       <LoadingErrorComponent
         :loading="networkState.loading.value"
         :error="networkState.error.value ?? undefined"
@@ -13,75 +13,73 @@
         v-if="!networkState.loading.value && !networkState.error.value && networkState.data.value"
       >
         <!-- Header -->
-        <div
-          class="flex items-center justify-between border-b border-gray-200 bg-gray-100 px-6 py-4"
-        >
-          <h1 class="text-2xl font-semibold text-gray-800">Create New Network</h1>
+        <div class="create-network-view__header">
+          <h1 class="create-network-view__heading">Create New Network</h1>
         </div>
 
         <!-- Error Message -->
-        <div class="mx-8 mt-6">
+        <div class="create-network-view__error">
           <ErrorAlert
             :message="error"
             @dismiss="error = ''"
           />
         </div>
 
-        <div class="p-8">
+        <div class="create-network-view__body">
           <form
             @submit.prevent="handleSubmit"
-            class="space-y-10"
+            class="form"
           >
             <!-- Basic Information -->
             <section>
-              <h2 class="mb-4 text-lg font-medium text-gray-800">Basic Information</h2>
-              <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+              <h2 class="create-network-view__section-title">Basic Information</h2>
+              <div class="create-network-view__basic-grid">
                 <!-- Network Name -->
-                <div>
+                <div class="form-field">
                   <label
                     for="networkName"
-                    class="mb-2 block text-sm font-medium text-gray-700"
+                    class="form-label"
                   >
-                    Network Name <span class="text-red-500">*</span>
+                    Network Name <span class="create-network-view__required">*</span>
                   </label>
                   <input
                     id="networkName"
                     v-model="form.name"
                     type="text"
-                    class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    class="form-input"
                     placeholder="Enter network name"
                     required
                   />
-                  <p class="mt-1 text-xs text-gray-500">
+                  <p class="form-help">
                     Network name must be unique across the system
                   </p>
                 </div>
 
                 <!-- Network Image -->
-                <div>
-                  <h2 class="mb-2 block text-sm font-medium text-gray-700">Network Image</h2>
-                  <div class="flex flex-col items-center">
+                <div class="form-field">
+                  <h2 class="form-label">Network Image</h2>
+                  <div class="create-network-view__image-wrap">
                     <!-- Already uploaded -->
                     <div
                       v-if="uploadedFile"
-                      class="flex flex-col items-center"
+                      class="create-network-view__image-current"
                     >
                       <CloudinaryFile
                         :file="uploadedFile"
                         :display-only="true"
-                        class="h-24 w-24 rounded-full object-cover shadow"
+                        class="create-network-view__image-preview"
                       />
-                      <div class="mt-4 flex gap-4">
+                      <div class="create-network-view__image-actions">
                         <button
                           type="button"
-                          class="text-sm text-red-600 hover:underline"
+                          class="create-network-view__image-remove-btn"
                           @click="removeImage"
                         >
                           Remove
                         </button>
                         <button
                           type="button"
-                          class="text-sm text-blue-600 hover:underline"
+                          class="create-network-view__image-change-btn"
                           @click="openUploadModal"
                         >
                           Change
@@ -92,16 +90,12 @@
                     <!-- No image yet -->
                     <div
                       v-else
-                      class="flex flex-col items-center"
+                      class="create-network-view__image-empty"
                     >
-                      <div
-                        class="flex h-24 w-24 items-center justify-center rounded-full bg-gray-100 text-gray-400"
-                      >
-                        No Image
-                      </div>
+                      <div class="create-network-view__image-placeholder">No Image</div>
                       <button
                         type="button"
-                        class="mt-4 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-700 shadow-sm hover:bg-gray-50"
+                        class="btn btn--outline"
                         @click="openUploadModal"
                       >
                         Upload Image
@@ -121,70 +115,70 @@
 
             <!-- Description -->
             <section>
-              <h2 class="mb-4 text-lg font-medium text-gray-800">Description</h2>
+              <h2 class="create-network-view__section-title">Description</h2>
               <textarea
                 id="description"
                 v-model="form.description"
                 rows="3"
-                class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                class="form-textarea"
                 placeholder="Enter network description"
               ></textarea>
-              <p class="mt-1 text-xs text-gray-500">Brief description of the network's purpose</p>
+              <p class="form-help">Brief description of the network's purpose</p>
             </section>
 
             <!-- Visibility -->
             <section>
-              <div class="flex items-center">
+              <div class="create-network-view__checkbox-row">
                 <input
                   id="isPublic"
                   v-model="form.isPublic"
                   type="checkbox"
-                  class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  class="checkbox"
                 />
                 <label
                   for="isPublic"
-                  class="ml-2 text-sm text-gray-700"
+                  class="form-label"
                 >
                   Make this network public
                 </label>
               </div>
-              <p class="ml-6 mt-1 text-xs text-gray-500">
+              <p class="create-network-view__checkbox-hint">
                 Public networks are discoverable by all users
               </p>
             </section>
 
             <!-- Accesses -->
             <section>
-              <div class="mb-4 flex items-center justify-between">
-                <h2 class="text-lg font-medium text-gray-800">
+              <div class="create-network-view__accesses-header">
+                <h2 class="create-network-view__section-title">
                   What information would you like to see of your users?
                 </h2>
                 <button
                   type="button"
-                  class="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+                  class="btn btn--primary"
                   @click="showAddAccessModal = true"
                 >
                   Add Access
                 </button>
               </div>
 
-              <div class="space-y-3">
+              <div class="create-network-view__accesses-list">
                 <div
                   v-for="(networkAccess, index) in fakeNetwork.networkAccesses"
                   :key="index"
-                  class="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4"
+                  class="create-network-view__access-item"
                 >
                   <div>
-                    <h3 class="text-sm font-medium text-gray-900">
+                    <h3 class="create-network-view__access-name">
                       {{ networkAccess.access.name }}
                     </h3>
-                    <p class="text-xs text-gray-600">
+                    <p class="create-network-view__access-status">
                       {{ networkAccess.isRequired ? 'Is required' : 'Is optional' }}
                     </p>
                   </div>
                   <button
                     type="button"
-                    class="text-sm text-red-600 hover:underline"
+                    class="create-network-view__access-remove-btn"
                     @click="removeAccess(index)"
                   >
                     Remove
@@ -192,7 +186,7 @@
                 </div>
                 <div
                   v-if="!fakeNetwork.networkAccesses.length"
-                  class="rounded-lg border border-dashed p-6 text-center text-gray-500"
+                  class="create-network-view__accesses-empty"
                 >
                   No accesses added yet
                 </div>
@@ -208,22 +202,22 @@
             </section>
 
             <!-- Form Actions -->
-            <div class="flex justify-end space-x-3 border-t border-gray-200 pt-6">
+            <div class="form__actions">
               <button
                 type="button"
-                class="rounded-md border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50"
+                class="btn btn--outline"
                 @click="navigateBack"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                class="flex items-center rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+                class="btn btn--primary"
                 :disabled="isSubmitting"
               >
                 <span
                   v-if="isSubmitting"
-                  class="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent"
+                  class="spinner-border spinner-border--xs"
                 ></span>
                 <span>{{ isSubmitting ? 'Creating...' : 'Create Network' }}</span>
               </button>

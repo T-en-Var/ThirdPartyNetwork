@@ -7,11 +7,10 @@
     <template #header>
       <RouterLink
         :to="`/networks/${networkId}/`"
-        class="flex items-center gap-2 text-gray-700 transition hover:text-blue-700"
+        class="network-sidebar__back-link"
       >
         <!-- Back arrow icon -->
         <svg
-          class="h-4 w-4"
           viewBox="0 0 24 24"
           fill="none"
         >
@@ -20,7 +19,7 @@
             fill="#222222"
           />
         </svg>
-        <span class="text-sm font-medium">Back to details</span>
+        <span class="network-sidebar__back-label">Back to details</span>
       </RouterLink>
     </template>
   </Sidebar>

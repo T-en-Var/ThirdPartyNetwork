@@ -1,24 +1,21 @@
 <template>
   <node-view-wrapper
     as="span"
-    class="group relative inline-block select-none leading-none"
+    class="image-node"
   >
     <img
       :src="node.attrs.src"
       :alt="node.attrs.alt"
       :title="node.attrs.title"
       :style="{ width: currentWidth }"
-      class="block"
-      :class="[
-        selected ? 'rounded-sm ring-2 ring-blue-500' : '',
-        'cursor-pointer hover:ring-2 hover:ring-blue-300',
-      ]"
+      class="image-node__image"
+      :class="{ 'image-node__image--selected': selected }"
       @click="handleClick"
     />
 
     <div
       v-if="editor.isEditable && selected"
-      class="absolute bottom-2 right-2 z-50 h-4 w-4 cursor-nwse-resize rounded-full border-2 border-white bg-blue-500 shadow-sm hover:scale-110"
+      class="image-node__resize-handle"
       @mousedown.stop.prevent="onMouseDown"
     ></div>
   </node-view-wrapper>

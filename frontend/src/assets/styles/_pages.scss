@@ -1,0 +1,133 @@
+// Styles for the "pages" part of the application.
+// Classes are placeholders (empty) - the visual design is added later.
+
+// --- Shared marketing-page hero (About / Contact / Home) -------------------
+.page {
+}
+.page-hero {
+}
+.page-hero__bg {
+}
+.page-hero__blob {
+  animation: page-hero-blob 7s infinite;
+}
+.page-hero__blob--delay-2000 {
+  animation-delay: 2s;
+}
+.page-hero__blob--delay-4000 {
+  animation-delay: 4s;
+}
+@keyframes page-hero-blob {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+}
+.page-hero__container {
+}
+.page-hero__eyebrow {
+}
+.page-hero__eyebrow-dot {
+}
+.page-hero__title {
+}
+.page-hero__title-highlight {
+}
+.page-hero__lead {
+}
+.page-hero__note {
+}
+.page-hero__actions {
+}
+
+// --- AboutView (page-specific content below the shared hero) ---------------
+.about-page__sections {
+}
+.about-page__section {
+}
+.about-page__section--reverse {
+}
+.about-page__section-copy {
+}
+.about-page__section-icon {
+}
+.about-page__section-icon--danger {
+}
+.about-page__section-icon--success {
+}
+.about-page__section-title {
+}
+.about-page__section-text {
+}
+.about-page__section-visual {
+}
+.about-page__section-visual-lines {
+}
+.about-page__section-visual-line {
+}
+.about-page__section-visual-line--w-3-4 {
+}
+.about-page__section-visual-line--w-full {
+}
+.about-page__section-visual-line--w-5-6 {
+}
+.about-page__section-visual-line--w-4-5 {
+}
+.about-page__section-card {
+}
+.about-page__section-card-meta {
+}
+.about-page__section-card-user {
+}
+.about-page__section-card-tags {
+}
+
+// --- HomeView features section ---------------------------------------------
+.features {
+}
+.features__container {
+}
+.features__grid {
+}
+
+// --- Shared "status" page layout (404 / 401 / 403 / logout) -----------------
+.status-page {
+}
+.status-page__card {
+}
+.status-page__content {
+}
+.status-page__icon {
+}
+.status-page__icon--danger {
+}
+.status-page__icon--warning {
+}
+.status-page__code {
+}
+.status-page__subtitle {
+}
+.status-page__description {
+}
+.status-page__hint {
+}
+.status-page__path {
+}
+.status-page__actions {
+}
+
+// --- ToSView -----------------------------------------------------------
+.tos-page {
+}
+.tos-page__content {
+}
+.tos-page__actions {
+}

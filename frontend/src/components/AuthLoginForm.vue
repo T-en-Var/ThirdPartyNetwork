@@ -1,12 +1,12 @@
 <template>
   <form
     @submit.prevent="emit('submit', { email: email, password: password })"
-    class="flex flex-col gap-5"
+    class="form"
   >
-    <div>
+    <div class="form-field">
       <label
         :for="`${idPrefix}-email`"
-        class="mb-2 block text-sm font-medium text-gray-700"
+        class="form-label"
         >{{ emailLabel }}</label
       >
       <input
@@ -17,14 +17,14 @@
         autocomplete="username"
         :placeholder="emailPlaceholder"
         aria-required="true"
-        class="w-full rounded-md border border-gray-300 px-4 py-3 text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        class="form-input"
       />
     </div>
 
-    <div>
+    <div class="form-field">
       <label
         :for="`${idPrefix}-password`"
-        class="mb-2 block text-sm font-medium text-gray-700"
+        class="form-label"
         >Password</label
       >
       <input
@@ -35,13 +35,13 @@
         autocomplete="current-password"
         placeholder="Enter your password"
         aria-required="true"
-        class="w-full rounded-md border border-gray-300 px-4 py-3 text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        class="form-input"
       />
     </div>
 
     <button
       type="submit"
-      class="w-full rounded-md bg-blue-600 py-3 font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
+      class="btn btn--primary btn--full"
       :disabled="submitting"
       aria-live="polite"
     >

@@ -5,12 +5,12 @@
   >
     <form
       @submit.prevent="handleSubmit"
-      class="space-y-4"
+      class="form"
     >
-      <div>
+      <div class="form-field">
         <label
           for="name"
-          class="mb-1.5 ml-1 block text-xs font-bold uppercase tracking-wider text-slate-500"
+          class="form-label"
         >
           Role Name
         </label>
@@ -18,15 +18,15 @@
           id="name"
           v-model="localForm.name"
           type="text"
-          class="block w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
+          class="form-input"
           required
         />
       </div>
 
-      <div>
+      <div class="form-field">
         <label
           for="description"
-          class="mb-1.5 ml-1 block text-xs font-bold uppercase tracking-wider text-slate-500"
+          class="form-label"
         >
           Role Description
         </label>
@@ -34,7 +34,7 @@
           id="description"
           v-model="localForm.description"
           type="text"
-          class="block w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
+          class="form-input"
           required
         />
       </div>
@@ -51,21 +51,21 @@
         v-model="localForm.permissionIds"
         id-prefix="perm"
         empty-message="No permissions available"
-        container-class="mt-4 max-h-64 overflow-y-auto rounded-md border p-2"
-        item-class="ml-2 flex items-center py-1"
+        container-class="add-role-modal__permissions-list"
+        item-class="add-role-modal__permission-item"
         show-id
       />
 
-      <div class="flex items-center">
+      <div class="add-role-modal__default-row">
         <input
           id="isRequired"
           v-model="localForm.isDefault"
           type="checkbox"
-          class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+          class="checkbox"
         />
         <label
           for="isRequired"
-          class="ml-2 block text-sm text-gray-700"
+          class="form-label"
         >
           Automatically add this role to new users.
         </label>

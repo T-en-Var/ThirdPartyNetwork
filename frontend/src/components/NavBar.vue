@@ -1,62 +1,56 @@
 <template>
-  <nav
-    class="fixed top-0 z-50 w-full border-b border-slate-200/50 bg-white/80 backdrop-blur-md transition-all duration-300"
-  >
-    <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
+  <nav class="navbar">
+    <div class="navbar__inner">
       <!-- Logo -->
-      <div class="logo-container">
+      <div class="navbar__logo">
         <RouterLink
           to="/"
-          class="logo-text"
+          class="navbar__logo-text"
           >TrojoNetworks</RouterLink
         >
       </div>
-      <!-- <RouterLink to="/" class="font-bold text-xl tracking-tight flex items-center gap-2 text-slate-900 hover:opacity-80 transition">
-        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 shadow-lg shadow-purple-500/30"></div>
-        TrojoNetworks
-      </RouterLink> -->
 
       <!-- Links -->
-      <div class="hidden gap-8 text-sm font-medium text-slate-600 md:flex">
+      <div class="navbar__links">
         <RouterLink
           to="/"
-          class="transition-colors hover:text-purple-600"
-          active-class="text-purple-600"
+          class="navbar__link"
+          active-class="navbar__link--active"
           >Home</RouterLink
         >
         <RouterLink
           to="/about"
-          class="transition-colors hover:text-purple-600"
-          active-class="text-purple-600"
+          class="navbar__link"
+          active-class="navbar__link--active"
           >About</RouterLink
         >
         <RouterLink
           v-if="authStore.isAuthenticated"
           to="/networks"
-          class="transition-colors hover:text-purple-600"
-          active-class="text-purple-600"
+          class="navbar__link"
+          active-class="navbar__link--active"
           >Networks
         </RouterLink>
         <RouterLink
           v-if="isSuperAdmin && !isLoadingAuth"
           to="/admin"
-          class="transition-colors hover:text-purple-600"
-          active-class="text-purple-600"
+          class="navbar__link"
+          active-class="navbar__link--active"
           >Admin
         </RouterLink>
       </div>
 
       <!-- Actions -->
-      <div class="flex items-center gap-4">
+      <div class="navbar__actions">
         <template v-if="!authStore.isAuthenticated">
           <button
-            class="px-3 py-2 text-sm font-medium text-slate-600 transition hover:text-purple-600"
+            class="navbar__login-btn"
             @click="openLoginModal"
           >
             Log In
           </button>
           <button
-            class="rounded-full bg-slate-900 px-5 py-2 text-sm font-medium text-white shadow-lg shadow-slate-900/20 transition hover:bg-slate-800"
+            class="navbar__signup-btn"
             @click="openSignupModal"
           >
             Sign Up
@@ -99,23 +93,3 @@ const openSignupModal = () => {
   authStore.setModalMode('signup');
 };
 </script>
-
-<style scoped>
-.logo-container {
-  flex: 0 0 auto;
-}
-
-.logo-text {
-  font-family: 'Rufina', serif;
-  padding: 1rem 2rem;
-  cursor: pointer;
-  display: inline-block;
-  transition: 0.3s;
-}
-
-.logo-text:hover {
-  translate: -5px -5px;
-  text-shadow: 10px 10px 1px rgba(0, 0, 0, 0.3);
-  scale: 1.05;
-}
-</style>

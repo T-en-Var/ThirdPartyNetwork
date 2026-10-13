@@ -1,6 +1,6 @@
 <template>
-  <div class="space-y-6">
-    <div class="overflow-hidden rounded-lg bg-white p-6 shadow-md">
+  <div class="edit-custom-page-tab">
+    <div class="card">
       <LoadingErrorComponent
         :loading="loading"
         :error="error"
@@ -8,7 +8,7 @@
       />
 
       <div v-if="customPage">
-        <h2 class="mb-4 text-xl font-semibold text-gray-800">Edit Custom Page</h2>
+        <h2 class="edit-custom-page-tab__title">Edit Custom Page</h2>
         <UserContentForm
           button-text="Update"
           :is-submitting="isSubmitting"
@@ -17,21 +17,21 @@
           @submit="handleUpdate"
           @close="handleReturn"
         >
-          <div class="flex w-full gap-4">
-            <div class="w-full">
-              <label class="mb-1 block text-sm font-medium text-gray-700">Name</label>
+          <div class="edit-custom-page-tab__row">
+            <div class="form-field">
+              <label class="form-label">Name</label>
               <input
                 v-model="form.name"
                 type="text"
-                class="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-900 shadow-sm transition-all focus:border-blue-600 focus:ring focus:ring-blue-100 disabled:bg-gray-100 disabled:text-gray-500"
+                class="form-input"
               />
             </div>
-            <div class="w-full">
-              <label class="mb-1 block text-sm font-medium text-gray-700">Slug</label>
+            <div class="form-field">
+              <label class="form-label">Slug</label>
               <input
                 v-model="form.slug"
                 type="text"
-                class="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-900 shadow-sm transition-all focus:border-blue-600 focus:ring focus:ring-blue-100 disabled:bg-gray-100 disabled:text-gray-500"
+                class="form-input"
               />
             </div>
           </div>
@@ -39,20 +39,26 @@
       </div>
     </div>
 
-    <div class="overflow-hidden rounded-lg bg-white p-6 shadow-md">
+    <div class="card">
       <div v-if="customPage">
-        <div class="mb-4 flex items-center justify-between">
-          <div class="flex gap-2 space-x-2">
-            <h2 class="text-lg font-semibold text-gray-800">Page Blocks</h2>
+        <div class="edit-custom-page-tab__blocks-header">
+          <div class="edit-custom-page-tab__blocks-heading">
+            <h2 class="edit-custom-page-tab__blocks-title">Page Blocks</h2>
             <button
               @click="viewMode = 'flat'"
-              :class="viewMode === 'flat' ? activeTabClasses : inactiveTabClasses"
+              :class="[
+                'edit-custom-page-tab__view-btn',
+                viewMode === 'flat' ? 'edit-custom-page-tab__view-btn--active' : '',
+              ]"
             >
               Flat View
             </button>
             <button
               @click="viewMode = 'grouped'"
-              :class="viewMode === 'grouped' ? activeTabClasses : inactiveTabClasses"
+              :class="[
+                'edit-custom-page-tab__view-btn',
+                viewMode === 'grouped' ? 'edit-custom-page-tab__view-btn--active' : '',
+              ]"
             >
               Grouped View
             </button>
@@ -61,7 +67,7 @@
           <div>
             <button
               @click="showCreatePageBlockModal = true"
-              class="rounded-md bg-blue-600 px-3 py-1 text-sm text-white transition-colors hover:bg-blue-500"
+              class="btn btn--primary btn--sm"
             >
               Add page block
             </button>
@@ -70,69 +76,68 @@
 
         <div
           v-if="viewMode === 'flat'"
-          class="space-y-4"
+          class="edit-custom-page-tab__blocks-list"
         >
           <div
             v-for="block in customPage!.pages || []"
             :key="block.id"
-            class="rounded-md border bg-gray-50 p-4"
+            class="edit-custom-page-tab__block-card"
           >
-            <div class="mb-2 flex items-center justify-between">
-              <h3 class="text-sm font-medium text-gray-800">{{ block.text }}</h3>
-              <div class="flex gap-2">
+            <div class="edit-custom-page-tab__block-card-header">
+              <h3 class="edit-custom-page-tab__block-card-title">{{ block.text }}</h3>
+              <div class="edit-custom-page-tab__block-card-actions">
                 <button
                   @click="handleEditPageBlock(block)"
-                  class="text-sm text-blue-600 hover:text-blue-800"
+                  class="edit-custom-page-tab__block-card-action"
                 >
                   Edit
                 </button>
                 <button
                   @click="handleDeletePageBlock(block)"
-                  class="text-sm text-red-600 hover:text-red-800"
+                  class="edit-custom-page-tab__block-card-action edit-custom-page-tab__block-card-action--danger"
                 >
                   Delete
                 </button>
               </div>
             </div>
-            <div class="mb-2 text-xs text-gray-500">
+            <div class="edit-custom-page-tab__block-card-meta">
               Position: {{ block.position }} | Parent: {{ getParentText(block.parentPageId) }}
             </div>
-            <pre class="overflow-x-auto rounded-md border bg-white p-2 text-xs">{{
-              formatJson(block.data)
-            }}</pre>
+            <pre class="json-preview">{{ formatJson(block.data) }}</pre>
           </div>
         </div>
 
         <div
           v-else
-          class="space-y-6"
+          class="edit-custom-page-tab__grouped"
         >
           <div
             v-for="(blocks, parentId) in groupedBlocks"
             :key="parentId"
-            class="space-y-2"
+            class="edit-custom-page-tab__grouped-group"
           >
-            <h4 class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-              Parent: <span class="font-bold text-gray-800">{{ getParentText(parentId) }}</span>
+            <h4 class="edit-custom-page-tab__group-heading">
+              Parent:
+              <span class="edit-custom-page-tab__group-heading-name">{{
+                getParentText(parentId)
+              }}</span>
             </h4>
             <div
               v-for="block in blocks"
               :key="block.id"
-              class="rounded-md border bg-gray-50 p-4"
+              class="edit-custom-page-tab__block-card"
             >
-              <div class="mb-2 flex items-center justify-between">
-                <h3 class="text-sm font-medium text-gray-800">{{ block.text }}</h3>
+              <div class="edit-custom-page-tab__block-card-header">
+                <h3 class="edit-custom-page-tab__block-card-title">{{ block.text }}</h3>
                 <button
                   @click="handleEditPageBlock(block)"
-                  class="text-sm text-blue-600 hover:text-blue-800"
+                  class="edit-custom-page-tab__block-card-action"
                 >
                   Open
                 </button>
               </div>
-              <div class="mb-2 text-xs text-gray-500">Position: {{ block.position }}</div>
-              <pre class="overflow-x-auto rounded-md border bg-white p-2 text-xs">{{
-                formatJson(block.data)
-              }}</pre>
+              <div class="edit-custom-page-tab__block-card-meta">Position: {{ block.position }}</div>
+              <pre class="json-preview">{{ formatJson(block.data) }}</pre>
             </div>
           </div>
         </div>
@@ -197,10 +202,6 @@ const inputIsValid = computed(() => true);
 
 const form = ref({ name: '', slug: '' });
 const viewMode = ref<'flat' | 'grouped'>('flat');
-
-const activeTabClasses = 'px-3 py-1 bg-blue-600 text-white rounded-md text-sm cursor-default';
-const inactiveTabClasses =
-  'px-3 py-1 bg-gray-100 text-gray-700 rounded-md text-sm hover:bg-gray-200';
 
 const {
   entity: customPage,

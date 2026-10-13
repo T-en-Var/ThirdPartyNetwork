@@ -1,15 +1,15 @@
 <template>
-  <div>
+  <div class="form-field">
     <label
       v-if="label"
-      class="mb-2 block text-sm font-semibold text-gray-800"
+      class="form-label"
     >
       {{ label }}
     </label>
     <select
       :value="modelValue"
       @change="(e) => updateValue((e.target as HTMLSelectElement).value)"
-      class="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-600 focus:ring focus:ring-blue-100"
+      class="form-select"
     >
       <option value="">-- Select Access Level --</option>
       <option
@@ -20,12 +20,10 @@
         {{ level.label }}
       </option>
     </select>
-    <p class="mt-1 text-xs text-gray-500">
-      {{ displayLevel.label }} — {{ displayLevel.description }}
-    </p>
+    <p class="form-help">{{ displayLevel.label }} — {{ displayLevel.description }}</p>
     <p
       v-if="description"
-      class="mt-1 text-xs text-gray-500"
+      class="form-help"
     >
       {{ description }}
     </p>

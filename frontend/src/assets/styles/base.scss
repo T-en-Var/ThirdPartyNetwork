@@ -1,0 +1,105 @@
+// Entry stylesheet, imported once from src/main.ts.
+//
+// Layout of this folder:
+//   _variables.scss   design tokens (CSS custom properties)
+//   base.scss         this file: reset + imports of every other partial
+//   _components.scss  small reusable pieces shared across features (buttons, badges, cards, forms, modals...)
+//   _layout.scss       app shell: navbar, footer, content layout, profile dropdown
+//   _sidebar.scss      the account/admin/network sidebars
+//   _auth.scss         login/signup forms, auth layout, auth modal
+//   _networks.scss     network cards, network lists, network views
+//   _account.scss      account view, account tabs, user proxy
+//   _admin.scss        admin view, admin tabs, admin modals
+//   _usercontent.scss  blogs, pages, files, configurations, page blocks
+//   _fields.scss       form field widgets: rich text editor, pickers, sliders, selects
+//   _toasts.scss       toast notifications
+//   _cdn.scss          cloudinary file rendering
+//   _pages.scss        standalone static views (about, contact, 404, ...)
+@use 'variables';
+@use 'components';
+@use 'layout';
+@use 'sidebar';
+@use 'auth';
+@use 'networks';
+@use 'account';
+@use 'admin';
+@use 'usercontent';
+@use 'fields';
+@use 'toasts';
+@use 'cdn';
+@use 'pages';
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+figure,
+blockquote,
+dl,
+dd {
+  margin: 0;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+img,
+picture,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+// Visually hides content while keeping it available to screen readers.
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}

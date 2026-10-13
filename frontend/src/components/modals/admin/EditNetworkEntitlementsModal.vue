@@ -3,13 +3,13 @@
     :title="'Edit Network'"
     @close="$emit('close')"
   >
-    <div class="mb-6">
-      <span class="mb-2 block text-sm text-gray-800">
-        Network Name: <span class="font-semibold">{{ network.name }}</span>
+    <div class="edit-network-entitlements-modal__intro">
+      <span class="edit-network-entitlements-modal__network-label">
+        Network Name: <span class="edit-network-entitlements-modal__network-name">{{ network.name }}</span>
       </span>
       <p
         v-if="props.network.isSystemProtected"
-        class="mt-2 rounded-md border border-yellow-200 bg-yellow-50 p-2 text-sm text-yellow-700"
+        class="alert alert--warning"
       >
         You are changing the max limits throughout the whole application. Be cautious. This will be
         able to exceed backend limits. Limits that are set, will be applied per network the next
@@ -23,10 +23,10 @@
       :auto-increase-max="mainNetwork.id == network.id"
     />
 
-    <div class="flex justify-end space-x-3 border-t border-gray-200 pt-4">
+    <div class="form__actions">
       <button
         type="button"
-        class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+        class="btn btn--outline"
         @click="$emit('close')"
         :disabled="isSubmitting"
       >
@@ -35,21 +35,21 @@
       <button
         @click="handleSubmit"
         type="submit"
-        class="rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+        class="btn btn--primary"
         :disabled="isSubmitting"
       >
         <span
           v-if="isSubmitting"
-          class="flex items-center"
+          class="edit-network-entitlements-modal__saving"
         >
           <svg
-            class="-ml-1 mr-2 h-4 w-4 animate-spin text-white"
+            class="edit-network-entitlements-modal__spinner-icon"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
           >
             <circle
-              class="opacity-25"
+              class="edit-network-entitlements-modal__spinner-track"
               cx="12"
               cy="12"
               r="10"
@@ -57,7 +57,7 @@
               stroke-width="4"
             ></circle>
             <path
-              class="opacity-75"
+              class="edit-network-entitlements-modal__spinner-head"
               fill="currentColor"
               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
             ></path>

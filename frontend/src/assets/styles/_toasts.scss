@@ -1,0 +1,83 @@
+// Styles for the "toasts" part of the application (ToastManager.vue).
+// Classes are placeholders (empty) - the visual design is added later.
+// A few rules keep real functional CSS migrated verbatim from the component's
+// old <style scoped> block (layout/transition/animation mechanics, not design).
+
+.toast-container {
+}
+
+.toast-wrapper {
+  display: grid;
+  grid-template-rows: 1fr;
+  margin-top: 12px;
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.toast-sizer {
+  overflow: hidden;
+  min-height: 0;
+}
+
+// Vue <TransitionGroup name="toast"> auto-generated transition hook classes -
+// names are required to match the `name="toast"` prop, do not rename.
+.toast-enter-from,
+.toast-leave-to {
+  grid-template-rows: 0fr;
+  margin-top: 0;
+  opacity: 0;
+  transform: translateX(-20px);
+}
+
+.toast-content {
+}
+.toast-content--success {
+}
+.toast-content--error {
+}
+.toast-content--warning {
+}
+.toast-content--info {
+}
+.toast-content__body {
+}
+
+.toast-icon {
+}
+.toast-icon__track {
+  opacity: 0.25;
+}
+.toast-icon__indicator {
+  opacity: 0.75;
+}
+.toast-icon--spin {
+  animation: toast-icon-spin 1s linear infinite;
+}
+@keyframes toast-icon-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.toast-dismiss {
+}
+.toast-dismiss__icon {
+}
+
+.toast-progress-bar {
+  animation: toast-progress-shrink linear forwards;
+  animation-duration: var(--duration);
+  animation-play-state: running;
+}
+
+.toast-content:hover .toast-progress-bar {
+  animation-play-state: paused;
+}
+
+@keyframes toast-progress-shrink {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}

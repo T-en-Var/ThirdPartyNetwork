@@ -1,5 +1,5 @@
 <template>
-  <div class="relative w-full">
+  <div class="searchable-select">
     <!-- Input -->
     <input
       type="text"
@@ -7,18 +7,18 @@
       @focus="open = true"
       @blur="closeDropdown"
       placeholder="Search..."
-      class="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-600 focus:ring focus:ring-blue-100"
+      class="form-input"
     />
 
     <!-- Dropdown -->
     <ul
       v-if="open && filteredOptions.length"
-      class="absolute z-20 mt-1 max-h-48 w-full overflow-auto rounded-lg border border-gray-200 bg-white shadow-lg"
+      class="dropdown__menu searchable-select__menu"
     >
       <li
         v-if="nullable"
         @mousedown.prevent="selectOption(null)"
-        class="cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-blue-100"
+        class="dropdown__item"
       >
         None
       </li>
@@ -26,7 +26,7 @@
         v-for="option in filteredOptions"
         :key="option.id"
         @mousedown.prevent="selectOption(option.id)"
-        class="cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-blue-100"
+        class="dropdown__item"
       >
         {{ option.text }} ({{ option.id }})
       </li>
@@ -35,7 +35,7 @@
     <!-- No results -->
     <div
       v-if="open && !filteredOptions.length"
-      class="absolute z-20 mt-1 w-full rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm text-gray-400"
+      class="searchable-select__empty"
     >
       No results
     </div>

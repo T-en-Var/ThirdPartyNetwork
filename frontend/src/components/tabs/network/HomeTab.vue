@@ -1,297 +1,271 @@
 <template>
-  <div class="space-y-8">
-    <div class="overflow-hidden rounded-lg bg-white p-6 shadow-md">
+  <div class="network-home-tab">
+    <div class="network-home-tab__summary-card">
       <div>
-        <h1 class="text-2xl font-semibold text-gray-800">
+        <h1 class="network-home-tab__title">
           {{ network.name }}
           <span
-            class="ml-2 rounded-full px-3 py-1 text-xs font-medium"
-            :class="
-              network.isSystemProtected
-                ? 'bg-green-100 text-green-800'
-                : 'bg-gray-100 text-gray-800'
-            "
+            class="badge"
+            :class="network.isSystemProtected ? 'badge--success' : 'badge--neutral'"
           >
             {{ network.isSystemProtected ? 'Protected' : 'Standard' }}
           </span>
         </h1>
       </div>
 
-      <div class="p-6 pb-0">
-        <div class="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
-          <div class="rounded-lg bg-gray-50 p-4">
-            <h3 class="text-sm font-medium uppercase text-gray-500">Users</h3>
-            <p class="mt-2 text-3xl font-semibold">{{ network.networkUsers.length }}</p>
-          </div>
-          <div class="rounded-lg bg-gray-50 p-4">
-            <h3 class="text-sm font-medium uppercase text-gray-500">Roles</h3>
-            <p class="mt-2 text-3xl font-semibold">{{ network.roles.length }}</p>
-          </div>
-          <div class="rounded-lg bg-gray-50 p-4">
-            <h3 class="text-sm font-medium uppercase text-gray-500">Access Requirements</h3>
-            <p class="mt-2 text-3xl font-semibold">{{ network.networkAccesses.length }}</p>
-          </div>
+      <div class="network-home-tab__stats">
+        <div class="network-home-tab__stat">
+          <h3 class="network-home-tab__stat-label">Users</h3>
+          <p class="network-home-tab__stat-value">{{ network.networkUsers.length }}</p>
+        </div>
+        <div class="network-home-tab__stat">
+          <h3 class="network-home-tab__stat-label">Roles</h3>
+          <p class="network-home-tab__stat-value">{{ network.roles.length }}</p>
+        </div>
+        <div class="network-home-tab__stat">
+          <h3 class="network-home-tab__stat-label">Access Requirements</h3>
+          <p class="network-home-tab__stat-value">{{ network.networkAccesses.length }}</p>
         </div>
       </div>
 
-      <div class="p-6 pt-0">
-        <span
-          class="black rounded-lg bg-gray-50 px-2 py-1 font-mono font-medium normal-case text-gray-500"
-        >
+      <div class="network-home-tab__id-row">
+        <span class="network-home-tab__id">
           ID: {{ network.id }}
         </span>
       </div>
     </div>
 
-    <div class="overflow-hidden rounded-lg bg-white p-6 shadow-md">
+    <div class="network-home-tab__stats-card">
       <div>
-        <h1 class="text-2xl font-semibold text-gray-800">Statistics</h1>
+        <h1 class="network-home-tab__title">Statistics</h1>
       </div>
 
       <div
         v-if="network.entitlement"
-        class="p-6 pb-0"
+        class="network-home-tab__entitlements"
       >
-        <div class="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
-          <div
-            class="relative overflow-hidden rounded-xl border border-gray-100 p-5 transition-all duration-200"
-            :class="{
-              'border-blue-100 bg-white shadow-sm': network.entitlement.allowFiles,
-              'bg-gray-50 opacity-75': !network.entitlement.allowFiles,
-            }"
-          >
-            <div class="mb-4 flex items-center justify-between">
-              <div class="flex items-center gap-3">
-                <h3 class="font-bold tracking-tight text-gray-700">Files</h3>
-              </div>
-              <span
-                v-if="!network.entitlement.allowFiles"
-                class="rounded-full bg-gray-200 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-400"
-              >
-                Locked
-              </span>
-            </div>
+        <div
+          class="network-home-tab__entitlement-card"
+          :class="{ 'network-home-tab__entitlement-card--locked': !network.entitlement.allowFiles }"
+        >
+          <div class="network-home-tab__entitlement-header">
+            <h3 class="network-home-tab__entitlement-title">Files</h3>
+            <span
+              v-if="!network.entitlement.allowFiles"
+              class="badge badge--neutral"
+            >
+              Locked
+            </span>
+          </div>
 
-            <LoadingErrorComponent
-              v-if="filesLoading || filesError"
-              :loading="filesLoading"
-              :error="filesError ?? undefined"
-              :has-value="!!files"
-            />
+          <LoadingErrorComponent
+            v-if="filesLoading || filesError"
+            :loading="filesLoading"
+            :error="filesError ?? undefined"
+            :has-value="!!files"
+          />
 
-            <template v-else-if="network.entitlement.allowFiles">
-              <div class="space-y-4">
-                <div>
-                  <div class="mb-1 flex justify-between text-xs">
-                    <span class="text-gray-500">Usage</span>
-                    <span class="font-medium text-gray-900">
-                      {{ fileCount }} / {{ network.entitlement.fileCountLimit }}
-                    </span>
-                  </div>
-                  <div class="h-1.5 w-full rounded-full bg-gray-100">
-                    <div
-                      class="h-1.5 rounded-full bg-blue-500"
-                      :style="{
-                        width:
-                          Math.min((fileCount / network.entitlement.fileCountLimit) * 100, 100) +
-                          '%',
-                      }"
-                    ></div>
-                  </div>
-                </div>
-
-                <div class="flex items-baseline gap-1">
-                  <span class="text-2xl font-bold text-gray-900">
-                    {{ (fileStorage / 1024).toFixed(1) }}
-                  </span>
-                  <span class="text-sm text-gray-500">
-                    / {{ network.entitlement.fileStorageLimit }} KB
+          <template v-else-if="network.entitlement.allowFiles">
+            <div class="network-home-tab__usage">
+              <div>
+                <div class="network-home-tab__usage-row">
+                  <span class="network-home-tab__usage-label">Usage</span>
+                  <span class="network-home-tab__usage-value">
+                    {{ fileCount }} / {{ network.entitlement.fileCountLimit }}
                   </span>
                 </div>
-              </div>
-            </template>
-
-            <div
-              v-else
-              class="py-4"
-            >
-              <p class="text-sm italic text-gray-500">Not available for this network</p>
-            </div>
-          </div>
-
-          <div
-            class="relative overflow-hidden rounded-xl border border-gray-100 p-5 transition-all duration-200"
-            :class="{
-              'border-blue-100 bg-white shadow-sm': network.entitlement.allowBlogs,
-              'bg-gray-50 opacity-75': !network.entitlement.allowBlogs,
-            }"
-          >
-            <div class="mb-4 flex items-center justify-between">
-              <div class="flex items-center gap-3">
-                <h3 class="font-bold tracking-tight text-gray-700">Blogs</h3>
-              </div>
-              <span
-                v-if="!network.entitlement.allowBlogs"
-                class="rounded-full bg-gray-200 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-400"
-              >
-                Locked
-              </span>
-            </div>
-
-            <LoadingErrorComponent
-              v-if="blogsLoading || blogsError"
-              :loading="blogsLoading"
-              :error="blogsError ?? undefined"
-              :has-value="!!blogs"
-            />
-
-            <template v-else-if="network.entitlement.allowBlogs">
-              <div class="space-y-4">
-                <div>
-                  <div class="mb-1 flex justify-between text-xs">
-                    <span class="text-gray-500">Usage</span>
-                    <span class="font-medium text-gray-900">
-                      {{ blogCount }} / {{ network.entitlement.blogCountLimit }}
-                    </span>
-                  </div>
-                  <div class="h-1.5 w-full rounded-full bg-gray-100">
-                    <div
-                      class="h-1.5 rounded-full bg-blue-500"
-                      :style="{
-                        width:
-                          Math.min((blogCount / network.entitlement.blogCountLimit) * 100, 100) +
-                          '%',
-                      }"
-                    ></div>
-                  </div>
+                <div class="network-home-tab__progress">
+                  <div
+                    class="network-home-tab__progress-fill"
+                    :style="{
+                      width:
+                        Math.min((fileCount / network.entitlement.fileCountLimit) * 100, 100) +
+                        '%',
+                    }"
+                  ></div>
                 </div>
               </div>
-            </template>
 
-            <div
-              v-else
-              class="py-4"
-            >
-              <p class="text-sm italic text-gray-500">Not available for this network</p>
+              <div class="network-home-tab__storage">
+                <span class="network-home-tab__storage-value">
+                  {{ (fileStorage / 1024).toFixed(1) }}
+                </span>
+                <span class="network-home-tab__storage-limit">
+                  / {{ network.entitlement.fileStorageLimit }} KB
+                </span>
+              </div>
             </div>
-          </div>
+          </template>
 
           <div
-            class="relative overflow-hidden rounded-xl border border-gray-100 p-5 transition-all duration-200"
-            :class="{
-              'border-blue-100 bg-white shadow-sm': network.entitlement.allowConfigurations,
-              'bg-gray-50 opacity-75': !network.entitlement.allowConfigurations,
-            }"
+            v-else
+            class="network-home-tab__unavailable"
           >
-            <div class="mb-4 flex items-center justify-between">
-              <div class="flex items-center gap-3">
-                <h3 class="font-bold tracking-tight text-gray-700">Configurations</h3>
-              </div>
-              <span
-                v-if="!network.entitlement.allowConfigurations"
-                class="rounded-full bg-gray-200 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-400"
-              >
-                Locked
-              </span>
-            </div>
+            <p class="network-home-tab__unavailable-text">Not available for this network</p>
+          </div>
+        </div>
 
-            <LoadingErrorComponent
-              v-if="configsLoading || configsError"
-              :loading="configsLoading"
-              :error="configsError ?? undefined"
-              :has-value="!!configs"
-            />
-
-            <template v-else-if="network.entitlement.allowConfigurations">
-              <div class="space-y-4">
-                <div>
-                  <div class="mb-1 flex justify-between text-xs">
-                    <span class="text-gray-500">Usage</span>
-                    <span class="font-medium text-gray-900">
-                      {{ configCount }} / {{ network.entitlement.configurationCountLimit }}
-                    </span>
-                  </div>
-                  <div class="h-1.5 w-full rounded-full bg-gray-100">
-                    <div
-                      class="h-1.5 rounded-full bg-blue-500"
-                      :style="{
-                        width:
-                          Math.min(
-                            (configCount / network.entitlement.configurationCountLimit) * 100,
-                            100,
-                          ) + '%',
-                      }"
-                    ></div>
-                  </div>
-                </div>
-              </div>
-            </template>
-
-            <div
-              v-else
-              class="py-4"
+        <div
+          class="network-home-tab__entitlement-card"
+          :class="{ 'network-home-tab__entitlement-card--locked': !network.entitlement.allowBlogs }"
+        >
+          <div class="network-home-tab__entitlement-header">
+            <h3 class="network-home-tab__entitlement-title">Blogs</h3>
+            <span
+              v-if="!network.entitlement.allowBlogs"
+              class="badge badge--neutral"
             >
-              <p class="text-sm italic text-gray-500">Not available for this network</p>
-            </div>
+              Locked
+            </span>
           </div>
 
-          <div
-            class="relative overflow-hidden rounded-xl border border-gray-100 p-5 transition-all duration-200"
-            :class="{
-              'border-blue-100 bg-white shadow-sm': network.entitlement.allowCustomPages,
-              'bg-gray-50 opacity-75': !network.entitlement.allowCustomPages,
-            }"
-          >
-            <div class="mb-4 flex items-center justify-between">
-              <div class="flex items-center gap-3">
-                <h3 class="font-bold tracking-tight text-gray-700">Custom Pages</h3>
-              </div>
-              <span
-                v-if="!network.entitlement.allowCustomPages"
-                class="rounded-full bg-gray-200 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-400"
-              >
-                Locked
-              </span>
-            </div>
+          <LoadingErrorComponent
+            v-if="blogsLoading || blogsError"
+            :loading="blogsLoading"
+            :error="blogsError ?? undefined"
+            :has-value="!!blogs"
+          />
 
-            <LoadingErrorComponent
-              v-if="pagesLoading || pagesError"
-              :loading="pagesLoading"
-              :error="pagesError ?? undefined"
-              :has-value="!!pages"
-            />
-
-            <template v-else-if="network.entitlement.allowCustomPages">
-              <div class="space-y-4">
-                <div>
-                  <div class="mb-1 flex justify-between text-xs">
-                    <span class="text-gray-500">Usage</span>
-                    <span class="font-medium text-gray-900">
-                      {{ pageCount }} / {{ network.entitlement.customPageCountLimit }}
-                    </span>
-                  </div>
-                  <div class="h-1.5 w-full rounded-full bg-gray-100">
-                    <div
-                      class="h-1.5 rounded-full bg-blue-500"
-                      :style="{
-                        width:
-                          Math.min(
-                            (pageCount / network.entitlement.customPageCountLimit) * 100,
-                            100,
-                          ) + '%',
-                      }"
-                    ></div>
-                  </div>
+          <template v-else-if="network.entitlement.allowBlogs">
+            <div class="network-home-tab__usage">
+              <div>
+                <div class="network-home-tab__usage-row">
+                  <span class="network-home-tab__usage-label">Usage</span>
+                  <span class="network-home-tab__usage-value">
+                    {{ blogCount }} / {{ network.entitlement.blogCountLimit }}
+                  </span>
+                </div>
+                <div class="network-home-tab__progress">
+                  <div
+                    class="network-home-tab__progress-fill"
+                    :style="{
+                      width:
+                        Math.min((blogCount / network.entitlement.blogCountLimit) * 100, 100) +
+                        '%',
+                    }"
+                  ></div>
                 </div>
               </div>
-            </template>
-
-            <div
-              v-else
-              class="py-4"
-            >
-              <p class="text-sm italic text-gray-500">Not available for this network</p>
             </div>
+          </template>
+
+          <div
+            v-else
+            class="network-home-tab__unavailable"
+          >
+            <p class="network-home-tab__unavailable-text">Not available for this network</p>
+          </div>
+        </div>
+
+        <div
+          class="network-home-tab__entitlement-card"
+          :class="{
+            'network-home-tab__entitlement-card--locked': !network.entitlement.allowConfigurations,
+          }"
+        >
+          <div class="network-home-tab__entitlement-header">
+            <h3 class="network-home-tab__entitlement-title">Configurations</h3>
+            <span
+              v-if="!network.entitlement.allowConfigurations"
+              class="badge badge--neutral"
+            >
+              Locked
+            </span>
+          </div>
+
+          <LoadingErrorComponent
+            v-if="configsLoading || configsError"
+            :loading="configsLoading"
+            :error="configsError ?? undefined"
+            :has-value="!!configs"
+          />
+
+          <template v-else-if="network.entitlement.allowConfigurations">
+            <div class="network-home-tab__usage">
+              <div>
+                <div class="network-home-tab__usage-row">
+                  <span class="network-home-tab__usage-label">Usage</span>
+                  <span class="network-home-tab__usage-value">
+                    {{ configCount }} / {{ network.entitlement.configurationCountLimit }}
+                  </span>
+                </div>
+                <div class="network-home-tab__progress">
+                  <div
+                    class="network-home-tab__progress-fill"
+                    :style="{
+                      width:
+                        Math.min(
+                          (configCount / network.entitlement.configurationCountLimit) * 100,
+                          100,
+                        ) + '%',
+                    }"
+                  ></div>
+                </div>
+              </div>
+            </div>
+          </template>
+
+          <div
+            v-else
+            class="network-home-tab__unavailable"
+          >
+            <p class="network-home-tab__unavailable-text">Not available for this network</p>
+          </div>
+        </div>
+
+        <div
+          class="network-home-tab__entitlement-card"
+          :class="{
+            'network-home-tab__entitlement-card--locked': !network.entitlement.allowCustomPages,
+          }"
+        >
+          <div class="network-home-tab__entitlement-header">
+            <h3 class="network-home-tab__entitlement-title">Custom Pages</h3>
+            <span
+              v-if="!network.entitlement.allowCustomPages"
+              class="badge badge--neutral"
+            >
+              Locked
+            </span>
+          </div>
+
+          <LoadingErrorComponent
+            v-if="pagesLoading || pagesError"
+            :loading="pagesLoading"
+            :error="pagesError ?? undefined"
+            :has-value="!!pages"
+          />
+
+          <template v-else-if="network.entitlement.allowCustomPages">
+            <div class="network-home-tab__usage">
+              <div>
+                <div class="network-home-tab__usage-row">
+                  <span class="network-home-tab__usage-label">Usage</span>
+                  <span class="network-home-tab__usage-value">
+                    {{ pageCount }} / {{ network.entitlement.customPageCountLimit }}
+                  </span>
+                </div>
+                <div class="network-home-tab__progress">
+                  <div
+                    class="network-home-tab__progress-fill"
+                    :style="{
+                      width:
+                        Math.min(
+                          (pageCount / network.entitlement.customPageCountLimit) * 100,
+                          100,
+                        ) + '%',
+                    }"
+                  ></div>
+                </div>
+              </div>
+            </div>
+          </template>
+
+          <div
+            v-else
+            class="network-home-tab__unavailable"
+          >
+            <p class="network-home-tab__unavailable-text">Not available for this network</p>
           </div>
         </div>
       </div>

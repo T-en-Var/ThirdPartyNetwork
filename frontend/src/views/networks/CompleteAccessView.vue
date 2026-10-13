@@ -2,14 +2,14 @@
   <ContentLayout title="Update Network Access">
     <div
       v-if="pageLoading || loading"
-      class="flex justify-center py-10"
+      class="complete-access-view__loading"
     >
       <LoadingSpinner />
     </div>
 
     <div v-else-if="!network || !currentUser">
       <p
-        class="rounded bg-red-100 p-4 text-red-700"
+        class="alert alert--error"
         role="alert"
       >
         Failed to load network or user details. Please try logging in again.
@@ -18,37 +18,37 @@
 
     <div v-else>
       <div
-        class="mb-8 cursor-pointer overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md"
+        class="complete-access-view__network-card"
         @click="handleNetworkDetails"
         aria-label="View network details"
       >
-        <div class="flex items-center p-4">
-          <div class="mr-4">
+        <div class="complete-access-view__network-row">
+          <div class="complete-access-view__network-logo">
             <NetworkLogo
               :loading="loading"
               :image-file="network.imageFile"
               :network-name="network.name"
             />
           </div>
-          <div class="flex-1">
-            <div class="flex items-center justify-between">
+          <div class="complete-access-view__network-info">
+            <div class="complete-access-view__network-title-row">
               <div>
-                <h2 class="text-xl font-semibold text-gray-800">{{ network.name }}</h2>
+                <h2 class="complete-access-view__network-title">{{ network.name }}</h2>
                 <p
                   v-if="network.networkUsers?.length > 0"
-                  class="text-sm text-gray-600"
+                  class="complete-access-view__network-subtitle"
                 >
                   {{ network.networkUsers?.length || 0 }} members
                 </p>
               </div>
               <span
                 v-if="network.isSystemProtected"
-                class="rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800"
+                class="badge badge--success"
               >
                 Protected
               </span>
             </div>
-            <p class="mt-2 text-sm text-gray-600">
+            <p class="complete-access-view__network-description">
               {{ network.description || 'No description available.' }}
             </p>
           </div>
@@ -64,8 +64,8 @@
         ref="accessListRef"
       />
 
-      <div class="mb-8 mt-6">
-        <h2 class="mb-4 text-lg font-medium text-gray-800">Currently Logged In As</h2>
+      <div class="complete-access-view__current-user">
+        <h2 class="complete-access-view__current-user-title">Currently Logged In As</h2>
         <UserProxyDisplay
           :userProxy="currentUser"
           :sensitiveFields="['email', 'lastName']"
@@ -74,7 +74,7 @@
         />
       </div>
 
-      <div class="m-6">
+      <div class="complete-access-view__error">
         <ErrorAlert
           :message="submitError"
           @dismiss="submitError = ''"
@@ -84,26 +84,26 @@
 
     <template #footer>
       <form @submit.prevent="handleUpdateAccesses">
-        <div class="flex justify-end space-x-3">
+        <div class="complete-access-view__footer-actions">
           <button
             type="button"
-            class="rounded-md border border-gray-300 px-4 py-2 text-gray-700 transition hover:bg-gray-50"
+            class="btn btn--outline"
             @click="navigateBack"
           >
             Back
           </button>
           <button
             type="submit"
-            :class="`rounded-md px-4 py-2 text-white transition ${canSubmit && !isSubmitting ? 'bg-blue-600 hover:bg-blue-700' : 'cursor-not-allowed bg-gray-400'}`"
+            class="btn btn--primary"
             :disabled="!canSubmit || isSubmitting"
             aria-label="Confirm and update data access settings"
           >
             <span
               v-if="isSubmitting"
-              class="flex items-center"
+              class="complete-access-view__submitting"
             >
               <span
-                class="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent"
+                class="spinner-border spinner-border--xs"
                 aria-hidden="true"
               ></span>
               Updating...

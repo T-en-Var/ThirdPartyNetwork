@@ -1,0 +1,686 @@
+// Styles for the "networks" part of the application.
+// Classes are placeholders (empty) - the visual design is added later.
+
+// --- NetworkCard ---
+.network-card {
+}
+.network-card__body {
+}
+.network-card__header {
+}
+.network-card__logo {
+  top: 16px;
+  left: 16px;
+  z-index: 10;
+}
+.network-card__logo-image {
+}
+.network-card__logo-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  img {
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 6px;
+    object-fit: contain;
+  }
+}
+.network-card__title-row {
+}
+.network-card__titles {
+}
+.network-card__title {
+}
+.network-card__subtitle {
+}
+.network-card__badges {
+}
+.network-card__description {
+}
+.network-card__footer {
+}
+.network-card__link {
+}
+.network-card__join-btn {
+}
+
+// --- NetworkLogo ---
+.network-logo {
+}
+.network-logo__spinner {
+}
+.network-logo__image {
+}
+.network-logo__fallback {
+}
+.network-logo__fallback-image {
+}
+
+// --- NetworkAccessList ---
+.network-access-list__status {
+}
+.network-access-list__empty-message {
+}
+.network-access-list__title {
+}
+.network-access-list__subtitle {
+}
+.network-access-list__items {
+}
+.network-access-list__item {
+}
+.network-access-list__item-row {
+}
+.network-access-list__checkbox-wrap {
+}
+.network-access-list__item-copy {
+}
+.network-access-list__required-tag {
+}
+.network-access-list__accepted-tag {
+}
+.network-access-list__item-description {
+}
+
+// --- NetworkNotFound ---
+.network-not-found {
+}
+.network-not-found__title {
+}
+.network-not-found__message {
+}
+.network-not-found__hint {
+}
+.network-not-found__link {
+}
+
+// --- AddAccessModal ---
+.add-access-modal__description {
+}
+.add-access-modal__description-title {
+}
+.add-access-modal__description-text {
+}
+.add-access-modal__required-row {
+}
+
+// --- AddRoleModal ---
+.add-role-modal__permissions-list {
+}
+.add-role-modal__permission-item {
+}
+.add-role-modal__default-row {
+}
+
+// --- AddUserModal ---
+.add-user-modal__roles-list {
+}
+
+// --- EditRoleModal ---
+.edit-role-modal {
+}
+.edit-role-modal__details {
+}
+.edit-role-modal__fields {
+}
+.edit-role-modal__toggle {
+}
+.edit-role-modal__toggle-control {
+}
+.edit-role-modal__toggle-track {
+}
+.edit-role-modal__toggle-copy {
+}
+.edit-role-modal__toggle-title {
+}
+.edit-role-modal__toggle-subtitle {
+}
+.edit-role-modal__subtabs {
+}
+.edit-role-modal__subtab {
+}
+.edit-role-modal__subtab--active {
+}
+.edit-role-modal__subtab-dot {
+}
+.edit-role-modal__subtab-dot--active {
+}
+.edit-role-modal__panel {
+}
+.edit-role-modal__permissions-empty {
+}
+.edit-role-modal__permissions-list {
+}
+// Shared small info banner used by several network management modals.
+.network-modal__info-banner {
+}
+.network-modal__info-icon {
+}
+.network-modal__info-text {
+}
+
+// --- EditUserModal ---
+.edit-user-modal__ids {
+}
+.edit-user-modal__id-row {
+}
+.edit-user-modal__id-label {
+}
+.edit-user-modal__id-value {
+}
+.edit-user-modal__body {
+}
+.edit-user-modal__section-title {
+}
+.edit-user-modal__section-subtitle {
+}
+.edit-user-modal__roles-list {
+}
+
+// --- Shared list-style tab panel (Accesses / Roles / Users tabs) -----------
+.network-list-panel {
+}
+.network-list-panel__header {
+}
+.network-list-panel__title {
+}
+.network-list-panel__items {
+}
+.network-list-panel__item {
+}
+.network-list-panel__item-header {
+}
+.network-list-panel__item-title {
+}
+.network-list-panel__item-description {
+}
+.network-list-panel__item-actions {
+}
+.network-list-panel__toggle-btn {
+}
+.network-list-panel__toggle-btn--active {
+}
+.network-list-panel__remove-btn {
+}
+.network-list-panel__empty {
+}
+
+// --- BrowseNetworksTab ---
+.browse-networks-tab__header {
+}
+.browse-networks-tab__title {
+}
+
+// Shared network-card grid + empty state (BrowseNetworksTab, MyNetworksTab)
+.network-card-grid {
+}
+.network-card-grid__empty {
+}
+
+// --- MyNetworksTab ---
+.my-networks-tab__title {
+}
+
+// --- RolesTab (network) ---
+.roles-tab__edit-btn {
+}
+.roles-tab__detail-row {
+}
+.roles-tab__detail-label {
+}
+.roles-tab__permissions {
+}
+.roles-tab__empty-note {
+}
+.roles-tab__users-section {
+}
+.roles-tab__users {
+}
+.roles-tab__user-chip {
+}
+.roles-tab__user-avatar {
+}
+.roles-tab__user-name {
+}
+.roles-tab__loading-row {
+}
+
+// --- UsersTab (network) ---
+.network-users-tab {
+}
+.network-users-tab__header {
+}
+.network-users-tab__title {
+}
+.network-users-tab__table-wrap {
+}
+.network-users-tab__user-cell {
+}
+.network-users-tab__avatar {
+}
+.network-users-tab__user-info {
+}
+.network-users-tab__user-name {
+}
+.network-users-tab__user-email {
+}
+.network-users-tab__tags {
+}
+.network-users-tab__empty-note {
+}
+.network-users-tab__actions {
+}
+.network-users-tab__manage-btn {
+}
+.network-users-tab__empty-row {
+}
+
+// --- CompleteAccessView ---
+.complete-access-view__loading {
+}
+.complete-access-view__network-card {
+}
+.complete-access-view__network-row {
+}
+.complete-access-view__network-logo {
+}
+.complete-access-view__network-info {
+}
+.complete-access-view__network-title-row {
+}
+.complete-access-view__network-title {
+}
+.complete-access-view__network-subtitle {
+}
+.complete-access-view__network-description {
+}
+.complete-access-view__current-user {
+}
+.complete-access-view__current-user-title {
+}
+.complete-access-view__error {
+}
+.complete-access-view__footer-actions {
+}
+.complete-access-view__submitting {
+}
+
+// --- CreateNetworkView ---
+.create-network-view {
+}
+.create-network-view__panel {
+}
+.create-network-view__header {
+}
+.create-network-view__heading {
+}
+.create-network-view__error {
+}
+.create-network-view__body {
+}
+.create-network-view__section-title {
+}
+.create-network-view__basic-grid {
+}
+.create-network-view__required {
+}
+.create-network-view__image-wrap {
+}
+.create-network-view__image-current {
+}
+.create-network-view__image-preview {
+}
+.create-network-view__image-actions {
+}
+.create-network-view__image-remove-btn {
+}
+.create-network-view__image-change-btn {
+}
+.create-network-view__image-empty {
+}
+.create-network-view__image-placeholder {
+}
+.create-network-view__checkbox-row {
+}
+.create-network-view__checkbox-hint {
+}
+.create-network-view__accesses-header {
+}
+.create-network-view__accesses-list {
+}
+.create-network-view__access-item {
+}
+.create-network-view__access-name {
+}
+.create-network-view__access-status {
+}
+.create-network-view__access-remove-btn {
+}
+.create-network-view__accesses-empty {
+}
+
+// --- InfoNetworkView ---
+.info-network-view {
+}
+.info-network-view__panel {
+}
+.info-network-view__header {
+}
+.info-network-view__heading {
+}
+.info-network-view__header-actions {
+}
+.info-network-view__loading {
+}
+.info-network-view__error {
+}
+.info-network-view__error-actions {
+}
+.info-network-view__content {
+}
+.info-network-view__network-header {
+}
+.info-network-view__network-identity {
+}
+.info-network-view__network-logo {
+}
+.info-network-view__network-title {
+}
+.info-network-view__network-description {
+}
+.info-network-view__section {
+}
+.info-network-view__section-title {
+}
+.info-network-view__box {
+}
+.info-network-view__empty-box {
+}
+.info-network-view__disclosure {
+}
+.info-network-view__summary {
+}
+.info-network-view__summary-icon {
+}
+.info-network-view__list {
+}
+.info-network-view__list-item {
+}
+.info-network-view__list-item--split {
+}
+.info-network-view__list-item-badge {
+}
+.info-network-view__list-item-copy {
+}
+.info-network-view__list-item-name {
+}
+.info-network-view__list-item-description {
+}
+.info-network-view__list-item-actions {
+}
+.info-network-view__detail-grid {
+}
+.info-network-view__detail-label {
+}
+.info-network-view__detail-value {
+}
+.info-network-view__detail-value--mono {
+}
+.info-network-view__user-accesses {
+}
+.info-network-view__no-accesses {
+}
+.info-network-view__footer-actions {
+}
+
+// --- JoinNetworkView ---
+.join-network-view {
+}
+.join-network-view__panel {
+}
+.join-network-view__header {
+}
+.join-network-view__heading {
+}
+.join-network-view__body {
+}
+.join-network-view__network-card {
+}
+.join-network-view__network-card-body {
+}
+.join-network-view__network-row {
+}
+.join-network-view__network-logo {
+}
+.join-network-view__network-info {
+}
+.join-network-view__network-title-row {
+}
+.join-network-view__network-title {
+}
+.join-network-view__network-subtitle {
+}
+.join-network-view__network-description {
+}
+.join-network-view__accesses-loading {
+}
+.join-network-view__section-title {
+}
+.join-network-view__section-subtitle {
+}
+.join-network-view__accesses-list {
+}
+.join-network-view__access-item {
+}
+.join-network-view__access-row {
+}
+.join-network-view__access-checkbox-wrap {
+}
+.join-network-view__access-copy {
+}
+.join-network-view__required-tag {
+}
+.join-network-view__access-description {
+}
+.join-network-view__no-accesses {
+}
+.join-network-view__current-user {
+}
+.join-network-view__current-user-title {
+}
+.join-network-view__error {
+}
+.join-network-view__submitting {
+}
+
+// Shared loading / not-found / invalid-url status block (Login + Signup network views)
+.network-auth-status {
+}
+.network-auth-status__text {
+}
+.network-auth-status__spinner {
+}
+
+// --- LoginNetworkView ---
+.login-network-view__footer {
+}
+.login-network-view__signup-link {
+}
+
+// --- SignupNetworkView ---
+.signup-network-view__footer {
+}
+.signup-network-view__login-link {
+}
+.signup-network-view__network-card {
+}
+.signup-network-view__network-title {
+}
+.signup-network-view__network-description {
+}
+.signup-network-view__account-preview {
+}
+.signup-network-view__account-preview-title {
+}
+.signup-network-view__submitting {
+}
+.signup-network-view__finalizing {
+}
+.signup-network-view__finalizing-title {
+}
+.signup-network-view__finalizing-text {
+}
+
+// --- NetworksView ---
+.networks-view {
+}
+.networks-view__panel {
+}
+.networks-view__header {
+}
+.networks-view__heading {
+}
+.networks-view__tabs-wrap {
+}
+.networks-view__tabs {
+}
+.networks-view__tab {
+}
+.networks-view__tab--active {
+}
+.networks-view__content {
+}
+
+// --- ManageNetworkView ---
+.manage-network-view {
+}
+.manage-network-view__content {
+}
+
+// --- EditNetworkTab ---
+.edit-network-tab {
+}
+.edit-network-tab__content {
+}
+.edit-network-tab__heading {
+}
+.edit-network-tab__main {
+}
+.edit-network-tab__fields {
+}
+.edit-network-tab__fields-grid {
+}
+.edit-network-tab__field--full {
+}
+.edit-network-tab__checkbox-label {
+}
+.edit-network-tab__checkbox-text {
+}
+.edit-network-tab__checkbox-hint {
+}
+.edit-network-tab__image-section {
+}
+.edit-network-tab__image-heading {
+}
+.edit-network-tab__image-wrap {
+}
+.edit-network-tab__image-current {
+}
+.edit-network-tab__image-preview {
+}
+.edit-network-tab__image-actions {
+}
+.edit-network-tab__image-remove-btn {
+}
+.edit-network-tab__image-change-btn {
+}
+.edit-network-tab__image-empty {
+}
+.edit-network-tab__image-placeholder {
+}
+.edit-network-tab__danger-zone {
+}
+.edit-network-tab__danger-zone-title {
+}
+.edit-network-tab__danger-zone-text {
+}
+.edit-network-tab__unsaved-bar {
+}
+.edit-network-tab__unsaved-panel {
+}
+.edit-network-tab__unsaved-text {
+}
+.edit-network-tab__unsaved-actions {
+}
+
+// --- HomeTab (network) ---
+.network-home-tab {
+}
+.network-home-tab__summary-card {
+}
+.network-home-tab__title {
+}
+.network-home-tab__stats {
+}
+.network-home-tab__stat {
+}
+.network-home-tab__stat-label {
+}
+.network-home-tab__stat-value {
+}
+.network-home-tab__id-row {
+}
+.network-home-tab__id {
+}
+.network-home-tab__stats-card {
+}
+.network-home-tab__entitlements {
+}
+.network-home-tab__entitlement-card {
+}
+.network-home-tab__entitlement-card--locked {
+}
+.network-home-tab__entitlement-header {
+}
+.network-home-tab__entitlement-title {
+}
+.network-home-tab__usage {
+}
+.network-home-tab__usage-row {
+}
+.network-home-tab__usage-label {
+}
+.network-home-tab__usage-value {
+}
+.network-home-tab__progress {
+}
+.network-home-tab__progress-fill {
+}
+.network-home-tab__storage {
+}
+.network-home-tab__storage-value {
+}
+.network-home-tab__storage-limit {
+}
+.network-home-tab__unavailable {
+}
+.network-home-tab__unavailable-text {
+}
+
+// Vue <transition name="fade"> helper (shared convention across several
+// unrelated components - kept as the plain, literal Vue transition classes).
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}

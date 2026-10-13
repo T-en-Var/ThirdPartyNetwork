@@ -1,12 +1,12 @@
 <template>
-  <div class="mx-auto max-w-3xl px-6 py-8">
-    <header class="mb-8 text-center">
-      <h1 class="mb-4 text-4xl font-extrabold leading-tight text-gray-900">
+  <div class="blog-renderer">
+    <header class="blog-renderer__header">
+      <h1 class="blog-renderer__title">
         {{ title || 'Untitled Blog Post' }}
       </h1>
       <div
         v-if="publishedAt"
-        class="text-sm text-gray-500"
+        class="blog-renderer__date"
       >
         Published on {{ formatDate(publishedAt) }}
       </div>
@@ -14,7 +14,7 @@
 
     <editor-content
       :editor="editor"
-      class="blog-content prose prose-lg max-w-none prose-p:leading-relaxed prose-img:rounded-xl"
+      class="blog-content"
     />
   </div>
 </template>
@@ -62,7 +62,7 @@ const editor = useEditor({
         HTMLAttributes: {
           target: '_blank',
           rel: 'noopener noreferrer',
-          class: 'text-blue-600 underline hover:text-blue-800 cursor-pointer',
+          class: 'blog-content__link',
         },
       },
     }),
@@ -74,7 +74,7 @@ const editor = useEditor({
     CustomImage,
   ],
   editorProps: {
-    attributes: { class: 'outline-none focus:outline-none' },
+    attributes: { class: 'blog-content__body' },
   },
 });
 
@@ -103,29 +103,3 @@ onBeforeUnmount(() => {
   editor.value?.destroy();
 });
 </script>
-
-<style scoped>
-/* 4. THE CSS FIX 
-   Standard CSS ignores "text-align" on an IMG tag. 
-   We have to translate that inline style into block display + margins.
-*/
-:deep(.blog-content) {
-  img[style*='text-align: center'] {
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-  }
-
-  img[style*='text-align: right'] {
-    display: block;
-    margin-left: auto;
-    margin-right: 0;
-  }
-
-  img[style*='text-align: left'] {
-    display: block;
-    margin-right: auto;
-    margin-left: 0;
-  }
-}
-</style>

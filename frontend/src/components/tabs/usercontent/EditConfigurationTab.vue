@@ -1,15 +1,15 @@
 <template>
-  <div class="space-y-6">
-    <div class="flex justify-start">
+  <div class="edit-configuration-tab">
+    <div class="edit-configuration-tab__back-wrap">
       <div
         @click="handleReturn"
-        class="inline-flex cursor-pointer items-center gap-2 rounded-md bg-gray-100 px-3 py-1.5 text-sm text-gray-700 transition hover:bg-gray-200"
+        class="back-link"
       >
         ← Back to Configurations
       </div>
     </div>
 
-    <div class="rounded-lg bg-white p-6 shadow-md">
+    <div class="card">
       <LoadingErrorComponent
         :loading="loading"
         :error="error ?? undefined"
@@ -20,20 +20,20 @@
 
       <div
         v-if="!loading && !error && cfg"
-        class="space-y-6"
+        class="edit-configuration-tab__body"
       >
-        <h2 class="mb-4 text-xl font-semibold text-gray-800">Edit Configuration</h2>
+        <h2 class="edit-configuration-tab__title">Edit Configuration</h2>
 
         <form
           @submit.prevent="handleUpdate"
-          class="space-y-4"
+          class="form"
         >
-          <div>
-            <label class="mb-1 block text-sm font-medium text-gray-700">Key</label>
+          <div class="form-field">
+            <label class="form-label">Key</label>
             <input
               v-model="form.key"
               disabled
-              class="block w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-2 text-sm text-gray-700"
+              class="form-input"
             />
           </div>
 
@@ -42,15 +42,13 @@
             label="Access Level"
           />
 
-          <div>
-            <label class="mb-1 block text-sm font-medium text-gray-700">Value</label>
+          <div class="form-field">
+            <label class="form-label">Value</label>
             <div v-if="!editMode">
-              <pre class="overflow-x-auto rounded-md border bg-gray-50 p-2 text-xs">{{
-                formattedValue
-              }}</pre>
+              <pre class="json-preview">{{ formattedValue }}</pre>
               <button
                 type="button"
-                class="mt-2 rounded-md bg-blue-600 px-3 py-1 text-sm text-white"
+                class="btn btn--primary btn--sm"
                 @click="editMode = true"
               >
                 Edit JSON
@@ -60,19 +58,19 @@
               <JsonEditorVue
                 v-model="jsonValue"
                 :stringified="false"
-                class="h-64 rounded-md border"
+                class="edit-configuration-tab__json-editor"
               />
-              <div class="mt-2 flex justify-end space-x-2">
+              <div class="edit-configuration-tab__json-actions">
                 <button
                   type="button"
-                  class="rounded-md bg-gray-200 px-3 py-1 text-sm text-gray-700"
+                  class="btn btn--outline btn--sm"
                   @click="cancelEdit"
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
-                  class="rounded-md bg-green-600 px-3 py-1 text-sm text-white"
+                  class="btn btn--success btn--sm"
                   @click="saveJson"
                 >
                   Save JSON
@@ -81,17 +79,17 @@
             </div>
           </div>
 
-          <div class="flex justify-end space-x-2">
+          <div class="form__actions">
             <button
               type="button"
-              class="rounded-md bg-red-600 px-4 py-2 text-white"
+              class="btn btn--danger"
               @click="confirmDelete"
             >
               Delete
             </button>
             <button
               type="submit"
-              class="rounded-md bg-blue-600 px-4 py-2 text-white"
+              class="btn btn--primary"
             >
               Save
             </button>

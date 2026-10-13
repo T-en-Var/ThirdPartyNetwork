@@ -1,16 +1,16 @@
 <template>
-  <div class="container mx-auto mt-8 px-4 py-8">
-    <div class="overflow-hidden rounded-lg bg-white shadow-md">
-      <div class="border-b border-gray-200 bg-gray-100 px-6 py-4">
-        <h1 class="text-2xl font-semibold text-gray-800">Terms of Service</h1>
+  <div class="tos-page">
+    <div class="card">
+      <div class="card__header">
+        <h1 class="card__title">Terms of Service</h1>
       </div>
 
-      <div class="p-6">
-        <div class="prose max-w-none">
-          <h2 class="mb-4 text-xl font-medium text-gray-800">Data Access and Privacy</h2>
+      <div class="card__body">
+        <div class="tos-page__content prose">
+          <h2>Data Access and Privacy</h2>
 
-          <div class="mb-6 border-l-4 border-blue-500 bg-blue-50 p-4">
-            <span class="text-blue-700"
+          <div class="alert alert--info">
+            <span
               ><strong>Important:</strong> Networks only access data you explicitly allow them to
               read from you. You maintain control over your information at all times.</span
             ><br />
@@ -20,53 +20,53 @@
             >
           </div>
 
-          <h3 class="mb-3 text-lg font-medium text-gray-700">Data Access Controls</h3>
-          <p class="mb-4 text-gray-600">
+          <h3>Data Access Controls</h3>
+          <p>
             Our platform is designed with privacy and security as core principles. When you join a
             network, you explicitly control what information is shared:
           </p>
 
-          <ul class="mb-6 list-disc pl-6 text-gray-600">
-            <li class="mb-2">All data access is opt-in, requiring your explicit permission</li>
-            <li class="mb-2">You can revoke access to your data at any time</li>
-            <li class="mb-2">Network administrators cannot override your privacy settings</li>
-            <li class="mb-2">You will be notified of any changes to network access requests</li>
+          <ul>
+            <li>All data access is opt-in, requiring your explicit permission</li>
+            <li>You can revoke access to your data at any time</li>
+            <li>Network administrators cannot override your privacy settings</li>
+            <li>You will be notified of any changes to network access requests</li>
           </ul>
 
-          <h3 class="mb-3 text-lg font-medium text-gray-700">Your Rights and Responsibilities</h3>
-          <p class="mb-4 text-gray-600">As a user of our platform, you have the right to:</p>
+          <h3>Your Rights and Responsibilities</h3>
+          <p>As a user of our platform, you have the right to:</p>
 
-          <ul class="mb-6 list-disc pl-6 text-gray-600">
-            <li class="mb-2">Review all data being shared with each network</li>
-            <li class="mb-2">Export your personal data in a machine-readable format</li>
-            <li class="mb-2">Request deletion of your account and associated data</li>
-            <li class="mb-2">Receive notifications about data access changes</li>
+          <ul>
+            <li>Review all data being shared with each network</li>
+            <li>Export your personal data in a machine-readable format</li>
+            <li>Request deletion of your account and associated data</li>
+            <li>Receive notifications about data access changes</li>
           </ul>
 
-          <h3 class="mb-3 text-lg font-medium text-gray-700">Security Measures</h3>
-          <p class="mb-4 text-gray-600">
+          <h3>Security Measures</h3>
+          <p>
             We implement industry-standard security practices to ensure your data remains protected:
           </p>
 
-          <ul class="mb-6 list-disc pl-6 text-gray-600">
-            <li class="mb-2">End-to-end encryption for sensitive information</li>
-            <li class="mb-2">Regular security audits and vulnerability assessments</li>
-            <li class="mb-2">Strict access controls to prevent unauthorized access</li>
-            <li class="mb-2">Continuous monitoring for suspicious activities</li>
+          <ul>
+            <li>End-to-end encryption for sensitive information</li>
+            <li>Regular security audits and vulnerability assessments</li>
+            <li>Strict access controls to prevent unauthorized access</li>
+            <li>Continuous monitoring for suspicious activities</li>
           </ul>
 
-          <h3 class="mb-3 text-lg font-medium text-gray-700">Updates to Terms</h3>
-          <p class="text-gray-600">
+          <h3>Updates to Terms</h3>
+          <p>
             We may update these terms from time to time. Significant changes will be communicated to
             you directly. Continued use of the platform constitutes acceptance of the updated terms.
           </p>
         </div>
 
-        <div class="mt-4 flex justify-end">
+        <div class="tos-page__actions">
           <template v-if="hasRedirect">
             <button
               @click="handleContinue"
-              class="rounded-md bg-green-600 px-4 py-2 text-white transition-colors hover:bg-green-700"
+              class="btn btn--success"
             >
               Continue Signing Up
             </button>
@@ -74,7 +74,7 @@
           <template v-else>
             <router-link
               to="/"
-              class="rounded-md bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
+              class="btn btn--primary"
             >
               Back to Home
             </router-link>

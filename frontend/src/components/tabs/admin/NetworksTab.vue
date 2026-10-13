@@ -1,18 +1,17 @@
 <template>
   <div>
-    <div class="mb-8 flex items-center justify-between">
+    <div class="admin-networks-tab__header">
       <div>
-        <h1 class="text-2xl font-bold text-slate-900">Manage Networks</h1>
-        <p class="mt-1 text-slate-500">Overview of all networks in the system</p>
+        <h1 class="admin-networks-tab__title">Manage Networks</h1>
+        <p class="admin-networks-tab__subtitle">Overview of all networks in the system</p>
       </div>
       <button
         @click="refreshNetworks"
-        class="p-2 text-slate-400 transition-colors hover:text-purple-600"
+        class="admin-networks-tab__refresh-btn"
         title="Refresh"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          class="h-5 w-5"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -35,44 +34,42 @@
 
     <div
       v-if="!!networks && !!mainNetwork && !loading"
-      class="flex flex-col gap-4"
+      class="admin-networks-tab__body"
     >
-      <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div class="flex justify-between border-b border-slate-100 bg-slate-50/50 px-4 py-3">
-          <h1 class="text-xs font-bold uppercase tracking-widest text-slate-500">
-            Global Entitlement Limits
-          </h1>
+      <div class="card">
+        <div class="admin-networks-tab__limits-header">
+          <h1 class="admin-networks-tab__limits-title">Global Entitlement Limits</h1>
           <button
             @click="handleEditNetwork(mainNetwork)"
-            class="pr-4 text-sm font-medium text-purple-600 hover:text-purple-800"
+            class="admin-networks-tab__edit-link"
           >
             Edit
           </button>
         </div>
 
-        <div class="flex flex-row flex-wrap justify-start gap-8 p-4">
+        <div class="admin-networks-tab__limits-groups">
           <div
             v-for="group in groupedEntitlements"
             :key="group.name"
-            class="space-y-2"
+            class="admin-networks-tab__limits-group"
           >
-            <h2 class="text-[11px] font-semibold uppercase tracking-tighter text-blue-600">
+            <h2 class="admin-networks-tab__limits-group-title">
               {{ group.name }}
             </h2>
 
-            <div class="flex flex-wrap gap-2">
+            <div class="admin-networks-tab__limits-items">
               <div
                 v-for="item in group.items"
                 :key="item.label"
-                class="flex items-center rounded-lg border border-slate-200 bg-slate-50/50 px-2 py-1 text-[11px] transition-all hover:border-slate-300 hover:bg-white"
+                class="admin-networks-tab__limit-item"
               >
-                <span class="mr-2 text-nowrap font-medium text-slate-500">{{ item.label }}</span>
-                <div class="text-slate-800">
+                <span class="admin-networks-tab__limit-item-label">{{ item.label }}</span>
+                <div class="admin-networks-tab__limit-item-value">
                   <span
-                    class="cursor-help border-l border-slate-200 pl-2"
+                    class="admin-networks-tab__limit-item-used"
                     :title="`${getEntitlementNumber(totalMetrics, item.key)?.toLocaleString()} used`"
                     :class="{
-                      'text-red-800':
+                      'admin-networks-tab__limit-item-used--over':
                         (getEntitlementNumber(totalMetrics, item.key) as number) >
                         totalLimits[item.key],
                     }"
@@ -82,11 +79,11 @@
                   >
                   <span
                     :title="`${totalLimits[item.key].toLocaleString('nl-NL')} used limit`"
-                    class="cursor-help"
+                    class="admin-networks-tab__limit-item-total"
                     :class="{
-                      'font-bold text-orange-400':
+                      'admin-networks-tab__limit-item-total--warning':
                         remainingLimits[item.key] < 10 && remainingLimits[item.key] > 0,
-                      'font-bold text-red-800': remainingLimits[item.key] <= 0,
+                      'admin-networks-tab__limit-item-total--over': remainingLimits[item.key] <= 0,
                     }"
                   >
                     {{
@@ -97,7 +94,7 @@
                   >
                   <span
                     :title="`${item.value.toLocaleString('nl-NL')} limit`"
-                    class="cursor-help text-nowrap font-bold text-slate-800"
+                    class="admin-networks-tab__limit-item-max"
                   >
                     {{ item.value.toLocaleString('nl-NL') }}
                   </span>
@@ -108,7 +105,7 @@
 
           <div
             v-if="groupedEntitlements.length === 0"
-            class="py-4 text-center text-sm italic text-slate-400"
+            class="admin-networks-tab__limits-empty"
           >
             No active limits found.
           </div>
@@ -117,13 +114,12 @@
 
       <div
         v-if="mainNetwork"
-        class="mb-4 rounded-xl border border-slate-200 bg-white shadow-sm"
+        class="card admin-networks-tab__filters-card"
       >
-        <div class="flex flex-wrap items-center justify-between gap-4 p-3">
-          <div class="relative min-w-[300px] flex-1">
-            <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+        <div class="admin-networks-tab__filters-bar">
+          <div class="admin-networks-tab__search">
+            <span class="admin-networks-tab__search-icon">
               <svg
-                class="h-4 w-4 text-slate-400"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -140,38 +136,33 @@
               v-model="searchQuery"
               type="text"
               placeholder="Search name or ID..."
-              class="block w-full rounded-lg border border-slate-200 py-2 pl-10 pr-3 text-sm outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
+              class="form-input admin-networks-tab__search-input"
             />
           </div>
 
-          <div class="flex items-center gap-2">
+          <div class="admin-networks-tab__filters-actions">
             <button
               v-if="
                 Object.keys(activeBooleanFilters).length || Object.keys(activeRangeFilters).length
               "
               @click="resetFilters"
-              class="px-2 text-xs font-semibold text-slate-400 transition-colors hover:text-red-500"
+              class="admin-networks-tab__clear-link"
             >
               Clear All
             </button>
             <button
               @click="showFilters = !showFilters"
-              :class="
-                showFilters
-                  ? 'border-purple-200 bg-purple-50 text-purple-700'
-                  : 'border-slate-200 bg-white text-slate-600'
-              "
-              class="relative flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-all hover:bg-slate-50"
+              class="admin-networks-tab__filters-toggle"
+              :class="{ 'admin-networks-tab__filters-toggle--active': showFilters }"
             >
               <span
                 v-if="activeFilterCount > 0 && !showFilters"
-                class="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-purple-600 text-[10px] text-white shadow-sm"
+                class="admin-networks-tab__filters-count"
               >
                 {{ activeFilterCount }}
               </span>
 
               <svg
-                class="h-4 w-4"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -190,24 +181,20 @@
 
         <div
           v-if="showFilters"
-          class="space-y-6 border-t border-slate-100 bg-slate-50/30 px-4 py-4"
+          class="admin-networks-tab__advanced-filters"
         >
           <div>
-            <p class="mb-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">
-              Feature Entitlements
-            </p>
-            <div class="flex flex-wrap gap-2">
+            <p class="admin-networks-tab__filters-label">Feature Entitlements</p>
+            <div class="admin-networks-tab__filter-chips">
               <button
                 v-for="key in Object.keys(entitlementKeys).filter((k) => k.startsWith('allow'))"
                 :key="key"
                 @click="toggleBooleanFilter(key)"
+                class="admin-networks-tab__filter-chip"
                 :class="{
-                  'border-green-600 bg-green-600 text-white': activeBooleanFilters[key] === true,
-                  'border-red-600 bg-red-600 text-white': activeBooleanFilters[key] === false,
-                  'border-slate-200 bg-white text-slate-600':
-                    activeBooleanFilters[key] === null || activeBooleanFilters[key] === undefined,
+                  'admin-networks-tab__filter-chip--true': activeBooleanFilters[key] === true,
+                  'admin-networks-tab__filter-chip--false': activeBooleanFilters[key] === false,
                 }"
-                class="flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium shadow-sm transition-all"
               >
                 <span v-if="activeBooleanFilters[key] === true">✓</span>
                 <span v-if="activeBooleanFilters[key] === false">✕</span>
@@ -217,22 +204,16 @@
           </div>
 
           <div>
-            <p class="mb-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">
-              Capacity Thresholds
-            </p>
-            <div class="flex flex-row flex-wrap items-start gap-4">
+            <p class="admin-networks-tab__filters-label">Capacity Thresholds</p>
+            <div class="admin-networks-tab__threshold-list">
               <div
                 v-for="key in allEntitlementKeys.filter((k) => k.includes('Limit'))"
                 :key="key"
-                class="rounded-lg border border-slate-200 bg-white p-3 shadow-sm"
-                :class="[
-                  !!activeRangeFilters[key]
-                    ? 'basis-[calc(33.333%-1rem)]'
-                    : 'basis-[calc(16.666%-1rem)]',
-                ]"
+                class="admin-networks-tab__threshold-card"
+                :class="{ 'admin-networks-tab__threshold-card--expanded': !!activeRangeFilters[key] }"
               >
-                <div class="mb-2 flex items-center justify-between">
-                  <span class="text-[11px] font-bold text-slate-700">
+                <div class="admin-networks-tab__threshold-card-header">
+                  <span class="admin-networks-tab__threshold-card-title">
                     {{ capitalize(key.replace('Limit', '').replace(/([A-Z])/g, ' $1')) }}
                   </span>
                   <input
@@ -247,30 +228,28 @@
                             ])
                           : delete activeRangeFilters[key]
                     "
-                    class="rounded text-purple-600"
+                    class="checkbox"
                   />
                 </div>
 
                 <div v-if="activeRangeFilters[key]">
-                  <span class="pt-2 text-[10px] font-bold uppercase tracking-widest text-slate-400"
-                    >Limit</span
-                  >
-                  <div class="flex items-center gap-2">
+                  <span class="admin-networks-tab__threshold-sub-label">Limit</span>
+                  <div class="admin-networks-tab__threshold-range-inputs">
                     <input
                       type="number"
                       v-model.number="activeRangeFilters[key][0][0]"
-                      class="w-full rounded border p-1 text-[11px]"
+                      class="form-input admin-networks-tab__threshold-number"
                       placeholder="Min"
                     />
-                    <span class="text-slate-400">-</span>
+                    <span class="admin-networks-tab__threshold-range-sep">-</span>
                     <input
                       type="number"
                       v-model.number="activeRangeFilters[key][0][1]"
-                      class="w-full rounded border p-1 text-[11px]"
+                      class="form-input admin-networks-tab__threshold-number"
                       placeholder="Max"
                     />
                   </div>
-                  <div class="flex flex-row flex-nowrap gap-6">
+                  <div class="admin-networks-tab__threshold-slider">
                     <DualSlider
                       v-model="activeRangeFilters[key][0]"
                       :min="0"
@@ -278,25 +257,23 @@
                     />
                   </div>
 
-                  <span class="pt-2 text-[10px] font-bold uppercase tracking-widest text-slate-400"
-                    >Used</span
-                  >
-                  <div class="flex items-center gap-2">
+                  <span class="admin-networks-tab__threshold-sub-label">Used</span>
+                  <div class="admin-networks-tab__threshold-range-inputs">
                     <input
                       type="number"
                       v-model.number="activeRangeFilters[key][1][0]"
-                      class="w-full rounded border p-1 text-[11px]"
+                      class="form-input admin-networks-tab__threshold-number"
                       placeholder="Min"
                     />
-                    <span class="text-slate-400">-</span>
+                    <span class="admin-networks-tab__threshold-range-sep">-</span>
                     <input
                       type="number"
                       v-model.number="activeRangeFilters[key][1][1]"
-                      class="w-full rounded border p-1 text-[11px]"
+                      class="form-input admin-networks-tab__threshold-number"
                       placeholder="Max"
                     />
                   </div>
-                  <div class="flex flex-row flex-nowrap gap-6">
+                  <div class="admin-networks-tab__threshold-slider">
                     <DualSlider
                       v-model="activeRangeFilters[key][1]"
                       :min="0"
@@ -304,7 +281,7 @@
                     />
                   </div>
 
-                  <div class="flex justify-between text-[10px] text-slate-400">
+                  <div class="admin-networks-tab__threshold-minmax">
                     <span>Min: 0</span>
                     <span>Global Max: {{ mainNetwork!.entitlement![key] }}</span>
                   </div>
@@ -315,14 +292,14 @@
                       activeRangeFilters[key][1][0] > activeRangeFilters[key][1][1]
                     "
                   >
-                    <span class="pt-2 text-xs font-bold text-orange-400">
+                    <span class="admin-networks-tab__threshold-warning">
                       This filter is excluding all results.
                     </span>
                   </div>
                 </div>
                 <div
                   v-else
-                  class="text-[10px] italic text-slate-400"
+                  class="admin-networks-tab__threshold-inactive"
                 >
                   Filter inactive
                 </div>
@@ -330,25 +307,19 @@
             </div>
           </div>
 
-          <div class="flex flex-row flex-wrap gap-2 pt-4 lg:flex-nowrap">
+          <div class="admin-networks-tab__sort-row">
             <div>
-              <p
-                class="mb-3 text-nowrap text-[10px] font-bold uppercase tracking-widest text-slate-400"
-              >
+              <p class="admin-networks-tab__filters-label admin-networks-tab__filters-label--nowrap">
                 Sort Results By
               </p>
 
-              <div class="flex flex-wrap gap-2">
+              <div class="admin-networks-tab__filter-chips">
                 <button
                   v-for="key in ['name', 'id', 'users']"
                   :key="key"
                   @click="toggleSort(key)"
-                  :class="
-                    sortBy === key
-                      ? 'border-purple-600 bg-purple-600 text-white'
-                      : 'border-slate-200 bg-white text-slate-600'
-                  "
-                  class="flex items-center gap-1 rounded-md border px-3 py-1.5 text-xs font-medium capitalize shadow-sm"
+                  class="admin-networks-tab__sort-chip"
+                  :class="{ 'admin-networks-tab__sort-chip--active': sortBy === key }"
                 >
                   {{ key }}
                   <span v-if="sortBy === key">{{ sortOrder === 'asc' ? '↑' : '↓' }}</span>
@@ -356,21 +327,15 @@
               </div>
             </div>
             <div>
-              <p class="mb-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                Sort Results By Max Limit
-              </p>
+              <p class="admin-networks-tab__filters-label">Sort Results By Max Limit</p>
 
-              <div class="flex flex-wrap gap-2">
+              <div class="admin-networks-tab__filter-chips">
                 <button
                   v-for="key in allEntitlementKeys"
                   :key="key"
                   @click="toggleSort(key)"
-                  :class="
-                    sortBy === key
-                      ? 'border-purple-600 bg-purple-600 text-white'
-                      : 'border-slate-200 bg-white text-slate-600'
-                  "
-                  class="flex items-center gap-1 rounded-md border px-3 py-1.5 text-xs font-medium capitalize shadow-sm"
+                  class="admin-networks-tab__sort-chip"
+                  :class="{ 'admin-networks-tab__sort-chip--active': sortBy === key }"
                 >
                   {{ key.replace('Limit', '').replace(/([A-Z])/g, ' $1') }}
                   <span v-if="sortBy === key">{{ sortOrder === 'asc' ? '↑' : '↓' }}</span>
@@ -378,21 +343,15 @@
               </div>
             </div>
             <div>
-              <p class="mb-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                Sort Results By Used
-              </p>
+              <p class="admin-networks-tab__filters-label">Sort Results By Used</p>
 
-              <div class="flex flex-wrap gap-2">
+              <div class="admin-networks-tab__filter-chips">
                 <button
                   v-for="key in allEntitlementKeys"
                   :key="key"
                   @click="toggleSort(`used-${key}`)"
-                  :class="
-                    sortBy === `used-${key}`
-                      ? 'border-purple-600 bg-purple-600 text-white'
-                      : 'border-slate-200 bg-white text-slate-600'
-                  "
-                  class="flex items-center gap-1 rounded-md border px-3 py-1.5 text-xs font-medium capitalize shadow-sm"
+                  class="admin-networks-tab__sort-chip"
+                  :class="{ 'admin-networks-tab__sort-chip--active': sortBy === `used-${key}` }"
                 >
                   {{ key.replace('Limit', '').replace(/([A-Z])/g, ' $1') }}
                   <span v-if="sortBy === `used-${key}`">{{ sortOrder === 'asc' ? '↑' : '↓' }}</span>
@@ -402,108 +361,95 @@
           </div>
         </div>
 
-        <span
-          class="mb-4 block pl-4 text-[10px] font-bold uppercase leading-none tracking-widest text-slate-400"
-        >
+        <span class="admin-networks-tab__results-count">
           Showing
-          <span class="pl-1 text-lg font-black leading-none text-slate-900">
+          <span class="admin-networks-tab__results-count-value">
             {{ filteredNetworks.length }}
           </span>
-          <span class="text-xs font-medium text-slate-400"> / {{ allNetworks.length }} </span>
+          <span class="admin-networks-tab__results-count-total"> / {{ allNetworks.length }} </span>
           Networks
         </span>
       </div>
 
-      <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div class="overflow-x-auto">
-          <table class="w-full border-collapse text-left">
+      <div class="card admin-networks-tab__table-card">
+        <div class="admin-networks-tab__table-scroll">
+          <table class="table">
             <thead>
-              <tr class="border-b border-slate-200 bg-slate-50">
-                <th
-                  class="w-64 px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-500"
-                >
+              <tr class="table__row">
+                <th class="table__cell table__cell--head admin-networks-tab__col-name">
                   Network Name
                 </th>
-                <th
-                  class="min-w-56 px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-500"
-                >
-                  ID
-                </th>
-                <th
-                  class="w-1/2 px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-500"
-                >
+                <th class="table__cell table__cell--head admin-networks-tab__col-id">ID</th>
+                <th class="table__cell table__cell--head admin-networks-tab__col-entitlements">
                   Entitlements
                 </th>
+                <th class="table__cell table__cell--head admin-networks-tab__col-users">Users</th>
                 <th
-                  class="w-0 px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-500"
-                >
-                  Users
-                </th>
-                <th
-                  class="w-32 px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-slate-500"
+                  class="table__cell table__cell--head admin-networks-tab__col-actions"
                 >
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-slate-100">
+            <tbody>
               <tr
                 v-for="network in filteredNetworks"
                 :key="network.id"
-                class="transition-colors hover:bg-slate-50/50"
+                class="table__row"
               >
-                <td class="px-6 py-4">
-                  <div class="flex gap-2">
-                    <div class="font-medium text-slate-900">{{ network.name }}</div>
+                <td class="table__cell">
+                  <div class="admin-networks-tab__name-row">
+                    <div class="admin-networks-tab__name">{{ network.name }}</div>
                   </div>
-                  <div class="max-w-xs truncate text-sm text-slate-500">
+                  <div class="admin-networks-tab__description">
                     {{ network.description }}
                   </div>
                 </td>
 
-                <td class="px-6 py-4 font-mono text-sm text-slate-500">
+                <td class="table__cell admin-networks-tab__id-cell">
                   <SecurableField
                     :value="network.id"
                     :sensitive="true"
                   />
                 </td>
-                <td class="max-w-xs px-6 py-4">
-                  <div class="flex flex-wrap gap-1.5">
+                <td class="table__cell admin-networks-tab__entitlements-cell">
+                  <div class="admin-networks-tab__entitlement-chips">
                     <template v-if="Object.keys(network.entitlement || {}).length > 0">
                       <span
                         v-for="(val, key) in network.entitlement"
                         v-show="key != 'networkId'"
                         :key="key"
-                        class="transition-hover inline-flex items-center rounded-md border border-slate-200 bg-white px-2 py-0.5 text-[11px] font-medium shadow-sm hover:border-blue-300"
+                        class="admin-networks-tab__entitlement-chip"
                       >
-                        <span class="mr-1 font-normal uppercase tracking-tighter text-slate-400">{{
-                          key
-                        }}</span>
+                        <span class="admin-networks-tab__entitlement-chip-key">{{ key }}</span>
                         <span
-                          class="ml-0.5 border-l border-slate-200 pl-1.5 font-normal"
+                          class="admin-networks-tab__entitlement-chip-value"
                           :class="{
-                            'text-green-500': val === true,
-                            'text-red-500': val === false,
-                            'font-bold text-slate-700': val !== true && val !== false,
+                            'admin-networks-tab__entitlement-chip-value--true': val === true,
+                            'admin-networks-tab__entitlement-chip-value--false': val === false,
+                            'admin-networks-tab__entitlement-chip-value--number':
+                              val !== true && val !== false,
                           }"
                           ><span
                             :class="{
-                              'text-red-500':
+                              'admin-networks-tab__entitlement-chip-used--over':
                                 (getEntitlementNumber(network, key) ?? 0) > (val as number),
                             }"
                             >{{ getEntitlementNumber(network, key)?.toLocaleString('nl-NL') }}</span
                           >{{ getEntitlementNumber(network, key) !== undefined ? '/' : ''
-                          }}<span class="font-bold">{{ val.toLocaleString('nl-NL') }}</span></span
+                          }}<span class="admin-networks-tab__entitlement-chip-max">{{
+                            val.toLocaleString('nl-NL')
+                          }}</span></span
                         >
                       </span>
                     </template>
 
                     <span
                       v-else
-                      class="flex items-center text-xs italic text-slate-400"
+                      class="admin-networks-tab__no-entitlements"
                     >
                       <svg
-                        class="mr-1 h-3 w-3 opacity-50"
+                        class="admin-networks-tab__no-entitlements-icon"
                         fill="currentColor"
                         viewBox="0 0 20 20"
                       >
@@ -517,25 +463,25 @@
                     </span>
                   </div>
                 </td>
-                <td class="px-6 py-4 font-mono text-sm text-slate-500">
+                <td class="table__cell admin-networks-tab__users-cell">
                   {{ network.networkUsers.length }}
                 </td>
-                <td class="space-x-2 px-6 py-4 text-right">
+                <td class="table__cell admin-networks-tab__actions-cell">
                   <button
                     @click="handleEditNetwork(network)"
-                    class="text-sm font-medium text-purple-600 hover:text-purple-800"
+                    class="admin-networks-tab__action-link"
                   >
                     Entitlements
                   </button>
                   <button
                     @click="handleManageNetwork(network)"
-                    class="text-sm font-medium text-indigo-600 hover:text-indigo-800"
+                    class="admin-networks-tab__action-link admin-networks-tab__action-link--manage"
                   >
                     Manage
                   </button>
                   <button
                     @click="$emit('delete-network', network)"
-                    class="text-sm font-medium text-red-600 hover:text-red-800"
+                    class="admin-networks-tab__action-link admin-networks-tab__action-link--danger"
                   >
                     Delete
                   </button>
@@ -544,7 +490,7 @@
               <tr v-if="networks.length === 0">
                 <td
                   colspan="4"
-                  class="px-6 py-12 text-center text-slate-500"
+                  class="table__cell admin-networks-tab__empty-cell"
                 >
                   No networks found.
                 </td>

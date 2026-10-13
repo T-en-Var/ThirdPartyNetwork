@@ -1,23 +1,21 @@
 <template>
   <div
-    :class="{
-      'font-medium': !sensitive || isVisible,
-      'flex flex-nowrap items-center justify-start whitespace-nowrap text-nowrap': 1,
-    }"
+    class="securable-field"
+    :class="{ 'securable-field--emphasized': !sensitive || isVisible }"
   >
     <template v-if="sensitive && !isVisible">
-      <span class="inline-block select-none blur-sm">••••••••</span>
+      <span class="securable-field__mask">••••••••</span>
       <span
-        class="ml-2 cursor-pointer text-xs text-blue-600"
+        class="securable-field__toggle"
         @click="toggleVisibility"
         >({{ buttonText }})</span
       >
     </template>
     <template v-else>
-      <span class="break-all">{{ value || 'Not provided' }}</span>
+      <span class="securable-field__value">{{ value || 'Not provided' }}</span>
       <span
         v-if="sensitive"
-        class="ml-2 cursor-pointer text-xs text-blue-600"
+        class="securable-field__toggle"
         @click="toggleVisibility"
         >(Click to hide)</span
       >

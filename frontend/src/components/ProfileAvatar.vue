@@ -1,16 +1,19 @@
 <template>
-  <div :class="['overflow-hidden rounded-full', sizeClasses]">
+  <div
+    class="avatar"
+    :style="{ width: `${sizeValue}px`, height: `${sizeValue}px` }"
+  >
     <CloudinaryFile
       v-if="userProxy.imageFile"
       :file="userProxy.imageFile"
       :display-only="true"
-      class="h-full w-full object-cover"
+      class="avatar__image"
     />
     <img
       v-else
       :src="avatarSrc"
       :alt="altText"
-      class="h-full w-full object-cover"
+      class="avatar__image"
     />
   </div>
 </template>
@@ -28,10 +31,6 @@ interface Props {
 const props = defineProps<Props>();
 
 const sizeValue = computed(() => props.size || 80);
-
-const sizeClasses = computed(() => {
-  return `h-${sizeValue.value} w-${sizeValue.value}`;
-});
 
 const avatarSrc = computed(() => {
   const name = `${props.userProxy.firstName}+${props.userProxy.lastName}`;

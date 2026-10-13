@@ -1,6 +1,6 @@
 <template>
-  <div class="overflow-hidden rounded-lg bg-white p-6 shadow-md">
-    <div class="flex flex-col gap-6">
+  <div class="card">
+    <div class="custom-pages-tab__content">
       <UserContentViewer
         title="Custom Pages"
         :entries="customPages || []"

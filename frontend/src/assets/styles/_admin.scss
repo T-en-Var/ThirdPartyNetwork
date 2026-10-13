@@ -1,0 +1,431 @@
+// Styles for the "admin" part of the application.
+// Classes are placeholders (empty) - the visual design is added later.
+
+// Shared table-header-cell modifier (used by both admin tables below).
+.table__cell--head {
+}
+
+// --- AdminView ---
+.admin-view {
+}
+.admin-view__content {
+}
+
+// --- HomeTab (admin) ---
+.admin-home-tab {
+}
+.admin-home-tab__card {
+}
+.admin-home-tab__title {
+}
+
+// --- NetworksTab (admin) ---
+.admin-networks-tab__header {
+}
+.admin-networks-tab__title {
+}
+.admin-networks-tab__subtitle {
+}
+.admin-networks-tab__refresh-btn {
+}
+.admin-networks-tab__body {
+}
+.admin-networks-tab__limits-header {
+}
+.admin-networks-tab__limits-title {
+}
+.admin-networks-tab__edit-link {
+}
+.admin-networks-tab__limits-groups {
+}
+.admin-networks-tab__limits-group {
+}
+.admin-networks-tab__limits-group-title {
+}
+.admin-networks-tab__limits-items {
+}
+.admin-networks-tab__limit-item {
+}
+.admin-networks-tab__limit-item-label {
+}
+.admin-networks-tab__limit-item-value {
+}
+.admin-networks-tab__limit-item-used {
+}
+.admin-networks-tab__limit-item-used--over {
+}
+.admin-networks-tab__limit-item-total {
+}
+.admin-networks-tab__limit-item-total--warning {
+}
+.admin-networks-tab__limit-item-total--over {
+}
+.admin-networks-tab__limit-item-max {
+}
+.admin-networks-tab__limits-empty {
+}
+.admin-networks-tab__filters-card {
+}
+.admin-networks-tab__filters-bar {
+}
+.admin-networks-tab__search {
+}
+.admin-networks-tab__search-icon {
+}
+.admin-networks-tab__search-input {
+}
+.admin-networks-tab__filters-actions {
+}
+.admin-networks-tab__clear-link {
+}
+.admin-networks-tab__filters-toggle {
+}
+.admin-networks-tab__filters-toggle--active {
+}
+.admin-networks-tab__filters-count {
+}
+.admin-networks-tab__advanced-filters {
+}
+.admin-networks-tab__filters-label {
+}
+.admin-networks-tab__filters-label--nowrap {
+}
+.admin-networks-tab__filter-chips {
+}
+.admin-networks-tab__filter-chip {
+}
+.admin-networks-tab__filter-chip--true {
+}
+.admin-networks-tab__filter-chip--false {
+}
+.admin-networks-tab__threshold-list {
+}
+.admin-networks-tab__threshold-card {
+}
+.admin-networks-tab__threshold-card--expanded {
+}
+.admin-networks-tab__threshold-card-header {
+}
+.admin-networks-tab__threshold-card-title {
+}
+.admin-networks-tab__threshold-sub-label {
+}
+.admin-networks-tab__threshold-range-inputs {
+}
+.admin-networks-tab__threshold-number {
+}
+.admin-networks-tab__threshold-range-sep {
+}
+.admin-networks-tab__threshold-slider {
+}
+.admin-networks-tab__threshold-minmax {
+}
+.admin-networks-tab__threshold-warning {
+}
+.admin-networks-tab__threshold-inactive {
+}
+.admin-networks-tab__sort-row {
+}
+.admin-networks-tab__sort-chip {
+}
+.admin-networks-tab__sort-chip--active {
+}
+.admin-networks-tab__results-count {
+}
+.admin-networks-tab__results-count-value {
+}
+.admin-networks-tab__results-count-total {
+}
+.admin-networks-tab__table-card {
+}
+.admin-networks-tab__table-scroll {
+}
+.admin-networks-tab__col-name {
+}
+.admin-networks-tab__col-id {
+}
+.admin-networks-tab__col-entitlements {
+}
+.admin-networks-tab__col-users {
+}
+.admin-networks-tab__col-actions {
+}
+.admin-networks-tab__name-row {
+}
+.admin-networks-tab__name {
+}
+.admin-networks-tab__description {
+}
+.admin-networks-tab__id-cell {
+}
+.admin-networks-tab__entitlements-cell {
+}
+.admin-networks-tab__entitlement-chips {
+}
+.admin-networks-tab__entitlement-chip {
+}
+.admin-networks-tab__entitlement-chip-key {
+}
+.admin-networks-tab__entitlement-chip-value {
+}
+.admin-networks-tab__entitlement-chip-value--true {
+}
+.admin-networks-tab__entitlement-chip-value--false {
+}
+.admin-networks-tab__entitlement-chip-value--number {
+}
+.admin-networks-tab__entitlement-chip-used--over {
+}
+.admin-networks-tab__entitlement-chip-max {
+}
+.admin-networks-tab__no-entitlements {
+}
+.admin-networks-tab__no-entitlements-icon {
+}
+.admin-networks-tab__users-cell {
+}
+.admin-networks-tab__actions-cell {
+}
+.admin-networks-tab__action-link {
+}
+.admin-networks-tab__action-link--manage {
+}
+.admin-networks-tab__action-link--danger {
+}
+.admin-networks-tab__empty-cell {
+}
+
+// --- UsersTab (admin) ---
+.admin-users-tab__header {
+}
+.admin-users-tab__title {
+}
+.admin-users-tab__subtitle {
+}
+.admin-users-tab__refresh-btn {
+}
+.admin-users-tab__body {
+}
+.admin-users-tab__filters-card {
+}
+.admin-users-tab__filters-bar {
+}
+.admin-users-tab__search {
+}
+.admin-users-tab__search-icon {
+}
+.admin-users-tab__search-input {
+}
+.admin-users-tab__filters-actions {
+}
+.admin-users-tab__clear-link {
+}
+.admin-users-tab__filters-toggle {
+}
+.admin-users-tab__filters-toggle--active {
+}
+.admin-users-tab__filters-count {
+}
+.admin-users-tab__advanced-filters {
+}
+.admin-users-tab__calc-box {
+}
+.admin-users-tab__calc-box-title {
+}
+.admin-users-tab__calc-box-text {
+}
+.admin-users-tab__calc-box-options {
+}
+.admin-users-tab__checkbox-label {
+}
+.admin-users-tab__filters-label {
+}
+.admin-users-tab__filters-label--nowrap {
+}
+.admin-users-tab__filter-chips {
+}
+.admin-users-tab__filter-chip {
+}
+.admin-users-tab__filter-chip--true {
+}
+.admin-users-tab__filter-chip--false {
+}
+.admin-users-tab__threshold-list {
+}
+.admin-users-tab__threshold-card {
+}
+.admin-users-tab__threshold-card--expanded {
+}
+.admin-users-tab__threshold-card-header {
+}
+.admin-users-tab__threshold-card-title {
+}
+.admin-users-tab__threshold-sub-label {
+}
+.admin-users-tab__threshold-range-inputs {
+}
+.admin-users-tab__threshold-number {
+}
+.admin-users-tab__threshold-range-sep {
+}
+.admin-users-tab__threshold-slider {
+}
+.admin-users-tab__threshold-inactive {
+}
+.admin-users-tab__sort-row {
+}
+.admin-users-tab__sort-chip {
+}
+.admin-users-tab__sort-chip--active {
+}
+.admin-users-tab__results-count {
+}
+.admin-users-tab__results-count-value {
+}
+.admin-users-tab__results-count-total {
+}
+.admin-users-tab__table-card {
+}
+.admin-users-tab__table-scroll {
+}
+.admin-users-tab__col-user {
+}
+.admin-users-tab__col-content {
+}
+.admin-users-tab__col-actions {
+}
+.admin-users-tab__user-name {
+}
+.admin-users-tab__user-handle {
+}
+.admin-users-tab__id-cell {
+}
+.admin-users-tab__content-cell {
+}
+.admin-users-tab__metric-chips {
+}
+.admin-users-tab__metric-chip {
+}
+.admin-users-tab__metric-chip-key {
+}
+.admin-users-tab__metric-chip-value {
+}
+.admin-users-tab__metric-chip-value-number {
+}
+.admin-users-tab__no-metrics {
+}
+.admin-users-tab__no-metrics-icon {
+}
+.admin-users-tab__networks-list {
+}
+.admin-users-tab__network-item {
+}
+.admin-users-tab__network-link {
+}
+.admin-users-tab__network-avatar {
+}
+.admin-users-tab__network-hover-card {
+}
+.admin-users-tab__network-hover-title {
+}
+.admin-users-tab__network-hover-desc {
+}
+.admin-users-tab__no-networks {
+}
+.admin-users-tab__actions-cell {
+}
+.admin-users-tab__action-link {
+}
+.admin-users-tab__action-link--entitlements {
+}
+.admin-users-tab__empty-cell {
+}
+
+// --- EditNetworkEntitlementsModal ---
+.edit-network-entitlements-modal__intro {
+}
+.edit-network-entitlements-modal__network-label {
+}
+.edit-network-entitlements-modal__network-name {
+}
+.edit-network-entitlements-modal__saving {
+}
+.edit-network-entitlements-modal__spinner-icon {
+  animation: spinner-border 0.75s linear infinite;
+}
+.edit-network-entitlements-modal__spinner-track {
+}
+.edit-network-entitlements-modal__spinner-head {
+}
+
+// --- ViewUserEntitlementsModal ---
+.view-user-entitlements-modal__scroll {
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 10px;
+  }
+}
+.view-user-entitlements-modal__header {
+}
+.view-user-entitlements-modal__name {
+}
+.view-user-entitlements-modal__handle {
+}
+.view-user-entitlements-modal__empty {
+}
+.view-user-entitlements-modal__network-card {
+}
+.view-user-entitlements-modal__network-header {
+}
+.view-user-entitlements-modal__network-name {
+}
+.view-user-entitlements-modal__network-badges {
+}
+.view-user-entitlements-modal__badge-key {
+}
+.view-user-entitlements-modal__badge-value {
+}
+.view-user-entitlements-modal__badge-value--true {
+}
+.view-user-entitlements-modal__badge-value--false {
+}
+.view-user-entitlements-modal__network-actions {
+}
+.view-user-entitlements-modal__action-link {
+}
+.view-user-entitlements-modal__action-link--edit {
+}
+.view-user-entitlements-modal__table-scroll {
+}
+.view-user-entitlements-modal__col-role {
+}
+.view-user-entitlements-modal__col-user {
+}
+.view-user-entitlements-modal__col-effective {
+}
+.view-user-entitlements-modal__base-cell {
+}
+.view-user-entitlements-modal__role-cell {
+}
+.view-user-entitlements-modal__override-pill {
+}
+.view-user-entitlements-modal__override-pill--role {
+}
+.view-user-entitlements-modal__override-pill--user {
+}
+.view-user-entitlements-modal__user-cell {
+}
+.view-user-entitlements-modal__empty-value {
+}
+.view-user-entitlements-modal__effective-cell {
+}
+.view-user-entitlements-modal__no-limits {
+}
+.view-user-entitlements-modal__footer {
+}

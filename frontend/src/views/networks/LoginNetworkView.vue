@@ -6,27 +6,27 @@
   >
     <div
       v-if="networkDetails.loading.value"
-      class="w-full text-center"
+      class="network-auth-status"
     >
-      <p class="text-sm text-gray-600">Loading network details...</p>
-      <div class="mt-4 flex justify-center">
+      <p class="network-auth-status__text">Loading network details...</p>
+      <div class="network-auth-status__spinner">
         <LoadingSpinner />
       </div>
     </div>
 
     <div
       v-else-if="networkNotFound"
-      class="w-full text-center"
+      class="network-auth-status"
     >
       <NetworkNotFound :network-id="networkId" />
     </div>
 
     <div
       v-else-if="!isValidUrl"
-      class="w-full text-center"
+      class="network-auth-status"
     >
       <p
-        class="mb-4 rounded bg-red-100 px-4 py-2 text-sm text-red-700"
+        class="alert alert--error"
         role="alert"
         aria-live="assertive"
       >
@@ -53,11 +53,11 @@
       />
 
       <template #footer>
-        <div class="mt-6 flex items-center justify-center gap-2 text-sm text-gray-600">
+        <div class="login-network-view__footer">
           <p>Don't have an account?</p>
           <button
             @click="goToSignup"
-            class="font-medium text-blue-600 hover:underline"
+            class="login-network-view__signup-link"
           >
             Create Account
           </button>

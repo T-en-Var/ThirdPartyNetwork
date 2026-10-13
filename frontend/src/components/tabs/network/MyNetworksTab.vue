@@ -1,7 +1,7 @@
 <template>
   <div>
-    <h2 class="mb-4 text-xl font-medium text-gray-800">Networks You've Joined</h2>
-    <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+    <h2 class="my-networks-tab__title">Networks You've Joined</h2>
+    <div class="network-card-grid">
       <NetworkCard
         v-for="network in networks"
         :key="network.id"
@@ -10,7 +10,7 @@
       />
       <div
         v-if="!networks.length"
-        class="col-span-full p-10 text-center text-gray-500"
+        class="network-card-grid__empty"
       >
         You haven't joined any networks yet. Browse available networks to join.
       </div>

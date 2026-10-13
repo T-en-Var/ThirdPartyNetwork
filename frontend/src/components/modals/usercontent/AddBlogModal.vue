@@ -12,10 +12,10 @@
       @submit="handleSubmit"
       @selected-network-id="handleNetworkSelect"
     >
-      <div>
+      <div class="form-field">
         <label
           for="title"
-          class="mb-2 ml-1 block text-xs font-black uppercase tracking-widest text-slate-500"
+          class="form-label"
         >
           Blog Title
         </label>
@@ -24,39 +24,37 @@
           v-model="title"
           type="text"
           placeholder="My Awesome Journey..."
-          class="block w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
+          class="form-input"
           required
         />
       </div>
 
-      <div class="space-y-3 rounded-xl border border-slate-100 bg-slate-50 p-4">
-        <label class="block text-[10px] font-black uppercase tracking-tighter text-slate-400">
-          Permanent URL Preview
-        </label>
+      <div class="add-blog-modal__slug-preview">
+        <label class="add-blog-modal__slug-preview-label"> Permanent URL Preview </label>
 
-        <div class="flex items-center gap-2 overflow-hidden font-mono text-sm">
-          <span class="shrink-0 text-slate-400">.../blogs/</span>
+        <div class="add-blog-modal__slug-row">
+          <span class="add-blog-modal__slug-prefix">.../blogs/</span>
           <span
             :class="[
-              'truncate font-bold',
-              slugExists ? 'text-amber-600' : 'text-blue-600',
-              !slugPreview ? 'italic text-slate-300' : '',
+              'add-blog-modal__slug-value',
+              slugExists ? 'add-blog-modal__slug-value--taken' : 'add-blog-modal__slug-value--ok',
+              !slugPreview ? 'add-blog-modal__slug-value--empty' : '',
             ]"
           >
             {{ slugPreview || 'your-slug-here' }}
           </span>
 
-          <div class="ml-auto shrink-0">
+          <div class="add-blog-modal__slug-status">
             <div
               v-if="slugExists"
-              class="text-amber-500"
+              class="add-blog-modal__slug-status-icon add-blog-modal__slug-status-icon--warning"
               title="Slug Taken"
             >
               ⚠️
             </div>
             <div
               v-else
-              class="text-emerald-500"
+              class="add-blog-modal__slug-status-icon add-blog-modal__slug-status-icon--success"
               title="Available"
             >
               ✓
@@ -67,7 +65,7 @@
         <transition name="fade">
           <div
             v-if="slugExists"
-            class="rounded-lg border border-amber-200 bg-amber-100/50 p-2 text-[11px] text-amber-700"
+            class="add-blog-modal__slug-warning"
           >
             This URL is already taken. The system will append a unique ID to your link.
           </div>

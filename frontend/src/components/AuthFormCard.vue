@@ -1,7 +1,7 @@
 <template>
-  <div class="overflow-hidden rounded-lg bg-white shadow-lg">
-    <div class="relative flex justify-center py-6">
-      <div class="absolute left-4 top-4 z-10">
+  <div class="auth-form-card">
+    <div class="auth-form-card__logo-wrap">
+      <div class="auth-form-card__logo">
         <NetworkLogo
           :loading="networkDetails.loading.value"
           :image-file="networkDetails.data.value?.imageFile"
@@ -10,15 +10,15 @@
       </div>
     </div>
 
-    <div class="w-full px-8 pb-10">
-      <div class="mb-6 text-center">
-        <h2 class="mb-1 text-2xl font-semibold text-slate-800">{{ title }}</h2>
-        <p class="text-sm text-slate-600">{{ subtitle }}</p>
+    <div class="auth-form-card__body">
+      <div class="auth-form-card__heading">
+        <h2 class="auth-form-card__title">{{ title }}</h2>
+        <p class="auth-form-card__subtitle">{{ subtitle }}</p>
       </div>
 
       <p
         v-if="error"
-        class="mb-4 rounded bg-red-100 px-4 py-2 text-center text-sm text-red-700"
+        class="alert alert--error"
         role="alert"
       >
         {{ error }}

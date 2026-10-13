@@ -1,49 +1,43 @@
 <template>
-  <div
-    :class="
-      customClass ? '' : 'space-y-3 rounded-xl border bg-white p-4 shadow-sm dark:bg-neutral-900'
-    "
-  >
+  <div :class="customClass ? '' : 'cdn-file'">
     <div
       v-if="!displayOnly"
-      class="text-sm font-medium text-neutral-800 dark:text-neutral-200"
+      class="cdn-file__name"
     >
       {{ file.name }}
     </div>
-    <div class="overflow-hidden rounded">
+    <div class="cdn-file__preview">
       <template v-if="isImage || isThumbnail">
         <img
           :src="isThumbnail ? cloudinaryVideoThumbnail(file.url) : file.url"
           :alt="`${file.name}`"
-          :class="customClass ?? 'max-h-[400px] w-full rounded object-contain'"
+          :class="customClass ?? 'cdn-file__media'"
         />
       </template>
       <template v-else-if="isAudio">
         <audio
           controls
           :src="file.url"
-          :class="customClass ?? 'w-full'"
+          :class="customClass ?? 'cdn-file__media cdn-file__media--audio'"
         />
       </template>
       <template v-else-if="isVideo">
         <video
           controls
           :src="file.url"
-          :class="customClass ?? 'max-h-[400px] w-full rounded'"
+          :class="customClass ?? 'cdn-file__media'"
         />
       </template>
       <template v-else>
-        <div
-          class="flex items-center justify-between rounded bg-neutral-100 p-3 dark:bg-neutral-800"
-        >
-          <span class="truncate text-neutral-700 dark:text-neutral-300">
+        <div class="cdn-file__fallback">
+          <span class="cdn-file__fallback-name">
             {{ file.name }}
           </span>
           <a
             v-if="allowDownload"
             :href="file.url"
             download
-            class="text-sm text-blue-600 hover:underline"
+            class="cdn-file__download-link"
           >
             Download
           </a>
@@ -52,7 +46,7 @@
     </div>
     <div
       v-if="!displayOnly"
-      class="flex justify-between text-xs text-neutral-500"
+      class="cdn-file__meta"
     >
       <span
         >{{ file.format?.toUpperCase() || 'Unknown' }} • {{ readableSize(file.sizeBytes) }}</span
@@ -61,11 +55,11 @@
     </div>
     <div
       v-if="!displayOnly && allowDownload && (isImage || isVideo || isAudio)"
-      class="pt-1"
+      class="cdn-file__download"
     >
       <span
         @click="downloadFile(file.url, file.name)"
-        class="inline-block cursor-pointer text-sm text-blue-600 hover:underline"
+        class="cdn-file__download-trigger"
       >
         Download
       </span>
