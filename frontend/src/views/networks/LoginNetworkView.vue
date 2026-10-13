@@ -79,9 +79,8 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import type { UserLogin } from '@/types';
 import { useGlobalStore } from '@/stores/global';
-import useNetworkAuthFlow, { TEMPORARY_ACCESS_TOKEN_KEY } from '@/composables/useNetworkAuthFlow';
+import useNetworkAuthFlow from '@/composables/useNetworkAuthFlow';
 
 import AuthLayout from '@/components/AuthLayout.vue';
 import AuthFormCard from '@/components/AuthFormCard.vue';
@@ -89,6 +88,8 @@ import AuthLoginForm from '@/components/AuthLoginForm.vue';
 import LoadingSpinner from '@/components/LoadingSpinner.vue';
 import ConfirmationModal from '@/components/modals/ConfirmationModal.vue';
 import NetworkNotFound from '@/components/NetworkNotFound.vue';
+import { TEMPORARY_ACCESS_TOKEN_KEY } from '@/composables/useTempAuth';
+import type { LoginDto } from '@/types';
 
 const global = useGlobalStore();
 const flow = useNetworkAuthFlow();
@@ -103,7 +104,7 @@ onMounted(async () => {
   await flow.loadNetwork();
 });
 
-const login = async (form: UserLogin) => {
+const login = async (form: LoginDto) => {
   error.value = '';
 
   if (!networkDetails.data.value) {

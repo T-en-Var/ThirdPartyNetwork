@@ -102,10 +102,10 @@ import { computed, onUnmounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import { safeAtob, safeBtoa } from '@/lib/utils';
-import type { UserLogin, UserSignup } from '@/types';
 
 import AuthLoginForm from '@/components/AuthLoginForm.vue';
 import AuthSignupForm from '@/components/AuthSignupForm.vue';
+import type { CreateUserProxyDto, LoginDto } from '@/types';
 
 const router = useRouter();
 const route = useRoute();
@@ -116,7 +116,7 @@ const isSubmitting = ref(false);
 
 const isLoginMode = computed(() => authStore.modalMode === 'login');
 
-const signupPrefill = computed<Partial<UserSignup>>(() => ({
+const signupPrefill = computed<Partial<LoginDto>>(() => ({
   username: (route.query.s_username as string) || '',
   firstName: (route.query.s_firstname as string) || '',
   lastName: (route.query.s_lastname as string) || '',
@@ -155,7 +155,7 @@ const finishAuthentication = () => {
   router.push(redirectPath);
 };
 
-const login = async (form: UserLogin) => {
+const login = async (form: LoginDto) => {
   error.value = '';
   isSubmitting.value = true;
 
@@ -170,7 +170,7 @@ const login = async (form: UserLogin) => {
   finishAuthentication();
 };
 
-const signUp = async (form: UserSignup) => {
+const signUp = async (form: CreateUserProxyDto) => {
   error.value = '';
   isSubmitting.value = true;
 
@@ -185,7 +185,7 @@ const signUp = async (form: UserSignup) => {
   finishAuthentication();
 };
 
-const redirectToTos = (form: UserSignup) => {
+const redirectToTos = (form: CreateUserProxyDto) => {
   closeModal();
 
   let redirect = route.query.redirect as string | undefined;
