@@ -8,20 +8,13 @@ using File = thirdpartynetwork.Core.Models.File;
 
 namespace thirdpartynetwork.Tests.Integration;
 
-/// <summary>
-/// One entry per ContentKind, describing everything the 3 gating-group test classes need to
-/// treat all five kinds uniformly: how to seed an instance directly via DataContext (bypassing
-/// HTTP — see BUG-CREATE-001 in RbacOnlyEndpointTests, which makes the real POST endpoints
-/// unusable for File/Blog/Configuration/CustomPage), route shape, and which of the "read"
-/// endpoints exist for this kind.
-/// </summary>
 public static class ContentKindCatalog
 {
     public static readonly ContentKindDescriptor[] All =
     [
         new ContentKindDescriptor(
             ContentKind.File, "files", "fileId", HasList: true, AnonRedirectSegment: "cdn",
-            SingleGetUsesManagePermission: true /* PLAN.md-adjacent, but NOT documented there — see BUG-002 */),
+            SingleGetUsesManagePermission: true /* see BUG-002 */),
         new ContentKindDescriptor(ContentKind.Blog, "blogs", "blogId", HasList: true, AnonRedirectSegment: "view"),
         new ContentKindDescriptor(ContentKind.Configuration, "configurations", "configurationId", HasList: true, AnonRedirectSegment: "view"),
         new ContentKindDescriptor(ContentKind.CustomPage, "customPages", "customPageId", HasList: true, AnonRedirectSegment: "view"),
@@ -54,14 +47,6 @@ public record SeededContent(ContentKind Kind, Guid NetworkId, Guid ContentId, Gu
 
 public static class ContentKindFixtures
 {
-    /// <summary>
-    /// Seeds one instance of the given kind directly via EF (not via the — currently broken
-    /// for 4/5 kinds, see BUG-CREATE-001 — HTTP create endpoints). For PageBlock, also seeds a
-    /// parent CustomPage carrying the SAME state, since PageBlock's own AccessLevelVerifier
-    /// check delegates entirely to its parent CustomPage (AccessLevelVerifier.cs:
-    /// CheckPageBlockAccessAsync -> CheckCustomPageAccessAsync) — the PageBlock's own
-    /// PublishedAt/AuthorUserProxyId/grants are irrelevant to its own visibility.
-    /// </summary>
     public static async Task<SeededContent> CreateAsync(
         DataContext ctx,
         ContentKind kind,

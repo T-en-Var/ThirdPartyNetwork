@@ -5,41 +5,11 @@ using thirdpartynetwork.Core.Enum;
 
 namespace thirdpartynetwork.Tests.Integration;
 
-/// <summary>
-/// "RBAC-only" gating group (see the in-conversation gating-group breakdown): Create,
-/// Update, Delete, and Moderation-flag List/Create/Resolve. Update/Delete are gated by
-/// PermissionHandler.HandleContentManageRequirementAsync -> IdentityVerifier.
-/// IsContentOwnerAsync (author-or-network-admin, PLAN.md §4's intended "narrowed Manage*"
-/// behavior). Moderation-flag actions are gated by a *plain* network-scoped permission check
-/// (Moderate&lt;Kind&gt;) via the PermissionHandler fallthrough branch — a caller holding
-/// Moderate&lt;Kind&gt; in the content's network succeeds regardless of authorship.
-/// </summary>
 [TestFixture]
 public class RbacOnlyEndpointTests : IntegrationTestBase
 {
     private static IEnumerable<ContentKind> AllKinds() => ContentKindCatalog.All.Select(d => d.Kind);
 
-    // ---------------------------------------------------------------------------------
-    // BUG-CREATE-001 (NOT documented in PLAN.md — found while building this suite):
-    // PermissionHandler.HandleContentManageRequirementAsync resolves the target content id
-    // via ResolveContentRouteMatch, which only looks for {fileId}/{blogId}/{configurationId}/
-    // {customPageId} route values. A POST-create request has none of these (the resource
-    // doesn't exist yet) -> ResolveContentRouteMatch returns null -> the method returns
-    // `false` UNCONDITIONALLY, before even the super-admin check. Since Create's only
-    // [RequirePermission] entry is the single Manage<Kind> permission (which IS in
-    // Constants.ContentManagePermissions, so it routes through this exact handler — not the
-    // plain network-RBAC fallthrough), this means: as coded today, NOBODY — not even a
-    // Main-network super-admin — can successfully call
-    //   POST /networks/{networkId}/files
-    //   POST /networks/{networkId}/blogs
-    //   POST /networks/{networkId}/configurations
-    //   POST /networks/{networkId}/customPages
-    // via the live HTTP API. Every one of these always 403s. This is a distinct,
-    // previously-unflagged bug — not one of PLAN.md's documented Wave-1 divergences.
-    // The tests below assert the INTENDED behavior (an admin should be able to create
-    // content) and are therefore expected to currently FAIL, correctly surfacing the bug
-    // rather than being quietly worked around.
-    // ---------------------------------------------------------------------------------
     [TestCaseSource(nameof(BrokenCreateKinds))]
     public async Task Create_AsSameNetworkAdmin_ShouldSucceed(ContentKind kind)
     {
@@ -50,7 +20,7 @@ public class RbacOnlyEndpointTests : IntegrationTestBase
             descriptor.CollectionRoute(ContentNetwork.Id), ContentKindFixtures.BuildCreateRequestBody(kind));
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK).Or.EqualTo(HttpStatusCode.Created),
-            $"BUG-CREATE-001: a network admin should be able to create a {kind}, but " +
+            $"a network admin should be able to create a {kind}, but " +
             $"HandleContentManageRequirementAsync always denies POST-create (no content id " +
             $"exists yet to resolve ownership against). Got {response.StatusCode}.");
     }
@@ -61,8 +31,6 @@ public class RbacOnlyEndpointTests : IntegrationTestBase
     [TestCaseSource(nameof(BrokenCreateKinds))]
     public async Task Create_Anonymous_IsRejected(ContentKind kind)
     {
-        // Sanity check that at least authentication gating still works ahead of the deeper
-        // BUG-CREATE-001 above.
         var descriptor = ContentKindCatalog.All.First(d => d.Kind == kind);
         var anon = await CallerCatalog.BuildAsync(Ctx, CallerSpec.Anonymous, kind, ContentNetwork, ExternalNetwork, MainNetwork);
 
@@ -168,11 +136,7 @@ public class RbacOnlyEndpointTests : IntegrationTestBase
         // back to IsNetworkAdminAsync at all in that branch (that fallback only fires for
         // NetworkOwned content, or AuthorOwned content whose author persona was deleted).
         // A plain network Administrator — even of the content's own network — genuinely
-        // cannot edit/delete another member's AuthorOwned content. This matches PLAN.md §4's
-        // literal wording ("author-only for AuthorOwned content") once traced through the
-        // actual code, even though it's a stricter reading than "admin" usually implies.
-        // MainNetworkAdmin still succeeds via a SEPARATE, network-agnostic super-admin check
-        // inside HandleContentManageRequirementAsync itself.
+        // cannot edit/delete another member's AuthorOwned content.
         CallerSpec.MainNetworkAdmin => HttpStatusCode.OK,
         _ => HttpStatusCode.Forbidden,
     };
@@ -250,8 +214,7 @@ public class RbacOnlyEndpointTests : IntegrationTestBase
         CallerSpec.SameNetworkAdmin => HttpStatusCode.OK,
         CallerSpec.MainNetworkAdmin => HttpStatusCode.OK,
         CallerSpec.SameNetworkModerateOnly => HttpStatusCode.OK, // the one non-admin case that succeeds
-        // Author has no special moderation bypass (PLAN.md §2.5: "moderators flag/hide, they
-        // never mutate... deliberately NOT an author/owner action") and only holds Read<Kind>.
+        // Author has no special moderation bypass and only holds Read<Kind>.
         _ => HttpStatusCode.Forbidden,
     };
 }

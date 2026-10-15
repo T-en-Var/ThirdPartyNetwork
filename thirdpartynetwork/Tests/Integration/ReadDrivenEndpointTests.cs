@@ -41,7 +41,7 @@ public class ReadDrivenEndpointTests : IntegrationTestBase
     [TestCaseSource(nameof(ListCases))]
     public async Task List_AlwaysReturns200_ButRowVisibilityMatchesAccessRules(ContentKind kind, CallerSpec spec)
     {
-        if (kind == ContentKind.PageBlock) Assert.Ignore("PageBlock has no List endpoint (PLAN.md-adjacent divergence).");
+        if (kind == ContentKind.PageBlock) Assert.Ignore("PageBlock has no List endpoint.");
 
         var author = await CallerCatalog.BuildAsync(Ctx, CallerSpec.Author, kind, ContentNetwork, ExternalNetwork, MainNetwork);
         var published = await ContentKindFixtures.CreateAsync(Ctx, kind, ContentNetwork.Id, authorUserProxyId: author.UserProxyId, publishedAt: DateTime.UtcNow);
@@ -52,19 +52,10 @@ public class ReadDrivenEndpointTests : IntegrationTestBase
 
         var response = await caller.Client.GetAsync(descriptor.CollectionRoute(ContentNetwork.Id));
 
-        // List endpoints always pass the attribute-level check (PermissionHandler.
-        // HandleContentRequirementAsync: `if (isListEndpoint) return true;`) regardless of
-        // caller — even Anonymous gets 200, just with rows filtered by GetAccessPredicateAsync.
         AssertStatus(response, HttpStatusCode.OK, $"List {kind} as {spec} (should always 200)");
 
         var ids = await ExtractIdsAsync(response, kind);
 
-        // GetAccessPredicateAsync checks Read<Kind> uniformly for List (unlike single-GET,
-        // where File alone uses ManageFile — see FileSingleGet_UsesManageFilePermission_
-        // NotReadFile_KnownDivergence below) — and the permission-bypass step runs BEFORE
-        // the draft gate (PLAN.md's documented Wave-1 divergence #1), so a plain Read<Kind>
-        // holder in the content's own network sees BOTH the draft and the published item,
-        // for every kind including File.
         var canSee = spec is CallerSpec.Author or CallerSpec.SameNetworkAdmin
             or CallerSpec.MainNetworkAdmin or CallerSpec.SameNetworkReadOnly;
 
@@ -90,19 +81,6 @@ public class ReadDrivenEndpointTests : IntegrationTestBase
 
         var response = await caller.Client.GetAsync(ItemRoute(kind, draft));
 
-        // PLAN.md's documented Wave-1 divergence #1: the permission-bypass step in
-        // AccessLevelVerifier runs BEFORE the draft gate, so any holder of the single-GET
-        // action's own permission (not just the author) sees a Draft item too. For every
-        // kind except File that permission is Read<Kind>, which SameNetworkReadOnly holds —
-        // but File's single-GET uses ManageFile instead (the OTHER known divergence, see
-        // FileSingleGet_UsesManageFilePermission_NotReadFile_KnownDivergence), which
-        // SameNetworkReadOnly does NOT hold, so it does NOT see a File draft. File also
-        // doesn't go through AccessLevelVerifier at all here — ManageFile routes through
-        // HandleContentManageRequirementAsync -> IsContentOwnerAsync, whose AuthorOwned-
-        // with-set-author branch (this content has an author) checks ONLY the author, never
-        // network-admin status — so SameNetworkAdmin can't see a File draft it doesn't own
-        // either, unlike every other kind (see RbacOnlyEndpointTests.
-        // ExpectedOwnershipGatedStatus for the same rule applied to Update/Delete).
         var canSee = kind == ContentKind.File
             ? spec is CallerSpec.Author or CallerSpec.MainNetworkAdmin
             : spec is CallerSpec.Author or CallerSpec.SameNetworkAdmin or CallerSpec.MainNetworkAdmin or CallerSpec.SameNetworkReadOnly;
@@ -161,10 +139,6 @@ public class ReadDrivenEndpointTests : IntegrationTestBase
     [Test]
     public async Task FileSingleGet_UsesManageFilePermission_NotReadFile_KnownDivergence()
     {
-        // PLAN.md flags this explicitly: File's single-GET is gated by ManageFile, unlike
-        // every sibling kind's single-GET (gated by Read<Kind>). A caller holding only
-        // ReadFile (the default role's permission) is therefore denied on File but would be
-        // allowed on the equivalent Blog endpoint.
         var file = await ContentKindFixtures.CreateAsync(Ctx, ContentKind.File, ContentNetwork.Id, publishedAt: DateTime.UtcNow);
         var blog = await ContentKindFixtures.CreateAsync(Ctx, ContentKind.Blog, ContentNetwork.Id, publishedAt: DateTime.UtcNow);
         // Two separate callers, each built for their OWN kind — CallerCatalog.BuildAsync's
@@ -299,13 +273,11 @@ public class ReadDrivenEndpointTests : IntegrationTestBase
     }
 
     // -----------------------------------------------------------------------------------
-    // BUG-002 (NOT documented in PLAN.md — found while building this suite, and more
-    // severe than it first looks): File's single-GET is gated by ManageFile, which routes
+    // BUG-002: File's single-GET is gated by ManageFile, which routes
     // through PermissionHandler.HandleContentManageRequirementAsync -> IdentityVerifier.
     // IsContentOwnerAsync (author-or-network-admin ONLY). It never calls
-    // AccessLevelVerifier.CheckFileAccessAsync at all — meaning ContentAccessGrants (the
-    // whole "share this file with a user/network/role/permission" mechanism PLAN.md §2.4
-    // describes) are COMPLETELY INERT for retrieving a File's metadata/viewingUrl through
+    // AccessLevelVerifier.CheckFileAccessAsync at all — meaning ContentAccessGrants 
+    // are COMPLETELY INERT for retrieving a File's metadata/viewingUrl through
     // the API. A file shared with a specific user, or with an entire public network, is
     // unreachable to that grantee via GET /networks/{id}/files/{fileId} — only the file's
     // own author or that network's Administrator can ever retrieve it. This is a strictly

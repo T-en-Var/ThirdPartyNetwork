@@ -12,10 +12,6 @@ using File = thirdpartynetwork.Core.Models.File;
 
 namespace thirdpartynetwork.Tests.Auth;
 
-/// <summary>
-/// PLAN.md §2.1/§3.3: AccessLevelVerifier is now derived from PublishedAt + ContentAccessGrant
-/// rather than a stored AccessLevel enum — these tests were rewritten around that model.
-/// </summary>
 [TestFixture]
 public class AccessLevelVerifierTests
 {
