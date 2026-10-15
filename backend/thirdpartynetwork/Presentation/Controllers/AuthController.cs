@@ -104,5 +104,4 @@ public class AuthController(IAuthService service) : ControllerBase
         var tokens = await service.TokenAsync(dto);
         return TokensResponse(tokens);
     }
-    // testing the git push
 }
