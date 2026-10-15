@@ -11,6 +11,7 @@
 }
 
 .app-shell__header {
+  flex-shrink: 0;
 }
 
 .app-main {
@@ -32,6 +33,10 @@
 
 // --- ContentLayout ---
 .content-layout {
+  width: 100%;
+  max-width: 56rem;
+  margin: 2rem auto;
+  padding: 0 1rem 2rem;
 }
 
 // --- UserProfileDropdown ---
@@ -160,7 +165,27 @@
 }
 
 .user-dropdown__skeleton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin: 0.5rem;
+  color: #999;
 }
 
 .user-dropdown__skeleton-icon {
+  width: 24px;
+  height: 24px;
+  animation: user-dropdown-skeleton-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes user-dropdown-skeleton-pulse {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.8;
+  }
 }

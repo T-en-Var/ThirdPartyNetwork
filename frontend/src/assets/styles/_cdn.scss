@@ -2,24 +2,73 @@
 // Classes are placeholders (empty) - the visual design is added later.
 
 .cdn-file {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  border: 1px solid var(--input-border);
+  border-radius: 0.75rem;
+  background-color: var(--bg-color);
+  padding: 1rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 .cdn-file__name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-color);
 }
 .cdn-file__preview {
+  overflow: hidden;
+  border-radius: 0.25rem;
 }
 .cdn-file__media {
+  max-height: 400px;
+  width: 100%;
+  border-radius: 0.25rem;
+  object-fit: contain;
 }
 .cdn-file__media--audio {
+  height: auto;
+  max-height: none;
 }
 .cdn-file__fallback {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-radius: 0.25rem;
+  background-color: var(--card-bg);
+  padding: 0.75rem;
 }
 .cdn-file__fallback-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-color);
 }
 .cdn-file__download-link {
+  font-size: 0.875rem;
+  color: var(--primary-accent-color);
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 .cdn-file__meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--text-light);
 }
 .cdn-file__download {
+  padding-top: 0.25rem;
 }
 .cdn-file__download-trigger {
+  display: inline-block;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--primary-accent-color);
+
+  &:hover {
+    text-decoration: underline;
+  }
 }

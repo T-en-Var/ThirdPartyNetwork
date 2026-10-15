@@ -2,7 +2,10 @@
   <nav class="navbar">
     <div class="navbar__inner">
       <!-- Logo -->
-      <div class="navbar__logo">
+      <div
+        class="navbar__logo"
+        :class="{ 'navbar__logo--hidden': isMobileOpen }"
+      >
         <RouterLink
           to="/"
           class="navbar__logo-text"
@@ -11,7 +14,10 @@
       </div>
 
       <!-- Links -->
-      <div class="navbar__links">
+      <div
+        class="navbar__links"
+        :class="{ 'navbar__links--mobile-open': isMobileOpen }"
+      >
         <RouterLink
           to="/"
           class="navbar__link"
@@ -43,7 +49,10 @@
       <div class="flex__spacer" />
 
       <!-- Actions -->
-      <div class="navbar__actions">
+      <div
+        class="navbar__actions"
+        :class="{ 'navbar__actions--mobile-open': isMobileOpen }"
+      >
         <template v-if="!authStore.isAuthenticated">
           <button
             class="btn navbar__login-btn"
@@ -61,25 +70,39 @@
         </template>
         <UserProfileDropdown v-else />
       </div>
+
+      <!-- Mobile -->
+      <div class="navbar-mobile__menu-btn">
+        <MenuIcon
+          class="btn icon"
+          v-if="!isMobileOpen"
+          @click="isMobileOpen = true"
+        >
+        </MenuIcon>
+        <CloseIcon
+          class="btn icon"
+          v-else
+          @click="isMobileOpen = false"
+        >
+        </CloseIcon>
+      </div>
     </div>
-
-    <AuthModal />
-
-    <UnauthorizedModal />
   </nav>
 </template>
 
 <script setup lang="ts">
-import AuthModal from '@/components/modals/AuthModal.vue';
-import UnauthorizedModal from '@/components/modals/UnauthorizedModal.vue';
 import UserProfileDropdown from './UserProfileDropdown.vue';
 import { useAuthStore } from '@/stores/auth';
 import { onMounted, ref } from 'vue';
+import MenuIcon from './icons/MenuIcon.vue';
+import CloseIcon from './icons/CloseIcon.vue';
 
 const authStore = useAuthStore();
 
 const isSuperAdmin = ref(false);
 const isLoadingAuth = ref(true);
+
+const isMobileOpen = ref(false);
 
 onMounted(async () => {
   isSuperAdmin.value = await authStore.isSuperAdmin();
@@ -109,13 +132,24 @@ const openSignupModal = () => {
   border-bottom: 1px solid black;
   box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.65);
   padding: 0 10%;
+  background-color: white;
+
+  @media (max-width: $layout-sm) {
+    padding: 0 1rem;
+  }
 }
 .navbar__inner {
   display: flex;
   align-items: center;
   justify-content: row;
+  flex-wrap: wrap;
 }
 .navbar__logo {
+  @media (max-width: $layout-sm) {
+    &.navbar__logo--hidden {
+      display: none;
+    }
+  }
 }
 .navbar__logo-text {
   padding: 1rem 2rem;
@@ -128,13 +162,26 @@ const openSignupModal = () => {
     text-shadow: 10px 10px 1px rgba(0, 0, 0, 0.3);
     scale: 1.05;
   }
+
+  @media (max-width: $layout-sm) {
+    padding: 0.5rem 1rem;
+  }
 }
 .navbar__links {
   display: flex;
+  flex-wrap: wrap;
 
+  @media (max-width: $layout-sm) {
+    display: none;
+    padding: 0.3rem 0;
+
+    &.navbar__links--mobile-open {
+      display: flex;
+    }
+  }
 }
 .navbar__link {
-  padding: .2rem .7rem;
+  padding: 0.2rem 0.7rem;
   border-left: 1px solid black;
 
   &:first-child {
@@ -153,11 +200,26 @@ const openSignupModal = () => {
   display: flex;
   gap: 0.7rem;
   white-space: nowrap;
+
+  @media (max-width: $layout-sm) {
+    display: none;
+
+    &.navbar__actions--mobile-open {
+      display: flex;
+    }
+  }
 }
 .navbar__login-btn {
 }
 .navbar__signup-btn {
   border-left: 1px black solid;
-  padding-left: .5rem;
+  padding-left: 0.5rem;
+}
+.navbar-mobile__menu-btn {
+  display: none;
+
+  @media (max-width: $layout-sm) {
+    display: block;
+  }
 }
 </style>

@@ -15,8 +15,9 @@
 //   _toasts.scss       toast notifications
 //   _cdn.scss          cloudinary file rendering
 //   _pages.scss        standalone static views (about, contact, 404, ...)
-@use 'variables';
+@use 'variables' as *;
 @use 'components';
+@use 'modals';
 @use 'layout';
 @use 'sidebar';
 @use 'auth';
@@ -46,6 +47,11 @@ body {
   margin: 0;
   padding: 0;
   font-family: 'RobotoSlab', serif;
+  font-size: 1rem;
+
+  @media (max-width: $layout-sm) {
+    font-size: 0.9rem;
+  }
 }
 
 body {

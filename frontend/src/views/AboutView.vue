@@ -187,40 +187,5 @@
         issues, errors or bugs.
       </p>
     </section>
-
-    <section class="page-section">
-      <h2
-        v-motion
-        :initial="{ opacity: 0, y: 20 }"
-        :enter="{ opacity: 1, y: 0 }"
-      >
-        AI usage
-      </h2>
-      <p
-        v-motion
-        :initial="{ opacity: 0, y: 20 }"
-        :enter="{ opacity: 1, y: 0 }"
-        :delay="100"
-      >
-        I hate AI and do not want to use it for things that would represent my creativity or my
-        ability to find solutions to problems. This website was originally styled by AI.
-      </p>
-      <p
-        v-motion
-        :initial="{ opacity: 0, y: 20 }"
-        :enter="{ opacity: 1, y: 0 }"
-        :delay="100"
-      >
-        I've now redesigned the whole website by hand.
-      </p>
-      <p
-        v-motion
-        :initial="{ opacity: 0, y: 20 }"
-        :enter="{ opacity: 1, y: 0 }"
-        :delay="200"
-      >
-        I do use it for braindead tasks.
-      </p>
-    </section>
   </div>
 </template>

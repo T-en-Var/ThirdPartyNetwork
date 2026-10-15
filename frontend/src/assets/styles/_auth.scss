@@ -1,80 +1,270 @@
 // Styles for the "auth" part of the application.
-// Classes are placeholders (empty) - the visual design is added later.
+@use 'variables' as *;
 
 // --- AuthFormCard ---
 .auth-form-card {
+  overflow: hidden;
+  border-radius: 0.5rem;
+  background-color: var(--card-bg);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
 }
 .auth-form-card__logo-wrap {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  padding: 1.5rem 0;
 }
 .auth-form-card__logo {
+  position: absolute;
+  left: 1rem;
+  top: 1rem;
+  z-index: 10;
 }
 .auth-form-card__body {
+  width: 100%;
+  padding: 0 2rem 2.5rem;
 }
 .auth-form-card__heading {
+  margin-bottom: 1.5rem;
+  text-align: center;
 }
 .auth-form-card__title {
+  margin: 0 0 0.25rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-color);
 }
 .auth-form-card__subtitle {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-light);
 }
 
 // --- AuthLayout ---
 .auth-layout {
+  position: relative;
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-color);
+  padding: 1.25rem;
 }
 .auth-layout__back-btn {
+  position: absolute;
+  left: 1.25rem;
+  top: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  border-radius: 0.25rem;
+  background-color: var(--card-bg);
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  color: var(--text-color);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: 0.2s ease;
+
+  &:hover {
+    background-color: var(--bg-color);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+  }
 }
 .auth-layout__back-icon {
+  position: relative;
+  display: flex;
+  height: 1rem;
+  width: 1rem;
+
+  svg {
+    width: 100%;
+    height: 100%;
+  }
 }
 .auth-layout__content {
+  width: 100%;
 }
 .auth-layout__content--sm {
+  max-width: 24rem;
 }
 .auth-layout__content--md {
+  max-width: 28rem;
 }
 .auth-layout__content--lg {
+  max-width: 32rem;
 }
 .auth-layout__content--xl {
+  max-width: 36rem;
 }
 .auth-layout__content--2xl {
+  max-width: 42rem;
 }
 
 // --- AuthSignupForm (AuthLoginForm reuses only shared .form/.form-field/.btn atoms) ---
 .auth-signup-form__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
 }
 .auth-signup-form__col {
+  min-width: 140px;
+  flex: 1;
 }
 .auth-signup-form__tos {
+  margin-top: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 .auth-signup-form__tos-label {
+  font-size: 0.875rem;
+  color: var(--text-color);
 }
 .auth-signup-form__tos-link {
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--primary-accent-color);
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
 // --- AuthModal ---
 .auth-modal__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.6);
+  padding: 1.25rem;
+  backdrop-filter: blur(4px);
+
+  @media (max-width: $layout-sm) {
+    padding: 0;
+  }
 }
 .auth-modal__panel {
+  position: relative;
+  max-height: 90vh;
+  width: 100%;
+  max-width: 32rem;
+  overflow-y: auto;
+  border-radius: 0.5rem;
+  background-color: var(--card-bg);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+
+  @media (max-width: $layout-sm) {
+    max-height: 100%;
+    border-radius: 0;
+  }
 }
 .auth-modal__logo {
+  position: absolute;
+  left: 1rem;
+  top: 1rem;
+  z-index: 10;
+  display: flex;
+  height: 2.25rem;
+  width: 2.25rem;
+  align-items: center;
+  justify-content: center;
 }
 .auth-modal__logo-image {
+  max-height: 100%;
+  max-width: 100%;
+  object-fit: contain;
 }
 .auth-modal__close {
+  position: absolute;
+  right: 1rem;
+  top: 0.75rem;
+  z-index: 10;
+  display: flex;
+  height: 2rem;
+  width: 2rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.25rem;
+  font-size: 1.5rem;
+  color: var(--text-light);
+  transition: 0.2s ease;
+
+  &:hover {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+  }
 }
 .auth-modal__body {
+  padding: 3.5rem 2rem 2rem;
+
+  @media (max-width: $layout-sm) {
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+  }
 }
 .auth-modal__heading {
+  margin-bottom: 1.5rem;
+  text-align: center;
 }
 .auth-modal__title {
+  margin: 0 0 0.25rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-color);
 }
 .auth-modal__subtitle {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-light);
 }
 .auth-modal__dev-accounts {
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  font-size: 0.875rem;
+  color: var(--text-light);
 }
 .auth-modal__dev-account {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
 }
 .auth-modal__dev-account-btn {
+  cursor: pointer;
+  color: var(--primary-accent-color);
+  text-decoration: underline;
+
+  &:hover {
+    color: var(--primary-color);
+  }
 }
 .auth-modal__switch {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--text-light);
 }
 .auth-modal__switch-btn {
+  font-weight: 500;
+  color: var(--primary-accent-color);
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
 }

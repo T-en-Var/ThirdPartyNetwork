@@ -1,365 +1,824 @@
+@use 'variables' as *;
+
 // Styles for the "admin" part of the application.
-// Classes are placeholders (empty) - the visual design is added later.
 
 // Shared table-header-cell modifier (used by both admin tables below).
 .table__cell--head {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-light);
+  white-space: nowrap;
 }
 
 // --- AdminView ---
 .admin-view {
+  display: flex;
+  height: 100%;
 }
 .admin-view__content {
+  flex: 1;
+  overflow: auto;
+  padding: 1.5rem;
 }
 
 // --- HomeTab (admin) ---
 .admin-home-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
 }
 .admin-home-tab__card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--input-border);
+  border-radius: .6rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
 }
 .admin-home-tab__title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-color);
 }
 
-// --- NetworksTab (admin) ---
-.admin-networks-tab__header {
+// --- NetworksTab / UsersTab shared header ------------------------------
+.admin-networks-tab__header,
+.admin-users-tab__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
 }
-.admin-networks-tab__title {
+.admin-networks-tab__title,
+.admin-users-tab__title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-color);
 }
-.admin-networks-tab__subtitle {
+.admin-networks-tab__subtitle,
+.admin-users-tab__subtitle {
+  margin-top: 0.25rem;
+  color: var(--text-light);
+  font-size: 0.9rem;
 }
-.admin-networks-tab__refresh-btn {
+.admin-networks-tab__refresh-btn,
+.admin-users-tab__refresh-btn {
+  display: inline-flex;
+  padding: 0.5rem;
+  border-radius: 50%;
+  color: var(--text-light);
+  transition: color 0.15s ease, background-color 0.15s ease;
+
+  svg {
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+
+  &:hover {
+    color: var(--primary-accent-color);
+    background-color: color-mix(in srgb, var(--primary-color) 20%, white);
+  }
 }
-.admin-networks-tab__body {
+.admin-networks-tab__body,
+.admin-users-tab__body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
 }
+
+// --- Global limits card (NetworksTab only) ------------------------------
 .admin-networks-tab__limits-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
 }
 .admin-networks-tab__limits-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-light);
 }
 .admin-networks-tab__edit-link {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--primary-accent-color);
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 .admin-networks-tab__limits-groups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
 }
 .admin-networks-tab__limits-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 .admin-networks-tab__limits-group-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--primary-accent-color);
 }
 .admin-networks-tab__limits-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 .admin-networks-tab__limit-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid var(--input-border);
+  border-radius: .5rem;
+  background-color: color-mix(in srgb, var(--card-bg) 60%, white);
+  padding: 0.3rem 0.6rem;
+  font-size: 0.75rem;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+
+  &:hover {
+    border-color: var(--primary-color);
+    background-color: white;
+  }
 }
 .admin-networks-tab__limit-item-label {
+  font-weight: 600;
+  color: var(--text-light);
+  white-space: nowrap;
 }
 .admin-networks-tab__limit-item-value {
+  color: var(--text-color);
+  cursor: help;
 }
 .admin-networks-tab__limit-item-used {
+  font-weight: 700;
 }
 .admin-networks-tab__limit-item-used--over {
+  color: var(--error-color);
 }
 .admin-networks-tab__limit-item-total {
+  color: var(--text-light);
 }
 .admin-networks-tab__limit-item-total--warning {
+  color: color-mix(in srgb, var(--accent-color) 60%, black);
+  font-weight: 700;
 }
 .admin-networks-tab__limit-item-total--over {
+  color: var(--error-color);
+  font-weight: 700;
 }
 .admin-networks-tab__limit-item-max {
+  font-weight: 700;
+  color: var(--text-color);
 }
 .admin-networks-tab__limits-empty {
-}
-.admin-networks-tab__filters-card {
-}
-.admin-networks-tab__filters-bar {
-}
-.admin-networks-tab__search {
-}
-.admin-networks-tab__search-icon {
-}
-.admin-networks-tab__search-input {
-}
-.admin-networks-tab__filters-actions {
-}
-.admin-networks-tab__clear-link {
-}
-.admin-networks-tab__filters-toggle {
-}
-.admin-networks-tab__filters-toggle--active {
-}
-.admin-networks-tab__filters-count {
-}
-.admin-networks-tab__advanced-filters {
-}
-.admin-networks-tab__filters-label {
-}
-.admin-networks-tab__filters-label--nowrap {
-}
-.admin-networks-tab__filter-chips {
-}
-.admin-networks-tab__filter-chip {
-}
-.admin-networks-tab__filter-chip--true {
-}
-.admin-networks-tab__filter-chip--false {
-}
-.admin-networks-tab__threshold-list {
-}
-.admin-networks-tab__threshold-card {
-}
-.admin-networks-tab__threshold-card--expanded {
-}
-.admin-networks-tab__threshold-card-header {
-}
-.admin-networks-tab__threshold-card-title {
-}
-.admin-networks-tab__threshold-sub-label {
-}
-.admin-networks-tab__threshold-range-inputs {
-}
-.admin-networks-tab__threshold-number {
-}
-.admin-networks-tab__threshold-range-sep {
-}
-.admin-networks-tab__threshold-slider {
-}
-.admin-networks-tab__threshold-minmax {
-}
-.admin-networks-tab__threshold-warning {
-}
-.admin-networks-tab__threshold-inactive {
-}
-.admin-networks-tab__sort-row {
-}
-.admin-networks-tab__sort-chip {
-}
-.admin-networks-tab__sort-chip--active {
-}
-.admin-networks-tab__results-count {
-}
-.admin-networks-tab__results-count-value {
-}
-.admin-networks-tab__results-count-total {
-}
-.admin-networks-tab__table-card {
-}
-.admin-networks-tab__table-scroll {
-}
-.admin-networks-tab__col-name {
-}
-.admin-networks-tab__col-id {
-}
-.admin-networks-tab__col-entitlements {
-}
-.admin-networks-tab__col-users {
-}
-.admin-networks-tab__col-actions {
-}
-.admin-networks-tab__name-row {
-}
-.admin-networks-tab__name {
-}
-.admin-networks-tab__description {
-}
-.admin-networks-tab__id-cell {
-}
-.admin-networks-tab__entitlements-cell {
-}
-.admin-networks-tab__entitlement-chips {
-}
-.admin-networks-tab__entitlement-chip {
-}
-.admin-networks-tab__entitlement-chip-key {
-}
-.admin-networks-tab__entitlement-chip-value {
-}
-.admin-networks-tab__entitlement-chip-value--true {
-}
-.admin-networks-tab__entitlement-chip-value--false {
-}
-.admin-networks-tab__entitlement-chip-value--number {
-}
-.admin-networks-tab__entitlement-chip-used--over {
-}
-.admin-networks-tab__entitlement-chip-max {
-}
-.admin-networks-tab__no-entitlements {
-}
-.admin-networks-tab__no-entitlements-icon {
-}
-.admin-networks-tab__users-cell {
-}
-.admin-networks-tab__actions-cell {
-}
-.admin-networks-tab__action-link {
-}
-.admin-networks-tab__action-link--manage {
-}
-.admin-networks-tab__action-link--danger {
-}
-.admin-networks-tab__empty-cell {
+  padding: 1rem 0;
+  text-align: center;
+  font-style: italic;
+  font-size: 0.9rem;
+  color: var(--text-light);
 }
 
-// --- UsersTab (admin) ---
-.admin-users-tab__header {
-}
-.admin-users-tab__title {
-}
-.admin-users-tab__subtitle {
-}
-.admin-users-tab__refresh-btn {
-}
-.admin-users-tab__body {
-}
+// --- Filters card (shared shape) ----------------------------------------
+.admin-networks-tab__filters-card,
 .admin-users-tab__filters-card {
+  padding: 0;
+  overflow: hidden;
 }
+.admin-networks-tab__filters-bar,
 .admin-users-tab__filters-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
 }
+.admin-networks-tab__search,
 .admin-users-tab__search {
+  position: relative;
+  flex: 1;
+  min-width: 16rem;
 }
+.admin-networks-tab__search-icon,
 .admin-users-tab__search-icon {
+  position: absolute;
+  top: 50%;
+  left: 0.75rem;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--text-light);
+
+  svg {
+    width: 1rem;
+    height: 1rem;
+  }
 }
+.admin-networks-tab__search-input,
 .admin-users-tab__search-input {
+  width: 100%;
+  padding-left: 2.25rem;
 }
+.admin-networks-tab__filters-actions,
 .admin-users-tab__filters-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
+.admin-networks-tab__clear-link,
 .admin-users-tab__clear-link {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-light);
+
+  &:hover {
+    color: var(--error-color);
+  }
 }
+.admin-networks-tab__filters-toggle,
 .admin-users-tab__filters-toggle {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid var(--input-border);
+  border-radius: .5rem;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-color);
+  transition: background-color 0.15s ease;
+
+  svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  &:hover {
+    background-color: var(--card-bg);
+  }
 }
+.admin-networks-tab__filters-toggle--active,
 .admin-users-tab__filters-toggle--active {
+  border-color: var(--primary-accent-color);
+  color: var(--primary-accent-color);
+  background-color: color-mix(in srgb, var(--primary-color) 20%, white);
 }
+.admin-networks-tab__filters-count,
 .admin-users-tab__filters-count {
+  position: absolute;
+  top: -0.5rem;
+  right: -0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 50%;
+  border: 2px solid white;
+  background-color: var(--primary-accent-color);
+  color: var(--button-text);
+  font-size: 0.65rem;
+  font-weight: 700;
 }
+.admin-networks-tab__advanced-filters,
 .admin-users-tab__advanced-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  border-top: 1px solid var(--input-border);
+  background-color: color-mix(in srgb, var(--card-bg) 40%, white);
+  padding: 1rem;
+
+  @media (max-width: $layout-sm) {
+    padding: 0.75rem;
+  }
 }
+.admin-networks-tab__filters-label,
+.admin-users-tab__filters-label {
+  margin-bottom: 0.5rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-light);
+}
+.admin-networks-tab__filters-label--nowrap,
+.admin-users-tab__filters-label--nowrap {
+  white-space: nowrap;
+}
+
+// Users-only calc box
 .admin-users-tab__calc-box {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border: 1px solid var(--input-border);
+  border-radius: .5rem;
+  background-color: white;
+  padding: 0.75rem 1rem;
 }
 .admin-users-tab__calc-box-title {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--text-color);
 }
 .admin-users-tab__calc-box-text {
+  font-size: 0.8rem;
+  color: var(--text-light);
 }
 .admin-users-tab__calc-box-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
 }
 .admin-users-tab__checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-color);
+  cursor: pointer;
 }
-.admin-users-tab__filters-label {
-}
-.admin-users-tab__filters-label--nowrap {
-}
+
+// --- Filter chips (shared) ----------------------------------------------
+.admin-networks-tab__filter-chips,
 .admin-users-tab__filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
+.admin-networks-tab__filter-chip,
 .admin-users-tab__filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  border: 1px solid var(--input-border);
+  border-radius: .4rem;
+  background-color: white;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  color: var(--text-color);
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: var(--card-bg);
+  }
 }
+.admin-networks-tab__filter-chip--true,
 .admin-users-tab__filter-chip--true {
+  border-color: var(--success-color);
+  color: var(--success-color);
+  background-color: color-mix(in srgb, var(--success-color) 12%, white);
 }
+.admin-networks-tab__filter-chip--false,
 .admin-users-tab__filter-chip--false {
+  border-color: var(--error-color);
+  color: var(--error-color);
+  background-color: color-mix(in srgb, var(--error-color) 12%, white);
 }
+
+// --- Threshold filter cards (shared) -------------------------------------
+.admin-networks-tab__threshold-list,
 .admin-users-tab__threshold-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
+.admin-networks-tab__threshold-card,
 .admin-users-tab__threshold-card {
+  width: 16rem;
+  border: 1px solid var(--input-border);
+  border-radius: .5rem;
+  background-color: white;
+  padding: 0.75rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
+.admin-networks-tab__threshold-card--expanded,
 .admin-users-tab__threshold-card--expanded {
+  border-color: var(--primary-accent-color);
 }
+.admin-networks-tab__threshold-card-header,
 .admin-users-tab__threshold-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
 }
+.admin-networks-tab__threshold-card-title,
 .admin-users-tab__threshold-card-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-color);
 }
+.admin-networks-tab__threshold-sub-label,
 .admin-users-tab__threshold-sub-label {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-light);
 }
+.admin-networks-tab__threshold-range-inputs,
 .admin-users-tab__threshold-range-inputs {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.3rem;
 }
+.admin-networks-tab__threshold-number,
 .admin-users-tab__threshold-number {
+  width: 100%;
+  padding: 0.3rem 0.5rem;
+  font-size: 0.75rem;
 }
+.admin-networks-tab__threshold-range-sep,
 .admin-users-tab__threshold-range-sep {
+  color: var(--text-light);
 }
+.admin-networks-tab__threshold-slider,
 .admin-users-tab__threshold-slider {
+  margin-top: 0.6rem;
 }
+.admin-networks-tab__threshold-minmax {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.4rem;
+  font-size: 0.65rem;
+  color: var(--text-light);
+}
+.admin-networks-tab__threshold-warning {
+  display: block;
+  margin-top: 0.4rem;
+  font-size: 0.7rem;
+  font-style: italic;
+  color: var(--error-color);
+}
+.admin-networks-tab__threshold-inactive,
 .admin-users-tab__threshold-inactive {
+  font-size: 0.75rem;
+  font-style: italic;
+  color: var(--text-light);
 }
+
+// --- Sort row (shared) ----------------------------------------------------
+.admin-networks-tab__sort-row,
 .admin-users-tab__sort-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--input-border);
 }
+.admin-networks-tab__sort-chip,
 .admin-users-tab__sort-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border: 1px solid var(--input-border);
+  border-radius: .4rem;
+  background-color: white;
+  padding: 0.3rem 0.65rem;
+  margin-right: 0.35rem;
+  margin-bottom: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  color: var(--text-color);
+
+  &:hover {
+    background-color: var(--card-bg);
+  }
 }
+.admin-networks-tab__sort-chip--active,
 .admin-users-tab__sort-chip--active {
+  border-color: var(--primary-accent-color);
+  color: var(--primary-accent-color);
+  background-color: color-mix(in srgb, var(--primary-color) 20%, white);
 }
+
+// --- Results count / table card (shared) ----------------------------------
+.admin-networks-tab__results-count,
 .admin-users-tab__results-count {
+  display: block;
+  padding: 0.6rem 1rem;
+  font-size: 0.8rem;
+  color: var(--text-light);
+  border-top: 1px solid var(--input-border);
 }
+.admin-networks-tab__results-count-value,
 .admin-users-tab__results-count-value {
+  font-weight: 700;
+  color: var(--text-color);
 }
+.admin-networks-tab__results-count-total,
 .admin-users-tab__results-count-total {
+  color: var(--text-light);
 }
+.admin-networks-tab__table-card,
 .admin-users-tab__table-card {
+  padding: 0;
+  overflow: hidden;
 }
+.admin-networks-tab__table-scroll,
 .admin-users-tab__table-scroll {
+  overflow-x: auto;
 }
+
+// Table column width hints (shared-ish)
+.admin-networks-tab__col-name,
 .admin-users-tab__col-user {
+  min-width: 12rem;
 }
+.admin-networks-tab__col-id {
+  min-width: 10rem;
+}
+.admin-networks-tab__col-entitlements,
 .admin-users-tab__col-content {
+  min-width: 16rem;
 }
+.admin-networks-tab__col-users {
+  min-width: 5rem;
+  text-align: right;
+}
+.admin-networks-tab__col-actions,
 .admin-users-tab__col-actions {
+  min-width: 10rem;
+  text-align: right;
 }
+
+// --- NetworksTab table body ------------------------------------------------
+.admin-networks-tab__name-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.admin-networks-tab__name {
+  font-weight: 700;
+  color: var(--text-color);
+}
+.admin-networks-tab__description {
+  margin-top: 0.15rem;
+  font-size: 0.8rem;
+  color: var(--text-light);
+  max-width: 20rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.admin-networks-tab__id-cell,
+.admin-users-tab__id-cell {
+  font-family: monospace;
+  font-size: 0.8rem;
+}
+.admin-networks-tab__entitlements-cell {
+  max-width: 24rem;
+}
+.admin-networks-tab__entitlement-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+.admin-networks-tab__entitlement-chip {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--input-border);
+  border-radius: .35rem;
+  background-color: white;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.7rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+
+  &:hover {
+    border-color: var(--primary-color);
+  }
+}
+.admin-networks-tab__entitlement-chip-key {
+  margin-right: 0.3rem;
+  color: var(--text-light);
+  font-weight: 600;
+}
+.admin-networks-tab__entitlement-chip-value {
+  font-weight: 700;
+  color: var(--text-color);
+}
+.admin-networks-tab__entitlement-chip-value--true {
+  color: var(--success-color);
+}
+.admin-networks-tab__entitlement-chip-value--false {
+  color: var(--error-color);
+}
+.admin-networks-tab__entitlement-chip-value--number {
+  color: var(--text-color);
+}
+.admin-networks-tab__entitlement-chip-used--over {
+  color: var(--error-color);
+}
+.admin-networks-tab__entitlement-chip-max {
+  margin-left: 0.15rem;
+  border-left: 1px solid var(--input-border);
+  padding-left: 0.3rem;
+  color: var(--text-light);
+}
+.admin-networks-tab__no-entitlements,
+.admin-users-tab__no-metrics {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.75rem;
+  font-style: italic;
+  color: var(--text-light);
+}
+.admin-networks-tab__no-entitlements-icon,
+.admin-users-tab__no-metrics-icon {
+  width: 0.85rem;
+  height: 0.85rem;
+  margin-right: 0.3rem;
+  opacity: 0.5;
+}
+.admin-networks-tab__users-cell {
+  text-align: right;
+  font-weight: 600;
+  color: var(--text-color);
+}
+.admin-networks-tab__actions-cell,
+.admin-users-tab__actions-cell {
+  text-align: right;
+  white-space: nowrap;
+}
+.admin-networks-tab__action-link,
+.admin-users-tab__action-link {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--primary-accent-color);
+  margin-left: 0.75rem;
+
+  &:first-child {
+    margin-left: 0;
+  }
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+.admin-networks-tab__action-link--manage,
+.admin-users-tab__action-link--entitlements {
+  color: var(--text-color);
+}
+.admin-networks-tab__action-link--danger {
+  color: var(--error-color);
+}
+.admin-networks-tab__empty-cell,
+.admin-users-tab__empty-cell {
+  padding: 3rem 1rem;
+  text-align: center;
+  color: var(--text-light);
+}
+
+// --- UsersTab table body ----------------------------------------------------
 .admin-users-tab__user-name {
+  font-weight: 700;
+  color: var(--text-color);
 }
 .admin-users-tab__user-handle {
-}
-.admin-users-tab__id-cell {
+  margin-top: 0.1rem;
+  font-size: 0.8rem;
+  color: var(--text-light);
 }
 .admin-users-tab__content-cell {
+  max-width: 22rem;
 }
 .admin-users-tab__metric-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
 }
 .admin-users-tab__metric-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  border: 1px solid var(--input-border);
+  border-radius: .35rem;
+  background-color: white;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.7rem;
 }
 .admin-users-tab__metric-chip-key {
+  color: var(--text-light);
+  font-weight: 600;
 }
 .admin-users-tab__metric-chip-value {
+  font-weight: 700;
+  color: var(--text-color);
 }
 .admin-users-tab__metric-chip-value-number {
-}
-.admin-users-tab__no-metrics {
-}
-.admin-users-tab__no-metrics-icon {
+  color: var(--text-color);
 }
 .admin-users-tab__networks-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
 }
 .admin-users-tab__network-item {
+  position: relative;
+
+  &:hover .admin-users-tab__network-hover-card {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
 }
 .admin-users-tab__network-link {
+  display: block;
 }
 .admin-users-tab__network-avatar {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  border: 1px solid var(--input-border);
 }
 .admin-users-tab__network-hover-card {
+  position: absolute;
+  bottom: calc(100% + 0.4rem);
+  left: 0;
+  z-index: 10;
+  width: 14rem;
+  background-color: white;
+  border: 1px solid var(--input-border);
+  border-radius: .5rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+  padding: 0.6rem 0.75rem;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(0.25rem);
+  transition: all 0.15s ease;
+  pointer-events: none;
 }
 .admin-users-tab__network-hover-title {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--text-color);
 }
 .admin-users-tab__network-hover-desc {
+  margin-top: 0.15rem;
+  font-size: 0.75rem;
+  color: var(--text-light);
 }
 .admin-users-tab__no-networks {
-}
-.admin-users-tab__actions-cell {
-}
-.admin-users-tab__action-link {
-}
-.admin-users-tab__action-link--entitlements {
-}
-.admin-users-tab__empty-cell {
+  font-size: 0.8rem;
+  font-style: italic;
+  color: var(--text-light);
 }
 
 // --- EditNetworkEntitlementsModal ---
 .edit-network-entitlements-modal__intro {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
 }
 .edit-network-entitlements-modal__network-label {
+  font-size: 0.85rem;
+  color: var(--text-light);
 }
 .edit-network-entitlements-modal__network-name {
+  font-weight: 700;
+  color: var(--text-color);
 }
 .edit-network-entitlements-modal__saving {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 .edit-network-entitlements-modal__spinner-icon {
+  width: 1rem;
+  height: 1rem;
   animation: spinner-border 0.75s linear infinite;
 }
 .edit-network-entitlements-modal__spinner-track {
+  opacity: 0.25;
 }
 .edit-network-entitlements-modal__spinner-head {
+  opacity: 0.85;
 }
 
 // --- ViewUserEntitlementsModal ---
 .view-user-entitlements-modal__scroll {
+  max-height: 70vh;
+  overflow-y: auto;
+
   &::-webkit-scrollbar {
     width: 6px;
   }
@@ -372,60 +831,124 @@
   }
 }
 .view-user-entitlements-modal__header {
+  margin-bottom: 1rem;
 }
 .view-user-entitlements-modal__name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-color);
 }
 .view-user-entitlements-modal__handle {
+  font-size: 0.85rem;
+  color: var(--text-light);
 }
 .view-user-entitlements-modal__empty {
+  padding: 2rem 0;
+  text-align: center;
+  color: var(--text-light);
 }
 .view-user-entitlements-modal__network-card {
+  padding: 1rem;
+  margin-bottom: 1rem;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
 }
 .view-user-entitlements-modal__network-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
 }
 .view-user-entitlements-modal__network-name {
+  display: block;
+  font-weight: 700;
+  color: var(--text-color);
+  margin-bottom: 0.35rem;
 }
 .view-user-entitlements-modal__network-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
 }
 .view-user-entitlements-modal__badge-key {
+  margin-right: 0.25rem;
 }
 .view-user-entitlements-modal__badge-value {
+  font-weight: 700;
 }
 .view-user-entitlements-modal__badge-value--true {
+  color: var(--success-color);
 }
 .view-user-entitlements-modal__badge-value--false {
+  color: var(--error-color);
 }
 .view-user-entitlements-modal__network-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 .view-user-entitlements-modal__action-link {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--primary-accent-color);
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 .view-user-entitlements-modal__action-link--edit {
+  color: var(--text-color);
 }
 .view-user-entitlements-modal__table-scroll {
+  overflow-x: auto;
 }
-.view-user-entitlements-modal__col-role {
-}
-.view-user-entitlements-modal__col-user {
-}
+.view-user-entitlements-modal__col-role,
+.view-user-entitlements-modal__col-user,
 .view-user-entitlements-modal__col-effective {
+  min-width: 8rem;
 }
 .view-user-entitlements-modal__base-cell {
+  color: var(--text-light);
 }
-.view-user-entitlements-modal__role-cell {
+.view-user-entitlements-modal__role-cell,
+.view-user-entitlements-modal__user-cell {
+  text-align: center;
 }
 .view-user-entitlements-modal__override-pill {
+  display: inline-block;
+  border-radius: .35rem;
+  padding: 0.1rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
 }
 .view-user-entitlements-modal__override-pill--role {
+  background-color: color-mix(in srgb, var(--primary-color) 25%, white);
+  color: var(--primary-accent-color);
 }
 .view-user-entitlements-modal__override-pill--user {
-}
-.view-user-entitlements-modal__user-cell {
+  background-color: color-mix(in srgb, var(--accent-color) 30%, white);
+  color: color-mix(in srgb, var(--accent-color) 60%, black);
 }
 .view-user-entitlements-modal__empty-value {
+  color: var(--text-light);
 }
 .view-user-entitlements-modal__effective-cell {
+  font-weight: 700;
+  color: var(--text-color);
 }
 .view-user-entitlements-modal__no-limits {
+  padding: 1.5rem 0;
+  text-align: center;
+  color: var(--text-light);
 }
 .view-user-entitlements-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--input-border);
 }

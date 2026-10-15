@@ -1,12 +1,31 @@
+@use "variables" as *;
+
 .flex__spacer {
-    flex-grow: 1;
+  flex-grow: 1;
 }
 
 .sub-message {
-    
 }
 
 .link {
-    color: var(--primary-color);
-    text-decoration: underline;
+  color: var(--primary-color);
+  text-decoration: underline;
+}
+
+.icon {
+  width: 2rem;
+  height: 2rem;
+  padding: 0.4rem;
+}
+
+.hide-on-small {
+  @media (max-width: $layout-sm) {
+    display: none;
+  }
+}
+
+.show-on-small {
+  @media (min-width: $layout-sm) {
+    display: none;
+  }
 }

@@ -1,19 +1,38 @@
 // Styles for the "networks" part of the application.
-// Classes are placeholders (empty) - the visual design is added later.
+@use 'variables' as *;
 
 // --- NetworkCard ---
 .network-card {
+  overflow: hidden;
+  border-radius: 0.5rem;
+  border: 1px solid var(--input-border);
+  background-color: var(--card-bg);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
 }
 .network-card__body {
+  padding: 1rem;
 }
 .network-card__header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.75rem;
 }
 .network-card__logo {
+  position: relative;
   top: 16px;
   left: 16px;
   z-index: 10;
 }
 .network-card__logo-image {
+  width: 2.5rem;
+  height: 2.5rem;
+  object-fit: cover;
+  border-radius: 6px;
 }
 .network-card__logo-fallback {
   display: flex;
@@ -33,645 +52,1781 @@
   }
 }
 .network-card__title-row {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
 }
 .network-card__titles {
+  margin-left: 0.75rem;
 }
 .network-card__title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-color);
 }
 .network-card__subtitle {
+  font-size: 0.875rem;
+  color: var(--text-light);
 }
 .network-card__badges {
+  display: flex;
+  gap: 0.25rem;
 }
 .network-card__description {
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  color: var(--text-light);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 .network-card__footer {
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--input-border);
+  padding-top: 1rem;
 }
 .network-card__link {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--primary-accent-color);
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 .network-card__join-btn {
+  border-radius: 0.375rem;
+  background-color: var(--primary-color);
+  padding: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-color);
+
+  &:hover {
+    background-color: var(--primary-accent-color);
+    color: var(--button-text);
+  }
 }
 
 // --- NetworkLogo ---
 .network-logo {
+  display: flex;
+  height: 3.5rem;
+  width: 3.5rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.375rem;
+  background-color: var(--bg-color);
+  padding: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 .network-logo__spinner {
+  height: 1.75rem;
+  width: 1.75rem;
+  border-width: 4px;
+  border-color: var(--input-border);
+  border-top-color: var(--primary-accent-color);
 }
 .network-logo__image {
+  height: 100%;
+  width: 100%;
+  object-fit: contain;
 }
 .network-logo__fallback {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
 }
 .network-logo__fallback-image {
+  max-height: 100%;
+  max-width: 100%;
+  border-radius: 0.375rem;
+  object-fit: contain;
 }
 
 // --- NetworkAccessList ---
 .network-access-list__status {
+  margin-bottom: 2rem;
 }
 .network-access-list__empty-message {
+  color: var(--text-light);
 }
 .network-access-list__title {
+  margin-bottom: 1rem;
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: var(--text-color);
 }
 .network-access-list__subtitle {
+  margin-bottom: 1rem;
+  color: var(--text-light);
 }
 .network-access-list__items {
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 .network-access-list__item {
+  border-radius: 0.375rem;
+  border: 1px solid var(--input-border);
+  padding: 1rem;
 }
 .network-access-list__item-row {
+  display: flex;
+  align-items: flex-start;
 }
 .network-access-list__checkbox-wrap {
+  display: flex;
+  height: 1.5rem;
+  align-items: center;
 }
 .network-access-list__item-copy {
+  margin-left: 0.75rem;
 }
 .network-access-list__required-tag {
+  margin-left: 0.25rem;
+  color: var(--error-color);
 }
 .network-access-list__accepted-tag {
+  margin-left: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--success-color);
 }
 .network-access-list__item-description {
+  font-size: 0.875rem;
+  color: var(--text-light);
 }
 
 // --- NetworkNotFound ---
 .network-not-found {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--error-color);
+  background-color: color-mix(in srgb, var(--error-color) 8%, var(--bg-color));
+  padding: 1.5rem;
+  text-align: center;
 }
 .network-not-found__title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--error-color);
 }
 .network-not-found__message {
+  color: var(--text-color);
 }
 .network-not-found__hint {
+  font-size: 0.875rem;
+  color: var(--text-light);
 }
 .network-not-found__link {
+  margin-top: 1rem;
+  display: block;
+  font-weight: 500;
+  color: var(--primary-accent-color);
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
 // --- AddAccessModal ---
 .add-access-modal__description {
+  border-radius: 0.375rem;
+  background-color: color-mix(in srgb, var(--text-color) 5%, var(--bg-color));
+  padding: 0.75rem;
 }
 .add-access-modal__description-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-color);
 }
 .add-access-modal__description-text {
+  font-size: 0.875rem;
+  color: var(--text-light);
 }
 .add-access-modal__required-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 // --- AddRoleModal ---
 .add-role-modal__permissions-list {
+  margin-top: 1rem;
+  max-height: 16rem;
+  overflow-y: auto;
+  border-radius: 0.375rem;
+  border: 1px solid var(--input-border);
+  padding: 0.5rem;
 }
 .add-role-modal__permission-item {
+  margin-left: 0.5rem;
+  display: flex;
+  align-items: center;
+  padding: 0.25rem 0;
 }
 .add-role-modal__default-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 // --- AddUserModal ---
 .add-user-modal__roles-list {
+  margin-top: 0.5rem;
+  max-height: 12rem;
+  overflow-y: auto;
+  border-radius: 0.375rem;
+  border: 1px solid var(--input-border);
+  padding: 0.5rem;
 }
 
 // --- EditRoleModal ---
 .edit-role-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  overflow-y: auto;
+  padding: 0 0.25rem;
 }
 .edit-role-modal__details {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 .edit-role-modal__fields {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
 }
 .edit-role-modal__toggle {
+  display: flex;
+  cursor: pointer;
+  align-items: center;
+  border-radius: 0.75rem;
+  border: 1px solid var(--input-border);
+  background-color: color-mix(in srgb, var(--text-color) 3%, var(--bg-color));
+  padding: 0.75rem;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: color-mix(in srgb, var(--text-color) 6%, var(--bg-color));
+  }
 }
 .edit-role-modal__toggle-control {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
 }
 .edit-role-modal__toggle-track {
+  height: 1.25rem;
+  width: 2.25rem;
+  border-radius: 9999px;
+  background-color: var(--input-border);
+  position: relative;
+  transition: background-color 0.2s ease;
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 2px;
+    top: 2px;
+    height: 1rem;
+    width: 1rem;
+    border-radius: 50%;
+    background-color: var(--bg-color);
+    transition: transform 0.2s ease;
+  }
+}
+input:checked + .edit-role-modal__toggle-track {
+  background-color: var(--primary-accent-color);
+
+  &::after {
+    transform: translateX(1rem);
+  }
 }
 .edit-role-modal__toggle-copy {
+  margin-left: 0.75rem;
 }
 .edit-role-modal__toggle-title {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-color);
 }
 .edit-role-modal__toggle-subtitle {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-light);
 }
 .edit-role-modal__subtabs {
+  display: flex;
+  border-radius: 0.75rem;
+  background-color: color-mix(in srgb, var(--text-color) 6%, var(--bg-color));
+  padding: 0.25rem;
 }
 .edit-role-modal__subtab {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.5rem;
+  padding: 0.5rem 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-light);
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: var(--text-color);
+  }
 }
 .edit-role-modal__subtab--active {
+  background-color: var(--bg-color);
+  color: var(--primary-accent-color);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 .edit-role-modal__subtab-dot {
+  height: 0.5rem;
+  width: 0.5rem;
+  border-radius: 9999px;
+  background-color: var(--input-border);
 }
 .edit-role-modal__subtab-dot--active {
+  background-color: var(--primary-accent-color);
 }
 .edit-role-modal__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 .edit-role-modal__permissions-empty {
+  padding: 2rem;
+  text-align: center;
+  font-size: 0.875rem;
+  font-style: italic;
+  color: var(--text-light);
 }
 .edit-role-modal__permissions-list {
+  overflow-y: auto;
+
+  > * + * {
+    border-top: 1px solid var(--input-border);
+  }
 }
 // Shared small info banner used by several network management modals.
 .network-modal__info-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--primary-color);
+  background-color: color-mix(in srgb, var(--primary-color) 15%, var(--bg-color));
+  padding: 0.75rem;
 }
 .network-modal__info-icon {
+  display: flex;
+  flex-shrink: 0;
+  height: 1.25rem;
+  width: 1.25rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background-color: var(--primary-color);
+  font-size: 0.625rem;
+  font-weight: 900;
+  font-style: italic;
+  color: var(--primary-accent-color);
 }
 .network-modal__info-text {
+  font-size: 0.6875rem;
+  line-height: 1.3;
+  color: var(--primary-accent-color);
 }
 
 // --- EditUserModal ---
 .edit-user-modal__ids {
+  margin-bottom: 1rem;
 }
 .edit-user-modal__id-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 .edit-user-modal__id-label {
+  font-size: 0.625rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-light);
 }
 .edit-user-modal__id-value {
+  border-radius: 0.375rem;
+  border: 1px solid var(--input-border);
+  background-color: color-mix(in srgb, var(--text-color) 5%, var(--bg-color));
+  padding: 0.125rem 0.5rem;
+  font-family: monospace;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-color);
 }
 .edit-user-modal__body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 .edit-user-modal__section-title {
+  font-size: 1.125rem;
+  font-weight: 500;
+  line-height: 1.5rem;
+  color: var(--text-color);
 }
 .edit-user-modal__section-subtitle {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--text-light);
 }
 .edit-user-modal__roles-list {
+  margin-top: 1rem;
+  max-height: 12rem;
+  overflow-y: auto;
+  border-radius: 0.375rem;
+  border: 1px solid var(--input-border);
+  padding: 0.5rem;
 }
 
 // --- Shared list-style tab panel (Accesses / Roles / Users tabs) -----------
 .network-list-panel {
+  overflow: hidden;
+  border-radius: 0.5rem;
+  background-color: var(--card-bg);
+  padding: 1.5rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 }
 .network-list-panel__header {
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 .network-list-panel__title {
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: var(--text-color);
 }
 .network-list-panel__items {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 .network-list-panel__item {
+  border-radius: 0.5rem;
+  border: 1px solid var(--input-border);
+  background-color: color-mix(in srgb, var(--text-color) 3%, var(--bg-color));
+  padding: 1rem;
 }
 .network-list-panel__item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
 }
 .network-list-panel__item-title {
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: var(--text-color);
 }
 .network-list-panel__item-description {
+  font-size: 0.875rem;
+  color: var(--text-light);
 }
 .network-list-panel__item-actions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
 }
 .network-list-panel__toggle-btn {
+  margin-right: 0.75rem;
+  border-radius: 0.375rem;
+  border: 1px solid var(--input-border);
+  background-color: color-mix(in srgb, var(--text-color) 6%, var(--bg-color));
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  color: var(--text-color);
 }
 .network-list-panel__toggle-btn--active {
+  border-color: var(--success-color);
+  background-color: color-mix(in srgb, var(--success-color) 15%, var(--bg-color));
+  color: var(--success-color);
 }
 .network-list-panel__remove-btn {
+  color: var(--error-color);
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 .network-list-panel__empty {
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--text-light);
 }
 
 // --- BrowseNetworksTab ---
 .browse-networks-tab__header {
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
 }
 .browse-networks-tab__title {
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: var(--text-color);
 }
 
 // Shared network-card grid + empty state (BrowseNetworksTab, MyNetworksTab)
 .network-card-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+
+  @media (min-width: $layout-sm) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (min-width: 1280px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 .network-card-grid__empty {
+  grid-column: 1 / -1;
+  padding: 2.5rem;
+  text-align: center;
+  color: var(--text-light);
 }
 
 // --- MyNetworksTab ---
 .my-networks-tab__title {
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: var(--text-color);
 }
 
 // --- RolesTab (network) ---
 .roles-tab__edit-btn {
+  margin-right: 0.75rem;
+  color: var(--primary-accent-color);
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 .roles-tab__detail-row {
+  margin-top: 1rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
 }
 .roles-tab__detail-label {
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-color);
 }
 .roles-tab__permissions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 .roles-tab__empty-note {
+  font-size: 0.875rem;
+  color: var(--text-light);
 }
 .roles-tab__users-section {
+  margin-top: 1rem;
 }
 .roles-tab__users {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 .roles-tab__user-chip {
+  display: flex;
+  align-items: center;
+  border-radius: 0.375rem;
+  border: 1px solid var(--input-border);
+  background-color: var(--bg-color);
+  padding: 0.25rem 0.5rem;
 }
 .roles-tab__user-avatar {
+  margin-right: 0.5rem;
+  flex-shrink: 0;
+  height: 1.5rem;
+  width: 1.5rem;
 }
 .roles-tab__user-name {
+  font-size: 0.75rem;
+  color: var(--text-color);
 }
 .roles-tab__loading-row {
+  padding-top: 2rem;
+  font-size: 0.875rem;
+  color: var(--text-light);
 }
 
 // --- UsersTab (network) ---
 .network-users-tab {
+  overflow: hidden;
+  border-radius: 0.5rem;
+  background-color: var(--card-bg);
+  padding: 1.5rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 }
 .network-users-tab__header {
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 .network-users-tab__title {
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: var(--text-color);
 }
 .network-users-tab__table-wrap {
+  overflow-x: auto;
 }
 .network-users-tab__user-cell {
+  display: flex;
+  align-items: center;
 }
 .network-users-tab__avatar {
+  flex-shrink: 0;
+  height: 2.5rem;
+  width: 2.5rem;
 }
 .network-users-tab__user-info {
+  margin-left: 1rem;
 }
 .network-users-tab__user-name {
+  max-width: 16rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-color);
 }
 .network-users-tab__user-email {
+  font-size: 0.875rem;
+  color: var(--text-light);
 }
 .network-users-tab__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 .network-users-tab__empty-note {
+  font-size: 0.875rem;
+  color: var(--text-light);
 }
 .network-users-tab__actions {
+  text-align: right;
 }
 .network-users-tab__manage-btn {
+  margin-right: 0.75rem;
+  color: var(--primary-accent-color);
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 .network-users-tab__empty-row {
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  color: var(--text-light);
 }
 
 // --- CompleteAccessView ---
 .complete-access-view__loading {
+  display: flex;
+  justify-content: center;
+  padding: 2.5rem 0;
 }
 .complete-access-view__network-card {
+  margin-bottom: 2rem;
+  cursor: pointer;
+  overflow: hidden;
+  border-radius: 0.5rem;
+  border: 1px solid var(--input-border);
+  background-color: var(--card-bg);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
 }
 .complete-access-view__network-row {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
 }
 .complete-access-view__network-logo {
+  margin-right: 1rem;
 }
 .complete-access-view__network-info {
+  flex: 1;
 }
 .complete-access-view__network-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 .complete-access-view__network-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-color);
 }
 .complete-access-view__network-subtitle {
+  font-size: 0.875rem;
+  color: var(--text-light);
 }
 .complete-access-view__network-description {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-light);
 }
 .complete-access-view__current-user {
+  margin-top: 1.5rem;
+  margin-bottom: 2rem;
 }
 .complete-access-view__current-user-title {
+  margin-bottom: 1rem;
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: var(--text-color);
 }
 .complete-access-view__error {
+  margin: 1.5rem;
 }
 .complete-access-view__footer-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
 }
 .complete-access-view__submitting {
+  display: flex;
+  align-items: center;
 }
 
 // --- CreateNetworkView ---
 .create-network-view {
+  max-width: 64rem;
+  margin: 1.5rem auto 0;
+  padding: 0 1rem 2.5rem;
 }
 .create-network-view__panel {
+  overflow: hidden;
+  border-radius: 1rem;
+  border: 1px solid var(--input-border);
+  background-color: var(--card-bg);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
 }
 .create-network-view__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--input-border);
+  background-color: color-mix(in srgb, var(--text-color) 4%, var(--bg-color));
+  padding: 1rem 1.5rem;
 }
 .create-network-view__heading {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-color);
 }
 .create-network-view__error {
+  margin: 1.5rem 2rem 0;
 }
 .create-network-view__body {
+  padding: 2rem;
 }
 .create-network-view__section-title {
+  margin-bottom: 1rem;
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: var(--text-color);
 }
 .create-network-view__basic-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+
+  @media (min-width: $layout-sm) {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 .create-network-view__required {
+  color: var(--error-color);
 }
 .create-network-view__image-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 .create-network-view__image-current {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 .create-network-view__image-preview {
+  height: 6rem;
+  width: 6rem;
+  border-radius: 9999px;
+  object-fit: cover;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 .create-network-view__image-actions {
+  margin-top: 1rem;
+  display: flex;
+  gap: 1rem;
 }
 .create-network-view__image-remove-btn {
+  font-size: 0.875rem;
+  color: var(--error-color);
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 .create-network-view__image-change-btn {
+  font-size: 0.875rem;
+  color: var(--primary-accent-color);
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 .create-network-view__image-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 .create-network-view__image-placeholder {
+  display: flex;
+  height: 6rem;
+  width: 6rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background-color: color-mix(in srgb, var(--text-color) 6%, var(--bg-color));
+  color: var(--text-light);
 }
 .create-network-view__checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 .create-network-view__checkbox-hint {
+  margin-left: 1.5rem;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--text-light);
 }
 .create-network-view__accesses-header {
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
 }
 .create-network-view__accesses-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 .create-network-view__access-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 0.5rem;
+  border: 1px solid var(--input-border);
+  background-color: color-mix(in srgb, var(--text-color) 3%, var(--bg-color));
+  padding: 1rem;
 }
 .create-network-view__access-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-color);
 }
 .create-network-view__access-status {
+  font-size: 0.75rem;
+  color: var(--text-light);
 }
 .create-network-view__access-remove-btn {
+  font-size: 0.875rem;
+  color: var(--error-color);
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 .create-network-view__accesses-empty {
+  border-radius: 0.5rem;
+  border: 1px dashed var(--input-border);
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--text-light);
 }
 
 // --- InfoNetworkView ---
 .info-network-view {
+  max-width: 64rem;
+  margin: 2rem auto 0;
+  padding: 0 1rem 2rem;
 }
 .info-network-view__panel {
+  overflow: hidden;
+  border-radius: 0.5rem;
+  border: 1px solid var(--input-border);
+  background-color: var(--card-bg);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 }
 .info-network-view__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--input-border);
+  background-color: color-mix(in srgb, var(--text-color) 4%, var(--bg-color));
+  padding: 1rem 1.5rem;
 }
 .info-network-view__heading {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-color);
 }
 .info-network-view__header-actions {
+  display: flex;
+  gap: 0.75rem;
 }
 .info-network-view__loading {
+  display: flex;
+  height: 16rem;
+  align-items: center;
+  justify-content: center;
 }
 .info-network-view__error {
+  margin: 1.5rem;
 }
 .info-network-view__error-actions {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: center;
 }
 .info-network-view__content {
+  padding: 1.5rem;
 }
 .info-network-view__network-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
 }
 .info-network-view__network-identity {
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
 }
 .info-network-view__network-logo {
+  margin-right: 1rem;
 }
 .info-network-view__network-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-color);
 }
 .info-network-view__network-description {
+  color: var(--text-light);
 }
 .info-network-view__section {
+  margin-bottom: 1.5rem;
 }
 .info-network-view__section-title {
+  margin-bottom: 0.75rem;
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: var(--text-color);
 }
 .info-network-view__box {
+  border-radius: 0.5rem;
+  border: 1px solid var(--input-border);
+  background-color: color-mix(in srgb, var(--text-color) 3%, var(--bg-color));
+  padding: 1rem;
 }
 .info-network-view__empty-box {
+  border-radius: 0.5rem;
+  border: 1px solid var(--input-border);
+  background-color: color-mix(in srgb, var(--text-color) 3%, var(--bg-color));
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--text-light);
 }
 .info-network-view__disclosure {
+  > summary {
+    list-style: none;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+  }
+
+  &[open] .info-network-view__summary-icon {
+    transform: rotate(180deg);
+  }
 }
 .info-network-view__summary {
+  display: flex;
+  cursor: pointer;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-color);
 }
 .info-network-view__summary-icon {
+  margin-left: 0.5rem;
+  display: inline-block;
+  transition: transform 0.2s ease;
 }
 .info-network-view__list {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 .info-network-view__list-item {
+  display: flex;
+  align-items: flex-start;
+  border-radius: 0.375rem;
+  border: 1px solid var(--input-border);
+  background-color: var(--bg-color);
+  padding: 0.75rem;
 }
 .info-network-view__list-item--split {
+  justify-content: space-between;
 }
 .info-network-view__list-item-badge {
+  margin-top: 0.25rem;
+  flex-shrink: 0;
 }
 .info-network-view__list-item-copy {
+  margin-left: 1rem;
 }
 .info-network-view__list-item-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-color);
 }
 .info-network-view__list-item-description {
+  font-size: 0.875rem;
+  color: var(--text-light);
 }
 .info-network-view__list-item-actions {
+  display: flex;
+  align-items: center;
 }
 .info-network-view__detail-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+
+  @media (min-width: $layout-sm) {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 .info-network-view__detail-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-light);
 }
 .info-network-view__detail-value {
+  margin-top: 0.25rem;
+  color: var(--text-color);
 }
 .info-network-view__detail-value--mono {
+  display: inline-block;
+  border-radius: 0.25rem;
+  background-color: color-mix(in srgb, var(--text-color) 6%, var(--bg-color));
+  padding: 0.25rem 0.5rem;
+  font-family: monospace;
 }
 .info-network-view__user-accesses {
+  margin-top: 1.5rem;
 }
 .info-network-view__no-accesses {
+  margin-top: 1.5rem;
+  font-size: 0.875rem;
+  color: var(--text-light);
 }
 .info-network-view__footer-actions {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  border-top: 1px solid var(--input-border);
+  padding-top: 1rem;
 }
 
 // --- JoinNetworkView ---
 .join-network-view {
+  max-width: 48rem;
+  margin: 2rem auto 0;
+  padding: 0 1rem 2rem;
 }
 .join-network-view__panel {
+  overflow: hidden;
+  border-radius: 0.5rem;
+  border: 1px solid var(--input-border);
+  background-color: var(--card-bg);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 }
 .join-network-view__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--input-border);
+  background-color: color-mix(in srgb, var(--text-color) 4%, var(--bg-color));
+  padding: 1rem 1.5rem;
 }
 .join-network-view__heading {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-color);
 }
 .join-network-view__body {
+  padding: 1.5rem;
 }
 .join-network-view__network-card {
+  margin-bottom: 2rem;
+  cursor: pointer;
+  overflow: hidden;
+  border-radius: 0.5rem;
+  border: 1px solid var(--input-border);
+  background-color: var(--bg-color);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
 }
 .join-network-view__network-card-body {
+  padding: 1rem;
 }
 .join-network-view__network-row {
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
 }
 .join-network-view__network-logo {
+  margin-right: 1rem;
 }
 .join-network-view__network-info {
+  flex: 1;
 }
 .join-network-view__network-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 .join-network-view__network-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-color);
 }
 .join-network-view__network-subtitle {
+  font-size: 0.875rem;
+  color: var(--text-light);
 }
 .join-network-view__network-description {
+  font-size: 0.875rem;
+  color: var(--text-light);
 }
 .join-network-view__accesses-loading {
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: center;
 }
 .join-network-view__section-title {
+  margin-bottom: 1rem;
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: var(--text-color);
 }
 .join-network-view__section-subtitle {
+  margin-bottom: 1rem;
+  color: var(--text-light);
 }
 .join-network-view__accesses-list {
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 .join-network-view__access-item {
+  border-radius: 0.375rem;
+  border: 1px solid var(--input-border);
+  padding: 1rem;
 }
 .join-network-view__access-row {
+  display: flex;
+  align-items: flex-start;
 }
 .join-network-view__access-checkbox-wrap {
+  display: flex;
+  height: 1.5rem;
+  align-items: center;
 }
 .join-network-view__access-copy {
+  margin-left: 0.75rem;
 }
 .join-network-view__required-tag {
+  margin-left: 0.25rem;
+  color: var(--error-color);
 }
 .join-network-view__access-description {
+  font-size: 0.875rem;
+  color: var(--text-light);
 }
 .join-network-view__no-accesses {
+  color: var(--text-light);
 }
 .join-network-view__current-user {
+  margin-bottom: 2rem;
 }
 .join-network-view__current-user-title {
+  margin-bottom: 1rem;
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: var(--text-color);
 }
 .join-network-view__error {
+  margin: 1.5rem;
 }
 .join-network-view__submitting {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 // Shared loading / not-found / invalid-url status block (Login + Signup network views)
 .network-auth-status {
+  width: 100%;
+  text-align: center;
 }
 .network-auth-status__text {
+  font-size: 0.875rem;
+  color: var(--text-light);
 }
 .network-auth-status__spinner {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: center;
 }
 
 // --- LoginNetworkView ---
 .login-network-view__footer {
+  margin-top: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-light);
 }
 .login-network-view__signup-link {
+  font-weight: 500;
+  color: var(--primary-accent-color);
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
 // --- SignupNetworkView ---
 .signup-network-view__footer {
+  margin-top: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-light);
 }
 .signup-network-view__login-link {
+  font-weight: 500;
+  color: var(--primary-accent-color);
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 .signup-network-view__network-card {
+  margin-bottom: 2rem;
+  overflow: hidden;
+  border-radius: 0.5rem;
+  border: 1px solid var(--input-border);
+  background-color: var(--bg-color);
+  padding: 1rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 .signup-network-view__network-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-color);
 }
 .signup-network-view__network-description {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--text-light);
 }
 .signup-network-view__account-preview {
+  margin-bottom: 2rem;
 }
 .signup-network-view__account-preview-title {
+  margin-bottom: 1rem;
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: var(--text-color);
 }
 .signup-network-view__submitting {
+  display: flex;
+  align-items: center;
 }
 .signup-network-view__finalizing {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  text-align: center;
 }
 .signup-network-view__finalizing-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-color);
 }
 .signup-network-view__finalizing-text {
+  color: var(--text-light);
 }
 
 // --- NetworksView ---
 .networks-view {
+  max-width: 64rem;
+  margin: 2rem auto 0;
+  padding: 0 1rem 2rem;
 }
 .networks-view__panel {
+  overflow: hidden;
+  border-radius: 0.5rem;
+  background-color: var(--card-bg);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 }
 .networks-view__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--input-border);
+  background-color: color-mix(in srgb, var(--text-color) 4%, var(--bg-color));
+  padding: 1rem 1.5rem;
 }
 .networks-view__heading {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-color);
 }
 .networks-view__tabs-wrap {
+  border-bottom: 1px solid var(--input-border);
 }
 .networks-view__tabs {
+  display: flex;
 }
 .networks-view__tab {
+  padding: 1rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-light);
+  border-bottom: 2px solid transparent;
+
+  &:hover {
+    color: var(--text-color);
+  }
 }
 .networks-view__tab--active {
+  border-bottom-color: var(--primary-accent-color);
+  color: var(--primary-accent-color);
 }
 .networks-view__content {
+  padding: 1.5rem;
 }
 
 // --- ManageNetworkView ---
 .manage-network-view {
+  display: flex;
+  height: 100%;
+  padding-top: 4rem;
 }
 .manage-network-view__content {
+  flex: 1;
+  overflow: auto;
+  padding: 1.5rem;
 }
 
 // --- EditNetworkTab ---
 .edit-network-tab {
+  overflow: hidden;
+  border-radius: 0.5rem;
+  background-color: var(--card-bg);
+  padding: 1.5rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 }
 .edit-network-tab__content {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
 }
 .edit-network-tab__heading {
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: var(--text-color);
 }
 .edit-network-tab__main {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 2.5rem;
+  flex-wrap: wrap;
 }
 .edit-network-tab__fields {
+  flex-grow: 1;
 }
 .edit-network-tab__fields-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+
+  @media (min-width: $layout-sm) {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 .edit-network-tab__field--full {
+  grid-column: 1 / -1;
 }
 .edit-network-tab__checkbox-label {
+  display: flex;
+  cursor: pointer;
+  align-items: center;
+  gap: 0.5rem;
 }
 .edit-network-tab__checkbox-text {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-color);
 }
 .edit-network-tab__checkbox-hint {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--text-light);
 }
 .edit-network-tab__image-section {
+  display: flex;
+  flex-direction: column;
+  margin-right: 1.5rem;
 }
 .edit-network-tab__image-heading {
+  text-align: center;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-color);
 }
 .edit-network-tab__image-wrap {
+  display: flex;
+  flex-grow: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 .edit-network-tab__image-current {
+  display: flex;
+  flex-grow: 1;
+  flex-direction: column;
+  align-items: center;
 }
 .edit-network-tab__image-preview {
+  height: 6rem;
+  width: 6rem;
+  border-radius: 9999px;
+  object-fit: cover;
 }
 .edit-network-tab__image-actions {
+  margin-top: 0.75rem;
+  display: flex;
+  gap: 0.75rem;
 }
 .edit-network-tab__image-remove-btn {
+  font-size: 0.875rem;
+  color: var(--error-color);
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 .edit-network-tab__image-change-btn {
+  font-size: 0.875rem;
+  color: var(--primary-accent-color);
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 .edit-network-tab__image-empty {
+  display: flex;
+  flex-grow: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 .edit-network-tab__image-placeholder {
+  display: flex;
+  height: 6rem;
+  width: 6rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background-color: color-mix(in srgb, var(--text-color) 10%, var(--bg-color));
+  color: var(--text-light);
 }
 .edit-network-tab__danger-zone {
+  border-radius: 0.5rem;
+  border: 1px solid var(--error-color);
+  background-color: color-mix(in srgb, var(--error-color) 8%, var(--bg-color));
+  padding: 1.5rem;
 }
 .edit-network-tab__danger-zone-title {
+  margin-bottom: 1rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--error-color);
 }
 .edit-network-tab__danger-zone-text {
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  color: var(--error-color);
 }
 .edit-network-tab__unsaved-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  width: 100vw;
+  justify-content: center;
+  z-index: 100;
 }
 .edit-network-tab__unsaved-panel {
+  margin-bottom: 0.75rem;
+  display: flex;
+  width: fit-content;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2.5rem;
+  border-radius: 0.5rem;
+  background-color: var(--text-color);
+  padding: 0.75rem 1.5rem;
+  color: var(--button-text);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
 }
 .edit-network-tab__unsaved-text {
+  font-size: 0.875rem;
 }
 .edit-network-tab__unsaved-actions {
+  display: flex;
+  gap: 0.75rem;
 }
 
 // --- HomeTab (network) ---
 .network-home-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
 }
 .network-home-tab__summary-card {
+  overflow: hidden;
+  border-radius: 0.5rem;
+  background-color: var(--card-bg);
+  padding: 1.5rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 }
 .network-home-tab__title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-color);
 }
 .network-home-tab__stats {
+  margin: 1.5rem 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+
+  @media (min-width: $layout-sm) {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 .network-home-tab__stat {
+  border-radius: 0.5rem;
+  background-color: color-mix(in srgb, var(--text-color) 4%, var(--bg-color));
+  padding: 1rem;
 }
 .network-home-tab__stat-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  color: var(--text-light);
 }
 .network-home-tab__stat-value {
+  margin-top: 0.5rem;
+  font-size: 1.875rem;
+  font-weight: 600;
+  color: var(--text-color);
 }
 .network-home-tab__id-row {
+  display: flex;
 }
 .network-home-tab__id {
+  border-radius: 0.5rem;
+  background-color: color-mix(in srgb, var(--text-color) 4%, var(--bg-color));
+  padding: 0.25rem 0.5rem;
+  font-family: monospace;
+  font-weight: 500;
+  color: var(--text-light);
 }
 .network-home-tab__stats-card {
+  overflow: hidden;
+  border-radius: 0.5rem;
+  background-color: var(--card-bg);
+  padding: 1.5rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 }
 .network-home-tab__entitlements {
+  margin-top: 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+
+  @media (min-width: $layout-sm) {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 .network-home-tab__entitlement-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 0.75rem;
+  border: 1px solid var(--primary-color);
+  background-color: var(--bg-color);
+  padding: 1.25rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
 }
 .network-home-tab__entitlement-card--locked {
+  border-color: var(--input-border);
+  background-color: color-mix(in srgb, var(--text-color) 4%, var(--bg-color));
+  opacity: 0.75;
 }
 .network-home-tab__entitlement-header {
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
 }
 .network-home-tab__entitlement-title {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-color);
 }
 .network-home-tab__usage {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 .network-home-tab__usage-row {
+  margin-bottom: 0.25rem;
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
 }
 .network-home-tab__usage-label {
+  color: var(--text-light);
 }
 .network-home-tab__usage-value {
+  font-weight: 500;
+  color: var(--text-color);
 }
 .network-home-tab__progress {
+  height: 0.375rem;
+  width: 100%;
+  border-radius: 9999px;
+  background-color: color-mix(in srgb, var(--text-color) 8%, var(--bg-color));
 }
 .network-home-tab__progress-fill {
+  height: 0.375rem;
+  border-radius: 9999px;
+  background-color: var(--primary-accent-color);
 }
 .network-home-tab__storage {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
 }
 .network-home-tab__storage-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-color);
 }
 .network-home-tab__storage-limit {
+  font-size: 0.875rem;
+  color: var(--text-light);
 }
 .network-home-tab__unavailable {
+  padding: 1rem 0;
 }
 .network-home-tab__unavailable-text {
+  font-size: 0.875rem;
+  font-style: italic;
+  color: var(--text-light);
 }
 
 // Vue <transition name="fade"> helper (shared convention across several

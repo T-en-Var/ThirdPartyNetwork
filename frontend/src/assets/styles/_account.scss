@@ -1,172 +1,474 @@
 // Styles for the "account" part of the application.
-// Classes are placeholders (empty) - the visual design is added later.
+
+@use 'variables' as *;
 
 // --- ManageAccountView ---
 .manage-account-view {
+  display: flex;
+  height: 100%;
 }
 .manage-account-view__content {
+  flex: 1;
+  overflow: auto;
+  padding: 1.5rem;
 }
 
 // --- AccountHomeTab ---
 .account-home-tab {
+  overflow: hidden;
+  border-radius: 0.5rem;
+  background-color: var(--card-bg);
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 .account-home-tab__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 .account-home-tab__title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-color);
 }
 .account-home-tab__content {
+  padding: 1.5rem 0;
 }
 .account-home-tab__section {
+  margin-bottom: 2rem;
 }
 .account-home-tab__section-title {
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: var(--text-color);
 }
 .account-home-tab__user-info {
+  display: flex;
+  align-items: center;
+  border-radius: 0.5rem;
+  border: 1px solid var(--input-border);
+  background-color: color-mix(in srgb, var(--text-color) 4%, transparent);
+  padding: 1rem;
 }
 .account-home-tab__user-info-text {
+  margin-left: 1rem;
 }
 .account-home-tab__user-info-line {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-color);
 }
 .account-home-tab__user-info-line--muted {
+  font-weight: 400;
+  color: var(--text-light);
 }
 .account-home-tab__proxy-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+
+  @media (min-width: $layout-sm) {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 .account-home-tab__proxy-card {
+  cursor: pointer;
+  border-radius: 0.5rem;
+  border: 1px solid var(--input-border);
+  background-color: var(--card-bg);
+  padding: 1rem;
+  transition: box-shadow 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
 }
 .account-home-tab__proxy-card-inner {
+  display: flex;
+  align-items: center;
 }
 .account-home-tab__proxy-card-text {
+  margin-left: 0.75rem;
 }
 .account-home-tab__proxy-card-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-color);
 }
 .account-home-tab__proxy-card-meta {
+  font-size: 0.75rem;
+  color: var(--text-light);
 }
 .account-home-tab__proxy-card-meta--truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .account-home-tab__proxy-card-meta--faint {
+  opacity: 0.7;
 }
 
 // --- UserProxyTab ---
 .user-proxy-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  overflow: hidden;
+  border-radius: 0.5rem;
+  background-color: var(--card-bg);
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 .user-proxy-tab__subtitle {
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: var(--text-color);
 }
 .user-proxy-tab__active-card {
+  margin-top: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--primary-color) 60%, transparent);
+  background-color: color-mix(in srgb, var(--primary-color) 12%, white);
+  padding: 1.5rem;
 }
 .user-proxy-tab__active-card-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
 }
 .user-proxy-tab__active-card-text {
+  margin-left: 1rem;
 }
 .user-proxy-tab__active-card-name {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-color);
 }
 .user-proxy-tab__active-card-actions {
+  display: flex;
+  gap: 0.75rem;
 }
 .user-proxy-tab__muted-text {
+  font-size: 0.875rem;
+  color: var(--text-light);
 }
 .user-proxy-tab__muted-text--xs {
+  font-size: 0.75rem;
 }
 .user-proxy-tab__muted-text--truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .user-proxy-tab__section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
 }
 .user-proxy-tab__proxy-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  padding-bottom: 4rem;
+
+  @media (min-width: $layout-sm) {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 .user-proxy-tab__proxy-card {
+  border-radius: 0.5rem;
+  border: 1px solid var(--input-border);
+  background-color: var(--card-bg);
+  padding: 1rem;
+  transition: box-shadow 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
 }
 .user-proxy-tab__proxy-card-top {
+  display: flex;
+  width: 100%;
+  align-items: flex-start;
+  justify-content: space-between;
 }
 .user-proxy-tab__proxy-card-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.75rem;
 }
 .user-proxy-tab__proxy-card-text {
+  margin-left: 0.75rem;
 }
 .user-proxy-tab__proxy-card-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-color);
 }
 .user-proxy-tab__proxy-card-actions {
+  display: flex;
+  gap: 0.5rem;
 }
 .user-proxy-tab__avatar--lg {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
 }
 .user-proxy-tab__avatar--sm {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
 }
 .user-proxy-tab__networks-title {
+  margin-bottom: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-light);
 }
 .user-proxy-tab__networks-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 .user-proxy-tab__network-item {
+  position: relative;
+
+  &:hover .user-proxy-tab__network-hover-card {
+    display: block;
+  }
 }
 .user-proxy-tab__network-link {
+  display: block;
 }
 .user-proxy-tab__network-hover-card {
+  display: none;
+  position: absolute;
+  top: 3rem;
+  left: 0;
+  z-index: 10;
+  width: 14rem;
+  border-radius: 0.375rem;
+  border: 1px solid var(--input-border);
+  background-color: var(--card-bg);
+  padding: 0.75rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
 }
 .user-proxy-tab__network-hover-title {
+  font-weight: 500;
+  color: var(--text-color);
 }
 .user-proxy-tab__access-filters {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
 }
 .user-proxy-tab__access-filter {
+  display: flex;
+  cursor: pointer;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--input-border);
+  padding: 0.75rem 1rem;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: color-mix(in srgb, var(--text-color) 4%, transparent);
+  }
 }
 .user-proxy-tab__access-filter-checkbox {
+  display: flex;
+  align-items: center;
+  height: 1.25rem;
 }
 .user-proxy-tab__access-filter-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-color);
 }
 
 // --- EditUserProxyTab ---
 .edit-user-proxy-tab {
+  max-width: 64rem;
+  margin: 0 auto;
+  overflow: hidden;
+  border-radius: 0.5rem;
+  background-color: var(--card-bg);
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 .edit-user-proxy-tab__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
 }
 .edit-user-proxy-tab__top-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 2.5rem;
 }
 .edit-user-proxy-tab__profile-section {
+  flex-grow: 1;
 }
 .edit-user-proxy-tab__section-title {
+  margin-bottom: 1rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-color);
 }
 .edit-user-proxy-tab__field-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+
+  @media (min-width: $layout-sm) {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 .edit-user-proxy-tab__field-grid-full {
+  grid-column: 1 / -1;
 }
 .edit-user-proxy-tab__username-field {
+  position: relative;
+  margin-top: 0.25rem;
 }
 .edit-user-proxy-tab__username-prefix {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-light);
 }
 .edit-user-proxy-tab__username-input {
+  padding-left: 1.75rem;
 }
 .edit-user-proxy-tab__checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  cursor: pointer;
 }
 .edit-user-proxy-tab__checkbox-label--disabled {
+  cursor: default;
 }
 .edit-user-proxy-tab__checkbox-text {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-color);
 }
 .edit-user-proxy-tab__image-section {
+  display: flex;
+  flex-direction: column;
 }
 .edit-user-proxy-tab__image-section-body {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  align-items: center;
+  justify-content: center;
 }
 .edit-user-proxy-tab__image-section-empty {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  align-items: center;
+  justify-content: center;
 }
 .edit-user-proxy-tab__avatar {
+  width: 6rem;
+  height: 6rem;
+  border-radius: 50%;
 }
 .edit-user-proxy-tab__avatar-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 6rem;
+  height: 6rem;
+  border-radius: 50%;
+  background-color: color-mix(in srgb, var(--text-color) 10%, transparent);
+  color: var(--text-light);
+  font-size: 0.875rem;
 }
 .edit-user-proxy-tab__image-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
 }
 .edit-user-proxy-tab__link-btn {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--primary-accent-color);
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 .edit-user-proxy-tab__link-btn--danger {
+  color: var(--error-color);
 }
 .edit-user-proxy-tab__password-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  border-radius: 0.375rem;
+  border: 1px solid var(--input-border);
+  background-color: color-mix(in srgb, var(--text-color) 4%, transparent);
+  padding: 1rem;
 }
 .edit-user-proxy-tab__password-note {
+  font-size: 0.75rem;
+  color: var(--text-light);
 }
 .edit-user-proxy-tab__password-note-emphasis {
+  font-weight: 600;
+  color: var(--error-color);
 }
 .edit-user-proxy-tab__password-hint {
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--text-light);
 }
 .edit-user-proxy-tab__network-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+
+  @media (min-width: $layout-sm) {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 .edit-user-proxy-tab__network-empty {
+  grid-column: 1 / -1;
+  padding: 2.5rem;
+  text-align: center;
 }
 .edit-user-proxy-tab__danger-zone {
+  border-radius: 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--error-color) 40%, transparent);
+  background-color: color-mix(in srgb, var(--error-color) 8%, white);
+  padding: 1.5rem;
 }
 .edit-user-proxy-tab__danger-zone-title {
+  margin-bottom: 1rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--error-color);
 }
 .edit-user-proxy-tab__danger-zone-text {
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  color: var(--error-color);
 }
 .edit-user-proxy-tab__save-bar {
   position: fixed;
@@ -177,10 +479,24 @@
   justify-content: center;
 }
 .edit-user-proxy-tab__save-bar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2.5rem;
+  width: fit-content;
+  margin-bottom: 0.75rem;
+  border-radius: 0.375rem;
+  background-color: #1f2937;
+  padding: 0.75rem 1.5rem;
+  color: white;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
 }
 .edit-user-proxy-tab__save-bar-text {
+  font-size: 0.875rem;
 }
 .edit-user-proxy-tab__save-bar-actions {
+  display: flex;
+  gap: 0.75rem;
 }
 
 .fade-enter-active,
@@ -194,50 +510,124 @@
 
 // --- AddUserProxyModal ---
 .add-user-proxy-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 .add-user-proxy-modal__image-row {
+  display: flex;
+  gap: 2rem;
 }
 .add-user-proxy-modal__image-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 .add-user-proxy-modal__image {
+  max-height: 12rem;
+  border-radius: 0.5rem;
 }
 .add-user-proxy-modal__link-btn {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--primary-accent-color);
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 .add-user-proxy-modal__link-btn--danger {
+  color: var(--error-color);
 }
 .add-user-proxy-modal__default-image {
+  max-height: 4rem;
+  border-radius: 50%;
 }
 .add-user-proxy-modal__no-image-text {
+  font-size: 0.875rem;
+  color: var(--text-light);
 }
 .add-user-proxy-modal__info-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-light);
 }
 .add-user-proxy-modal__info-icon {
+  height: 1.5rem;
+  min-width: 1.5rem;
 }
 
 // --- UserProxyDisplay ---
 .user-proxy-display {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--input-border);
+  background-color: var(--card-bg);
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 .user-proxy-display__row {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
 }
 .user-proxy-display__avatar {
+  width: 5rem;
+  height: 5rem;
+  overflow: hidden;
+  border-radius: 50%;
+  border: 1px solid var(--input-border);
 }
 .user-proxy-display__avatar--fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: color-mix(in srgb, var(--text-color) 8%, transparent);
 }
 .user-proxy-display__initials {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-light);
 }
 .user-proxy-display__info {
+  flex: 1;
 }
 .user-proxy-display__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
 }
 .user-proxy-display__name {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-color);
 }
 .user-proxy-display__fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
 }
 .user-proxy-display__field {
+  font-size: 0.875rem;
+  color: var(--text-color);
 }
 .user-proxy-display__field-row {
+  display: flex;
+  align-items: center;
 }
 .user-proxy-display__field-label {
+  width: 8rem;
+  font-weight: 500;
+  color: var(--text-light);
 }
 .user-proxy-display__actions {
+  margin-left: 1rem;
 }

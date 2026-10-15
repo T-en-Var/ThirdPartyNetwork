@@ -17,6 +17,8 @@
       :is-fetching="global.isFetching"
       @remove="global.removeToast"
     />
+    <AuthModal />
+    <UnauthorizedModal />
   </main>
 </template>
 
@@ -30,6 +32,8 @@ import { initializeApiClient } from './api/api';
 import { useAuthStore } from './stores/auth';
 import { useGlobalStore } from './stores/global';
 import ToastManager from './components/toasts/ToastManager.vue';
+import AuthModal from '@/components/modals/AuthModal.vue';
+import UnauthorizedModal from '@/components/modals/UnauthorizedModal.vue';
 
 const router = useRouter();
 const route = useRoute();
