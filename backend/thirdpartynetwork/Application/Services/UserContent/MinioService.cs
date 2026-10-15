@@ -85,12 +85,6 @@ public sealed class MinioService : ICDNService
 
         var (mediaType, resourceType) = DetermineMediaType(file);
 
-        // MinIO is dumb object storage — unlike Cloudinary, it doesn't derive image/video
-        // dimensions or duration server-side. Width/Height/Duration are left null here; a
-        // real deployment would want a probing step (e.g. an image-metadata library, or
-        // ffprobe for video) as a follow-up. Not done here — out of scope for the storage
-        // swap itself, and PLAN.md §8 already earmarks a `worker` service for exactly this
-        // class of post-processing.
         return new CdnUploadResult
         {
             Bucket = targetBucket,

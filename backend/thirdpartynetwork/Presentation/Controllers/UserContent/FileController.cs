@@ -70,7 +70,6 @@ public class FileController(
         return NoContent();
     }
 
-    // PLAN.md §6: replaces the old "set AccessLevel" update path.
     [HttpPost("{fileId:guid}/publish")]
     [RequirePermission(Constants.Permissions.IsContentOwner)]
     [ProducesResponseType(200, Type = typeof(FileDto))]
@@ -95,7 +94,6 @@ public class FileController(
         return Ok(mapper.Map<FileDto>(unpublished, opts => { opts.Items["networkId"] = networkId; }));
     }
 
-    // PLAN.md §2.1/§4: without this, OwnershipMode had no write path at all.
     [HttpPost("{fileId:guid}/ownership")]
     [RequirePermission(Constants.Permissions.IsContentOwner)]
     [ProducesResponseType(200, Type = typeof(FileDto))]
@@ -108,8 +106,6 @@ public class FileController(
         return Ok(mapper.Map<FileDto>(updated, opts => { opts.Items["networkId"] = networkId; }));
     }
 
-    // PLAN.md §2.4/§6: sharing/grant CRUD — one shared ContentAccessGrantService backs all
-    // five content controllers' thin methods here.
     [HttpGet("{fileId:guid}/access")]
     [RequirePermission(Constants.Permissions.ManageContentAccess, Constants.Permissions.IsContentOwner)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<ContentAccessGrantDto>))]
@@ -137,8 +133,6 @@ public class FileController(
         return NoContent();
     }
 
-    // PLAN.md §2.5/§6: moderators flag/hide, they never mutate (Q2) — gated by ModerateFile,
-    // never IsContentOwner (this is deliberately NOT an author/owner action).
     [HttpGet("{fileId:guid}/moderation-flags")]
     [RequirePermission(Constants.Permissions.ModerateFile)]
     [ProducesResponseType(200, Type = typeof(IEnumerable<ContentModerationFlagDto>))]

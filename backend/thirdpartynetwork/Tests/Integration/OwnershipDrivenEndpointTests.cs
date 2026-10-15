@@ -45,7 +45,7 @@ public class OwnershipDrivenEndpointTests : IntegrationTestBase
     // Forbidden here (IsContentOwnerAsync's AuthorOwned-with-set-author branch never
     // consults network-admin status) and why AccessIncomplete is 403, not 401.
     //
-    // BUG-003 (NOT documented in PLAN.md — found while building this suite): unlike every
+    // BUG-003: unlike every
     // other permission branch in PermissionHandler (HandleRequirementAsync,
     // HandleGeneralRequirementAsync, HandleContentRequirementAsync, and
     // HandleContentManageRequirementAsync all explicitly call IsSuperAdminOrHasSuper
