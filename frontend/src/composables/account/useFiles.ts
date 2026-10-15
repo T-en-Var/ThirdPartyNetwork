@@ -1,45 +1,37 @@
 import { ref } from 'vue';
 import api from '@/api/api';
 import type { Ref } from 'vue';
-import type { NetworkFile, UpdateFile } from '@/types';
-import { prependItem, useCachedApi, useMutation } from '../useApi';
-import { userProxyKey } from '@/lib/cacheKeys';
 import type { AxiosProgressEvent } from 'axios';
+import type { FileDto, UpdateFileDto } from '@/types';
+import { networkKey } from '@/lib/cacheKeys';
+import { prependItem, useCachedApi, useMutation } from '../useApi';
 
+// Files always live under a network (there is no account-scoped storage), so every mutation
+// here still needs a networkId and hits the same /networks/{networkId}/files routes as
+// composables/network/useFiles.ts. This composable's own value-add is `fetchFiles`, which
+// aggregates a user proxy's files across every network they belong to via the dedicated
+// cross-network "authors" endpoint, something the network-scoped composable can't do.
 export default function useFiles() {
   const progress: Ref<number> = ref(0);
 
-  const fetchFiles = useCachedApi<NetworkFile[], [userId: string, userProxyId: string]>(
-    (userId, userProxyId) => userProxyKey(userId, userProxyId, 'files'),
-    async (userId, userProxyId) =>
-      await api.get<NetworkFile[]>(`/users/${userId}/proxies/${userProxyId}/files/`),
+  const fetchFiles = useCachedApi<FileDto[], [userProxyId: string]>(
+    (userProxyId) => `authors_${userProxyId}_files`,
+    async (userProxyId) => await api.get<FileDto[]>(`/authors/${userProxyId}/files`),
   );
 
-  const fetchFile = useCachedApi<
-    NetworkFile,
-    [networkId: string, userId: string, userProxyId: string, fileId: string]
-  >(
-    (_networkId, userId, userProxyId, fileId) => userProxyKey(userId, userProxyId, 'files', fileId),
-    async (_networkId, userId, userProxyId, fileId) =>
-      await api.get<NetworkFile>(`/users/${userId}/proxies/${userProxyId}/files/${fileId}`),
+  // Only this single-item fetch resolves a `viewingUrl` - the list endpoint above deliberately
+  // leaves it null rather than minting a viewing link per row.
+  const fetchFile = useCachedApi<FileDto, [networkId: string, fileId: string]>(
+    (networkId, fileId) => networkKey(networkId, 'files', fileId),
+    async (networkId, fileId) => await api.get<FileDto>(`/networks/${networkId}/files/${fileId}`),
   );
 
-  const uploadFile = useMutation<
-    NetworkFile,
-    [
-      networkId: string,
-      userId: string,
-      userProxyId: string,
-      fileToUpload: File,
-      accessLevel?: number,
-    ]
-  >(
-    async (networkId, _userId, _userProxyId, fileToUpload, accessLevel = 0) => {
+  const uploadFile = useMutation<FileDto, [networkId: string, fileToUpload: File]>(
+    async (networkId, fileToUpload) => {
       progress.value = 0;
 
       const formData = new FormData();
       formData.append('file', fileToUpload);
-      formData.append('accessLevel', accessLevel.toString());
 
       const config = {
         headers: {
@@ -52,51 +44,32 @@ export default function useFiles() {
         },
       };
 
-      return await api.post<NetworkFile, FormData>(
-        `/networks/${networkId}/files/`,
-        formData,
-        config,
-      );
+      return await api.post<FileDto, FormData>(`/networks/${networkId}/files/`, formData, config);
     },
     {
-      itemKeyFactory: (result, _networkId, userId, userProxyId) =>
-        userProxyKey(userId, userProxyId, 'files', result.id),
-      listKeyFactory: (_networkId, userId, userProxyId) =>
-        userProxyKey(userId, userProxyId, 'files'),
+      itemKeyFactory: (result, networkId) => networkKey(networkId, 'files', result.id),
+      listKeyFactory: (networkId) => networkKey(networkId, 'files'),
       listUpdater: prependItem,
     },
   );
 
-  const updateFile = useMutation<
-    NetworkFile,
-    [networkId: string, userId: string, userProxyId: string, fileId: string, payload: UpdateFile]
-  >(
-    async (networkId, _userId, _userProxyId, fileId, payload) =>
-      await api.put<NetworkFile, UpdateFile>(`/networks/${networkId}/files/${fileId}`, payload),
+  const updateFile = useMutation<FileDto, [networkId: string, fileId: string, payload: UpdateFileDto]>(
+    async (networkId, fileId, payload) =>
+      await api.put<FileDto, UpdateFileDto>(`/networks/${networkId}/files/${fileId}`, payload),
     {
-      itemKeyFactory: (_result, _networkId, userId, userProxyId, fileId) =>
-        userProxyKey(userId, userProxyId, 'files', fileId),
-      listKeyFactory: (_networkId, userId, userProxyId) =>
-        userProxyKey(userId, userProxyId, 'files'),
-      listUpdater: (currentList, result, _networkId, _userId, _userProxyId, fileId) =>
+      itemKeyFactory: (_, networkId, fileId) => networkKey(networkId, 'files', fileId),
+      listKeyFactory: (networkId) => networkKey(networkId, 'files'),
+      listUpdater: (currentList, result, __, fileId) =>
         currentList.map((item) => (item.id === fileId ? result : item)),
     },
   );
 
-  const deleteFile = useMutation<
-    void,
-    [networkId: string, userId: string, userProxyId: string, fileId: string],
-    NetworkFile
-  >(
-    async (networkId, _userId, _userProxyId, fileId) =>
-      await api.delete<void>(`/networks/${networkId}/files/${fileId}`),
+  const deleteFile = useMutation<void, [networkId: string, fileId: string], FileDto>(
+    async (networkId, fileId) => await api.delete<void>(`/networks/${networkId}/files/${fileId}`),
     {
-      itemKeyFactory: (_result, _networkId, userId, userProxyId, fileId) =>
-        userProxyKey(userId, userProxyId, 'files', fileId),
-      listKeyFactory: (_networkId, userId, userProxyId) =>
-        userProxyKey(userId, userProxyId, 'files'),
-      listUpdater: (currentList, _result, _networkId, _userId, _userProxyId, fileId) =>
-        currentList.filter((item) => item.id !== fileId),
+      itemKeyFactory: (_, networkId, fileId) => networkKey(networkId, 'files', fileId),
+      listKeyFactory: (networkId) => networkKey(networkId, 'files'),
+      listUpdater: (currentList, _, __, fileId) => currentList.filter((item) => item.id !== fileId),
     },
   );
 

@@ -98,7 +98,7 @@
               />
 
               <!-- File preview -->
-              <CloudinaryFile
+              <CdnFile
                 v-if="f"
                 :display-only="true"
                 :file="f"
@@ -155,7 +155,7 @@ import useFiles from '@/composables/account/useFiles';
 import { mapMediaType, readableSize } from '@/lib/utils';
 import type { UserProxyDto, FileDto, CreateUserContentForm } from '@/types';
 import { useAuthStore } from '@/stores/auth';
-import CloudinaryFile from '@/components/cdn/CloudinaryFile.vue';
+import CdnFile from '@/components/cdn/CdnFile.vue';
 import ForceLoadModal from '../ForceWaitModal.vue';
 import UserContentForm from '../../UserContentForm.vue';
 
@@ -198,13 +198,12 @@ onMounted(async () => {
   userProxy.value = await authStore.getUserProxy();
 
   if (userProxy.value) {
-    await fetchUserFiles(userProxy.value.user.id, userProxy.value.id);
+    await fetchUserFiles(userProxy.value.id);
   }
 });
 
 const fileInput = ref<HTMLInputElement | null>(null);
 const selectedFile = ref<File | null>(null);
-const selectedAccessLevel = ref<number>(0);
 
 const dragging = ref(false);
 function handleDragEnter() {
@@ -259,13 +258,7 @@ async function handleSubmit(form: CreateUserContentForm) {
     if (!userProxy.value) throw new Error('No user found');
 
     try {
-      const file = await uploadFile(
-        form.networkId,
-        userProxy.value.id,
-        userProxy.value.user.id,
-        selectedFile.value!,
-        selectedAccessLevel.value,
-      );
+      const file = await uploadFile(form.networkId, selectedFile.value!);
 
       emit('uploaded', file);
       selectedFile.value = null;

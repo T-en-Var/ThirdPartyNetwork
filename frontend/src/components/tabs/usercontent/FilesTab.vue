@@ -51,7 +51,7 @@
 
 <script setup lang="ts">
 import useFiles from '@/composables/network/useFiles';
-import type { NetworkFile, ConfirmForm, UpdateFile } from '@/types';
+import type { FileDto, ConfirmForm, UpdateFileDto } from '@/types';
 import { computed, onMounted, ref, watch, type Ref } from 'vue';
 import UserContentViewer from '@/components/UserContentViewer.vue';
 import { useEventStore } from '@/stores/event';
@@ -63,11 +63,11 @@ const { execute: fetchFile, data: fetchedFile } = useFiles().fetchFile;
 
 const showEditModal = ref(false);
 const isSubmitting = ref(false);
-const selectedFile = ref<NetworkFile | null>(null);
+const selectedFile = ref<FileDto | null>(null);
 
-const rawFiles = ref<NetworkFile[]>([]);
+const rawFiles = ref<FileDto[]>([]);
 const files = computed(() =>
-  (rawFiles.value ?? ([] as NetworkFile[])).map((f) => {
+  (rawFiles.value ?? ([] as FileDto[])).map((f) => {
     return { ...f, sizeBytes: f.sizeBytes / 1024 };
   }),
 );
@@ -75,14 +75,14 @@ const files = computed(() =>
 const props = defineProps<{
   networkId?: string;
   networkIds?: string[];
-  fetchFiles: () => Promise<Ref<NetworkFile[] | null>>;
+  fetchFiles: () => Promise<Ref<FileDto[] | null>>;
 }>();
 
 const emit = defineEmits<{
   (e: 'add-file'): void;
-  (e: 'file-edit', file: NetworkFile): void;
-  (e: 'file-update', id: string, networkId: string, networkFile: UpdateFile): void;
-  (e: 'file-delete', file: NetworkFile): void;
+  (e: 'file-edit', file: FileDto): void;
+  (e: 'file-update', id: string, networkId: string, networkFile: UpdateFileDto): void;
+  (e: 'file-delete', file: FileDto): void;
   (e: 'confirm', form: ConfirmForm): void;
 }>();
 
@@ -98,7 +98,7 @@ async function handleCreateFile() {
   emit('add-file');
 }
 
-async function handleEditFile(file: NetworkFile) {
+async function handleEditFile(file: FileDto) {
   await fetchFile(file.networkId, file.id);
 
   if (!fetchedFile.value) throw new Error('File not found');
@@ -107,13 +107,13 @@ async function handleEditFile(file: NetworkFile) {
   showEditModal.value = true;
 }
 
-function handleUpdateFile(id: string, networkId: string, networkFile: UpdateFile) {
+function handleUpdateFile(id: string, networkId: string, networkFile: UpdateFileDto) {
   events.listen.file.update(() => (showEditModal.value = false), true);
 
   emit('file-update', id, networkId, networkFile);
 }
 
-function handleRemoveFile(file: NetworkFile) {
+function handleRemoveFile(file: FileDto) {
   emit('file-delete', file);
 }
 </script>

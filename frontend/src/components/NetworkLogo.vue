@@ -10,7 +10,7 @@
       aria-label="Loading logo"
     ></div>
 
-    <CloudinaryFile
+    <CdnFile
       v-else-if="imageFile"
       :display-only="true"
       :file="imageFile"
@@ -32,12 +32,12 @@
 </template>
 
 <script setup lang="ts">
-import type { NetworkFile } from '@/types';
-import CloudinaryFile from './cdn/CloudinaryFile.vue';
+import type { FileDto } from '@/types';
+import CdnFile from './cdn/CdnFile.vue';
 
 const props = defineProps<{
   loading: boolean;
-  imageFile?: NetworkFile | null;
+  imageFile?: FileDto | null;
   networkName: string;
 }>();
 

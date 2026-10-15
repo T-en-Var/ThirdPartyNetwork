@@ -3,7 +3,7 @@
     class="avatar"
     :style="{ width: `${sizeValue}px`, height: `${sizeValue}px` }"
   >
-    <CloudinaryFile
+    <CdnFile
       v-if="userProxy.imageFile"
       :file="userProxy.imageFile"
       :display-only="true"
@@ -21,7 +21,7 @@
 <script setup lang="ts">
 import type { UserProxy } from '@/types';
 import { computed } from 'vue';
-import CloudinaryFile from '@/components/cdn/CloudinaryFile.vue';
+import CdnFile from '@/components/cdn/CdnFile.vue';
 
 interface Props {
   userProxy: UserProxy;

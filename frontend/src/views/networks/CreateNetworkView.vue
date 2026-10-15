@@ -64,7 +64,7 @@
                       v-if="uploadedFile"
                       class="create-network-view__image-current"
                     >
-                      <CloudinaryFile
+                      <CdnFile
                         :file="uploadedFile"
                         :display-only="true"
                         class="create-network-view__image-preview"
@@ -253,7 +253,7 @@ import ErrorAlert from '@/components/ErrorAlert.vue';
 import AddFileModal from '@/components/modals/usercontent/AddFileModal.vue';
 import AddAccessModal from '@/components/modals/network/AddAccessModal.vue';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
-import CloudinaryFile from '@/components/cdn/CloudinaryFile.vue';
+import CdnFile from '@/components/cdn/CdnFile.vue';
 import ForceLoadModal from '@/components/modals/ForceWaitModal.vue';
 import { useAuthStore } from '@/stores/auth';
 import useNetworks from '@/composables/useNetworks';

@@ -27,7 +27,7 @@ import type {
   FileDto,
   PageBlockDto,
   UpdateCustomPageDto,
-  UpdateFile,
+  UpdateFileDto,
   UpdatePageBlockDto,
   UpdateUserProxyDto,
 } from '@/types';
@@ -363,13 +363,17 @@ export default function useAccountManageActions() {
       },
 
       files: {
-        fetch: genericFetch(composables.files.fetchFile)(userId, userProxyId),
-        fetchAll: genericFetchAll(composables.files.fetchFiles)(userId, userProxyId),
+        // Files aren't scoped under /users/{userId}/proxies/{userProxyId} on the backend - they
+        // only ever live under /networks/{networkId}/files. The account-wide list comes from the
+        // cross-network "authors" endpoint (keyed by userProxyId alone); fetching/updating/
+        // deleting a single file still needs that file's own networkId, supplied by the caller.
+        fetch: genericFetch(composables.files.fetchFile)(),
+        fetchAll: genericFetchAll(composables.files.fetchFiles)(userProxyId),
 
-        update: async (id: string, networkId: string, networkFile: UpdateFile) =>
+        update: async (id: string, networkId: string, updated: UpdateFileDto) =>
           await genericMutation(composables.files.updateFile, {
             callback: (result) => events.emit.file.update(result),
-          })(networkId, userId, userProxyId, id, networkFile),
+          })(networkId, id, updated),
 
         delete: (file: FileDto) => {
           showEditFileModal.value = false;
@@ -379,12 +383,7 @@ export default function useAccountManageActions() {
             buttonText: 'Confirm',
             buttonColor: 'red',
             action: async () =>
-              await genericMutation(composables.files.deleteFile)(
-                file.networkId,
-                userId,
-                userProxyId,
-                file.id,
-              ),
+              await genericMutation(composables.files.deleteFile)(file.networkId, file.id),
           });
         },
 

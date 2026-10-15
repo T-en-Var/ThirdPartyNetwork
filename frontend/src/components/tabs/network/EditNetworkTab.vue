@@ -70,7 +70,7 @@
               v-if="uploadedFile"
               class="edit-network-tab__image-current"
             >
-              <CloudinaryFile
+              <CdnFile
                 :file="uploadedFile"
                 :display-only="true"
                 class="edit-network-tab__image-preview"
@@ -166,9 +166,9 @@
 import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
-import CloudinaryFile from '@/components/cdn/CloudinaryFile.vue';
+import CdnFile from '@/components/cdn/CdnFile.vue';
 import AddFileModal from '@/components/modals/usercontent/AddFileModal.vue';
-import type { Network, NetworkFile, NetworkUpdate } from '@/types';
+import type { FileDto, Network, NetworkUpdate } from '@/types';
 import useNetworks from '@/composables/useNetworks';
 
 const route = useRoute();
@@ -176,7 +176,7 @@ const router = useRouter();
 
 const { data: network, loading, error, execute: fetchNetwork } = useNetworks().fetchNetwork;
 
-const uploadedFile = ref<NetworkFile | null>(null);
+const uploadedFile = ref<FileDto | null>(null);
 const showUploadModal = ref(false);
 
 const emit = defineEmits<{
@@ -245,7 +245,7 @@ function openUploadModal() {
   showUploadModal.value = true;
 }
 
-function handleImageUploaded(file: NetworkFile) {
+function handleImageUploaded(file: FileDto) {
   form.value.fileLink = { id: file.id };
   uploadedFile.value = file;
   showUploadModal.value = false;

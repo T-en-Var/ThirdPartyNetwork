@@ -5,7 +5,7 @@
       <h3 class="user-proxy-tab__subtitle">Currently logged in as</h3>
       <div class="user-proxy-tab__active-card">
         <div class="user-proxy-tab__active-card-header">
-          <CloudinaryFile
+          <CdnFile
             v-if="activeProxy.imageFile"
             :file="activeProxy.imageFile"
             :display-only="true"
@@ -80,7 +80,7 @@
         >
           <div class="user-proxy-tab__proxy-card-top">
             <div class="user-proxy-tab__proxy-card-header">
-              <CloudinaryFile
+              <CdnFile
                 v-if="proxy.imageFile"
                 :file="proxy.imageFile"
                 :display-only="true"
@@ -144,7 +144,7 @@
                   :href="`/networks/${network.id}`"
                   class="user-proxy-tab__network-link"
                 >
-                  <CloudinaryFile
+                  <CdnFile
                     v-if="network.imageFile"
                     :file="network.imageFile"
                     :display-only="true"
@@ -254,7 +254,7 @@
 import { computed, onMounted, ref } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import type { UserProxy, Network } from '@/types';
-import CloudinaryFile from '@/components/cdn/CloudinaryFile.vue';
+import CdnFile from '@/components/cdn/CdnFile.vue';
 import useUsers from '@/composables/useUsers';
 import useAccesses from '@/composables/useAccesses';
 import ProfileAvatar from '@/components/ProfileAvatar.vue';

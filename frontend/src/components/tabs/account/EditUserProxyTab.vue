@@ -83,7 +83,7 @@
               v-if="uploadedFile"
               class="edit-user-proxy-tab__image-section-body"
             >
-              <CloudinaryFile
+              <CdnFile
                 :file="uploadedFile"
                 :display-only="true"
                 class="avatar__image edit-user-proxy-tab__avatar"
@@ -295,7 +295,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
-import CloudinaryFile from '@/components/cdn/CloudinaryFile.vue';
+import CdnFile from '@/components/cdn/CdnFile.vue';
 import { useHistoryStore } from '@/stores/history';
 import { useRoute, useRouter } from 'vue-router';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';

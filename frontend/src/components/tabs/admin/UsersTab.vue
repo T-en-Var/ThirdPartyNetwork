@@ -349,7 +349,7 @@
                         :href="`/networks/${network.id}`"
                         class="admin-users-tab__network-link"
                       >
-                        <CloudinaryFile
+                        <CdnFile
                           v-if="network.imageFile"
                           :file="network.imageFile"
                           :display-only="true"
@@ -427,7 +427,7 @@
 </template>
 
 <script lang="ts" setup>
-import CloudinaryFile from '@/components/cdn/CloudinaryFile.vue';
+import CdnFile from '@/components/cdn/CdnFile.vue';
 import SecurableField from '@/components/fields/SecurableField.vue';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import DualSlider from '@/components/DualSlider.vue';

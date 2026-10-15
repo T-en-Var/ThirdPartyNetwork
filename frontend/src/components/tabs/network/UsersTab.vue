@@ -56,7 +56,7 @@
                   </div>
                   <SecurableField
                     class="network-users-tab__user-email"
-                    :value="networkUser.userProxy.email"
+                    :value="networkUser.userProxy.email ?? undefined"
                     :sensitive="!!networkUser.userProxy.email"
                     button-text="View email"
                   />

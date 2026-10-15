@@ -43,7 +43,7 @@
             >
               <div class="account-home-tab__proxy-card-inner">
                 <div class="avatar">
-                  <CloudinaryFile
+                  <CdnFile
                     v-if="userProxy.imageFile"
                     :file="userProxy.imageFile"
                     :display-only="true"
@@ -99,7 +99,7 @@
 import { ref, computed, onMounted } from 'vue';
 import type { UserProxy } from '@/types';
 import { useAuthStore } from '@/stores/auth';
-import CloudinaryFile from '@/components/cdn/CloudinaryFile.vue';
+import CdnFile from '@/components/cdn/CdnFile.vue';
 import { useRouter } from 'vue-router';
 import useUsers from '@/composables/useUsers';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';

@@ -115,7 +115,7 @@ const handleSubmit = () => {
   if (props.isSubmitting) return;
 
   const form: CreateUserContentForm = {
-    networkId: props.networkId ?? 'fakenews',
+    networkId: props.networkId ?? selectedNetwork.value?.id ?? '',
     accessLevel: accessLevel.value,
   };
 

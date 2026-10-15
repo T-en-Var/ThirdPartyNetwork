@@ -19,7 +19,7 @@ import type {
   NetworkUser,
   Role,
   NetworkAccess,
-  NetworkFile,
+  FileDto,
   PageBlock,
   CreatePageBlock,
   NetworkAccessCreate,
@@ -33,7 +33,8 @@ import type {
   Configuration,
   CreateCustomPage,
 } from '@/types';
-import type { RoleForm, ManageUserForm, UpdateFile, ConfirmForm } from '@/types/forms';
+import type { RoleForm, ManageUserForm, ConfirmForm } from '@/types/forms';
+import type { UpdateFileDto } from '@/types';
 
 /**
  * Encapsulates all of the "manage network" action dispatch logic (blog / configuration /
@@ -362,12 +363,12 @@ export default function useNetworkManageActions(networkId: ComputedRef<string>) 
       fetch: genericFetch(composables.files.fetchFile)(networkId.value),
       fetchAll: genericFetchAll(composables.files.fetchFiles)(networkId.value),
 
-      update: async (id: string, networkId: string, networkFile: UpdateFile) =>
+      update: async (id: string, networkId: string, networkFile: UpdateFileDto) =>
         await genericMutation(composables.files.updateFile, {
           callback: (result) => events.emit.file.update(result),
         })(networkId, id, networkFile),
 
-      delete: (file: NetworkFile) => {
+      delete: (file: FileDto) => {
         showModal.editFile.value = false;
         confirm({
           title: 'Delete File',
@@ -379,7 +380,7 @@ export default function useNetworkManageActions(networkId: ComputedRef<string>) 
         });
       },
 
-      openEdit: (file: NetworkFile) => events.emit.file.openEdit(file),
+      openEdit: (file: FileDto) => events.emit.file.openEdit(file),
     },
 
     users: {

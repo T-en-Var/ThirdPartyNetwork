@@ -7,35 +7,38 @@
       {{ file.name }}
     </div>
     <div class="cdn-file__preview">
-      <template v-if="isImage || isThumbnail">
+      <template v-if="previewUrl && !loadFailed && isImage">
         <img
-          :src="isThumbnail ? cloudinaryVideoThumbnail(file.url) : file.url"
-          :alt="`${file.name}`"
+          :src="previewUrl"
+          :alt="file.name"
           :class="customClass ?? 'cdn-file__media'"
+          @error="loadFailed = true"
         />
       </template>
-      <template v-else-if="isAudio">
+      <template v-else-if="previewUrl && !loadFailed && isAudio">
         <audio
           controls
-          :src="file.url"
+          :src="previewUrl"
           :class="customClass ?? 'cdn-file__media cdn-file__media--audio'"
+          @error="loadFailed = true"
         />
       </template>
-      <template v-else-if="isVideo">
+      <template v-else-if="previewUrl && !loadFailed && isVideo">
         <video
           controls
-          :src="file.url"
+          :src="previewUrl"
           :class="customClass ?? 'cdn-file__media'"
+          @error="loadFailed = true"
         />
       </template>
       <template v-else>
         <div class="cdn-file__fallback">
           <span class="cdn-file__fallback-name">
-            {{ file.name }}
+            {{ file.name }}{{ loadFailed ? ' (preview unavailable)' : '' }}
           </span>
           <a
-            v-if="allowDownload"
-            :href="file.url"
+            v-if="allowDownload && previewUrl"
+            :href="previewUrl"
             download
             class="cdn-file__download-link"
           >
@@ -54,11 +57,11 @@
       <span v-if="file.duration">Duration: {{ file.duration }}</span>
     </div>
     <div
-      v-if="!displayOnly && allowDownload && (isImage || isVideo || isAudio)"
+      v-if="!displayOnly && allowDownload && previewUrl && (isImage || isVideo || isAudio)"
       class="cdn-file__download"
     >
       <span
-        @click="downloadFile(file.url, file.name)"
+        @click="downloadFile(previewUrl, file.name)"
         class="cdn-file__download-trigger"
       >
         Download
@@ -69,18 +72,21 @@
 
 <script lang="ts" setup>
 import { readableSize } from '@/lib/utils';
-import type { NetworkFile } from '@/types';
-import { computed } from 'vue';
+import type { FileDto, FileLightDto } from '@/types';
+import { computed, ref, watch } from 'vue';
 
 const props = defineProps<{
-  file: NetworkFile;
+  file: FileDto | FileLightDto;
   allowDownload?: boolean;
   class?: string;
   displayOnly?: boolean;
-  isThumbnail?: boolean;
 }>();
 
 const customClass = computed(() => props.class);
+
+const previewUrl = computed(() => ('viewingUrl' in props.file ? props.file.viewingUrl : null));
+const loadFailed = ref(false);
+watch(previewUrl, () => (loadFailed.value = false));
 
 const isImage = computed(() => props.file.mediaType === 'image');
 const isVideo = computed(() => props.file.mediaType === 'video');
@@ -99,9 +105,5 @@ function downloadFile(fileUrl: string, filename: string) {
       a.click();
       window.URL.revokeObjectURL(url);
     });
-}
-
-function cloudinaryVideoThumbnail(fileUrl: string) {
-  return fileUrl.replace('/upload/', '/upload/w_300,h_200,c_fill/').replace(/\.[^.]+$/, '.jpg');
 }
 </script>

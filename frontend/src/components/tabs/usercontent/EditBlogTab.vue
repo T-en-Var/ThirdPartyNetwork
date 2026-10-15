@@ -187,10 +187,9 @@ import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import AccessLevelPicker from '@/components/fields/AccessLevelPicker.vue';
 import RichTextEditor from '@/components/fields/RichTextEditor.vue';
 import BlogRenderer from '@/components/fields/BlogRenderer.vue';
-import type { Blog, CreateBlog } from '@/types/userContent/blog';
 import api from '@/api/api';
 import AddFileModal from '@/components/modals/usercontent/AddFileModal.vue';
-import type { Network, NetworkFile } from '@/types';
+import type { NetworkDto, BlogDto, CreateBlogDto, FileDto } from '@/types';
 import { useEditableEntity } from '@/composables/useEditableEntity';
 import { useGlobalStore } from '@/stores/global';
 import { extractApiErrorMessage } from '@/lib/utils';
@@ -200,8 +199,8 @@ const route = useRoute();
 const global = useGlobalStore();
 
 const props = defineProps<{
-  network: Network;
-  fetchBlog: (blogId: string) => Promise<Ref<Blog | null>>;
+  network: NetworkDto;
+  fetchBlog: (blogId: string) => Promise<Ref<BlogDto | null>>;
 }>();
 
 const blogId = computed(() => route.params.blogId as string);
@@ -224,7 +223,7 @@ const {
   entity: blog,
   loading,
   error,
-} = useEditableEntity<Blog>({
+} = useEditableEntity<BlogDto>({
   id: blogId,
   fetch: props.fetchBlog,
   notFoundMessage: 'Blog not found.',
@@ -243,9 +242,13 @@ const {
   },
 });
 
-function handleImageInserted(file: NetworkFile) {
-  if (editorRef.value && file.url) {
-    editorRef.value.insertImage(file.url);
+function handleImageInserted(file: FileDto) {
+  // NOTE: viewingUrl is only stable for fully-public files (GetPublicUrl); for a non-public file
+  // it's an ephemeral/one-time link, so it will go stale and break the embedded image once
+  // consumed or expired. There's currently no "permanent embed" URL for private files - this is
+  // a backend limitation, not something fixable from here.
+  if (editorRef.value && file.viewingUrl) {
+    editorRef.value.insertImage(file.viewingUrl);
   }
   showImageModal.value = false;
 }

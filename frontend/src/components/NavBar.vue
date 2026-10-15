@@ -129,7 +129,7 @@ const openSignupModal = () => {
     var(--primary-color) 90%,
     color-mix(in srgb, var(--primary-color) 50%, transparent)
   );
-  border-bottom: 1px solid black;
+  border-bottom: 1px solid var(--primary-accent-color);
   box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.65);
   padding: 0 10%;
   background-color: white;
@@ -145,6 +145,9 @@ const openSignupModal = () => {
   flex-wrap: wrap;
 }
 .navbar__logo {
+  border-right: 1px solid var(--primary-accent-color);
+  margin: 0.5rem 1rem;
+
   @media (max-width: $layout-sm) {
     &.navbar__logo--hidden {
       display: none;
@@ -152,7 +155,7 @@ const openSignupModal = () => {
   }
 }
 .navbar__logo-text {
-  padding: 1rem 2rem;
+  padding: 0.5rem 1rem;
   cursor: pointer;
   display: inline-block;
   transition: 0.3s;
@@ -164,7 +167,7 @@ const openSignupModal = () => {
   }
 
   @media (max-width: $layout-sm) {
-    padding: 0.5rem 1rem;
+    padding: 0;
   }
 }
 .navbar__links {
@@ -182,11 +185,6 @@ const openSignupModal = () => {
 }
 .navbar__link {
   padding: 0.2rem 0.7rem;
-  border-left: 1px solid black;
-
-  &:first-child {
-    border-left: none;
-  }
 
   &:hover {
     text-decoration: underline;

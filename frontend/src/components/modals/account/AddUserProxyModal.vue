@@ -124,7 +124,7 @@
             v-if="uploadedFile"
             class="add-user-proxy-modal__image-preview"
           >
-            <CloudinaryFile
+            <CdnFile
               :file="uploadedFile"
               :display-only="true"
               class="add-user-proxy-modal__image"
@@ -152,7 +152,7 @@
 
         <div v-if="!uploadedFile">
           <span class="form-label">Defaults to</span>
-          <CloudinaryFile
+          <CdnFile
             v-if="defaultProxy.imageFile"
             :file="defaultProxy.imageFile"
             :display-only="true"
@@ -241,8 +241,8 @@
 import { computed, ref } from 'vue';
 import ModalContainer from '@/components/modals/ModalContainer.vue';
 import AddFileModal from '@/components/modals/usercontent/AddFileModal.vue';
-import CloudinaryFile from '@/components/cdn/CloudinaryFile.vue';
-import type { UserProxy, UserProxyCreate, NetworkFile, Network, UserProxyForm } from '@/types';
+import CdnFile from '@/components/cdn/CdnFile.vue';
+import type { UserProxy, UserProxyCreate, FileDto, Network, UserProxyForm } from '@/types';
 
 const props = defineProps<{
   isSubmitting?: boolean;
@@ -256,7 +256,7 @@ const emit = defineEmits<{
 
 const form = ref<UserProxyForm>({ keepPassword: true, isDefault: false });
 
-const uploadedFile = ref<NetworkFile | null>();
+const uploadedFile = ref<FileDto | null>();
 const allNetworks = computed<Network[]>(() => {
   const proxies = [
     props.defaultProxy,
@@ -273,7 +273,7 @@ function openUploadModal() {
   showUploadModal.value = true;
 }
 
-function handleImageUploaded(file: NetworkFile) {
+function handleImageUploaded(file: FileDto) {
   form.value.fileLink = { id: file.id };
   uploadedFile.value = file;
   showUploadModal.value = false;

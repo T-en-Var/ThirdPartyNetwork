@@ -1,13 +1,13 @@
 import api from '@/api/api';
 import { networkKey } from '@/lib/cacheKeys';
-import type { CreateNetworkUser, NetworkUser, UpdateNetworkUser } from '@/types';
+import type { CreateNetworkUser, NetworkUser, NetworkUserDto, UpdateNetworkUser } from '@/types';
 import { useCachedApi, useMutation } from './useApi';
 
 export default function useNetworkUsers() {
-  const fetchNetworkUsers = useCachedApi<NetworkUser[], [networkId: string]>(
+  const fetchNetworkUsers = useCachedApi<NetworkUserDto[], [networkId: string]>(
     (networkId) => networkKey(networkId, 'users'),
     async (networkId) => {
-      return await api.get<NetworkUser[]>(`networks/${networkId}/users/`);
+      return await api.get<NetworkUserDto[]>(`networks/${networkId}/users/`);
     },
   );
 

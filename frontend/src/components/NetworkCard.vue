@@ -6,7 +6,7 @@
     <div class="network-card__body">
       <div class="network-card__header">
         <div class="network-card__logo">
-          <CloudinaryFile
+          <CdnFile
             v-if="network.imageFile"
             :display-only="true"
             :file="network.imageFile"
@@ -83,16 +83,16 @@
 </template>
 
 <script setup lang="ts">
-import type { Network } from '@/types';
-import CloudinaryFile from '@/components/cdn/CloudinaryFile.vue';
+import type { NetworkDto } from '@/types';
+import CdnFile from '@/components/cdn/CdnFile.vue';
 
 defineProps<{
-  network: Network;
+  network: NetworkDto;
   showJoin?: boolean;
   canManage?: boolean;
 }>();
 
 defineEmits<{
-  (e: 'joinNetwork', network: Network): void;
+  (e: 'joinNetwork', network: NetworkDto): void;
 }>();
 </script>
