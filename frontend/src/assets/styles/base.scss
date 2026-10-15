@@ -28,6 +28,14 @@
 @use 'toasts';
 @use 'cdn';
 @use 'pages';
+@use 'shared';
+
+@font-face {
+  font-family: 'RobotoSlab';
+  font-style: normal;
+  font-weight: 100 900;
+  src: url('@/assets/fonts/RobotoSlab-VariableFont_wght.ttf') format('truetype-variations');
+}
 
 * {
   box-sizing: border-box;
@@ -37,6 +45,7 @@ html,
 body {
   margin: 0;
   padding: 0;
+  font-family: 'RobotoSlab', serif;
 }
 
 body {

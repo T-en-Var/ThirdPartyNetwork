@@ -1,87 +1,87 @@
 <template>
-  <div class="tos-page">
-    <div class="card">
-      <div class="card__header">
-        <h1 class="card__title">Terms of Service</h1>
+  <div class="page">
+    <section class="page-section page-hero">
+      <div
+        class="page-hero__title"
+        v-motion
+        :initial="{ opacity: 0, y: 20 }"
+        :enter="{ opacity: 1, y: 0 }"
+      >
+        <span>Terms of Service</span>
       </div>
+      <p
+        v-motion
+        :initial="{ opacity: 0, y: 20 }"
+        :enter="{ opacity: 1, y: 0 }"
+        :delay="100"
+      >
+        If you don't follow these, I'll kick you out. <i>Violently</i>
+      </p>
+    </section>
 
-      <div class="card__body">
-        <div class="tos-page__content prose">
-          <h2>Data Access and Privacy</h2>
+    <section class="page-section">
+      <h3
+        v-motion
+        :initial="{ opacity: 0, y: 20 }"
+        :enter="{ opacity: 1, y: 0 }"
+        :delay="100"
+      >
+        General
+      </h3>
+      <ul
+        v-motion
+        :initial="{ opacity: 0, y: 20 }"
+        :enter="{ opacity: 1, y: 0 }"
+        :delay="100"
+      >
+        <li>Do not limit test the system.</li>
+        <li>Do not abuse bugs.</li>
+        <li>If I don't like it, it's bad.</li>
+      </ul>
+      <br />
+      <h3
+        v-motion
+        :initial="{ opacity: 0, y: 20 }"
+        :enter="{ opacity: 1, y: 0 }"
+        :delay="200"
+      >
+        User Generated Content
+      </h3>
+      <ul
+        v-motion
+        :initial="{ opacity: 0, y: 20 }"
+        :enter="{ opacity: 1, y: 0 }"
+        :delay="200"
+      >
+        <li>No child unsafe content.</li>
+        <li>The network owner is responsible for the content of their network.</li>
+        <li>If I don't like it, it's bad.</li>
+      </ul>
+      <br />
+      <p
+        v-motion
+        :initial="{ opacity: 0, y: 20 }"
+        :enter="{ opacity: 1, y: 0 }"
+        :delay="300"
+      >
+        Takeaways: if I don't like it, I can remove it. Whatever, whenever. For the rest, respect
+        the system, don't be stupid.
+      </p>
+    </section>
 
-          <div class="alert alert--info">
-            <span
-              ><strong>Important:</strong> Networks only access data you explicitly allow them to
-              read from you. You maintain control over your information at all times.</span
-            ><br />
-            <span
-              >Also, this is very incomplete. If something is unclear, I, the author and developer,
-              will have the final say in any matter.</span
-            >
-          </div>
-
-          <h3>Data Access Controls</h3>
-          <p>
-            Our platform is designed with privacy and security as core principles. When you join a
-            network, you explicitly control what information is shared:
-          </p>
-
-          <ul>
-            <li>All data access is opt-in, requiring your explicit permission</li>
-            <li>You can revoke access to your data at any time</li>
-            <li>Network administrators cannot override your privacy settings</li>
-            <li>You will be notified of any changes to network access requests</li>
-          </ul>
-
-          <h3>Your Rights and Responsibilities</h3>
-          <p>As a user of our platform, you have the right to:</p>
-
-          <ul>
-            <li>Review all data being shared with each network</li>
-            <li>Export your personal data in a machine-readable format</li>
-            <li>Request deletion of your account and associated data</li>
-            <li>Receive notifications about data access changes</li>
-          </ul>
-
-          <h3>Security Measures</h3>
-          <p>
-            We implement industry-standard security practices to ensure your data remains protected:
-          </p>
-
-          <ul>
-            <li>End-to-end encryption for sensitive information</li>
-            <li>Regular security audits and vulnerability assessments</li>
-            <li>Strict access controls to prevent unauthorized access</li>
-            <li>Continuous monitoring for suspicious activities</li>
-          </ul>
-
-          <h3>Updates to Terms</h3>
-          <p>
-            We may update these terms from time to time. Significant changes will be communicated to
-            you directly. Continued use of the platform constitutes acceptance of the updated terms.
-          </p>
-        </div>
-
-        <div class="tos-page__actions">
-          <template v-if="hasRedirect">
-            <button
-              @click="handleContinue"
-              class="btn btn--success"
-            >
-              Continue Signing Up
-            </button>
-          </template>
-          <template v-else>
-            <router-link
-              to="/"
-              class="btn btn--primary"
-            >
-              Back to Home
-            </router-link>
-          </template>
-        </div>
+    <section
+      class="page-section"
+      v-if="hasRedirect"
+    >
+      <div class="tos-page__actions">
+        <button
+          @click="handleContinue"
+          class="btn btn--success"
+        >
+          Continue Signing Up
+        </button>
       </div>
-    </div>
+    </section>
   </div>
 </template>
 

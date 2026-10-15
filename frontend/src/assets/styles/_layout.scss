@@ -19,6 +19,7 @@
   overflow-x: hidden;
   display: flex;
   flex-direction: column;
+  background-color: hsl(var(--muted));
 }
 
 .app-main__content {
@@ -26,56 +27,8 @@
 }
 
 // --- NavBar ---
-.navbar {
-}
-.navbar__inner {
-}
-.navbar__logo {
-  flex: 0 0 auto;
-}
-.navbar__logo-text {
-  font-family: 'Rufina', serif;
-  padding: 1rem 2rem;
-  cursor: pointer;
-  display: inline-block;
-  transition: 0.3s;
-
-  &:hover {
-    translate: -5px -5px;
-    text-shadow: 10px 10px 1px rgba(0, 0, 0, 0.3);
-    scale: 1.05;
-  }
-}
-.navbar__links {
-}
-.navbar__link {
-}
-.navbar__link--active {
-}
-.navbar__actions {
-}
-.navbar__login-btn {
-}
-.navbar__signup-btn {
-}
 
 // --- AppFooter ---
-.footer {
-}
-.footer__inner {
-}
-.footer__brand {
-}
-.footer__logo {
-}
-.footer__divider {
-}
-.footer__copyright {
-}
-.footer__links {
-}
-.footer__link {
-}
 
 // --- ContentLayout ---
 .content-layout {

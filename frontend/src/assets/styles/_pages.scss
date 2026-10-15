@@ -1,35 +1,33 @@
-// Styles for the "pages" part of the application.
-// Classes are placeholders (empty) - the visual design is added later.
-
-// --- Shared marketing-page hero (About / Contact / Home) -------------------
 .page {
+  width: 100%;
+  max-width: 55rem;
+  margin: auto;
+  margin-top: 4rem;
 }
-.page-hero {
+.page-section {
+  margin-top: 2rem;
+  background-color: white;
+  border-right: 1px solid var(--secondary-color);
+  border-bottom: 2px solid var(--secondary-color);
+  padding: 1rem 1.5rem;
+  border-radius: .3rem;
+  transition: .4s;
+  box-shadow: 0px 0px 0px rgba($color: #000000, $alpha: .1);
+
+  &:hover {
+    box-shadow: 20px 20px 30px rgba($color: #000000, $alpha: .1);
+  }
+  &.page-hero {
+    border-right: 2px solid var(--secondary-color);
+    border-bottom: 5px solid var(--secondary-color);
+    border-radius: 2rem 0;
+  }
+
+  ul, li {
+    list-style: inside circle;
+  }
 }
 .page-hero__bg {
-}
-.page-hero__blob {
-  animation: page-hero-blob 7s infinite;
-}
-.page-hero__blob--delay-2000 {
-  animation-delay: 2s;
-}
-.page-hero__blob--delay-4000 {
-  animation-delay: 4s;
-}
-@keyframes page-hero-blob {
-  0% {
-    transform: translate(0px, 0px) scale(1);
-  }
-  33% {
-    transform: translate(30px, -50px) scale(1.1);
-  }
-  66% {
-    transform: translate(-20px, 20px) scale(0.9);
-  }
-  100% {
-    transform: translate(0px, 0px) scale(1);
-  }
 }
 .page-hero__container {
 }
@@ -38,6 +36,8 @@
 .page-hero__eyebrow-dot {
 }
 .page-hero__title {
+  font-size: 2rem;
+  font-weight: 600;
 }
 .page-hero__title-highlight {
 }

@@ -174,6 +174,7 @@ const router = createRouter({
       component: () => import('@/views/networks/CreateNetworkView.vue'),
       meta: {
         title: 'Create new network',
+        requiresAuth: true,
       },
     },
     {

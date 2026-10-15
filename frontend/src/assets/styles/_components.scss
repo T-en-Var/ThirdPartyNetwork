@@ -5,6 +5,16 @@
 
 // --- Buttons ---------------------------------------------------------------
 .btn {
+  border: 1px black solid;
+  border-radius: .3rem;
+  background-color: white;
+  padding: .2rem .5rem;
+  transition: .1s ease-out;
+
+  &:hover {
+    translate: -2px -2px;
+    box-shadow: 2px 2px black;
+  }
 }
 .btn--primary {
 }

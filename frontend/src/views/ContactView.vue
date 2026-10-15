@@ -1,6 +1,6 @@
 <template>
   <div class="page">
-    <div class="page-hero">
+    <div class="page-section page-hero">
       <!-- Background Elements -->
       <div class="page-hero__bg">
         <div class="page-hero__blob"></div>
