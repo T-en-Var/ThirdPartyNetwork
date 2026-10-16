@@ -15,7 +15,7 @@ public class BlogService(
     IIdentityService identityService,
     INetworkUserService networkUserService,
     IFileService fileService,
-    IEntitlementService entitlementService,
+    IEntitlementValidator entitlementService,
     IMapper mapper) : UserContentBaseService<Blog>(repository, networkUserService), IBlogService
 {
     private readonly INetworkUserService _networkUserService = networkUserService;

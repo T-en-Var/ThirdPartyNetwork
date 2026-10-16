@@ -12,7 +12,7 @@ namespace thirdpartynetwork.Application.Services
         IIdentityService identityService,
         INetworkUserService networkUserService,
         ICDNService cdnService,
-        IEntitlementService entitlementService,
+        IEntitlementValidator entitlementService,
         IMapper mapper) : UserContentBaseService<File>(repository, networkUserService), IFileService
     {
         private readonly INetworkUserService _networkUserService = networkUserService;

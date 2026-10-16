@@ -220,7 +220,7 @@ builder.Services.AddSingleton<WebsocketHandler>();
 builder.Services.AddScoped<IAccessService, AccessService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICustomPageService, CustomPageService>();
-builder.Services.AddScoped<IEntitlementService, EntitlementService>();
+builder.Services.AddScoped<IEntitlementValidator, EntitlementValidator>();
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IConfigurationService, ConfigurationService>();
 builder.Services.AddScoped<IBlogService, BlogService>();
@@ -238,7 +238,6 @@ builder.Services.AddScoped<IUserProxyManagerService, UserProxyManagerService>();
 builder.Services.AddScoped<IUserProxyService, UserProxyService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IWebsocketService, WebsocketService>();
-builder.Services.AddScoped<INetworkEntitlementValidator, NetworkEntitlementValidator>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

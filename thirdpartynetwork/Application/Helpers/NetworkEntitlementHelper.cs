@@ -2,7 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using thirdpartynetwork.Core.Models;
 
-public static class NetworkEntitlementWriter
+public static class NetworkEntitlementHelper
 {
     public static NetworkUser WriteEntitlement<T>(NetworkUser networkUser, string key, T value)
     {

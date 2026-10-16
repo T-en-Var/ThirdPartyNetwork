@@ -3,7 +3,7 @@ using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Core.Interfaces.Services;
 
-public interface IEntitlementService
+public interface IEntitlementValidator
 {
     Task<bool> CheckUserAddNetworkFileEntitlementAsync(Guid userProxyId, Guid networkId, IFormFile file);
     Task<bool> CheckUserAddBlogEntitlementAsync(Guid userProxyId, Guid networkId);
