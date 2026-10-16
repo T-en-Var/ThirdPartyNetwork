@@ -80,7 +80,7 @@
       </div>
 
       <NetworkAccessList
-        :network-accesses="networkDetails.data.value?.networkAccesses ?? []"
+        :network-accesses="networkAccessesForList"
         :initial-user-accesses="userAccesses"
         :network-user-accesses="[]"
         :loading="networkDetails.loading.value"
@@ -93,15 +93,16 @@
           v-if="signupForm"
           :userProxy="{
             firstName: signupForm.firstName,
-            createdOn: new Date(),
+            createdOn: new Date().toISOString(),
             id: '',
             isDefault: true,
             networkUsers: [],
-            user: { id: '', createdOn: new Date(), userProxies: [] },
+            user: { id: '', createdOn: new Date().toISOString() },
             email: signupForm.email,
             lastName: signupForm.lastName,
             username: signupForm.username,
             hasPassword: false,
+            imageFile: null,
           }"
           :sensitiveFields="['email', 'lastName']"
           :fieldsToDisplay="['username', 'firstName', 'lastName', 'email']"
@@ -159,7 +160,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import type { UserProxyDto, CreateUserProxyDto } from '@/types';
+import type { UserProxyDto, CreateUserProxyDto, NetworkAccessDto } from '@/types';
 import { useGlobalStore } from '@/stores/global';
 import api from '@/api/api';
 import useNetworkAuthFlow from '@/composables/useNetworkAuthFlow';
@@ -181,6 +182,19 @@ const global = useGlobalStore();
 const flow = useNetworkAuthFlow();
 const { networkDetails, networkId, backUrl, isValidUrl, networkNotFound, goToLogin } = flow;
 const { buildInitialAccessState, applyAccessConsent } = useAccessConsent();
+
+// NetworkAccessList expects the full NetworkAccessDto shape (flat `accessId` + `.network`
+// back-reference); `NetworkDto.networkAccesses` only carries the lighter "NtA" variant. The list
+// only reads `.access`/`.isRequired`, so the missing fields are filled in defensively.
+const networkAccessesForList = computed<NetworkAccessDto[]>(
+  () =>
+    (networkDetails.data.value?.networkAccesses ?? []).map((na) => ({
+      ...na,
+      networkId: networkId.value,
+      accessId: na.access.id,
+      network: networkDetails.data.value!,
+    })) as unknown as NetworkAccessDto[],
+);
 
 const signUpStep = ref(1);
 const error = ref('');

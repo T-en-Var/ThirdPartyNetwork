@@ -1,5 +1,5 @@
 import { capitalize, ref } from 'vue';
-import type { Network, SettableEntitlementForm, SettableEntitlement } from '@/types';
+import type { NetworkDto, SettableEntitlementForm, SettableEntitlement } from '@/types';
 
 export const entitlementKeys = {
   allowFiles: ['fileCountLimit', 'fileSizeLimit', 'fileStorageLimit'],
@@ -27,7 +27,7 @@ function setFlagFor(itemKey: EntitlementLimitKey): keyof SettableEntitlementForm
   return `set${capitalize(itemKey)}` as keyof SettableEntitlementForm;
 }
 
-export function useEntitlements(network: Network) {
+export function useEntitlements(network: NetworkDto) {
   const entitlementsData = ref<SettableEntitlementForm>({});
 
   const initEntitlements = (

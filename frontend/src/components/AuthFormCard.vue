@@ -34,11 +34,11 @@
 <script setup lang="ts">
 import type { Ref } from 'vue';
 import NetworkLogo from '@/components/NetworkLogo.vue';
-import type { Network } from '@/types';
+import type { NetworkDto } from '@/types';
 
 interface NetworkDetails {
   loading: Ref<boolean>;
-  data: Ref<Network | null>;
+  data: Ref<NetworkDto | null>;
 }
 
 withDefaults(

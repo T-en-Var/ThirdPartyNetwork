@@ -14,7 +14,7 @@
           <img
             v-else
             :src="getAvatarSrc(activeProxy)"
-            :alt="activeProxy.username"
+            :alt="activeProxy.username ?? undefined"
             class="avatar__image user-proxy-tab__avatar--lg"
           />
 
@@ -89,7 +89,7 @@
               <img
                 v-else
                 :src="getAvatarSrc(proxy)"
-                :alt="proxy.username"
+                :alt="proxy.username ?? undefined"
                 class="avatar__image user-proxy-tab__avatar--lg"
               />
               <div class="user-proxy-tab__proxy-card-text">
@@ -253,14 +253,14 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { useAuthStore } from '@/stores/auth';
-import type { UserProxy, Network } from '@/types';
+import type { UserProxyLightWithNetworksDto, NetworkLightDto } from '@/types';
 import CdnFile from '@/components/cdn/CdnFile.vue';
 import useUsers from '@/composables/useUsers';
 import useAccesses from '@/composables/useAccesses';
 import ProfileAvatar from '@/components/ProfileAvatar.vue';
 import { defaultProxy } from '@/lib/user';
 
-const userProxy = ref<UserProxy | null>(null);
+const userProxy = ref<UserProxyLightWithNetworksDto | null>(null);
 const authStore = useAuthStore();
 const { execute: fetchUser, data: user } = useUsers().fetchUser;
 const { execute: fetchAccesses, data: accesses } = useAccesses().fetchAccesses;
@@ -314,28 +314,28 @@ const proxyPreviews = computed(() => {
 
   return prePreview.map((up) => ({
     ...up,
-    username: activeAccessFilters.value['Access Username'] ? up.username : undefined,
-    firstName: activeAccessFilters.value['Access Firstname'] ? up.firstName : undefined,
-    lastName: activeAccessFilters.value['Access Lastname'] ? up.lastName : undefined,
-    email: activeAccessFilters.value['Access Email'] ? up.email : undefined,
-    imageFile: activeAccessFilters.value['Access ProfilePicture'] ? up.imageFile : undefined,
+    username: activeAccessFilters.value['Access Username'] ? up.username : null,
+    firstName: activeAccessFilters.value['Access Firstname'] ? up.firstName : null,
+    lastName: activeAccessFilters.value['Access Lastname'] ? up.lastName : null,
+    email: activeAccessFilters.value['Access Email'] ? up.email : null,
+    imageFile: activeAccessFilters.value['Access ProfilePicture'] ? up.imageFile : null,
   }));
 });
 
-function isActiveProxy(proxy: UserProxy) {
+function isActiveProxy(proxy: UserProxyLightWithNetworksDto) {
   return proxy.id === authStore.getUserProxyId();
 }
 
-function getFullName(proxy: UserProxy): string {
+function getFullName(proxy: UserProxyLightWithNetworksDto): string {
   return `${proxy.firstName ?? '-'} ${proxy.lastName ?? '-'}`;
 }
 
-function getAvatarSrc(proxy: UserProxy): string {
+function getAvatarSrc(proxy: UserProxyLightWithNetworksDto): string {
   const name = getFullName(proxy);
   return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`;
 }
 
-function getNetworksForProxy(proxy: UserProxy): Network[] {
+function getNetworksForProxy(proxy: UserProxyLightWithNetworksDto): NetworkLightDto[] {
   return proxy.networkUsers.map((nu) => nu.network);
 }
 </script>

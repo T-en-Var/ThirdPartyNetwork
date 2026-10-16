@@ -69,11 +69,11 @@ import ModalContainer from '@/components/modals/ModalContainer.vue';
 import ModalFormActions from '@/components/modals/ModalFormActions.vue';
 import CheckboxList from '@/components/CheckboxList.vue';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
-import type { UserProxy, Network } from '@/types';
+import type { UserProxyLightWithNetworksDto, NetworkDto } from '@/types';
 import useUsers from '@/composables/useUsers';
 
 const props = defineProps<{
-  network: Network;
+  network: NetworkDto;
   isSubmitting?: boolean;
 }>();
 
@@ -91,10 +91,10 @@ const {
   execute: fetchUsers,
 } = useUsers().fetchUsers;
 
-const availableUsers = computed<UserProxy[]>(() => {
+const availableUsers = computed<UserProxyLightWithNetworksDto[]>(() => {
   if (!users.value) return [];
 
-  const networkUserIds = props.network.networkUsers.map((nu) => nu.userProxy.id);
+  const networkUserIds = props.network.networkUsers.map((nu) => nu.userProxyId);
   return users.value
     .flatMap((user) => user.userProxies)
     .filter((proxy) => !networkUserIds.includes(proxy.id));

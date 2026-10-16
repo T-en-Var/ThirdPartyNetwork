@@ -5,11 +5,6 @@
   >
     <slot></slot>
 
-    <access-level-picker
-      v-if="!hideAccessPicker"
-      v-model="accessLevel"
-    />
-
     <div
       v-if="showNetworkSelector"
       class="form-field"
@@ -75,7 +70,6 @@
 <script setup lang="ts">
 import type { CreateUserContentForm, NetworkDto } from '@/types';
 import { computed, onMounted, ref, watch } from 'vue';
-import AccessLevelPicker from '@/components/fields/AccessLevelPicker.vue';
 import useNetworks from '@/composables/useNetworks';
 
 const networkState = useNetworks();
@@ -84,7 +78,6 @@ const props = defineProps<{
   buttonText: string;
   isSubmitting: boolean;
   inputIsValid: boolean;
-  hideAccessPicker?: boolean;
   networkId?: string;
   networkIds?: string[];
   error?: string | null;
@@ -95,7 +88,6 @@ const emit = defineEmits<{
   (e: 'submit', form: CreateUserContentForm): void;
 }>();
 
-const accessLevel = ref(0);
 const warningText = ref('');
 let warningTextTimeout: ReturnType<typeof setTimeout> | null = null;
 
@@ -116,7 +108,6 @@ const handleSubmit = () => {
 
   const form: CreateUserContentForm = {
     networkId: props.networkId ?? selectedNetwork.value?.id ?? '',
-    accessLevel: accessLevel.value,
   };
 
   emit('submit', form);

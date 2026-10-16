@@ -141,7 +141,7 @@ import { onMounted, ref } from 'vue';
 import ModalContainer from '@/components/modals/ModalContainer.vue';
 import ModalFormActions from '@/components/modals/ModalFormActions.vue';
 import CheckboxList from '@/components/CheckboxList.vue';
-import type { Role, Network, RoleForm } from '@/types';
+import type { RoleDto, NetworkDto, RoleForm, SettableEntitlement } from '@/types';
 import usePermissions from '@/composables/usePermissions';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import { useEntitlements } from '@/composables/useEntitlements';
@@ -158,8 +158,8 @@ const activeTab = ref<'permissions' | 'entitlements'>('permissions');
 const isSubmitting = ref(false);
 
 const props = defineProps<{
-  network: Network;
-  selectedRole: Role;
+  network: NetworkDto;
+  selectedRole: RoleDto;
   manageRoleForm: RoleForm;
 }>();
 
@@ -170,7 +170,7 @@ const emit = defineEmits(['close', 'update']);
 onMounted(async () => {
   await fetchPermissions();
 
-  initEntitlements(props.selectedRole.entitlements);
+  initEntitlements(props.selectedRole.entitlements as SettableEntitlement);
 });
 
 function handleSubmit() {

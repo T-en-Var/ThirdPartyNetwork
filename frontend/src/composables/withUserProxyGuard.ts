@@ -1,6 +1,6 @@
 import { computed, ref, type ComputedRef, type Ref } from 'vue';
 import { useAuthStore } from '@/stores/auth';
-import type { UserProxy } from '@/types';
+import type { UserProxyDto } from '@/types';
 
 interface GuardableCachedApi<TData> {
   data: Ref<TData | null> | ComputedRef<TData | null>;
@@ -15,7 +15,7 @@ interface GuardableCachedApi<TData> {
  */
 export function withUserProxyGuard<TData, TArgs extends unknown[]>(
   cachedApi: GuardableCachedApi<TData>,
-  execute: (userProxy: UserProxy, ...args: TArgs) => Promise<void>,
+  execute: (userProxy: UserProxyDto, ...args: TArgs) => Promise<void>,
 ) {
   const authStore = useAuthStore();
   const authError = ref<string | null>(null);

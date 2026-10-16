@@ -1,6 +1,6 @@
 import api from '@/api/api';
 import { networkKey } from '@/lib/cacheKeys';
-import type { CreateNetworkUser, NetworkUser, NetworkUserDto, UpdateNetworkUser } from '@/types';
+import type { CreateNetworkUserDto, NetworkUserDto, UpdateNetworkUserDto } from '@/types';
 import { useCachedApi, useMutation } from './useApi';
 
 export default function useNetworkUsers() {
@@ -12,11 +12,11 @@ export default function useNetworkUsers() {
   );
 
   const createNetworkUser = useMutation<
-    NetworkUser,
+    NetworkUserDto,
     [networkId: string, userProxyId: string, roleIds: string[]]
   >(
     async (networkId, userProxyId, roleIds) => {
-      const created = await api.post<NetworkUser, CreateNetworkUser>(
+      const created = await api.post<NetworkUserDto, CreateNetworkUserDto>(
         `/networks/${networkId}/users/${userProxyId}`,
         {},
       );
@@ -29,7 +29,7 @@ export default function useNetworkUsers() {
         );
       }
 
-      return await api.get<NetworkUser>(`/networks/${networkId}/users/${created.data.id}/`);
+      return await api.get<NetworkUserDto>(`/networks/${networkId}/users/${created.data.id}/`);
     },
     {
       itemKeyFactory: (result, networkId) => networkKey(networkId, 'users', result.id),
@@ -41,17 +41,17 @@ export default function useNetworkUsers() {
   );
 
   const updateNetworkUser = useMutation<
-    NetworkUser,
+    NetworkUserDto,
     [
       networkId: string,
       userId: string,
-      payload: UpdateNetworkUser,
+      payload: UpdateNetworkUserDto,
       addedRoles: string[],
       removedRoles: string[],
     ]
   >(
     async (networkId, userId, payload, addedRoles, removedRoles) => {
-      await api.put<NetworkUser, UpdateNetworkUser>(
+      await api.put<NetworkUserDto, UpdateNetworkUserDto>(
         `/networks/${networkId}/users/${userId}`,
         payload,
       );
@@ -68,7 +68,7 @@ export default function useNetworkUsers() {
         ]);
       }
 
-      return await api.get<NetworkUser>(`/networks/${networkId}/users/${userId}/`);
+      return await api.get<NetworkUserDto>(`/networks/${networkId}/users/${userId}/`);
     },
     {
       itemKeyFactory: (_, networkId, userId) => networkKey(networkId, 'users', userId),
@@ -82,7 +82,7 @@ export default function useNetworkUsers() {
   const deleteNetworkUser = useMutation<
     void,
     [networkId: string, networkUserId: string],
-    NetworkUser
+    NetworkUserDto
   >(
     async (networkId, networkUserId) =>
       await api.delete(`/networks/${networkId}/users/${networkUserId}/`),

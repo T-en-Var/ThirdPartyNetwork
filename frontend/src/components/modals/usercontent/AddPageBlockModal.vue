@@ -52,7 +52,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import ModalContainer from '@/components/modals/ModalContainer.vue';
-import type { CreatePageBlock, CreateUserContentForm, CustomPage } from '@/types';
+import type { CreatePageBlockDto, CreateUserContentForm, CustomPageDto } from '@/types';
 import UserContentForm from '../../UserContentForm.vue';
 import { useEventStore } from '@/stores/event';
 
@@ -60,21 +60,21 @@ const events = useEventStore();
 
 const props = defineProps<{
   isSubmitting: boolean;
-  customPage: CustomPage;
+  customPage: CustomPageDto;
 }>();
 
 const emit = defineEmits<{
   (e: 'close'): void;
-  (e: 'submit', networkId: string, customPageId: string, pageBlock: CreatePageBlock): void;
+  (e: 'submit', networkId: string, customPageId: string, pageBlock: CreatePageBlockDto): void;
 }>();
 
 const inputIsValid = computed(() => true);
 
-const form = ref({
+const form = ref<CreatePageBlockDto>({
   text: '',
   position: 1,
   data: {},
-  customPageId: props.customPage.id,
+  parentPageId: null,
 });
 
 function handleSubmit(userContentFrom: CreateUserContentForm) {

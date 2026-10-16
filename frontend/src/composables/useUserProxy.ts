@@ -1,24 +1,24 @@
 import api from '@/api/api';
 import { userProxyKey } from '@/lib/cacheKeys';
-import type { NetworkPermissionCollection, UserProxy } from '@/types';
+import type { NetworkPermissionsCollectionDto, UserProxyDto } from '@/types';
 import { useCachedApi } from './useApi';
 import { withUserProxyGuard } from './withUserProxyGuard';
 
 export default function useUserProxy() {
-  const fetchMe = useCachedApi<UserProxy, []>(
+  const fetchMe = useCachedApi<UserProxyDto, []>(
     () => `me`,
-    async () => await api.get<UserProxy>(`/me`),
+    async () => await api.get<UserProxyDto>(`/me`),
   );
 
-  const fetchPermissionCollection = useCachedApi<NetworkPermissionCollection[], []>(
+  const fetchPermissionCollection = useCachedApi<NetworkPermissionsCollectionDto[], []>(
     () => `me_permissions`,
-    async () => await api.get<NetworkPermissionCollection[]>(`/me/permissions`),
+    async () => await api.get<NetworkPermissionsCollectionDto[]>(`/me/permissions`),
   );
 
-  const cachedApi = useCachedApi<UserProxy, [loggedInUserId: string, targetProxyId: string]>(
+  const cachedApi = useCachedApi<UserProxyDto, [loggedInUserId: string, targetProxyId: string]>(
     (loggedInUserId, targetProxyId) => userProxyKey(loggedInUserId, targetProxyId),
     async (loggedInUserId, targetProxyId) =>
-      await api.get<UserProxy>(`/users/${loggedInUserId}/proxies/${targetProxyId}`),
+      await api.get<UserProxyDto>(`/users/${loggedInUserId}/proxies/${targetProxyId}`),
   );
 
   const fetchUserProxy = withUserProxyGuard(

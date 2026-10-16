@@ -1,54 +1,53 @@
 import api from '@/api/api';
-import { userProxyKey } from '@/lib/cacheKeys';
-import type { Blog, CreateBlog } from '@/types/userContent/blog';
-import { removeById, replaceById, useCachedApi, useMutation } from '../useApi';
+import { networkKey } from '@/lib/cacheKeys';
+import type { BlogDto, CreateBlogDto, UpdateBlogDto } from '@/types';
+import { prependItem, useCachedApi, useMutation } from '../useApi';
 
+// Blogs always live under a network (there is no account-scoped storage), so every mutation here
+// still needs a networkId and hits the same /networks/{networkId}/blogs routes as
+// composables/network/useBlogs.ts. This composable's own value-add is `fetchBlogs`, which
+// aggregates a user proxy's blogs across every network they belong to via the dedicated
+// cross-network "authors" endpoint, something the network-scoped composable can't do.
 export default function useBlogs() {
-  const fetchBlogs = useCachedApi<Blog[], [userId: string, userProxyId: string]>(
-    (userId, userProxyId) => userProxyKey(userId, userProxyId, 'blogs'),
-    async (userId, userProxyId) =>
-      await api.get<Blog[]>(`/users/${userId}/proxies/${userProxyId}/blogs`),
+  const fetchBlogs = useCachedApi<BlogDto[], [userProxyId: string]>(
+    (userProxyId) => `authors_${userProxyId}_blogs`,
+    async (userProxyId) => await api.get<BlogDto[]>(`/authors/${userProxyId}/blogs`),
   );
 
-  const fetchBlog = useCachedApi<
-    Blog,
-    [networkId: string, userId: string, userProxyId: string, blogId: string]
-  >(
-    (_networkId, userId, userProxyId, blogId) => userProxyKey(userId, userProxyId, 'blogs', blogId),
-    async (networkId, _userId, _userProxyId, blogId) =>
-      await api.get<Blog>(`/networks/${networkId}/blogs/${blogId}`),
+  const fetchBlog = useCachedApi<BlogDto, [networkId: string, blogId: string]>(
+    (networkId, blogId) => networkKey(networkId, 'blogs', blogId),
+    async (networkId, blogId) => await api.get<BlogDto>(`/networks/${networkId}/blogs/${blogId}`),
   );
 
-  const createBlog = useMutation<
-    Blog,
-    [networkId: string, userId: string, userProxyId: string, payload: CreateBlog]
-  >(
-    async (networkId, _, __, payload) =>
-      await api.post<Blog, CreateBlog>(`/networks/${networkId}/blogs/`, payload),
+  const createBlog = useMutation<BlogDto, [networkId: string, payload: CreateBlogDto]>(
+    async (networkId, payload) =>
+      await api.post<BlogDto, CreateBlogDto>(`/networks/${networkId}/blogs/`, payload),
     {
-      itemKeyFactory: (result, _, userId, userProxyId) =>
-        userProxyKey(userId, userProxyId, 'blogs', result.id),
-      listKeyFactory: (_, userId, userProxyId) => userProxyKey(userId, userProxyId, 'blogs'),
-      listUpdater: replaceById,
+      itemKeyFactory: (result, networkId) => networkKey(networkId, 'blogs', result.id),
+      listKeyFactory: (networkId) => networkKey(networkId, 'blogs'),
+      listUpdater: prependItem,
     },
   );
 
-  const deleteBlog = useMutation<
-    void,
-    [networkId: string, userId: string, userProxyId: string, blogId: string],
-    Blog
-  >(
-    async (networkId, _userId, _userProxyId, blogId) =>
-      await api.delete(`/networks/${networkId}/blogs/${blogId}/`),
+  const updateBlog = useMutation<BlogDto, [networkId: string, blogId: string, payload: UpdateBlogDto]>(
+    async (networkId, blogId, payload) =>
+      await api.put<BlogDto, UpdateBlogDto>(`/networks/${networkId}/blogs/${blogId}`, payload),
     {
-      itemKeyFactory: (_result, _networkId, userId, userProxyId, blogId) =>
-        userProxyKey(userId, userProxyId, 'blogs', blogId),
-      listKeyFactory: (_networkId, userId, userProxyId) =>
-        userProxyKey(userId, userProxyId, 'blogs'),
-      listUpdater: (currentList, _result, _networkId, _userId, _userProxyId, blogId) =>
-        removeById(currentList, blogId),
+      itemKeyFactory: (_, networkId, blogId) => networkKey(networkId, 'blogs', blogId),
+      listKeyFactory: (networkId) => networkKey(networkId, 'blogs'),
+      listUpdater: (currentList, result, __, blogId) =>
+        currentList.map((item) => (item.id === blogId ? result : item)),
     },
   );
 
-  return { fetchBlogs, fetchBlog, createBlog, deleteBlog };
+  const deleteBlog = useMutation<void, [networkId: string, blogId: string], BlogDto>(
+    async (networkId, blogId) => await api.delete(`/networks/${networkId}/blogs/${blogId}/`),
+    {
+      itemKeyFactory: (_, networkId, blogId) => networkKey(networkId, 'blogs', blogId),
+      listKeyFactory: (networkId) => networkKey(networkId, 'blogs'),
+      listUpdater: (currentList, _, __, blogId) => currentList.filter((item) => item.id !== blogId),
+    },
+  );
+
+  return { fetchBlogs, fetchBlog, createBlog, updateBlog, deleteBlog };
 }

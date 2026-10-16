@@ -21,13 +21,13 @@
 <script setup lang="ts">
 import NetworkCard from '@/components/NetworkCard.vue';
 import { useAuthStore } from '@/stores/auth';
-import type { Network } from '@/types';
+import type { NetworkDto } from '@/types';
 
 const authStore = useAuthStore();
 
 defineProps<{
-  networks: Network[];
+  networks: NetworkDto[];
 }>();
 
-const checkCanManage = (network: Network) => authStore.canI.manageNetwork(network);
+const checkCanManage = (network: NetworkDto) => authStore.canI.manageNetwork(network);
 </script>

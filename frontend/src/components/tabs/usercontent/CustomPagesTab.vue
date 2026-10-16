@@ -38,7 +38,7 @@
 </template>
 
 <script setup lang="ts">
-import type { CustomPage, ConfirmForm, CreateCustomPage } from '@/types';
+import type { CustomPageDto, ConfirmForm, CreateCustomPageDto } from '@/types';
 import { onMounted, ref, watch, type Ref } from 'vue';
 import UserContentViewer from '@/components/UserContentViewer.vue';
 import AddCustomPageModal from '@/components/modals/usercontent/AddCustomPageModal.vue';
@@ -49,18 +49,18 @@ const events = useEventStore();
 const showCreateModal = ref(false);
 const isSubmitting = ref(false);
 
-const customPages = ref<CustomPage[]>([]);
+const customPages = ref<CustomPageDto[]>([]);
 
 const props = defineProps<{
   networkId?: string;
   networkIds?: string[];
-  fetchCustomPages: () => Promise<Ref<CustomPage[]>>;
+  fetchCustomPages: () => Promise<Ref<CustomPageDto[]>>;
 }>();
 
 const emit = defineEmits<{
-  (e: 'custom-pages-create', networkId: string, payload: CreateCustomPage): void;
-  (e: 'custom-pages-edit', customPage: CustomPage): void;
-  (e: 'custom-pages-delete', customPage: CustomPage): void;
+  (e: 'custom-pages-create', networkId: string, payload: CreateCustomPageDto): void;
+  (e: 'custom-pages-edit', customPage: CustomPageDto): void;
+  (e: 'custom-pages-delete', customPage: CustomPageDto): void;
   (e: 'confirm', form: ConfirmForm): void;
 }>();
 
@@ -70,7 +70,7 @@ onMounted(async () => {
   watch(remoteRef, (newVal) => (customPages.value = newVal ?? []), { immediate: true });
 });
 
-async function handleCreateCustomPage(networkId: string, customPageCreate: CreateCustomPage) {
+async function handleCreateCustomPage(networkId: string, customPageCreate: CreateCustomPageDto) {
   events.listen.customPages.create((customPage) => {
     showCreateModal.value = false;
     handleEditCustomPage(customPage);
@@ -78,11 +78,11 @@ async function handleCreateCustomPage(networkId: string, customPageCreate: Creat
   emit('custom-pages-create', networkId, customPageCreate);
 }
 
-function handleEditCustomPage(customPage: CustomPage) {
+function handleEditCustomPage(customPage: CustomPageDto) {
   emit('custom-pages-edit', customPage);
 }
 
-function handleRemoveCustomPage(customPage: CustomPage) {
+function handleRemoveCustomPage(customPage: CustomPageDto) {
   emit('custom-pages-delete', customPage);
 }
 </script>

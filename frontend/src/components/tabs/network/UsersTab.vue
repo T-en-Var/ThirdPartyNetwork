@@ -140,7 +140,7 @@ import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import ProfileAvatar from '@/components/ProfileAvatar.vue';
 import useNetworkUsers from '@/composables/useNetworkUsers';
 import { getNameDisplayUserProxy } from '@/lib/user';
-import type { Network, NetworkUser } from '@/types';
+import type { NetworkDto, NetworkUserDto } from '@/types';
 import { onMounted } from 'vue';
 
 const networkUsersState = useNetworkUsers();
@@ -152,7 +152,7 @@ const {
 } = networkUsersState.fetchNetworkUsers;
 
 const props = defineProps<{
-  network: Network;
+  network: NetworkDto;
 }>();
 
 onMounted(async () => {
@@ -161,7 +161,7 @@ onMounted(async () => {
 
 defineEmits<{
   (e: 'addUser'): void;
-  (e: 'manageUser', user: NetworkUser): void;
-  (e: 'removeUser', user: NetworkUser): void;
+  (e: 'manageUser', user: NetworkUserDto): void;
+  (e: 'removeUser', user: NetworkUserDto): void;
 }>();
 </script>

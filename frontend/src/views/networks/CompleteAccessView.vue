@@ -56,9 +56,9 @@
       </div>
 
       <NetworkAccessList
-        :network-accesses="network.networkAccesses"
+        :network-accesses="networkAccessesForList"
         :initial-user-accesses="userAccesses"
-        :network-user-accesses="currentNetworkUser?.networkUserAccesses"
+        :network-user-accesses="networkUserAccessesForList"
         :loading="loading"
         @access-change="updateAccessConsent"
         ref="accessListRef"
@@ -121,7 +121,9 @@ import { ref, onMounted, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import type {
   ErrorMessage,
+  NetworkAccessDto,
   NetworkDto,
+  NetworkUserAccessDto,
   NetworkUserUserProxyCascadeDto,
   UserProxyExtraCascadeDto,
 } from '@/types';
@@ -160,6 +162,30 @@ const pageLoading = ref(true);
 const accessListRef = ref<InstanceType<typeof NetworkAccessList> | null>(null);
 
 const networkId = computed(() => route.params.networkId as string);
+
+// NetworkAccessList expects the full NetworkAccessDto/NetworkUserAccessDto shapes (with a flat
+// `accessId` and a `.network`/`.networkUser` back-reference), but `NetworkDto.networkAccesses`
+// and `NetworkUserUserProxyCascadeDto.networkUserAccesses` only carry the lighter "NtA" variants
+// (no flat `accessId`, no back-reference) - adapt them here rather than touching the shared list
+// component, which only ever reads `.access`/`.accessId`/`.isRequired`/`.isAccepted`.
+const networkAccessesForList = computed<NetworkAccessDto[]>(
+  () =>
+    (network.value?.networkAccesses ?? []).map((na) => ({
+      ...na,
+      networkId: networkId.value,
+      accessId: na.access.id,
+      network: network.value!,
+    })) as unknown as NetworkAccessDto[],
+);
+
+const networkUserAccessesForList = computed<NetworkUserAccessDto[] | undefined>(() =>
+  currentNetworkUser.value?.networkUserAccesses.map((nua) => ({
+    ...nua,
+    networkUserId: currentNetworkUser.value!.id,
+    accessId: nua.access.id,
+    networkUser: currentNetworkUser.value!,
+  })) as unknown as NetworkUserAccessDto[] | undefined,
+);
 
 const canSubmit = computed(() => {
   if (!network.value || pageLoading.value || isSubmitting.value) return false;

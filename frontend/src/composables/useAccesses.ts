@@ -1,20 +1,20 @@
 import api from '@/api/api';
 import { networkKey } from '@/lib/cacheKeys';
-import { type NetworkAccess, type Access, type Network } from '@/types';
+import { type NetworkAccessDto, type AccessDto, type NetworkDto } from '@/types';
 import { useCachedApi, useMutation } from './useApi';
 
 export default function useAccesses() {
-  const fetchAccesses = useCachedApi<Access[], []>(
+  const fetchAccesses = useCachedApi<AccessDto[], []>(
     () => 'accesses',
     async () => {
-      const result = await api.get<Access[]>('/accesses/');
+      const result = await api.get<AccessDto[]>('/accesses/');
       result.data.sort((a, b) => a.name.localeCompare(b.name));
       return result;
     },
   );
 
   const createAccess = useMutation<
-    NetworkAccess,
+    NetworkAccessDto,
     [networkId: string, accessId: string, isRequired: boolean],
     unknown
   >(
@@ -24,10 +24,10 @@ export default function useAccesses() {
       itemKeyFactory: (_, networkId, accessId) => networkKey(networkId, 'accesses', accessId),
       listKeyFactory: (networkId) => networkKey(networkId),
       listUpdater: (currentList, result) => {
-        const network = currentList as unknown as Network;
+        const network = currentList as unknown as NetworkDto;
         network.networkAccesses = network.networkAccesses.map((item) =>
-          item.network.id === result.network.id && item.access.id === result.access.id
-            ? result
+          item.access.id === result.access.id
+            ? { accessId: result.accessId, isRequired: result.isRequired, access: result.access }
             : item,
         );
         network.networkAccesses = network.networkAccesses.sort((a, b) =>
@@ -40,7 +40,7 @@ export default function useAccesses() {
   );
 
   const updateNetworkAccess = useMutation<
-    NetworkAccess,
+    NetworkAccessDto,
     [networkId: string, accessId: string, isRequired: boolean],
     unknown
   >(
@@ -50,10 +50,10 @@ export default function useAccesses() {
       itemKeyFactory: (_, networkId, accessId) => networkKey(networkId, 'accesses', accessId),
       listKeyFactory: (networkId) => networkKey(networkId),
       listUpdater: (currentList, result) => {
-        const network = currentList as unknown as Network;
+        const network = currentList as unknown as NetworkDto;
         network.networkAccesses = network.networkAccesses.map((item) =>
-          item.network.id === result.network.id && item.access.id === result.access.id
-            ? result
+          item.access.id === result.access.id
+            ? { accessId: result.accessId, isRequired: result.isRequired, access: result.access }
             : item,
         );
         return network as unknown as unknown[];
@@ -66,10 +66,10 @@ export default function useAccesses() {
     {
       itemKeyFactory: (_, networkId, accessId) => networkKey(networkId, 'accesses', accessId),
       listKeyFactory: (networkId) => networkKey(networkId),
-      listUpdater: (currentList, _, networkId, accessId) => {
-        const network = currentList as unknown as Network;
+      listUpdater: (currentList, _, __, accessId) => {
+        const network = currentList as unknown as NetworkDto;
         network.networkAccesses = network.networkAccesses.filter(
-          (item) => item.network.id !== networkId || item.access.id !== accessId,
+          (item) => item.access.id !== accessId,
         );
         return network as unknown as unknown[];
       },

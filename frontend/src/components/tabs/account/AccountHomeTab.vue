@@ -52,7 +52,7 @@
                   <img
                     v-else
                     :src="getAvatarSrc(userProxy)"
-                    :alt="userProxy.username"
+                    :alt="userProxy.username ?? undefined"
                     class="avatar__image"
                   />
                 </div>
@@ -97,7 +97,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import type { UserProxy } from '@/types';
+import type { UserProxyDto } from '@/types';
 import { useAuthStore } from '@/stores/auth';
 import CdnFile from '@/components/cdn/CdnFile.vue';
 import { useRouter } from 'vue-router';
@@ -105,7 +105,7 @@ import useUsers from '@/composables/useUsers';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 
 const authStore = useAuthStore();
-const userProxy = ref<UserProxy | null>(null);
+const userProxy = ref<UserProxyDto | null>(null);
 const router = useRouter();
 
 const { execute: fetchUser, loading, error, data: user } = useUsers().fetchUser;
@@ -121,7 +121,7 @@ const proxyList = computed(() => {
   return user.value.userProxies.filter((p) => p != null);
 });
 
-function getFullName(proxy: UserProxy): string {
+function getFullName(proxy: UserProxyDto): string {
   if (proxy.firstName && proxy.lastName) {
     return `${proxy.firstName} ${proxy.lastName}`;
   } else if (proxy.firstName) {
@@ -132,12 +132,12 @@ function getFullName(proxy: UserProxy): string {
   return '';
 }
 
-function getAvatarSrc(proxy: UserProxy): string {
+function getAvatarSrc(proxy: UserProxyDto): string {
   const name = getFullName(proxy);
   return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`;
 }
 
-function formatDate(date: Date): string {
+function formatDate(date: string | Date): string {
   return new Date(date).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',

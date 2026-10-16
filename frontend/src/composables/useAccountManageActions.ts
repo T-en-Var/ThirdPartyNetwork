@@ -22,7 +22,7 @@ import type {
   CreateConfigurationDto,
   CreateCustomPageDto,
   CreatePageBlockDto,
-  CreateUserProxyDto,
+  AddUserProxyDto,
   CustomPageDto,
   FileDto,
   PageBlockDto,
@@ -83,7 +83,7 @@ export default function useAccountManageActions() {
     router.push(`/account/${section}`);
   }
 
-  async function createUserProxy(newUserProxy: CreateUserProxyDto) {
+  async function createUserProxy(newUserProxy: AddUserProxyDto) {
     if (!currentUserId) return;
 
     const { execute: createUserProxyExecute } = useUsers().createUserProxy;
@@ -220,8 +220,8 @@ export default function useAccountManageActions() {
   const buildHandle = (userId: string, userProxyId: string) => {
     return {
       blog: {
-        fetch: genericFetch(composables.blogs.fetchBlog)(userId, userProxyId),
-        fetchAll: genericFetchAll(composables.blogs.fetchBlogs)(userId, userProxyId),
+        fetch: genericFetch(composables.blogs.fetchBlog)(),
+        fetchAll: genericFetchAll(composables.blogs.fetchBlogs)(userProxyId),
 
         edit: (blog: BlogDto) => {
           history.visit.blogs(blog);
@@ -231,7 +231,7 @@ export default function useAccountManageActions() {
         create: async (networkId: string, payload: CreateBlogDto) =>
           await genericMutation(composables.blogs.createBlog, {
             callback: (result) => events.emit.blogs.create(result),
-          })(networkId, userId, userProxyId, payload),
+          })(networkId, payload),
 
         delete: (blog: BlogDto) =>
           confirm({
@@ -242,16 +242,13 @@ export default function useAccountManageActions() {
             action: async () =>
               await genericMutation(composables.blogs.deleteBlog, {
                 callback: () => history.remove.blogs(blog),
-              })(blog.networkId, userId, userProxyId, blog.id),
+              })(blog.networkId, blog.id),
           }),
       },
 
       configuration: {
-        fetch: genericFetch(composables.configurations.fetchConfiguration)(userId, userProxyId),
-        fetchAll: genericFetchAll(composables.configurations.fetchConfigurations)(
-          userId,
-          userProxyId,
-        ),
+        fetch: genericFetch(composables.configurations.fetchConfiguration)(),
+        fetchAll: genericFetchAll(composables.configurations.fetchConfigurations)(userProxyId),
 
         edit: (configuration: ConfigurationDto) => {
           history.visit.configurations(configuration);
@@ -263,12 +260,12 @@ export default function useAccountManageActions() {
         create: async (networkId: string, payload: CreateConfigurationDto) =>
           await genericMutation(composables.configurations.createConfiguration, {
             callback: (result) => events.emit.configurations.create(result),
-          })(networkId, userId, userProxyId, payload),
+          })(networkId, payload),
 
-        update: async (networkId: string, customPageId: string, payload: ConfigurationDto) =>
+        update: async (networkId: string, configurationId: string, payload: ConfigurationDto) =>
           await genericMutation(composables.configurations.updateConfiguration, {
             callback: (result) => events.emit.configurations.update(result),
-          })(networkId, userId, userProxyId, customPageId, payload),
+          })(networkId, configurationId, payload),
 
         delete: (configuration: ConfigurationDto) =>
           confirm({
@@ -282,7 +279,7 @@ export default function useAccountManageActions() {
                   history.remove.configurations(configuration);
                   handleReturn('configurations');
                 },
-              })(configuration.networkId, userId, userProxyId, configuration.id),
+              })(configuration.networkId, configuration.id),
           }),
       },
 

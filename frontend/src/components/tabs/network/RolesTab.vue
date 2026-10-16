@@ -57,7 +57,7 @@
               <div class="roles-tab__permissions">
                 <span
                   v-for="rolePermission in role.rolePermissions"
-                  :key="rolePermission.permissionId"
+                  :key="rolePermission.permission.id"
                   class="badge badge--neutral"
                 >
                   {{ rolePermission.permission.name }}
@@ -127,13 +127,13 @@ import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import LoadingSpinner from '@/components/LoadingSpinner.vue';
 import ProfileAvatar from '@/components/ProfileAvatar.vue';
 import useRoles from '@/composables/useRoles';
-import type { Network, Role } from '@/types';
+import type { NetworkDto, RoleDto } from '@/types';
 import { onMounted } from 'vue';
 
 const { data: roles, isFetching, loading, error, execute: fetchRoles } = useRoles().fetchRoles;
 
 const props = defineProps<{
-  network: Network;
+  network: NetworkDto;
 }>();
 
 onMounted(async () => {
@@ -142,7 +142,7 @@ onMounted(async () => {
 
 defineEmits<{
   (e: 'addRole'): void;
-  (e: 'manageRole', role: Role): void;
-  (e: 'removeRole', role: Role): void;
+  (e: 'manageRole', role: RoleDto): void;
+  (e: 'removeRole', role: RoleDto): void;
 }>();
 </script>

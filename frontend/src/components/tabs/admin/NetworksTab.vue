@@ -416,7 +416,7 @@
                   <div class="admin-networks-tab__entitlement-chips">
                     <template v-if="Object.keys(network.entitlement || {}).length > 0">
                       <span
-                        v-for="(val, key) in network.entitlement"
+                        v-for="(val, key) in network.entitlement || ({} as Partial<NetworkEntitlementDto>)"
                         v-show="key != 'networkId'"
                         :key="key"
                         class="admin-networks-tab__entitlement-chip"
@@ -438,7 +438,7 @@
                             >{{ getEntitlementNumber(network, key)?.toLocaleString('nl-NL') }}</span
                           >{{ getEntitlementNumber(network, key) !== undefined ? '/' : ''
                           }}<span class="admin-networks-tab__entitlement-chip-max">{{
-                            val.toLocaleString('nl-NL')
+                            (val as number)?.toLocaleString('nl-NL')
                           }}</span></span
                         >
                       </span>
@@ -524,9 +524,9 @@ import useNetworks from '@/composables/useNetworks';
 import { DEFAULT_STORES, useHistoryStore } from '@/stores/history';
 import type {
   EntitlementLimits,
-  Network,
-  NetworkEntitlement,
-  NetworkMetrics,
+  NetworkDto,
+  NetworkEntitlementDto,
+  NetworkMetricsDto,
   SettableEntitlement,
 } from '@/types';
 import { capitalize, computed, onMounted, ref } from 'vue';
@@ -557,7 +557,7 @@ const { execute: fetchMainNetwork, data: mainNetwork } = useNetworks().fetchMain
 const { execute: updateNetworkEntitlement } = useNetworks().updateNetworkEntitlement;
 
 const showEditNetworkModal = ref(false);
-const selectedNetwork = ref<Network | null>(null);
+const selectedNetwork = ref<NetworkDto | null>(null);
 
 const searchQuery = ref('');
 const sortBy = ref<string>('users');
@@ -569,7 +569,7 @@ const activeRangeFilters = ref<Record<string, [[number, number], [number, number
 
 const isSubmitting = ref(false);
 
-type ComboNetwork = Network & NetworkMetrics;
+type ComboNetwork = NetworkDto & NetworkMetricsDto;
 
 const allNetworks = computed<ComboNetwork[]>(() => {
   if (!networks.value || !networksMetrics.value) return [];
@@ -588,11 +588,11 @@ const allNetworks = computed<ComboNetwork[]>(() => {
 const allEntitlementKeys = computed(() => Object.values(entitlementKeys).flat());
 
 const groupedEntitlements = computed(() => {
-  const entitlements = mainNetwork.value?.entitlement || ({} as NetworkEntitlement);
+  const entitlements = mainNetwork.value?.entitlement || ({} as NetworkEntitlementDto);
   const groups: EntitlementGroup[] = [];
 
   Object.entries(entitlementKeys).forEach(([parentKey, childKeys]) => {
-    if (entitlements[parentKey as keyof NetworkEntitlement] === true) {
+    if (entitlements[parentKey as keyof NetworkEntitlementDto] === true) {
       const items = childKeys
         .filter((key) => entitlements[key] !== undefined)
         .map((key) => {
@@ -617,8 +617,8 @@ const groupedEntitlements = computed(() => {
   return groups;
 });
 
-const totalMetrics = computed<NetworkMetrics>(() => {
-  const initial: NetworkMetrics = {
+const totalMetrics = computed<NetworkMetricsDto>(() => {
+  const initial: NetworkMetricsDto = {
     networkId: 'all-networks',
     fileCount: 0,
     fileStorage: 0,
@@ -631,7 +631,7 @@ const totalMetrics = computed<NetworkMetrics>(() => {
 
   return (networksMetrics.value || []).reduce(
     (acc, network) => {
-      (Object.keys(acc) as Array<keyof NetworkMetrics>).forEach((key) => {
+      (Object.keys(acc) as Array<keyof NetworkMetricsDto>).forEach((key) => {
         if (key === 'networkId') return;
 
         const val = network[key];
@@ -661,12 +661,12 @@ const totalLimits = computed(() => {
 });
 
 const remainingLimits = computed(() => {
-  const entitlements = mainNetwork.value?.entitlement || ({} as NetworkEntitlement);
+  const entitlements = mainNetwork.value?.entitlement || ({} as NetworkEntitlementDto);
   const totals = totalLimits.value;
   const remaining: Record<string, number> = {};
 
   Object.keys(totals).forEach((key) => {
-    const max = Number(entitlements[key as keyof NetworkEntitlement]) || 0;
+    const max = Number(entitlements[key as keyof NetworkEntitlementDto]) || 0;
     const used = totals[key as keyof EntitlementLimits] || 0;
     remaining[key] = max - used;
   });
@@ -693,14 +693,14 @@ const filteredNetworks = computed(() => {
       for (const [key, targetValue] of Object.entries(activeBooleanFilters.value)) {
         if (
           targetValue !== null &&
-          n.entitlement?.[key as keyof NetworkEntitlement] !== targetValue
+          n.entitlement?.[key as keyof NetworkEntitlementDto] !== targetValue
         )
           return false;
       }
 
       for (const [key, type] of Object.entries(activeRangeFilters.value)) {
         let range = type[0];
-        let val = (n.entitlement?.[key as keyof NetworkEntitlement] as number) || 0;
+        let val = (n.entitlement?.[key as keyof NetworkEntitlementDto] as number) || 0;
         if (val < range[0] || val > range[1]) return false;
 
         range = type[1];
@@ -724,8 +724,8 @@ const filteredNetworks = computed(() => {
         valA = a[key] as number;
         valB = b[key] as number;
       } else {
-        valB = (b.entitlement?.[sortBy.value as keyof NetworkEntitlement] as number) ?? 0;
-        valA = (a.entitlement?.[sortBy.value as keyof NetworkEntitlement] as number) ?? 0;
+        valB = (b.entitlement?.[sortBy.value as keyof NetworkEntitlementDto] as number) ?? 0;
+        valA = (a.entitlement?.[sortBy.value as keyof NetworkEntitlementDto] as number) ?? 0;
       }
 
       if (valA < valB) return sortOrder.value === 'asc' ? -1 : 1;
@@ -735,7 +735,7 @@ const filteredNetworks = computed(() => {
 });
 
 defineEmits<{
-  (e: 'delete-network', network: Network): void;
+  (e: 'delete-network', network: NetworkDto): void;
 }>();
 
 onMounted(async () => {
@@ -745,10 +745,10 @@ onMounted(async () => {
 });
 
 const getEntitlementNumber = (
-  input: NetworkMetrics,
-  key: keyof NetworkEntitlement,
+  input: NetworkMetricsDto,
+  key: keyof NetworkEntitlementDto,
 ): number | undefined => {
-  const comboKey = key.replace('Limit', '') as keyof NetworkMetrics;
+  const comboKey = key.replace('Limit', '') as keyof NetworkMetricsDto;
   let value = input[comboKey] as number;
 
   if (value && key == 'fileStorageLimit') value = Math.round((value as number) / 1024);
@@ -782,7 +782,7 @@ const refreshNetworks = async () => {
   await forceFetchNetworks();
 };
 
-const handleEditNetwork = (network: Network) => {
+const handleEditNetwork = (network: NetworkDto) => {
   selectedNetwork.value = network;
   showEditNetworkModal.value = true;
 };
@@ -809,7 +809,7 @@ const handleUpdateNetwork = async (networkEntitlement: SettableEntitlement) => {
   }
 };
 
-const handleManageNetwork = (network: Network) => {
+const handleManageNetwork = (network: NetworkDto) => {
   historyStore.visit.networks(network);
   router.push(`/networks/${network.id}/manage`);
 };

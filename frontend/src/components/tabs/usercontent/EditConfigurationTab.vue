@@ -37,11 +37,6 @@
             />
           </div>
 
-          <AccessLevelPicker
-            v-model="form.accessLevel"
-            label="Access Level"
-          />
-
           <div class="form-field">
             <label class="form-label">Value</label>
             <div v-if="!editMode">
@@ -95,6 +90,25 @@
             </button>
           </div>
         </form>
+
+        <ContentVisibilityPanel
+          :network-id="networkId"
+          :published-at="cfg.publishedAt"
+          :ownership-mode="cfg.ownershipMode"
+          :grants="grants"
+          :roles="roles"
+          :permissions="permissions"
+          :network-users="networkUsers"
+          :publishing="publishConfiguration.loading.value || unpublishConfiguration.loading.value"
+          :setting-ownership="setConfigurationOwnership.loading.value"
+          :creating-grant="createConfigurationAccessGrant.loading.value"
+          :revoking-grant="revokeConfigurationAccessGrant.loading.value"
+          @publish="publishExec(networkId, cfg!.id)"
+          @unpublish="unpublishExec(networkId, cfg!.id)"
+          @set-ownership="(mode) => setOwnershipExec(networkId, cfg!.id, mode)"
+          @add-grant="(payload) => createGrantExec(networkId, cfg!.id, payload)"
+          @revoke-grant="(grantId) => revokeGrantExec(networkId, cfg!.id, grantId)"
+        />
       </div>
     </div>
   </div>
@@ -103,12 +117,16 @@
 <script setup lang="ts">
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import JsonEditorVue from 'json-editor-vue';
-import AccessLevelPicker from '@/components/fields/AccessLevelPicker.vue';
-import { ref, computed, type Ref } from 'vue';
+import ContentVisibilityPanel from '@/components/ContentVisibilityPanel.vue';
+import { onMounted, ref, computed, type Ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import type { Configuration, CreateConfiguration } from '@/types';
+import type { ConfigurationDto, UpdateConfigurationDto } from '@/types';
 import { useEventStore } from '@/stores/event';
 import { useEditableEntity } from '@/composables/useEditableEntity';
+import useConfigurations from '@/composables/network/useConfigurations';
+import useRoles from '@/composables/useRoles';
+import usePermissions from '@/composables/usePermissions';
+import useNetworkUsers from '@/composables/useNetworkUsers';
 
 const router = useRouter();
 const route = useRoute();
@@ -119,20 +137,20 @@ const emit = defineEmits<{
     e: 'configurations-update',
     networkId: string,
     cfgId: string,
-    payload: CreateConfiguration,
+    payload: UpdateConfigurationDto,
   ): void;
-  (e: 'configurations-delete', payload: Configuration): void;
+  (e: 'configurations-delete', payload: ConfigurationDto): void;
   (e: 'return', section: string): void;
 }>();
 
 const props = defineProps<{
-  fetchConfiguration: (customPageId: string) => Promise<Ref<Configuration | null>>;
+  fetchConfiguration: (configurationId: string) => Promise<Ref<ConfigurationDto | null>>;
 }>();
 
 const networkId = route.params.networkId as string;
 const configurationId = computed(() => route.params.configurationId as string);
 
-const form = ref<CreateConfiguration>({ key: '', accessLevel: 0, value: {} });
+const form = ref<UpdateConfigurationDto>({ key: '', value: {} });
 const editMode = ref(false);
 const jsonValue = ref<object>({});
 
@@ -140,21 +158,53 @@ const {
   entity: configuration,
   loading,
   error,
-} = useEditableEntity<Configuration>({
+} = useEditableEntity<ConfigurationDto>({
   id: configurationId,
   fetch: props.fetchConfiguration,
   notFoundMessage: 'Configuration not found.',
   onNotFound: () => handleReturn(),
   onLoaded: (loadedConfiguration) => {
     form.value.key = loadedConfiguration.key;
-    form.value.accessLevel = loadedConfiguration.accessLevel;
     form.value.value = loadedConfiguration.value;
     try {
-      jsonValue.value = loadedConfiguration.value ?? {};
+      jsonValue.value = (loadedConfiguration.value as object) ?? {};
     } catch {
       jsonValue.value = {};
     }
   },
+});
+
+const {
+  execute: publishExec,
+  ...publishConfiguration
+} = useConfigurations().publishConfiguration;
+const {
+  execute: unpublishExec,
+  ...unpublishConfiguration
+} = useConfigurations().unpublishConfiguration;
+const {
+  execute: setOwnershipExec,
+  ...setConfigurationOwnership
+} = useConfigurations().setConfigurationOwnership;
+const { execute: fetchGrants, data: grants } = useConfigurations().fetchConfigurationAccessGrants;
+const {
+  execute: createGrantExec,
+  ...createConfigurationAccessGrant
+} = useConfigurations().createConfigurationAccessGrant;
+const {
+  execute: revokeGrantExec,
+  ...revokeConfigurationAccessGrant
+} = useConfigurations().revokeConfigurationAccessGrant;
+
+const { execute: rolesExec, data: roles } = useRoles().fetchRoles;
+const { execute: permissionsExec, data: permissions } = usePermissions().fetchPermissions;
+const { execute: networkUsersExec, data: networkUsers } = useNetworkUsers().fetchNetworkUsers;
+
+onMounted(async () => {
+  await fetchGrants(networkId, configurationId.value);
+  await rolesExec(networkId);
+  await permissionsExec();
+  await networkUsersExec(networkId);
 });
 
 const cfg = computed(() => configuration.value);

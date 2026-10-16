@@ -78,26 +78,26 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, type Ref } from 'vue';
 import ModalContainer from '@/components/modals/ModalContainer.vue';
-import type { Blog, CreateBlog } from '@/types/userContent/blog';
+import type { BlogDto, CreateBlogDto } from '@/types';
 import UserContentForm from '../../UserContentForm.vue';
 import type { CreateUserContentForm } from '@/types';
 
 const emit = defineEmits<{
   (e: 'close'): void;
-  (e: 'create-blog', networkId: string, payload: CreateBlog): void;
+  (e: 'create-blog', networkId: string, payload: CreateBlogDto): void;
 }>();
 
 const props = defineProps<{
   isSubmitting: boolean;
   networkId?: string;
   networkIds?: string[];
-  fetchBlogs: () => Promise<Ref<Blog[] | null>>;
+  fetchBlogs: () => Promise<Ref<BlogDto[] | null>>;
 }>();
 
 const title = ref('');
 const selectedNetworkId = ref<string | null>(null);
 
-const blogs = ref<Blog[]>([]);
+const blogs = ref<BlogDto[]>([]);
 
 const slugPreview = computed(() => generateSlug(title.value));
 const inputIsValid = computed(() => true);
@@ -129,8 +129,8 @@ function handleSubmit(form: CreateUserContentForm) {
   emit('create-blog', form.networkId, {
     title: title.value.trim(),
     summary: '',
+    coverImageId: null,
     body: {},
-    accessLevel: form.accessLevel,
   });
 }
 </script>

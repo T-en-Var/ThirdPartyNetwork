@@ -26,7 +26,7 @@ import { ref } from 'vue';
 import ConfirmationModal from '@/components/modals/ConfirmationModal.vue';
 import AdminSidebar from '@/components/sidebar/AdminSidebar.vue';
 import useNetworks from '@/composables/useNetworks';
-import type { Network } from '@/types';
+import type { NetworkDto } from '@/types';
 
 const isSubmitting = ref(false);
 
@@ -39,7 +39,7 @@ const confirmationAction = ref(() => {});
 
 const networksState = useNetworks();
 
-function confirmDeleteNetwork(network: Network) {
+function confirmDeleteNetwork(network: NetworkDto) {
   confirmationTitle.value = 'Delete Network';
   confirmationMessage.value = `Are you sure you want to delete "${network.name}"? This action cannot be undone.`;
   confirmButtonText.value = 'Delete';

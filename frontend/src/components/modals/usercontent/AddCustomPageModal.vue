@@ -60,19 +60,19 @@
 <script setup lang="ts">
 import { computed, ref, watch, onMounted, type Ref } from 'vue';
 import ModalContainer from '@/components/modals/ModalContainer.vue';
-import type { CreateCustomPage, CreateUserContentForm, CustomPage } from '@/types';
+import type { CreateCustomPageDto, CreateUserContentForm, CustomPageDto } from '@/types';
 import UserContentForm from '../../UserContentForm.vue';
 
 const props = defineProps<{
   isSubmitting: boolean;
   networkId?: string;
   networkIds?: string[];
-  fetchCustomPages: () => Promise<Ref<CustomPage[] | null>>;
+  fetchCustomPages: () => Promise<Ref<CustomPageDto[] | null>>;
 }>();
 
 const emit = defineEmits<{
   (e: 'close'): void;
-  (e: 'submit', networkId: string, payload: CreateCustomPage): void;
+  (e: 'submit', networkId: string, payload: CreateCustomPageDto): void;
 }>();
 
 const inputIsValid = computed(() => true);
@@ -80,7 +80,7 @@ const inputIsValid = computed(() => true);
 const name = ref('');
 const slug = ref('');
 
-const customPages = ref<CustomPage[]>([]);
+const customPages = ref<CustomPageDto[]>([]);
 
 onMounted(async () => {
   const remoteRef = await props.fetchCustomPages();
@@ -96,7 +96,6 @@ function handleSubmit(form: CreateUserContentForm) {
   emit('submit', form.networkId, {
     name: name.value.trim(),
     slug: slug.value.trim(),
-    accessLevel: form.accessLevel,
   });
 }
 </script>

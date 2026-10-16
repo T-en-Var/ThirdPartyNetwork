@@ -228,7 +228,7 @@
       <!-- Upload Modal -->
       <AddFileModal
         v-if="showUploadModal"
-        :networks="allNetworks"
+        :network-ids="allNetworks.map((n) => n.id)"
         @close="showUploadModal = false"
         @uploaded="handleImageUploaded"
         media-type="image"
@@ -242,27 +242,31 @@ import { computed, ref } from 'vue';
 import ModalContainer from '@/components/modals/ModalContainer.vue';
 import AddFileModal from '@/components/modals/usercontent/AddFileModal.vue';
 import CdnFile from '@/components/cdn/CdnFile.vue';
-import type { UserProxy, UserProxyCreate, FileDto, Network, UserProxyForm } from '@/types';
+import type {
+  AddUserProxyDto,
+  FileDto,
+  NetworkLightDto,
+  UpdateUserProxyForm,
+  UserProxyLightWithNetworksDto,
+} from '@/types';
 
 const props = defineProps<{
   isSubmitting?: boolean;
-  defaultProxy: UserProxy;
+  defaultProxy: UserProxyLightWithNetworksDto;
 }>();
 
 const emit = defineEmits<{
   (e: 'close'): void;
-  (e: 'create-proxy', payload: UserProxyCreate): void;
+  (e: 'create-proxy', payload: AddUserProxyDto): void;
 }>();
 
-const form = ref<UserProxyForm>({ keepPassword: true, isDefault: false });
+const form = ref<UpdateUserProxyForm>({ keepPassword: true, isDefault: false });
 
 const uploadedFile = ref<FileDto | null>();
-const allNetworks = computed<Network[]>(() => {
-  const proxies = [
-    props.defaultProxy,
-    ...props.defaultProxy.user.userProxies.filter((u) => u != null),
-  ];
-  const networks = proxies.flatMap((p) => (p.networkUsers ?? []).map((nu) => nu.network));
+// This light proxy shape doesn't carry sibling proxies' networks (no nested `.user.userProxies`
+// here) - only the default proxy's own networks are offered for the image upload.
+const allNetworks = computed<NetworkLightDto[]>(() => {
+  const networks = (props.defaultProxy.networkUsers ?? []).map((nu) => nu.network);
   const unique = new Map(networks.map((n) => [n.id, n]));
   return [...unique.values()];
 });
@@ -287,14 +291,13 @@ function removeImage() {
 function handleSubmit() {
   if (form.value.password && form.value.password != form.value.password_retype) return;
 
-  const payload: UserProxyCreate = {
-    ...form.value,
-    username: form.value.username || undefined,
-    firstName: form.value.firstName || undefined,
-    lastName: form.value.lastName || undefined,
-    email: form.value.email || undefined,
-    password: form.value.password || undefined,
-    fileLink: form.value.fileLink || undefined,
+  const payload: AddUserProxyDto = {
+    username: form.value.username || null,
+    firstName: form.value.firstName || null,
+    lastName: form.value.lastName || null,
+    email: form.value.email || null,
+    password: form.value.password || null,
+    fileLink: form.value.fileLink || null,
   };
 
   emit('create-proxy', payload);

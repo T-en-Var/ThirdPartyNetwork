@@ -1,26 +1,27 @@
 import api from '@/api/api';
 import { networkKey } from '@/lib/cacheKeys';
-import type { Configuration, CreateConfiguration } from '@/types';
+import type { ConfigurationDto, CreateConfigurationDto, UpdateConfigurationDto } from '@/types';
 import { prependItem, useCachedApi, useMutation } from '../useApi';
+import { useNetworkContentAccess } from '../useContentAccess';
 
 export default function useConfigurations() {
-  const fetchConfigurations = useCachedApi<Configuration[], [networkId: string]>(
+  const fetchConfigurations = useCachedApi<ConfigurationDto[], [networkId: string]>(
     (networkId) => networkKey(networkId, 'configurations'),
-    async (networkId) => await api.get<Configuration[]>(`/networks/${networkId}/configurations`),
+    async (networkId) => await api.get<ConfigurationDto[]>(`/networks/${networkId}/configurations`),
   );
 
-  const fetchConfiguration = useCachedApi<Configuration, [networkId: string, configId: string]>(
+  const fetchConfiguration = useCachedApi<ConfigurationDto, [networkId: string, configId: string]>(
     (networkId, configId) => networkKey(networkId, 'configurations', configId),
     async (networkId, configId) =>
-      await api.get<Configuration>(`/networks/${networkId}/configurations/${configId}`),
+      await api.get<ConfigurationDto>(`/networks/${networkId}/configurations/${configId}`),
   );
 
   const createConfiguration = useMutation<
-    Configuration,
-    [networkId: string, payload: CreateConfiguration]
+    ConfigurationDto,
+    [networkId: string, payload: CreateConfigurationDto]
   >(
     async (networkId, payload) =>
-      await api.post<Configuration, CreateConfiguration>(
+      await api.post<ConfigurationDto, CreateConfigurationDto>(
         `/networks/${networkId}/configurations`,
         payload,
       ),
@@ -32,11 +33,11 @@ export default function useConfigurations() {
   );
 
   const updateConfiguration = useMutation<
-    Configuration,
-    [networkId: string, configurationId: string, payload: Partial<Configuration>]
+    ConfigurationDto,
+    [networkId: string, configurationId: string, payload: UpdateConfigurationDto]
   >(
     async (networkId, configurationId, payload) =>
-      await api.put<Configuration, Partial<Configuration>>(
+      await api.put<ConfigurationDto, UpdateConfigurationDto>(
         `/networks/${networkId}/configurations/${configurationId}`,
         payload,
       ),
@@ -53,7 +54,7 @@ export default function useConfigurations() {
   const deleteConfiguration = useMutation<
     void,
     [networkId: string, configurationId: string],
-    Configuration
+    ConfigurationDto
   >(
     async (networkId, configurationId) =>
       await api.delete<void>(`/networks/${networkId}/configurations/${configurationId}`),
@@ -66,11 +67,26 @@ export default function useConfigurations() {
     },
   );
 
+  const {
+    publish: publishConfiguration,
+    unpublish: unpublishConfiguration,
+    setOwnership: setConfigurationOwnership,
+    fetchAccessGrants: fetchConfigurationAccessGrants,
+    createAccessGrant: createConfigurationAccessGrant,
+    revokeAccessGrant: revokeConfigurationAccessGrant,
+  } = useNetworkContentAccess<ConfigurationDto>('configurations');
+
   return {
     fetchConfigurations,
     fetchConfiguration,
     createConfiguration,
     updateConfiguration,
     deleteConfiguration,
+    publishConfiguration,
+    unpublishConfiguration,
+    setConfigurationOwnership,
+    fetchConfigurationAccessGrants,
+    createConfigurationAccessGrant,
+    revokeConfigurationAccessGrant,
   };
 }

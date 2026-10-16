@@ -52,7 +52,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import type { UserLogin } from '@/types';
+import type { LoginDto } from '@/types';
 
 withDefaults(
   defineProps<{
@@ -74,7 +74,7 @@ withDefaults(
 );
 
 const emit = defineEmits<{
-  submit: [form: UserLogin];
+  submit: [form: LoginDto];
 }>();
 
 const email = ref('');

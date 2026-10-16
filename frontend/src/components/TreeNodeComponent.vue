@@ -74,7 +74,15 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import type { TreeNode } from '@/types';
+import type { PageBlockLightDto } from '@/types';
+
+// Pure frontend-only tree shape (not a backend DTO) built client-side in EditPageBlockTab.vue
+// from a flat CustomPageDto.blocks list, for rendering a navigable parent/child block tree.
+export interface TreeNode extends PageBlockLightDto {
+  children: TreeNode[];
+  visited: boolean;
+  recursive: boolean;
+}
 
 defineProps<{
   node: TreeNode;

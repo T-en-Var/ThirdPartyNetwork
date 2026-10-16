@@ -45,7 +45,7 @@
           </button>
         </div>
 
-        <!-- UserProxy Fields -->
+        <!-- UserProxyDto Fields -->
         <div class="user-proxy-display__fields">
           <div
             v-for="(field, key) in displayFields"
@@ -77,14 +77,14 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import type { UserProxy } from '@/types';
+import type { UserProxyDto } from '@/types';
 import SecurableField from '@/components/fields/SecurableField.vue';
 import ProfileAvatar from '@/components/ProfileAvatar.vue';
 import { getNameDisplayUserProxy } from '@/lib/user';
 
 const props = defineProps({
   userProxy: {
-    type: Object as () => UserProxy | null,
+    type: Object as () => UserProxyDto | null,
     required: true,
   },
   showSwitch: {
@@ -125,7 +125,7 @@ const displayFields = computed(() => {
       : allFields;
 
   fieldsToUse.forEach((key) => {
-    const value = props.userProxy?.[key as keyof UserProxy] as string;
+    const value = props.userProxy?.[key as keyof UserProxyDto] as string;
     if (value !== undefined) {
       fields[key] = {
         value,
@@ -148,7 +148,7 @@ function formatFieldName(key: string): string {
   return key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase());
 }
 
-function formatDate(date: Date): string {
+function formatDate(date: string | Date): string {
   if (!date) return 'Unknown';
   return new Date(date).toLocaleDateString();
 }

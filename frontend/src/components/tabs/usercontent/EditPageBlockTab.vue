@@ -228,7 +228,8 @@
 
 <script setup lang="ts">
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
-import type { CustomPage, PageBlock, TreeNode } from '@/types';
+import type { CustomPageDto, PageBlockLightDto } from '@/types';
+import type { TreeNode } from '@/components/TreeNodeComponent.vue';
 import { ref, computed, type Ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import JsonEditorVue from 'json-editor-vue';
@@ -243,14 +244,14 @@ const route = useRoute();
 const global = useGlobalStore();
 
 const emit = defineEmits<{
-  (e: 'page-blocks-edit', block: PageBlock): void;
-  (e: 'page-blocks-update', networkId: string, customPageId: string, block: PageBlock): void;
-  (e: 'page-blocks-delete', block: PageBlock): void;
+  (e: 'page-blocks-edit', block: PageBlockLightDto): void;
+  (e: 'page-blocks-update', networkId: string, customPageId: string, block: PageBlockLightDto): void;
+  (e: 'page-blocks-delete', block: PageBlockLightDto): void;
   (e: 'nav-to-custom-pages', networkId: string, customPageId: string): void;
 }>();
 
 const props = defineProps<{
-  fetchCustomPage: (customPageId: string) => Promise<Ref<CustomPage | null>>;
+  fetchCustomPage: (customPageId: string) => Promise<Ref<CustomPageDto | null>>;
   history: ReturnType<typeof useHistoryStore>;
 }>();
 
@@ -258,7 +259,7 @@ const networkId = computed(() => route.params.networkId as string);
 const customPageId = computed(() => route.params.customPageId as string);
 const pageBlockId = computed(() => route.params.pageBlockId as string);
 
-const form = ref<Partial<PageBlock>>({
+const form = ref<Partial<PageBlockLightDto>>({
   parentPageId: '',
   text: '',
   position: 0,
@@ -276,10 +277,10 @@ const {
   entity: customPage,
   loading,
   error,
-} = useEditableEntity<CustomPage>({
+} = useEditableEntity<CustomPageDto>({
   id: pageBlockId,
   fetch: () => props.fetchCustomPage(customPageId.value),
-  isNotFound: (loadedCustomPage) => !loadedCustomPage.pages.find((p) => p.id === pageBlockId.value),
+  isNotFound: (loadedCustomPage) => !loadedCustomPage.blocks.find((p) => p.id === pageBlockId.value),
   notFoundMessage: 'Page block not found.',
   onNotFound: () => handleReturn(),
   onLoaded: () => {
@@ -293,7 +294,7 @@ const {
     };
 
     try {
-      jsonEditorValue.value = currentPageBlock.value.data;
+      jsonEditorValue.value = (currentPageBlock.value.data as object) ?? {};
     } catch {
       jsonEditorValue.value = {};
     }
@@ -301,25 +302,25 @@ const {
 });
 
 const currentPageBlock = computed(() =>
-  customPage.value?.pages.find((p) => p.id == pageBlockId.value),
+  customPage.value?.blocks.find((p) => p.id == pageBlockId.value),
 );
-const parentOptions: Ref<PageBlock[]> = computed(
-  () => customPage.value?.pages.filter((p) => p.id != pageBlockId.value) ?? [],
+const parentOptions: Ref<PageBlockLightDto[]> = computed(
+  () => customPage.value?.blocks.filter((p) => p.id != pageBlockId.value) ?? [],
 );
 const childBlocks = computed(
-  () => customPage.value?.pages.filter((p) => p.parentPageId === pageBlockId.value) ?? [],
+  () => customPage.value?.blocks.filter((p) => p.parentPageId === pageBlockId.value) ?? [],
 );
 
 const parentBlock = computed(() =>
   currentPageBlock.value?.parentPageId
-    ? customPage.value?.pages.find((p) => p.id === currentPageBlock.value?.parentPageId)
+    ? customPage.value?.blocks.find((p) => p.id === currentPageBlock.value?.parentPageId)
     : null,
 );
 const siblings = computed(() => {
   if (!parentBlock.value) {
-    return customPage.value?.pages.filter((p) => !p.parentPageId);
+    return customPage.value?.blocks.filter((p) => !p.parentPageId);
   }
-  return customPage.value?.pages.filter((p) => p.parentPageId == parentBlock.value!.id);
+  return customPage.value?.blocks.filter((p) => p.parentPageId == parentBlock.value!.id);
 });
 
 const previousBlock = computed(() => {
@@ -360,7 +361,7 @@ function handleReturn() {
 function handleEdit(pageBlockId: string) {
   if (currentPageBlock.value?.id == pageBlockId) return;
 
-  const pageBlock = customPage.value?.pages.find((page) => page.id == pageBlockId);
+  const pageBlock = customPage.value?.blocks.find((page) => page.id == pageBlockId);
   if (!pageBlock) {
     global.addToast({ message: 'PageBlock not found.', type: 'error', duration: 5000 });
     return;
@@ -374,7 +375,7 @@ function handleUpdate() {
     ...currentPageBlock.value,
     ...form.value,
     parentPageId: form.value.parentPageId || null,
-  } as PageBlock);
+  } as PageBlockLightDto);
 }
 
 function handleDelete() {
@@ -382,7 +383,7 @@ function handleDelete() {
   emit('page-blocks-delete', currentPageBlock.value);
 }
 
-function buildTree(blocks: PageBlock[]): TreeNode[] {
+function buildTree(blocks: PageBlockLightDto[]): TreeNode[] {
   const map = new Map<string, TreeNode>();
   const roots: TreeNode[] = [];
 
@@ -426,5 +427,5 @@ function buildTree(blocks: PageBlock[]): TreeNode[] {
   return roots;
 }
 
-const tree = computed(() => buildTree(customPage.value?.pages ?? []));
+const tree = computed(() => buildTree(customPage.value?.blocks ?? []));
 </script>

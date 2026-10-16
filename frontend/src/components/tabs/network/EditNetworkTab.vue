@@ -168,7 +168,7 @@ import { useRoute, useRouter } from 'vue-router';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import CdnFile from '@/components/cdn/CdnFile.vue';
 import AddFileModal from '@/components/modals/usercontent/AddFileModal.vue';
-import type { FileDto, Network, NetworkUpdate } from '@/types';
+import type { FileDto, NetworkDto, UpdateNetworkDto } from '@/types';
 import useNetworks from '@/composables/useNetworks';
 
 const route = useRoute();
@@ -180,8 +180,8 @@ const uploadedFile = ref<FileDto | null>(null);
 const showUploadModal = ref(false);
 
 const emit = defineEmits<{
-  (e: 'updateNetwork', id: string, payload: NetworkUpdate): void;
-  (e: 'deleteNetwork', network: Network): void;
+  (e: 'updateNetwork', id: string, payload: UpdateNetworkDto): void;
+  (e: 'deleteNetwork', network: NetworkDto): void;
 }>();
 
 const networkId = computed(() => route.params.networkId as string);
@@ -206,14 +206,22 @@ async function handleMounted() {
     description: network.value.description,
     isPublic: network.value.isPublic,
     redirectURI: network.value.redirectURI,
-    fileLink: network.value.imageFile ? { id: network.value.imageFile.id } : undefined,
+    fileLink: network.value.imageFile ? { id: network.value.imageFile.id } : null,
+    externalContentKinds: network.value.externalContentKinds,
   };
 
   uploadedFile.value = network.value.imageFile ?? null;
   original = JSON.stringify(form.value);
 }
 
-const form = ref<NetworkUpdate>({ name: '', description: '', isPublic: false, redirectURI: '' });
+const form = ref<UpdateNetworkDto>({
+  name: '',
+  description: '',
+  isPublic: false,
+  redirectURI: '',
+  fileLink: null,
+  externalContentKinds: null,
+});
 let original = '';
 const hasChanges = computed(() => JSON.stringify(form.value) !== original);
 
@@ -223,7 +231,7 @@ function resetForm() {
 
 function saveChanges() {
   if (!network.value) return;
-  const payload: NetworkUpdate = {
+  const payload: UpdateNetworkDto = {
     ...form.value,
     name: form.value.name.trim(),
     description: form.value.description.trim(),
@@ -252,7 +260,7 @@ function handleImageUploaded(file: FileDto) {
 }
 
 function removeImage() {
-  form.value.fileLink = undefined;
+  form.value.fileLink = null;
   uploadedFile.value = null;
 }
 </script>

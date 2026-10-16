@@ -73,14 +73,14 @@
 <script setup lang="ts">
 import { computed, onMounted, type ComputedRef } from 'vue';
 import ModalContainer from '@/components/modals/ModalContainer.vue';
-import type { EntitlementLimits, Network, SettableEntitlement } from '@/types';
+import type { EntitlementLimits, NetworkDto, SettableEntitlement } from '@/types';
 import EntitlementsForm from '@/components/EntitlementsForm.vue';
 import { useEntitlements } from '@/composables/useEntitlements';
 
 const props = withDefaults(
   defineProps<{
-    mainNetwork: Network;
-    network: Network;
+    mainNetwork: NetworkDto;
+    network: NetworkDto;
     totalLimits: EntitlementLimits;
     isSubmitting: boolean;
   }>(),
@@ -96,7 +96,7 @@ const emit = defineEmits<{
 
 const { entitlementsData, initEntitlements, getSubmitData } = useEntitlements(props.network);
 
-const fakeNetwork: ComputedRef<Network> = computed(() => {
+const fakeNetwork: ComputedRef<NetworkDto> = computed(() => {
   return {
     ...props.mainNetwork,
     entitlement: {

@@ -1,4 +1,4 @@
-import type { SettableEntitlement } from './network';
+import type { SettableEntitlement } from './NetworkEntitlement/NetworkEntitlementDto';
 
 export type ManageUserForm = {
   roleIds: string[];
@@ -21,12 +21,6 @@ export type NetworkForm = {
   redirectURI: string;
 };
 
-export type UpdateFile = {
-  name: string;
-  isPublic: boolean;
-  accessLevel?: number;
-};
-
 export type ConfirmForm = {
   title: string;
   message: string;
@@ -37,5 +31,4 @@ export type ConfirmForm = {
 
 export type CreateUserContentForm = {
   networkId: string;
-  accessLevel: number;
 };

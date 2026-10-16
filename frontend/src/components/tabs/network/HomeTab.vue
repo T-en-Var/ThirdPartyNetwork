@@ -275,7 +275,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted } from 'vue';
-import type { Network } from '@/types';
+import type { NetworkDto } from '@/types';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 
 import useFiles from '@/composables/network/useFiles';
@@ -284,7 +284,7 @@ import useConfigurations from '@/composables/network/useConfigurations';
 import useCustomPages from '@/composables/network/useCustomPages';
 
 const props = defineProps<{
-  network: Network;
+  network: NetworkDto;
 }>();
 
 // --- Files Setup ---

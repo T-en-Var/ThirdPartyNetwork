@@ -16,25 +16,29 @@ import { getNameDisplayUserProxy } from '@/lib/user';
 import { useHistoryStore } from '@/stores/history';
 
 import type {
-  NetworkUser,
-  Role,
-  NetworkAccess,
+  NetworkUserDto,
+  RoleDto,
+  NetworkAccessDto,
+  CreateNetworkAccessForm,
   FileDto,
-  PageBlock,
-  CreatePageBlock,
-  NetworkAccessCreate,
-  Network,
-  NetworkUpdate,
-  UpdateNetworkUser,
-  CustomPage,
-  CreateBlog,
-  Blog,
-  CreateConfiguration,
-  Configuration,
-  CreateCustomPage,
+  PageBlockDto,
+  PageBlockLightDto,
+  CreatePageBlockDto,
+  UpdatePageBlockDto,
+  NetworkDto,
+  UpdateNetworkDto,
+  UpdateNetworkUserDto,
+  CustomPageDto,
+  CreateCustomPageDto,
+  UpdateCustomPageDto,
+  CreateBlogDto,
+  BlogDto,
+  CreateConfigurationDto,
+  UpdateConfigurationDto,
+  ConfigurationDto,
 } from '@/types';
 import type { RoleForm, ManageUserForm, ConfirmForm } from '@/types/forms';
-import type { UpdateFileDto } from '@/types';
+import type { UpdateFileDto, SettableEntitlement } from '@/types';
 
 /**
  * Encapsulates all of the "manage network" action dispatch logic (blog / configuration /
@@ -72,8 +76,8 @@ export default function useNetworkManageActions(networkId: ComputedRef<string>) 
     editFile: ref(false),
   };
 
-  const selectedUser = ref<NetworkUser | null>(null);
-  const selectedRole = ref<Role | null>(null);
+  const selectedUser = ref<NetworkUserDto | null>(null);
+  const selectedRole = ref<RoleDto | null>(null);
   const isSubmitting = ref(false);
 
   const confirmationTitle = ref('');
@@ -204,10 +208,10 @@ export default function useNetworkManageActions(networkId: ComputedRef<string>) 
 
   const handle = {
     network: {
-      update: async (networkId: string, networkUpdate: NetworkUpdate) =>
+      update: async (networkId: string, networkUpdate: UpdateNetworkDto) =>
         await genericMutation(composables.networks.updateNetwork)(networkId, networkUpdate),
 
-      delete: (network: Network) =>
+      delete: (network: NetworkDto) =>
         confirm({
           title: 'Delete network',
           message: `Are you sure you want to delete ${network.name} permanently?`,
@@ -229,17 +233,17 @@ export default function useNetworkManageActions(networkId: ComputedRef<string>) 
       fetch: genericFetch(composables.blogs.fetchBlog)(networkId.value),
       fetchAll: genericFetchAll(composables.blogs.fetchBlogs)(networkId.value),
 
-      edit: (blog: Blog) => {
+      edit: (blog: BlogDto) => {
         history.visit.blogs(blog);
         router.push(`/networks/${networkId.value}/manage/blogs/${blog.id}/edit`);
       },
 
-      create: async (networkId: string, payload: CreateBlog) =>
+      create: async (networkId: string, payload: CreateBlogDto) =>
         await genericMutation(composables.blogs.createBlog, {
           callback: (result) => events.emit.blogs.create(result),
         })(networkId, payload),
 
-      delete: (blog: Blog) =>
+      delete: (blog: BlogDto) =>
         confirm({
           title: 'Remove Blog',
           message: `Are you sure you want to remove '${blog.title}'?`,
@@ -256,22 +260,22 @@ export default function useNetworkManageActions(networkId: ComputedRef<string>) 
       fetch: genericFetch(composables.configurations.fetchConfiguration)(networkId.value),
       fetchAll: genericFetchAll(composables.configurations.fetchConfigurations)(networkId.value),
 
-      edit: (configuration: Configuration) => {
+      edit: (configuration: ConfigurationDto) => {
         history.visit.configurations(configuration);
         router.push(`/networks/${networkId.value}/manage/configurations/${configuration.id}/edit`);
       },
 
-      create: async (networkId: string, payload: CreateConfiguration) =>
+      create: async (networkId: string, payload: CreateConfigurationDto) =>
         await genericMutation(composables.configurations.createConfiguration, {
           callback: (result) => events.emit.configurations.create(result),
         })(networkId, payload),
 
-      update: async (networkId: string, customPageId: string, payload: Configuration) =>
+      update: async (networkId: string, customPageId: string, payload: UpdateConfigurationDto) =>
         await genericMutation(composables.configurations.updateConfiguration, {
           callback: (result) => events.emit.configurations.update(result),
         })(networkId, customPageId, payload),
 
-      delete: (configuration: Configuration) =>
+      delete: (configuration: ConfigurationDto) =>
         confirm({
           title: 'Remove Configuration',
           message: `Are you sure you want to remove '${configuration.key}'?`,
@@ -291,22 +295,22 @@ export default function useNetworkManageActions(networkId: ComputedRef<string>) 
       fetch: genericFetch(composables.customPages.fetchCustomPage)(networkId.value),
       fetchAll: genericFetchAll(composables.customPages.fetchCustomPages)(networkId.value),
 
-      edit: (customPage: CustomPage) => {
+      edit: (customPage: CustomPageDto) => {
         history.visit.customPages(customPage);
         router.push(`/networks/${networkId.value}/manage/custom-pages/${customPage.id}/edit`);
       },
 
-      create: async (networkId: string, payload: CreateCustomPage) =>
+      create: async (networkId: string, payload: CreateCustomPageDto) =>
         await genericMutation(composables.customPages.createCustomPage, {
           callback: (result) => events.emit.customPages.create(result),
         })(networkId, payload),
 
-      update: async (networkId: string, customPageId: string, payload: CreateCustomPage) =>
+      update: async (networkId: string, customPageId: string, payload: UpdateCustomPageDto) =>
         await genericMutation(composables.customPages.updateCustomPage, {
           callback: (result) => events.emit.customPages.update(result),
         })(networkId, customPageId, payload),
 
-      delete: (customPage: CustomPage) =>
+      delete: (customPage: CustomPageDto) =>
         confirm({
           title: 'Remove Custom Page',
           message: `Are you sure you want to remove '${customPage.name}'?`,
@@ -323,27 +327,37 @@ export default function useNetworkManageActions(networkId: ComputedRef<string>) 
     },
 
     pageBlocks: {
-      edit: (pageBlock: PageBlock) => {
-        history.visit.pageBlocks(pageBlock);
+      edit: (pageBlock: PageBlockLightDto) => {
+        // history store tracks the full PageBlockDto shape; only the light variant is available
+        // here (from CustomPageDto.blocks) - the extra fields aren't needed by its tracking logic.
+        history.visit.pageBlocks(pageBlock as PageBlockDto);
         router.push(
           `/networks/${pageBlock.networkId}/manage/custom-pages/${pageBlock.customPageId}/blocks/${pageBlock.id}/edit`,
         );
       },
 
-      create: async (networkId: string, customPageId: string, pageBlock: CreatePageBlock) =>
+      create: async (networkId: string, customPageId: string, pageBlock: CreatePageBlockDto) =>
         await genericMutation(composables.customPages.createPageBlock, {
           callback: (result) => events.emit.pageBlocks.create(result),
         })(networkId, customPageId, pageBlock),
 
-      update: async (networkId: string, customPageId: string, pageBlock: PageBlock) =>
-        await genericMutation(composables.customPages.updatePageBlock)(
+      update: async (networkId: string, customPageId: string, pageBlock: PageBlockLightDto) => {
+        const payload: UpdatePageBlockDto = {
+          parentPageId: pageBlock.parentPageId,
+          text: pageBlock.text,
+          position: pageBlock.position,
+          data: pageBlock.data,
+        };
+
+        return await genericMutation(composables.customPages.updatePageBlock)(
           networkId,
           customPageId,
           pageBlock.id,
-          pageBlock,
-        ),
+          payload,
+        );
+      },
 
-      delete: (pageBlock: PageBlock) =>
+      delete: (pageBlock: PageBlockLightDto) =>
         confirm({
           title: 'Remove Page Block',
           message: `Are you sure you want to remove '${pageBlock.text}'?`,
@@ -352,7 +366,7 @@ export default function useNetworkManageActions(networkId: ComputedRef<string>) 
           action: async () =>
             await genericMutation(composables.customPages.deletePageBlock, {
               callback: (_, __, customPageId, pageBlockId) => {
-                history.remove.pageBlocks(pageBlock);
+                history.remove.pageBlocks(pageBlock as PageBlockDto);
                 cleanUpPageBlockOrphans(customPageId, pageBlockId);
               },
             })(pageBlock.networkId, pageBlock.customPageId, pageBlock.id),
@@ -391,7 +405,7 @@ export default function useNetworkManageActions(networkId: ComputedRef<string>) 
           },
         })(networkId.value, payload.userId, payload.roleIds),
 
-      delete: (networkUser: NetworkUser) =>
+      delete: (networkUser: NetworkUserDto) =>
         confirm({
           title: 'Remove User',
           message: `Are you sure you want to remove '${getNameDisplayUserProxy(networkUser.userProxy)}'?`,
@@ -406,7 +420,7 @@ export default function useNetworkManageActions(networkId: ComputedRef<string>) 
     },
 
     accesses: {
-      create: async (accessData: NetworkAccessCreate) =>
+      create: async (accessData: CreateNetworkAccessForm) =>
         accessData.access &&
         (await genericMutation(composables.accesses.createAccess)(
           networkId.value,
@@ -414,7 +428,7 @@ export default function useNetworkManageActions(networkId: ComputedRef<string>) 
           accessData.isRequired,
         )),
 
-      toggle: (networkAccess: NetworkAccess) =>
+      toggle: (networkAccess: NetworkAccessDto) =>
         confirm({
           title: 'Toggle Access Requirement',
           message: `Are you sure you want to make the Access '${networkAccess.access.name}' ${networkAccess.isRequired ? 'optional' : 'required'}?`,
@@ -428,7 +442,7 @@ export default function useNetworkManageActions(networkId: ComputedRef<string>) 
             ),
         }),
 
-      delete: (networkAccess: NetworkAccess) =>
+      delete: (networkAccess: NetworkAccessDto) =>
         confirm({
           title: 'Remove Access Requirement',
           message: `Are you sure you want to remove the access requirement "${networkAccess.access.name}"?`,
@@ -443,7 +457,7 @@ export default function useNetworkManageActions(networkId: ComputedRef<string>) 
     },
 
     roles: {
-      delete: (role: Role) =>
+      delete: (role: RoleDto) =>
         confirm({
           title: 'Remove Role',
           message: `Are you sure you want to remove the role "${role.name}"?`,
@@ -455,15 +469,15 @@ export default function useNetworkManageActions(networkId: ComputedRef<string>) 
     },
   };
 
-  function openManageUserModal(user: NetworkUser) {
+  function openManageUserModal(user: NetworkUserDto) {
     selectedUser.value = user;
     manageUserForm.roleIds = user.networkUserRoles?.map((nur) => nur.role.id) || [];
-    manageUserForm.entitlements = user.entitlements;
+    manageUserForm.entitlements = user.entitlements as SettableEntitlement;
 
     showModal.manageUser.value = true;
   }
 
-  async function openEditRoleModal(role: Role) {
+  async function openEditRoleModal(role: RoleDto) {
     selectedRole.value = role;
 
     const { execute: fetchPermissions } = composables.permissions.fetchPermissions;
@@ -490,7 +504,7 @@ export default function useNetworkManageActions(networkId: ComputedRef<string>) 
 
     const { execute: updateNetworkUser } = composables.networkUsers.updateNetworkUser;
 
-    const payload: UpdateNetworkUser = {
+    const payload: UpdateNetworkUserDto = {
       entitlements: localForm.entitlements,
     };
 
@@ -522,6 +536,7 @@ export default function useNetworkManageActions(networkId: ComputedRef<string>) 
       name: localForm.value.name.trim(),
       description: localForm.value.description.trim(),
       isDefault: localForm.value.isDefault,
+      entitlements: localForm.value.entitlements,
     };
 
     try {
@@ -571,12 +586,12 @@ export default function useNetworkManageActions(networkId: ComputedRef<string>) 
     const customPage = await handle.customPages.fetch(customPageId);
     if (!customPage.value) return;
 
-    customPage.value.pages.forEach((block) => {
+    customPage.value.blocks.forEach((block) => {
       if (block.parentPageId !== pageBlockId) return;
 
       handle.pageBlocks.update(block.networkId, block.customPageId, {
         ...block,
-        parentPageId: undefined,
+        parentPageId: null,
       });
     });
   }

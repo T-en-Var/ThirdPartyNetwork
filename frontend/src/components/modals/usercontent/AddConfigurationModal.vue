@@ -41,7 +41,7 @@ import { computed, ref } from 'vue';
 import UserContentForm from '@/components/UserContentForm.vue';
 import ModalContainer from '@/components/modals/ModalContainer.vue';
 import JsonEditorVue from 'json-editor-vue';
-import type { CreateConfiguration, CreateUserContentForm } from '@/types';
+import type { CreateConfigurationDto, CreateUserContentForm } from '@/types';
 
 defineProps<{
   isSubmitting: boolean;
@@ -51,7 +51,7 @@ defineProps<{
 
 const emit = defineEmits<{
   (e: 'close'): void;
-  (e: 'submit', networkId: string, payload: CreateConfiguration): void;
+  (e: 'submit', networkId: string, payload: CreateConfigurationDto): void;
 }>();
 
 const key = ref('');
@@ -62,7 +62,6 @@ const inputIsValid = computed(() => !!key.value);
 function handleSubmit(form: CreateUserContentForm) {
   emit('submit', form.networkId, {
     key: key.value.trim(),
-    accessLevel: form.accessLevel,
     value: jsonValue.value,
   });
 }

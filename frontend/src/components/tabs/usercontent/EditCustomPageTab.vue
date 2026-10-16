@@ -36,6 +36,25 @@
             </div>
           </div>
         </UserContentForm>
+
+        <ContentVisibilityPanel
+          :network-id="networkId"
+          :published-at="customPage.publishedAt"
+          :ownership-mode="customPage.ownershipMode"
+          :grants="grants"
+          :roles="roles"
+          :permissions="permissions"
+          :network-users="networkUsers"
+          :publishing="publishCustomPage.loading.value || unpublishCustomPage.loading.value"
+          :setting-ownership="setCustomPageOwnership.loading.value"
+          :creating-grant="createCustomPageAccessGrant.loading.value"
+          :revoking-grant="revokeCustomPageAccessGrant.loading.value"
+          @publish="publishCustomPageExec(networkId, customPage.id)"
+          @unpublish="unpublishCustomPageExec(networkId, customPage.id)"
+          @set-ownership="(mode) => setOwnershipExec(networkId, customPage!.id, mode)"
+          @add-grant="(payload) => createGrantExec(networkId, customPage!.id, payload)"
+          @revoke-grant="(grantId) => revokeGrantExec(networkId, customPage!.id, grantId)"
+        />
       </div>
     </div>
 
@@ -79,7 +98,7 @@
           class="edit-custom-page-tab__blocks-list"
         >
           <div
-            v-for="block in customPage!.pages || []"
+            v-for="block in customPage!.blocks || []"
             :key="block.id"
             class="edit-custom-page-tab__block-card"
           >
@@ -156,39 +175,44 @@
 
 <script setup lang="ts">
 import type {
-  CreateCustomPage,
-  CreatePageBlock,
+  CreatePageBlockDto,
   CreateUserContentForm,
-  CustomPage,
-  PageBlock,
+  CustomPageDto,
+  PageBlockLightDto,
+  UpdateCustomPageDto,
 } from '@/types';
-import { ref, computed, type Ref } from 'vue';
+import { onMounted, ref, computed, watch, type Ref } from 'vue';
 import { useRoute } from 'vue-router';
 import UserContentForm from '@/components/UserContentForm.vue';
+import ContentVisibilityPanel from '@/components/ContentVisibilityPanel.vue';
 import { useEventStore } from '@/stores/event';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import AddPageBlockModal from '@/components/modals/usercontent/AddPageBlockModal.vue';
 import { useEditableEntity } from '@/composables/useEditableEntity';
+import useCustomPages from '@/composables/network/useCustomPages';
+import useRoles from '@/composables/useRoles';
+import usePermissions from '@/composables/usePermissions';
+import useNetworkUsers from '@/composables/useNetworkUsers';
 
 const route = useRoute();
 const events = useEventStore();
 
 const emit = defineEmits<{
-  (e: 'custom-pages-update', networkId: string, customPageId: string, page: CreateCustomPage): void;
-  (e: 'page-blocks-edit', pageBlock: PageBlock): void;
+  (e: 'custom-pages-update', networkId: string, customPageId: string, page: UpdateCustomPageDto): void;
+  (e: 'page-blocks-edit', pageBlock: PageBlockLightDto): void;
   (
     e: 'page-blocks-create',
     networkId: string,
     customPageId: string,
-    payload: CreatePageBlock,
+    payload: CreatePageBlockDto,
   ): void;
-  (e: 'page-blocks-update', networkId: string, customPageId: string, block: PageBlock): void;
-  (e: 'page-blocks-delete', pageBlock: PageBlock): void;
+  (e: 'page-blocks-update', networkId: string, customPageId: string, block: PageBlockLightDto): void;
+  (e: 'page-blocks-delete', pageBlock: PageBlockLightDto): void;
   (e: 'return', section: string): void;
 }>();
 
 const props = defineProps<{
-  fetchCustomPage: (customPageId: string) => Promise<Ref<CustomPage | null>>;
+  fetchCustomPage: (customPageId: string) => Promise<Ref<CustomPageDto | null>>;
 }>();
 
 const customPageId = computed(() => route.params.customPageId as string);
@@ -207,7 +231,7 @@ const {
   entity: customPage,
   loading,
   error,
-} = useEditableEntity<CustomPage>({
+} = useEditableEntity<CustomPageDto>({
   id: customPageId,
   fetch: props.fetchCustomPage,
   notFoundMessage: 'Custom page not found.',
@@ -219,8 +243,8 @@ const {
 });
 
 const groupedBlocks = computed(() => {
-  if (!customPage.value?.pages) return {};
-  return customPage.value.pages.reduce((acc: Record<string, PageBlock[]>, block: PageBlock) => {
+  if (!customPage.value?.blocks) return {};
+  return customPage.value.blocks.reduce((acc: Record<string, PageBlockLightDto[]>, block) => {
     const parentId = block.parentPageId || 'none';
     if (!acc[parentId]) acc[parentId] = [];
     acc[parentId].push(block);
@@ -238,7 +262,6 @@ function handleUpdate(userContentform: CreateUserContentForm) {
   isSubmitting.value = true;
   emit('custom-pages-update', userContentform.networkId, customPage.value.id, {
     ...form.value,
-    accessLevel: userContentform.accessLevel,
   });
 }
 
@@ -246,7 +269,7 @@ function handleReturn() {
   emit('return', 'custom-pages');
 }
 
-function formatJson(data: object) {
+function formatJson(data: unknown) {
   try {
     return JSON.stringify(data, null, 2);
   } catch {
@@ -257,22 +280,54 @@ function formatJson(data: object) {
 function handleCreatePageBlock(
   networkId: string,
   customPageId: string,
-  pageBlock: CreatePageBlock,
+  pageBlock: CreatePageBlockDto,
 ) {
   emit('page-blocks-create', networkId, customPageId, pageBlock);
 }
 
-function handleEditPageBlock(pageBlock: PageBlock) {
+function handleEditPageBlock(pageBlock: PageBlockLightDto) {
   emit('page-blocks-edit', pageBlock);
 }
 
-function handleDeletePageBlock(pageBlock: PageBlock) {
+function handleDeletePageBlock(pageBlock: PageBlockLightDto) {
   emit('page-blocks-delete', pageBlock);
 }
 
-function getParentText(parentId?: string) {
+function getParentText(parentId?: string | null) {
   if (!parentId) return 'None';
-  const parentBlock = customPage.value?.pages?.find((block) => block.id === parentId);
+  const parentBlock = customPage.value?.blocks?.find((block) => block.id === parentId);
   return parentBlock?.text || parentId;
 }
+
+// --- Visibility panel --------------------------------------------------------
+const customPagesState = useCustomPages();
+const { execute: publishCustomPageExec, ...publishCustomPage } = customPagesState.publishCustomPage;
+const { execute: unpublishCustomPageExec, ...unpublishCustomPage } =
+  customPagesState.unpublishCustomPage;
+const { execute: setOwnershipExec, ...setCustomPageOwnership } =
+  customPagesState.setCustomPageOwnership;
+const { execute: fetchGrants, data: grants } = customPagesState.fetchCustomPageAccessGrants;
+const { execute: createGrantExec, ...createCustomPageAccessGrant } =
+  customPagesState.createCustomPageAccessGrant;
+const { execute: revokeGrantExec, ...revokeCustomPageAccessGrant } =
+  customPagesState.revokeCustomPageAccessGrant;
+
+const { execute: rolesExec, data: roles } = useRoles().fetchRoles;
+const { execute: permissionsExec, data: permissions } = usePermissions().fetchPermissions;
+const { execute: networkUsersExec, data: networkUsers } = useNetworkUsers().fetchNetworkUsers;
+
+watch(
+  customPageId,
+  async (id) => {
+    if (!id) return;
+    await fetchGrants(networkId.value, id);
+  },
+  { immediate: true },
+);
+
+onMounted(async () => {
+  await rolesExec(networkId.value);
+  await permissionsExec();
+  await networkUsersExec(networkId.value);
+});
 </script>

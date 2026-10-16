@@ -37,7 +37,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Configuration, ConfirmForm, CreateConfiguration } from '@/types';
+import type { ConfigurationDto, ConfirmForm, CreateConfigurationDto } from '@/types';
 import { computed, onMounted, ref, watch, type Ref } from 'vue';
 import UserContentViewer from '@/components/UserContentViewer.vue';
 import AddConfigurationModal from '@/components/modals/usercontent/AddConfigurationModal.vue';
@@ -48,7 +48,7 @@ const events = useEventStore();
 const showCreateModal = ref(false);
 const isSubmitting = ref(false);
 
-const rawConfigurations = ref<Configuration[]>([]);
+const rawConfigurations = ref<ConfigurationDto[]>([]);
 const configurations = computed(() =>
   (rawConfigurations.value ?? []).map((cfg) => {
     return { ...cfg, value: previewValue(cfg.value) as unknown as object };
@@ -58,13 +58,13 @@ const configurations = computed(() =>
 const props = defineProps<{
   networkId?: string;
   networkIds?: string[];
-  fetchConfigurations: () => Promise<Ref<Configuration[] | null>>;
+  fetchConfigurations: () => Promise<Ref<ConfigurationDto[] | null>>;
 }>();
 
 const emit = defineEmits<{
-  (e: 'configurations-create', networkId: string, payload: CreateConfiguration): void;
-  (e: 'configurations-edit', configuration: Configuration): void;
-  (e: 'configurations-delete', configuration: Configuration): void;
+  (e: 'configurations-create', networkId: string, payload: CreateConfigurationDto): void;
+  (e: 'configurations-edit', configuration: ConfigurationDto): void;
+  (e: 'configurations-delete', configuration: ConfigurationDto): void;
   (e: 'confirm', form: ConfirmForm): void;
 }>();
 
@@ -74,7 +74,7 @@ onMounted(async () => {
   watch(remoteRef, (newVal) => (rawConfigurations.value = newVal ?? []), { immediate: true });
 });
 
-function previewValue(v: object | string | number | boolean | null): string {
+function previewValue(v: unknown): string {
   try {
     if (typeof v === 'string') return v;
     const s = JSON.stringify(v);
@@ -87,7 +87,7 @@ function previewValue(v: object | string | number | boolean | null): string {
 
 async function handleCreateConfiguration(
   networkId: string,
-  configurationCreate: CreateConfiguration,
+  configurationCreate: CreateConfigurationDto,
 ) {
   events.listen.configurations.create((configuration) => {
     showCreateModal.value = false;
@@ -97,11 +97,11 @@ async function handleCreateConfiguration(
   emit('configurations-create', networkId, configurationCreate);
 }
 
-function handleEditConfiguration(configuration: Configuration) {
+function handleEditConfiguration(configuration: ConfigurationDto) {
   emit('configurations-edit', configuration);
 }
 
-function handleRemoveConfiguration(configuration: Configuration) {
+function handleRemoveConfiguration(configuration: ConfigurationDto) {
   emit('configurations-delete', configuration);
 }
 </script>

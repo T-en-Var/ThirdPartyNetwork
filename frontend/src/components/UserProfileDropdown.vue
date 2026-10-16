@@ -93,13 +93,13 @@ import ProfileAvatar from '@/components/ProfileAvatar.vue';
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router';
-import type { UserProxy } from '@/types';
+import type { UserProxyDto } from '@/types';
 
 const authStore = useAuthStore();
 const router = useRouter();
 const isOpen = ref(false);
 
-const user = ref<UserProxy | null>(null);
+const user = ref<UserProxyDto | null>(null);
 
 const links = [
   {

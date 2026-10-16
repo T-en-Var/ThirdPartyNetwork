@@ -157,12 +157,12 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import type { UserSignup } from '@/types';
+import type { CreateUserProxyDto } from '@/types';
 
 const props = withDefaults(
   defineProps<{
     submitting?: boolean;
-    initialValues?: Partial<UserSignup>;
+    initialValues?: Partial<CreateUserProxyDto>;
     submitLabel?: string;
     submittingLabel?: string;
     idPrefix?: string;
@@ -177,11 +177,11 @@ const props = withDefaults(
 );
 
 const emit = defineEmits<{
-  submit: [form: UserSignup];
-  tos: [form: UserSignup];
+  submit: [form: CreateUserProxyDto];
+  tos: [form: CreateUserProxyDto];
 }>();
 
-const form = ref<UserSignup>({
+const form = ref<CreateUserProxyDto>({
   username: props.initialValues.username || '',
   firstName: props.initialValues.firstName || '',
   lastName: props.initialValues.lastName || '',

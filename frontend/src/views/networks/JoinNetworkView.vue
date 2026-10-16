@@ -149,7 +149,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import type { CreateNetworkUser, ErrorMessage, NetworkUser, UserProxy } from '@/types';
+import type { CreateNetworkUserDto, ErrorMessage, NetworkUserDto, UserProxyDto } from '@/types';
 import { useGlobalStore } from '@/stores/global';
 import type { AxiosError } from 'axios';
 import ErrorAlert from '@/components/ErrorAlert.vue';
@@ -170,7 +170,7 @@ const userAccesses = ref<Record<string, AccessConsentState>>({});
 const authStore = useAuthStore();
 const { buildInitialAccessState, applyAccessConsent } = useAccessConsent();
 
-const currentUserProxy = ref<UserProxy | null>(null);
+const currentUserProxy = ref<UserProxyDto | null>(null);
 
 const { data: network, loading, execute: fetchNetworkDetails } = useNetworks().fetchNetworkDetails;
 
@@ -206,7 +206,7 @@ async function handleJoinNetwork() {
   isSubmitting.value = true;
 
   try {
-    const { data: networkUser } = await api.post<NetworkUser, CreateNetworkUser>(
+    const { data: networkUser } = await api.post<NetworkUserDto, CreateNetworkUserDto>(
       `/networks/${networkId}/users/${userProxyId}`,
       {},
     );

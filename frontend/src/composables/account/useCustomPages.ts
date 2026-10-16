@@ -4,10 +4,14 @@ import type { CreateCustomPageDto, CreatePageBlockDto, CustomPageDto, PageBlockD
 import { prependItem, useCachedApi, useMutation } from '../useApi';
 
 export default function useCustomPages() {
+  // There is no /users/{userId}/proxies/{userProxyId}/customPages route on the backend - custom
+  // pages always live under a network. The cross-network list comes from the dedicated "authors"
+  // endpoint instead (keyed by userProxyId alone); userId is accepted here only to keep this
+  // call's signature compatible with its existing callers.
   const fetchCustomPages = useCachedApi<CustomPageDto[], [userId: string, userProxyId: string]>(
     (userId, userProxyId) => userProxyKey(userId, userProxyId, 'customPages'),
-    async (userId, userProxyId) =>
-      await api.get<CustomPageDto[]>(`/users/${userId}/proxies/${userProxyId}/customPages`),
+    async (_userId, userProxyId) =>
+      await api.get<CustomPageDto[]>(`/authors/${userProxyId}/customPages`),
   );
 
   const fetchCustomPage = useCachedApi<

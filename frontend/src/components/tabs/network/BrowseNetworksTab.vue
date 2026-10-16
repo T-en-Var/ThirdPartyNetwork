@@ -30,7 +30,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import NetworkCard from '@/components/NetworkCard.vue';
-import type { Network } from '@/types';
+import type { NetworkDto } from '@/types';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 
@@ -38,7 +38,7 @@ const router = useRouter();
 const authStore = useAuthStore();
 
 const props = defineProps<{
-  networks: Network[];
+  networks: NetworkDto[];
 }>();
 
 const searchQuery = ref('');
@@ -59,7 +59,7 @@ onMounted(async () => {
   isSuperAdmin.value = await authStore.isSuperAdmin();
 });
 
-const joinNetwork = (network: Network) => {
+const joinNetwork = (network: NetworkDto) => {
   router.push(`/networks/${network.id}/join`);
 };
 </script>

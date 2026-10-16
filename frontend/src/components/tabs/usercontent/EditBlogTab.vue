@@ -17,8 +17,8 @@
           <h2 class="edit-blog-tab__title">
             {{ isPreviewing ? 'Preview Mode' : 'Edit Blog Post' }}
           </h2>
-          <span class="badge badge--neutral">
-            {{ published ? (+form.publishedAt! > Date.now() ? 'Published' : 'Planned') : 'Draft' }}
+          <span :class="['badge', blog?.publishedAt ? 'badge--success' : 'badge--neutral']">
+            {{ blog?.publishedAt ? 'Published' : 'Draft' }}
           </span>
         </div>
 
@@ -85,12 +85,6 @@
             />
           </div>
 
-          <div class="form-field">
-            <AccessLevelPicker
-              v-model="form.accessLevel"
-              label="Access Level"
-            />
-          </div>
         </div>
 
         <div class="form-field">
@@ -113,29 +107,25 @@
           />
         </div>
 
-        <div class="edit-blog-tab__publish-row">
-          <label class="edit-blog-tab__publish-checkbox-label">
-            <input
-              type="checkbox"
-              v-model="published"
-              class="checkbox"
-            />
-            <span>Publish</span>
-          </label>
-
-          <div
-            v-if="published"
-            class="edit-blog-tab__publish-date"
-          >
-            <span class="edit-blog-tab__publish-date-label">Date:</span>
-            <input
-              v-model="publishedAtLocal"
-              type="datetime-local"
-              @keydown.enter.prevent
-              class="form-input"
-            />
-          </div>
-        </div>
+        <ContentVisibilityPanel
+          v-if="blog"
+          :network-id="networkId"
+          :published-at="blog.publishedAt"
+          :ownership-mode="blog.ownershipMode"
+          :grants="grants"
+          :roles="roles"
+          :permissions="permissions"
+          :network-users="networkUsers"
+          :publishing="publishBlog.loading.value || unpublishBlog.loading.value"
+          :setting-ownership="setBlogOwnership.loading.value"
+          :creating-grant="createBlogAccessGrant.loading.value"
+          :revoking-grant="revokeBlogAccessGrant.loading.value"
+          @publish="publishBlogExec(networkId, blog.id)"
+          @unpublish="unpublishBlogExec(networkId, blog.id)"
+          @set-ownership="(mode) => setOwnershipExec(networkId, blog!.id, mode)"
+          @add-grant="(payload) => createGrantExec(networkId, blog!.id, payload)"
+          @revoke-grant="(grantId) => revokeGrantExec(networkId, blog!.id, grantId)"
+        />
 
         <div class="form__actions">
           <button
@@ -163,16 +153,14 @@
         <BlogRenderer
           :title="form.title"
           :content="form.body"
-          :published-at="
-            published ? (publishedAtLocal ? new Date(publishedAtLocal) : new Date()) : null
-          "
+          :published-at="blog?.publishedAt ? new Date(blog.publishedAt) : null"
         />
       </div>
     </div>
 
     <AddFileModal
       v-if="showImageModal"
-      :network="network"
+      :network-id="networkId"
       media-type="image"
       @close="showImageModal = false"
       @uploaded="handleImageInserted"
@@ -184,12 +172,15 @@
 import { ref, computed, type Ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
-import AccessLevelPicker from '@/components/fields/AccessLevelPicker.vue';
 import RichTextEditor from '@/components/fields/RichTextEditor.vue';
 import BlogRenderer from '@/components/fields/BlogRenderer.vue';
-import api from '@/api/api';
 import AddFileModal from '@/components/modals/usercontent/AddFileModal.vue';
-import type { NetworkDto, BlogDto, CreateBlogDto, FileDto } from '@/types';
+import ContentVisibilityPanel from '@/components/ContentVisibilityPanel.vue';
+import useBlogs from '@/composables/network/useBlogs';
+import useRoles from '@/composables/useRoles';
+import usePermissions from '@/composables/usePermissions';
+import useNetworkUsers from '@/composables/useNetworkUsers';
+import type { NetworkDto, BlogDto, UpdateBlogDto, FileDto } from '@/types';
 import { useEditableEntity } from '@/composables/useEditableEntity';
 import { useGlobalStore } from '@/stores/global';
 import { extractApiErrorMessage } from '@/lib/utils';
@@ -208,14 +199,12 @@ const networkId = route.params.networkId as string;
 
 const isPreviewing = ref(false);
 const isSaving = ref(false);
-const form = ref<Omit<CreateBlog, 'body'> & { body?: object }>({
+const form = ref<Omit<UpdateBlogDto, 'body'> & { body?: object }>({
   title: '',
   summary: '',
+  coverImageId: null,
   body: undefined,
-  accessLevel: 0,
 });
-const published = ref(false);
-const publishedAtLocal = ref<string | null>(null);
 const showImageModal = ref(false);
 const editorRef = ref<InstanceType<typeof RichTextEditor> | null>(null);
 
@@ -231,16 +220,37 @@ const {
   onLoaded: (loadedBlog) => {
     form.value.title = loadedBlog.title;
     form.value.summary = loadedBlog.summary ?? '';
-    form.value.accessLevel = loadedBlog.accessLevel ?? 0;
-
+    form.value.coverImageId = loadedBlog.coverImage?.id ?? null;
     form.value.body = loadedBlog.body ? JSON.parse(JSON.stringify(loadedBlog.body)) : undefined;
-
-    published.value = !!loadedBlog.publishedAt;
-    publishedAtLocal.value = loadedBlog.publishedAt
-      ? toLocalDatetimeInput(loadedBlog.publishedAt)
-      : null;
   },
 });
+
+const {
+  updateBlog,
+  publishBlog,
+  unpublishBlog,
+  setBlogOwnership,
+  fetchBlogAccessGrants,
+  createBlogAccessGrant,
+  revokeBlogAccessGrant,
+} = useBlogs();
+const { execute: publishBlogExec } = publishBlog;
+const { execute: unpublishBlogExec } = unpublishBlog;
+const { execute: setOwnershipExec } = setBlogOwnership;
+const { execute: fetchGrants, data: grants } = fetchBlogAccessGrants;
+const { execute: createGrantExec } = createBlogAccessGrant;
+const { execute: revokeGrantExec } = revokeBlogAccessGrant;
+
+const { execute: rolesExec, data: roles } = useRoles().fetchRoles;
+const { execute: permissionsExec, data: permissions } = usePermissions().fetchPermissions;
+const { execute: networkUsersExec, data: networkUsers } = useNetworkUsers().fetchNetworkUsers;
+
+if (blogId.value) {
+  fetchGrants(networkId, blogId.value);
+}
+rolesExec(networkId);
+permissionsExec();
+networkUsersExec(networkId);
 
 function handleImageInserted(file: FileDto) {
   // NOTE: viewingUrl is only stable for fully-public files (GetPublicUrl); for a non-public file
@@ -253,29 +263,19 @@ function handleImageInserted(file: FileDto) {
   showImageModal.value = false;
 }
 
-function toLocalDatetimeInput(d: Date | string) {
-  const dt = new Date(d);
-  const off = dt.getTimezoneOffset();
-  const local = new Date(dt.getTime() - off * 60 * 1000);
-  return local.toISOString().slice(0, 16);
-}
-
 async function handleUpdate() {
   if (!blog.value) return;
   isSaving.value = true;
 
   try {
-    const payload: CreateBlog = {
-      ...form.value,
+    const payload: UpdateBlogDto = {
+      title: form.value.title,
+      summary: form.value.summary,
+      coverImageId: form.value.coverImageId,
       body: form.value.body ? form.value.body : {},
-      publishedAt: published.value
-        ? publishedAtLocal.value
-          ? new Date(publishedAtLocal.value)
-          : new Date()
-        : undefined,
     };
 
-    await api.put(`/networks/${networkId}/blogs/${blog.value.id}`, payload);
+    await updateBlog.execute(networkId, blog.value.id, payload);
 
     alert('Blog saved successfully!');
   } catch (err) {

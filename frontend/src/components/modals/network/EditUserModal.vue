@@ -64,14 +64,14 @@ import { ref, watch, computed, onMounted } from 'vue';
 import ModalContainer from '@/components/modals/ModalContainer.vue';
 import ModalFormActions from '@/components/modals/ModalFormActions.vue';
 import CheckboxList from '@/components/CheckboxList.vue';
-import type { Network, NetworkUser, ManageUserForm } from '@/types';
+import type { NetworkDto, NetworkUserDto, ManageUserForm, SettableEntitlement } from '@/types';
 import { getNameDisplayUserProxy } from '@/lib/user';
 import EntitlementsForm from '@/components/EntitlementsForm.vue';
 import { useEntitlements } from '@/composables/useEntitlements';
 
 const props = defineProps<{
-  network: Network;
-  selectedUser: NetworkUser;
+  network: NetworkDto;
+  selectedUser: NetworkUserDto;
   isSubmitting: boolean;
   manageUserForm: ManageUserForm;
 }>();
@@ -83,7 +83,7 @@ const localForm = ref({ ...props.manageUserForm });
 const { entitlementsData, initEntitlements, getSubmitData } = useEntitlements(props.network);
 
 onMounted(() => {
-  initEntitlements(props.selectedUser.entitlements);
+  initEntitlements(props.selectedUser.entitlements as SettableEntitlement);
 });
 
 watch(

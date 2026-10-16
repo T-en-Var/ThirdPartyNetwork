@@ -72,19 +72,19 @@
         <div>
           <h3 class="user-content-viewer__filter-group-title">Visibility</h3>
           <div
-            v-for="level in ACCESS_LEVELS"
+            v-for="level in VISIBILITY_FILTERS"
             :key="level.value"
             class="user-content-viewer__filter-checkbox-row"
           >
             <input
               type="checkbox"
-              :id="`access-${level.value}`"
-              v-model="filters.accessLevels"
+              :id="`visibility-${level.value}`"
+              v-model="filters.visibility"
               :value="level.value"
               class="checkbox"
             />
             <label
-              :for="`access-${level.value}`"
+              :for="`visibility-${level.value}`"
               class="user-content-viewer__filter-checkbox-label"
               >{{ level.label }}</label
             >
@@ -204,19 +204,23 @@
                 {{ networks[entry.networkId]?.name || 'Loading...' }}
               </td>
               <td class="table__cell">
-                <div class="user-content-viewer__author-cell">
+                <div
+                  v-if="entry.authorUserProxy"
+                  class="user-content-viewer__author-cell"
+                >
                   <ProfileAvatar
-                    :userProxy="entry.author.userProxy"
+                    :userProxy="entry.authorUserProxy"
                     :size="28"
                   />
                   <span class="user-content-viewer__author-name"
-                    >@{{ entry.author.userProxy.username }}</span
+                    >@{{ entry.authorUserProxy.username }}</span
                   >
                 </div>
+                <span v-else>-</span>
               </td>
               <td class="table__cell">
-                <span class="badge badge--neutral">
-                  {{ getAccessLevel(entry.accessLevel).label }}
+                <span :class="['badge', entry.publishedAt ? 'badge--success' : 'badge--neutral']">
+                  {{ entry.publishedAt ? 'Published' : 'Draft' }}
                 </span>
               </td>
 
@@ -266,12 +270,16 @@ export default {
 };
 </script>
 
-<script setup lang="ts" generic="T extends UserContentBase">
+<script setup lang="ts" generic="T extends UserContentBaseDto">
 import { ref, computed, reactive, watch } from 'vue';
-import { ACCESS_LEVELS, getAccessLevel } from '@/lib/accessLevels';
-import type { Network, UserContentBase } from '@/types';
+import type { NetworkDto, UserContentBaseDto } from '@/types';
 import ProfileAvatar from './ProfileAvatar.vue';
 import useNetworks from '@/composables/useNetworks';
+
+const VISIBILITY_FILTERS = [
+  { value: 'published', label: 'Published' },
+  { value: 'draft', label: 'Draft' },
+] as const;
 
 const networkState = useNetworks();
 
@@ -292,7 +300,7 @@ defineEmits<{
 const showFilters = ref(false);
 const filterKey = ref('');
 
-const networks = ref<Record<string, Network>>({});
+const networks = ref<Record<string, NetworkDto>>({});
 
 watch(
   () => props.entries,
@@ -314,7 +322,7 @@ watch(
 
 const filters = reactive({
   authors: [] as string[],
-  accessLevels: [] as number[],
+  visibility: [] as Array<'published' | 'draft'>,
   dynamic: {} as Record<string, string[]>,
   ranges: {} as Record<string, { min: string | number | null; max: string | number | null }>,
 });
@@ -370,16 +378,16 @@ const getUniqueOptions = (key: string): string[] => {
 const clearFilters = () => {
   filterKey.value = '';
   filters.authors = [];
-  filters.accessLevels = [];
+  filters.visibility = [];
   initFilters();
 };
 
 const uniqueAuthors = computed(() => {
   const seen = new Set<string>();
   return props.entries
-    .map((e) => e.author.userProxy)
-    .filter((u) => {
-      if (!u.username) return false;
+    .map((e) => e.authorUserProxy)
+    .filter((u): u is NonNullable<typeof u> & { username: string } => {
+      if (!u?.username) return false;
       if (seen.has(u.username)) return false;
       seen.add(u.username);
       return true;
@@ -393,7 +401,7 @@ const filteredEntries = computed(() => {
     const dynamicValues = props.extraColumns.map((col) =>
       String(getEntryValue(entry, col.key) ?? ''),
     );
-    const searchFields = [entry.author.userProxy.username, ...dynamicValues]
+    const searchFields = [entry.authorUserProxy?.username, ...dynamicValues]
       .join(' ')
       .toLowerCase();
 
@@ -401,12 +409,14 @@ const filteredEntries = computed(() => {
 
     if (
       filters.authors.length > 0 &&
-      entry.author.userProxy.username &&
-      !filters.authors.includes(entry.author.userProxy.username)
+      entry.authorUserProxy?.username &&
+      !filters.authors.includes(entry.authorUserProxy.username)
     )
       return false;
-    if (filters.accessLevels.length > 0 && !filters.accessLevels.includes(entry.accessLevel))
-      return false;
+    if (filters.visibility.length > 0) {
+      const status = entry.publishedAt ? 'published' : 'draft';
+      if (!filters.visibility.includes(status)) return false;
+    }
 
     for (const col of props.extraColumns) {
       if (!col.filter) continue;

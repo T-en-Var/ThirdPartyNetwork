@@ -159,12 +159,12 @@
 <script setup lang="ts">
 import { capitalize, computed } from 'vue';
 import ModalContainer from '@/components/modals/ModalContainer.vue';
-import type { User } from '@/types';
+import type { UserWithNetworksDto, NetworkEntitlementDto } from '@/types';
 import { defaultProxy } from '@/lib/user';
 import { entitlementKeys } from '@/composables/useEntitlements';
 
 const props = defineProps<{
-  user: User;
+  user: UserWithNetworksDto;
 }>();
 
 defineEmits<{
@@ -175,13 +175,13 @@ defineEmits<{
 const proxy = computed(() => defaultProxy(props.user));
 const allEntitlementKeys = computed(() => Object.values(entitlementKeys).flat());
 
-const cleanObj = (obj: object) =>
+const cleanObj = (obj: unknown): Record<string, number | boolean> =>
   Object.fromEntries(
-    Object.entries(obj || {}).filter(([_, v]) => {
+    Object.entries((obj as Record<string, unknown>) || {}).filter(([_, v]) => {
       void _;
       return v !== undefined && v !== null;
     }),
-  );
+  ) as Record<string, number | boolean>;
 
 const formatKey = (key: string) => {
   return capitalize(key.replace(/([A-Z])/g, ' $1').trim());
@@ -199,22 +199,11 @@ const breakdown = computed(() => {
 
   return proxy.value.networkUsers.map((nu) => {
     const networkName = nu.network?.name || 'Unknown Network';
-    const baseEnt = nu.network?.entitlement || ({} as Record<string, number | boolean>);
+    const baseEnt = nu.network?.entitlement || ({} as Partial<NetworkEntitlementDto>);
 
+    // This light network-user shape doesn't carry per-role entitlement data (only the full
+    // NetworkUserDto, fetched per-network, does) - role overrides can't be shown from here.
     const roleEnt: Record<string, number | boolean> = {};
-    if (nu.networkUserRoles) {
-      nu.networkUserRoles.forEach((nur) => {
-        if (nur.role?.entitlements) {
-          Object.entries(cleanObj(nur.role.entitlements)).forEach(([k, v]) => {
-            if (typeof v === 'boolean') {
-              roleEnt[k] = roleEnt[k] || v;
-            } else if (typeof v === 'number') {
-              roleEnt[k] = Math.max((roleEnt[k] as number) || 0, v);
-            }
-          });
-        }
-      });
-    }
 
     const userEnt = cleanObj(nu.entitlements) || {};
 

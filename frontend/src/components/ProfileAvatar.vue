@@ -19,12 +19,17 @@
 </template>
 
 <script setup lang="ts">
-import type { UserProxy } from '@/types';
+import type { FileDto, FileLightDto } from '@/types';
 import { computed } from 'vue';
 import CdnFile from '@/components/cdn/CdnFile.vue';
 
 interface Props {
-  userProxy: UserProxy;
+  userProxy: {
+    username: string | null;
+    firstName?: string | null;
+    lastName?: string | null;
+    imageFile: FileDto | FileLightDto | null;
+  };
   size?: number;
 }
 
@@ -33,11 +38,13 @@ const props = defineProps<Props>();
 const sizeValue = computed(() => props.size || 80);
 
 const avatarSrc = computed(() => {
-  const name = `${props.userProxy.firstName}+${props.userProxy.lastName}`;
+  const name = `${props.userProxy.firstName ?? ''}+${props.userProxy.lastName ?? ''}`;
   return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`;
 });
 
 const altText = computed(() => {
-  return props.userProxy.username || `${props.userProxy.firstName} ${props.userProxy.lastName}`;
+  return (
+    props.userProxy.username || `${props.userProxy.firstName ?? ''} ${props.userProxy.lastName ?? ''}`
+  );
 });
 </script>

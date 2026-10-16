@@ -1,6 +1,6 @@
 import api from '@/api/api';
 import { globalCache, useCachedApi, useMutation } from './useApi';
-import type { CreateUserDto, CreateUserProxyDto, UpdateUserDto, UserDto, UserMetricsDto, UserProxyDto, UserWithNetworksDto } from '@/types';
+import type { AddUserProxyDto, CreateUserDto, UpdateUserDto, UserDto, UserMetricsDto, UserProxyDto, UserWithNetworksDto } from '@/types';
 
 export default function useUsers() {
   const fetchUsers = useCachedApi<UserWithNetworksDto[], []>(
@@ -56,7 +56,7 @@ export default function useUsers() {
     },
   );
 
-  const createUserProxy = useMutation<UserProxyDto, [userId: string, payload: CreateUserProxyDto], UserDto>(
+  const createUserProxy = useMutation<UserProxyDto, [userId: string, payload: AddUserProxyDto], UserDto>(
     async (userId, payload) => {
       return await api.post(`/users/${userId}/proxies/`, payload);
     },

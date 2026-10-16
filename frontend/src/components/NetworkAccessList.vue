@@ -66,7 +66,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import LoadingSpinner from '@/components/LoadingSpinner.vue';
-import type { NetworkAccess, NetworkUserAccess } from '@/types';
+import type { NetworkAccessDto, NetworkUserAccessDto } from '@/types';
 
 interface UserAccessState {
   value: boolean;
@@ -74,9 +74,9 @@ interface UserAccessState {
 }
 
 const props = defineProps<{
-  networkAccesses: NetworkAccess[];
+  networkAccesses: NetworkAccessDto[];
   initialUserAccesses: Record<string, UserAccessState>;
-  networkUserAccesses: NetworkUserAccess[] | undefined;
+  networkUserAccesses: NetworkUserAccessDto[] | undefined;
   loading: boolean;
 }>();
 

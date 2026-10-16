@@ -103,11 +103,11 @@
 </template>
 
 <script setup lang="ts">
-import type { Network, SettableEntitlementForm, NetworkEntitlement } from '@/types';
+import type { NetworkDto, SettableEntitlementForm, NetworkEntitlementDto } from '@/types';
 import { computed } from 'vue';
 
 const props = defineProps<{
-  network: Network;
+  network: NetworkDto;
   modelValue: SettableEntitlementForm;
   autoIncreaseMax?: boolean;
 }>();
@@ -121,14 +121,14 @@ const localValue = computed({
 
 export interface EntitlementLimit {
   label: string;
-  key: keyof NetworkEntitlement;
+  key: keyof NetworkEntitlementDto;
   setKey: keyof SettableEntitlementForm;
   unit?: string;
 }
 
 export interface EntitlementGroup {
   title: string;
-  allowKey: keyof NetworkEntitlement;
+  allowKey: keyof NetworkEntitlementDto;
   limits: EntitlementLimit[];
 }
 

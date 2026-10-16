@@ -303,7 +303,7 @@ import NetworkCard from '@/components/NetworkCard.vue';
 import { useAuthStore } from '@/stores/auth';
 import AddFileModal from '@/components/modals/usercontent/AddFileModal.vue';
 import useUsers from '@/composables/useUsers';
-import type { FileDto, NetworkLightDto, UpdateUserProxyDto, UpdateUserProxyForm, UserProxyLightWithNetworksDto } from '@/types';
+import type { FileDto, NetworkDto, UpdateUserProxyDto, UpdateUserProxyForm, UserProxyDto, UserProxyLightWithNetworksDto } from '@/types';
 
 const route = useRoute();
 const router = useRouter();
@@ -344,7 +344,9 @@ async function handleMounted() {
   userProxy.value = user.value.userProxies.find((up) => up.id == userProxyId.value) ?? null;
   if (!userProxy.value) throw new Error('UserProxy not found');
 
-  historyStore.visit.userProxies(userProxy.value);
+  // historyStore's visit map is typed for the full UserProxyDto but only ever reads `.id` at
+  // runtime; this tab only has the light variant available.
+  historyStore.visit.userProxies(userProxy.value as unknown as UserProxyDto);
 
   form.value = {
     username: userProxy.value.username ?? undefined,
@@ -368,8 +370,11 @@ const form = ref<UpdateUserProxyForm>({ keepPassword: true, isDefault: false });
 let original = '';
 const hasChanges = computed(() => JSON.stringify(form.value) !== original);
 
-const networks = computed<NetworkLightDto[]>(
-  () => userProxy.value?.networkUsers.map((nu) => nu.network) ?? [],
+// NetworkCard expects the full NetworkDto, but this nested relation only gives the light
+// variant (missing externalContentKinds/networkAccesses/roles/networkUsers) - NetworkCard only
+// reads `.networkUsers?.length` for a member count, which degrades to 0 gracefully when absent.
+const networks = computed<NetworkDto[]>(
+  () => (userProxy.value?.networkUsers.map((nu) => nu.network) ?? []) as unknown as NetworkDto[],
 );
 
 function resetForm() {
@@ -403,7 +408,7 @@ function deleteProxy() {
   emit('deleteUserProxy', userProxy.value.id);
 }
 
-const checkCanManage = (network: NetworkLightDto) => authStore.canI.manageNetwork(network);
+const checkCanManage = (network: NetworkDto) => authStore.canI.manageNetwork(network);
 
 function openUploadModal() {
   showUploadModal.value = true;

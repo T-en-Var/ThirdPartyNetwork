@@ -1,6 +1,10 @@
-import type { User, UserProxy } from '@/types';
+interface UserProxyNameFields {
+  firstName: string | null;
+  lastName: string | null;
+  username: string | null;
+}
 
-export function getNameDisplayUserProxy(userProxy: UserProxy) {
+export function getNameDisplayUserProxy(userProxy: UserProxyNameFields) {
   const { firstName, lastName, username } = userProxy;
 
   const fullName = [firstName, lastName].filter(Boolean).join(' ');
@@ -12,6 +16,8 @@ export function getNameDisplayUserProxy(userProxy: UserProxy) {
   return fullName || username || 'Unknown User';
 }
 
-export const defaultProxy = (user: User) => {
+export function defaultProxy<T extends { userProxies: { isDefault: boolean }[] }>(
+  user: T,
+): T['userProxies'][number] {
   return user.userProxies.find((up) => up.isDefault)!;
-};
+}

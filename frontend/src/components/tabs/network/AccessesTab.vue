@@ -50,15 +50,15 @@
 </template>
 
 <script setup lang="ts">
-import type { Network, NetworkAccess } from '@/types';
+import type { NetworkDto, NetworkAccessNtADto } from '@/types';
 
 defineProps<{
-  network: Network;
+  network: NetworkDto;
 }>();
 
 defineEmits<{
   (e: 'addAccess'): void;
-  (e: 'toggleAccessRequired', access: NetworkAccess): void;
-  (e: 'removeAccess', access: NetworkAccess): void;
+  (e: 'toggleAccessRequired', access: NetworkAccessNtADto): void;
+  (e: 'removeAccess', access: NetworkAccessNtADto): void;
 }>();
 </script>

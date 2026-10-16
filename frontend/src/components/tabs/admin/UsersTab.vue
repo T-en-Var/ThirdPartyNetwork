@@ -437,11 +437,12 @@ import { entitlementKeys } from '@/composables/useEntitlements';
 import { defaultProxy } from '@/lib/user';
 import type {
   ManageUserForm,
-  Network,
-  NetworkUser,
-  UpdateNetworkUser,
-  User,
-  UserMetrics,
+  NetworkDto,
+  NetworkUserDto,
+  UpdateNetworkUserDto,
+  UserWithNetworksDto,
+  UserMetricsDto,
+  SettableEntitlement,
 } from '@/types';
 import { capitalize, computed, onMounted, ref } from 'vue';
 import useNetworks from '@/composables/useNetworks';
@@ -467,33 +468,39 @@ const isSubmitting = ref(false);
 
 const showTempModal = ref(false);
 const showEntitlementsModal = ref(false);
-const selectedUser = ref<User | null>(null);
+const selectedUser = ref<UserWithNetworksDto | null>(null);
 const showEditNetworkUserEntitlementModal = ref(false);
-const selectedNetwork = ref<Network | null>(null);
-const selectedNetworkUser = ref<NetworkUser | null>(null);
+const selectedNetwork = ref<NetworkDto | null>(null);
+const selectedNetworkUser = ref<NetworkUserDto | null>(null);
 const manageUserForm = ref<ManageUserForm>({ roleIds: [], entitlements: {} });
 
-const openEntitlementsModal = (user: User) => {
+const openEntitlementsModal = (user: UserWithNetworksDto) => {
   selectedUser.value = user;
   showEntitlementsModal.value = true;
 };
 
-const openEditEntitlementModal = (networkId: string) => {
+const openEditEntitlementModal = async (networkId: string) => {
   const network = networks.value?.find((n) => n.id == networkId);
   if (!network) throw new Error('Network not found.');
 
-  const userProxy = selectedUser.value?.userProxies.find((up) =>
+  const lightUserProxy = selectedUser.value?.userProxies.find((up) =>
     up.networkUsers.find((nu) => nu.networkId == networkId),
   );
-  const networkUser = userProxy?.networkUsers.find((nu) => nu.networkId == networkId);
+  if (!lightUserProxy) throw new Error('UserProxy/NetworkUser not found.');
 
-  if (!userProxy) throw new Error('UserProxy/NetworkUser not found.');
+  // The light NetworkUser nested under the user doesn't carry `userProxy`/`networkUserRoles` -
+  // fetch the full NetworkUserDto list for this network to get those.
+  const { execute: fetchNetworkUsersFor, data: networkUsersForNetwork } =
+    useNetworkUsers().fetchNetworkUsers;
+  await fetchNetworkUsersFor(networkId);
+  const networkUser = networkUsersForNetwork.value?.find(
+    (nu) => nu.userProxyId === lightUserProxy.id,
+  );
+
   if (!networkUser) throw new Error('NetworkUser not found.');
 
-  networkUser.userProxy = userProxy;
-
   manageUserForm.value.roleIds = networkUser.networkUserRoles?.map((nur) => nur.role.id) || [];
-  manageUserForm.value.entitlements = networkUser.entitlements;
+  manageUserForm.value.entitlements = networkUser.entitlements as SettableEntitlement;
 
   selectedNetwork.value = network;
   selectedNetworkUser.value = networkUser;
@@ -512,7 +519,7 @@ async function handleUpdateNetworkUser(localForm: ManageUserForm) {
 
   const { execute: updateNetworkUser } = useNetworkUsers().updateNetworkUser;
 
-  const payload: UpdateNetworkUser = {
+  const payload: UpdateNetworkUserDto = {
     entitlements: localForm.entitlements,
   };
 
@@ -547,6 +554,8 @@ const includeUserEntitlements = ref(true);
 const activeBooleanFilters = ref<Record<string, boolean | null>>({});
 const activeRangeFilters = ref<Record<string, [number, number]>>({});
 
+// UserMetricsDto has no per-user `customPageBlockSize` (that's a network-wide storage metric,
+// only exposed on NetworkMetricsDto) - omitted here since the backend doesn't provide it per user.
 const userMetricKeys = [
   'fileCount',
   'fileStorage',
@@ -554,7 +563,6 @@ const userMetricKeys = [
   'configurationCount',
   'customPageCount',
   'customPageBlockCount',
-  'customPageBlockSize',
 ] as const;
 
 onMounted(async () => {
@@ -565,13 +573,13 @@ onMounted(async () => {
 
 const allEntitlementKeys = computed(() => Object.values(entitlementKeys).flat());
 
-type ComboUser = User & UserMetrics;
+type ComboUser = UserWithNetworksDto & UserMetricsDto;
 
 const allComboUsers = computed<ComboUser[]>(() => {
   if (!users.value) return [];
 
   return users.value.map((user) => {
-    const metrics = usersMetrics.value?.find((m) => m.userId === user.id) || ({} as UserMetrics);
+    const metrics = usersMetrics.value?.find((m) => m.userId === user.id) || ({} as UserMetricsDto);
 
     return { ...user, ...metrics } as ComboUser;
   });
@@ -626,7 +634,7 @@ const filteredUsers = computed(() => {
       }
 
       for (const [key, range] of Object.entries(activeRangeFilters.value)) {
-        const limitVal = (user[key as keyof UserMetrics] as number) || 0;
+        const limitVal = (user[key as keyof UserMetricsDto] as number) || 0;
         if (limitVal < range[0] || limitVal > range[1]) return false;
       }
 
@@ -659,7 +667,7 @@ const filteredUsers = computed(() => {
     });
 });
 
-const getNetworksForUser = (user: User): Network[] =>
+const getNetworksForUser = (user: UserWithNetworksDto) =>
   defaultProxy(user).networkUsers?.map((nu) => nu.network) || [];
 
 const toggleSort = (key: string) => {
