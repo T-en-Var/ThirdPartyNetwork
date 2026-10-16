@@ -2,45 +2,97 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.EntityFrameworkCore;
 using thirdpartynetwork.Core;
 using thirdpartynetwork.Core.Data;
+using thirdpartynetwork.Core.Enum;
 using thirdpartynetwork.Core.Interfaces.Auth;
 using thirdpartynetwork.Core.Models;
+using File = thirdpartynetwork.Core.Models.File;
 
 namespace thirdpartynetwork.Application.Auth;
 
 public class IdentityVerifier(DataContext context) : IIdentityVerifier
 {
-    public Task<bool> IsContentOwnerAsync(Guid userProxyId, Guid targetContentId)
+    public async Task<bool> IsContentOwnerAsync(Guid userProxyId, ContentKind contentKind, Guid targetContentId)
     {
-        throw new NotImplementedException();
-        // var content = contentService.GetById(targetContentId);
-        // return content != null && content.CreatedBy == userProxyId;
+        var content = await GetContentOwnershipFactsAsync(contentKind, targetContentId);
+        if (content == null) return false;
+
+        var (authorUserProxyId, ownershipMode, networkId) = content.Value;
+
+        if (ownershipMode == OwnershipMode.AuthorOwned && authorUserProxyId.HasValue)
+        {
+            if (authorUserProxyId.Value == userProxyId) return true;
+
+            return await context.UserProxies
+                .Where(u => u.Id == userProxyId)
+                .AnyAsync(u => u.User.UserProxies.Any(n => n.Id == authorUserProxyId.Value));
+        }
+
+        return await IsNetworkAdminAsync(networkId, userProxyId);
+    }
+
+    private async Task<(Guid? AuthorUserProxyId, OwnershipMode OwnershipMode, Guid NetworkId)?> GetContentOwnershipFactsAsync(
+        ContentKind contentKind, Guid contentId)
+    {
+        switch (contentKind)
+        {
+            case ContentKind.File:
+            {
+                var x = await context.Files.Where(f => f.Id == contentId)
+                    .Select(f => new { f.AuthorUserProxyId, f.OwnershipMode, f.NetworkId })
+                    .FirstOrDefaultAsync();
+                return x == null ? null : (x.AuthorUserProxyId, x.OwnershipMode, x.NetworkId);
+            }
+            case ContentKind.Blog:
+            {
+                var x = await context.Blogs.Where(f => f.Id == contentId)
+                    .Select(f => new { f.AuthorUserProxyId, f.OwnershipMode, f.NetworkId })
+                    .FirstOrDefaultAsync();
+                return x == null ? null : (x.AuthorUserProxyId, x.OwnershipMode, x.NetworkId);
+            }
+            case ContentKind.Configuration:
+            {
+                var x = await context.Configurations.Where(f => f.Id == contentId)
+                    .Select(f => new { f.AuthorUserProxyId, f.OwnershipMode, f.NetworkId })
+                    .FirstOrDefaultAsync();
+                return x == null ? null : (x.AuthorUserProxyId, x.OwnershipMode, x.NetworkId);
+            }
+            case ContentKind.CustomPage:
+            {
+                var x = await context.CustomPages.Where(f => f.Id == contentId)
+                    .Select(f => new { f.AuthorUserProxyId, f.OwnershipMode, f.NetworkId })
+                    .FirstOrDefaultAsync();
+                return x == null ? null : (x.AuthorUserProxyId, x.OwnershipMode, x.NetworkId);
+            }
+            case ContentKind.PageBlock:
+            {
+                var x = await context.PageBlocks.Where(f => f.Id == contentId)
+                    .Select(f => new { f.AuthorUserProxyId, f.OwnershipMode, f.NetworkId })
+                    .FirstOrDefaultAsync();
+                return x == null ? null : (x.AuthorUserProxyId, x.OwnershipMode, x.NetworkId);
+            }
+            default:
+                throw new NotSupportedException($"Unknown ContentKind {contentKind}");
+        }
     }
 
     public async Task<bool> IsUserOwnerAsync(Guid userProxyId, Guid targetUserId)
     {
-        var userProxyQueryable = context.UserProxies;
-
-        return await userProxyQueryable.AnyAsync(u => u.User.Id == targetUserId);
+        return await context.UserProxies.AnyAsync(u => u.Id == userProxyId && u.User.Id == targetUserId);
     }
 
     public async Task<bool> IsUserProxyOwnerAsync(Guid userProxyId, Guid targetUserProxyId)
     {
         if (userProxyId == targetUserProxyId) return true;
 
-        var userProxyQueryable = context.UserProxies;
-
-        return await userProxyQueryable.AnyAsync(u =>
-            u.User.UserProxies.Any(n => n.Id == targetUserProxyId)); // Inner Any is translated to EXISTS
+        return await context.UserProxies
+            .Where(u => u.Id == userProxyId)
+            .AnyAsync(u => u.User.UserProxies.Any(n => n.Id == targetUserProxyId));
     }
 
     public async Task<bool> IsNetworkUserOwnerAsync(Guid userProxyId, Guid targetNetworkUserId)
     {
-        if (userProxyId == targetNetworkUserId) return true;
-
-        var userProxyQueryable = context.UserProxies.AsQueryable();
-        userProxyQueryable = userProxyQueryable.Where(u => u.Id == userProxyId);
-
-        return await userProxyQueryable
+        return await context.UserProxies
+            .Where(u => u.Id == userProxyId)
             .AnyAsync(u => u.User.UserProxies
                 .Any(u2 => u2.NetworkUsers
                     .Any(n => n.Id == targetNetworkUserId)));

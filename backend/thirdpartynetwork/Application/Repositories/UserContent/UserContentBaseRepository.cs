@@ -7,7 +7,7 @@ using File = thirdpartynetwork.Core.Models.File;
 
 namespace thirdpartynetwork.Application.Repositories.UserContent;
 
-public abstract class UserContentBaseRepository<T>(DataContext context, IAccessLevelVerifier accessLevelVerifier) 
+public abstract class UserContentBaseRepository<T>(DataContext context, IAccessLevelVerifier accessLevelVerifier)
     : BaseRepository(context), IUserContentBaseRepository<T>
     where T : UserContentBaseModel
 {
@@ -16,19 +16,19 @@ public abstract class UserContentBaseRepository<T>(DataContext context, IAccessL
 
     private static IQueryable<T> BaseIncludes(IQueryable<T> query)
     {
-        return query
-            .Include(x => x.Author)
-            .ThenInclude(x => x.UserProxy)
-            .ThenInclude(x => x.ImageFile)
-            .Include(x => x.Author)
-            .ThenInclude(x => x.NetworkUserAccesses)
-            .ThenInclude(x => x.Access)
+        query = query
+            .Include(x => x.AuthorUserProxy)
+            .ThenInclude(x => x!.ImageFile)
             .AsQueryable();
+
+        return query;
     }
+
+    private static IQueryable<T> ExcludeDeleted(IQueryable<T> query) => query.Where(x => x.DeletedAt == null);
 
     protected async Task<IQueryable<T>> GetAccessibleQueryableAsync(Guid networkId, bool bypass = false)
     {
-        var query = await GetQueryableAsync();
+        var query = ExcludeDeleted(await GetQueryableAsync());
 
         if (!bypass)
         {
@@ -43,30 +43,48 @@ public abstract class UserContentBaseRepository<T>(DataContext context, IAccessL
 
     public async Task<ICollection<T>> GetByNetworkIdAsync(Guid networkId)
     {
-        var query = await GetAccessibleQueryableAsync(networkId); 
+        var query = await GetAccessibleQueryableAsync(networkId);
 
         query = BaseIncludes(query);
         query = query.Where(x => x.NetworkId == networkId);
-    
+
         return await query.ToListAsync();
     }
 
-    public async Task<ICollection<T>> GetByAuthorIdAsync(Guid networkId, Guid networkUserId, bool bypass = false)
+    public async Task<ICollection<T>> GetByAuthorIdAsync(Guid networkId, Guid authorUserProxyId, bool bypass = false)
     {
         var query = await GetAccessibleQueryableAsync(networkId, bypass);
 
         return await query
-            .Where(x => x.AuthorId == networkUserId)
+            .Where(x => x.AuthorUserProxyId == authorUserProxyId)
             .ToListAsync();
     }
-    
+
     public async Task<ICollection<T>> GetByUserProxyIdAsync(Guid userProxyId)
     {
-        var query = await GetQueryableAsync(); 
+        var query = BaseIncludes(ExcludeDeleted(await GetQueryableAsync()));
 
-        query = BaseIncludes(query);
-        query = query.Where(x => x.Author.UserProxyId == userProxyId);
-    
+        var accessPredicate = await accessLevelVerifier.GetCrossNetworkAccessPredicateAsync<T>(ReadPermissionName);
+        query = query.Where(accessPredicate).Where(x => x.AuthorUserProxyId == userProxyId);
+
         return await query.ToListAsync();
+    }
+
+    public async Task<T?> GetByIdBypassingAccessAsync(Guid id)
+    {
+        var query = await GetAccessibleQueryableAsync(Guid.Empty, bypass: true);
+        return await query.FirstOrDefaultAsync(x => x.Id == id);
+    }
+
+    public async Task SoftDeleteAsync(T entity)
+    {
+        entity.DeletedAt = DateTime.UtcNow;
+        await SaveAndUpdateAsync(entity);
+    }
+
+    public async Task RestoreAsync(T entity)
+    {
+        entity.DeletedAt = null;
+        await SaveAndUpdateAsync(entity);
     }
 }

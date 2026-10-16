@@ -5,11 +5,14 @@ namespace thirdpartynetwork.Core.Models;
 
 public class UserContentBaseModel : BaseModel
 {
-    public Guid AuthorId { get; set; }
+    public Guid Id { get; set; }
+    public Guid? AuthorUserProxyId { get; set; }
     [JsonIgnore]
-    public NetworkUser Author { get; set; }
+    public UserProxy? AuthorUserProxy { get; set; }
     public Guid NetworkId { get; set; }
     [JsonIgnore]
     public Network Network { get; set; }
-    public AccessLevel AccessLevel { get; set; } = AccessLevel.Private;
+    public DateTime? PublishedAt { get; set; }
+    public OwnershipMode OwnershipMode { get; set; } = OwnershipMode.AuthorOwned;
+    public DateTime? DeletedAt { get; set; }
 }

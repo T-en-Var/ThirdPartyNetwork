@@ -42,7 +42,7 @@ namespace thirdpartynetwork.Application.Services
 
             var customPage = mapper.Map<CustomPage>(createCustomPage);
             customPage.Network = network;
-            customPage.Author = networkUser;
+            customPage.AuthorUserProxyId = networkUser.UserProxyId;
 
             customPage = await repository.CreateAsync(customPage);
             return customPage;

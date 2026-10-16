@@ -1,4 +1,6 @@
-﻿namespace thirdpartynetwork.Application.Dtos.Network
+﻿using thirdpartynetwork.Core.Enum;
+
+namespace thirdpartynetwork.Application.Dtos.Network
 {
     public class NetworkDto
     {
@@ -9,6 +11,7 @@
         public FileDto? ImageFile { get; set; }
         public DateTime CreatedOn { get; set; }
         public required bool IsPublic { get; init; }
+        public ContentKindFlags ExternalContentKinds { get; set; }
         public ICollection<NetworkAccessNtADto> NetworkAccesses { get; set; } = [];
         public ICollection<RoleLightDto> Roles { get; set; } = [];
         public ICollection<NetworkUserLightUserInfoDto> NetworkUsers { get; set; } = [];

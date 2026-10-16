@@ -1,6 +1,4 @@
-﻿﻿using thirdpartynetwork.Application.Dtos.NetworkUser;
-using thirdpartynetwork.Core.Models;
-using File = thirdpartynetwork.Core.Models.File;
+﻿using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Core.Interfaces.Services
 {
@@ -19,6 +17,5 @@ namespace thirdpartynetwork.Core.Interfaces.Services
         Task NetworkAccessUpdateAsync(Guid networkId);
         Task DeleteByIdAsync(Guid networkId, Guid networkUserId);
         Task<ICollection<Network>> GetNetworksByUserProxyIdAsync(Guid userProxyId);
-        Task<ICollection<File>> GetFilesByUserProxyIdAsync(Guid userProxyId);
     }
 }

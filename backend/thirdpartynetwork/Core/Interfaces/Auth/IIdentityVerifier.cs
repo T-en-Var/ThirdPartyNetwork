@@ -1,8 +1,10 @@
+using thirdpartynetwork.Core.Enum;
+
 namespace thirdpartynetwork.Core.Interfaces.Auth;
 
 public interface IIdentityVerifier
 {
-    Task<bool> IsContentOwnerAsync(Guid userProxyId, Guid targetContentId);
+    Task<bool> IsContentOwnerAsync(Guid userProxyId, ContentKind contentKind, Guid targetContentId);
     Task<bool> IsUserOwnerAsync(Guid userProxyId, Guid targetUserId);
     Task<bool> IsUserProxyOwnerAsync(Guid userProxyId, Guid targetUserProxyId);
     Task<bool> IsNetworkUserOwnerAsync(Guid userProxyId, Guid targetNetworkUserId);
