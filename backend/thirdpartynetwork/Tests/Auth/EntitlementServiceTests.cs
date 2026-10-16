@@ -18,7 +18,6 @@ public class EntitlementServiceTests
     private Mock<IBlogRepository> _blogRepositoryMock;
     private Mock<IConfigurationRepository> _configurationRepositoryMock;
     private Mock<ICustomPageRepository> _customPageRepositoryMock;
-
     private EntitlementService _entitlementService;
 
     [SetUp]
@@ -37,7 +36,8 @@ public class EntitlementServiceTests
             _fileRepositoryMock.Object,
             _blogRepositoryMock.Object,
             _configurationRepositoryMock.Object,
-            _customPageRepositoryMock.Object
+            _customPageRepositoryMock.Object,
+            new NetworkEntitlementValidator()
         );
         
         var mainNetwork = new Network
@@ -790,12 +790,12 @@ public class EntitlementServiceTests
         const int configLimit = 10;
 
         // Act
-        networkUser = _entitlementService.WriteCustomPageCountLimitEntitlement(networkUser, customPageLimit);
-        networkUser = _entitlementService.WriteConfigurationCountLimitEntitlement(networkUser, configLimit);
+        networkUser = NetworkEntitlementWriterFactory.WriteEntitlement(networkUser, customPageLimit ,NetworkEntitlementWriterFactory.EntitlementWriterType.CustomPageCountLimit);
+        networkUser = NetworkEntitlementWriterFactory.WriteEntitlement(networkUser, configLimit, NetworkEntitlementWriterFactory.EntitlementWriterType.ConfigurationCountLimit);
 
         // Assert
-        var readCustomPageLimit = _entitlementService.ReadCustomPageCountLimitEntitlement(networkUser);
-        var readConfigLimit = _entitlementService.ReadConfigurationCountLimitEntitlement(networkUser);
+        var readCustomPageLimit = NetworkEntitlementWriterFactory.ReadEntitlement<int?>(networkUser, NetworkEntitlementWriterFactory.EntitlementWriterType.CustomPageCountLimit);
+        var readConfigLimit = NetworkEntitlementWriterFactory.ReadEntitlement<int?>(networkUser, NetworkEntitlementWriterFactory.EntitlementWriterType.ConfigurationCountLimit);
 
         // This will fail if WriteCustomPageCountLimitEntitlement uses the same key as WriteConfigurationCountLimitEntitlement
         Assert.That(readCustomPageLimit, Is.EqualTo(customPageLimit), "Custom Page limit should be preserved.");
@@ -810,7 +810,7 @@ public class EntitlementServiceTests
             { Entitlements = JsonDocument.Parse("{}"), NetworkUserRoles = new List<NetworkUserRole>() };
 
         // Act
-        var limit = _entitlementService.ReadFileCountLimitEntitlement(networkUser);
+        var limit = NetworkEntitlementWriterFactory.ReadEntitlement<int?>(networkUser, NetworkEntitlementWriterFactory.EntitlementWriterType.FileCountLimit);
 
         // Assert
         Assert.That(limit, Is.Null);
@@ -827,7 +827,7 @@ public class EntitlementServiceTests
         };
 
         // Act
-        var limit = _entitlementService.ReadFileCountLimitEntitlement(networkUser);
+        var limit = NetworkEntitlementWriterFactory.ReadEntitlement<int?>(networkUser, NetworkEntitlementWriterFactory.EntitlementWriterType.FileCountLimit);
 
         // Assert
         Assert.That(limit, Is.EqualTo(10));
@@ -859,7 +859,7 @@ public class EntitlementServiceTests
         };
 
         // Act
-        var limit = _entitlementService.ReadFileCountLimitEntitlement(networkUser);
+        var limit = NetworkEntitlementWriterFactory.ReadEntitlement<int?>(networkUser, NetworkEntitlementWriterFactory.EntitlementWriterType.FileCountLimit);
 
         // Assert
         Assert.That(limit, Is.EqualTo(20));
@@ -891,7 +891,7 @@ public class EntitlementServiceTests
         };
 
         // Act
-        var limit = _entitlementService.ReadFileCountLimitEntitlement(networkUser);
+        var limit = NetworkEntitlementWriterFactory.ReadEntitlement<int?>(networkUser, NetworkEntitlementWriterFactory.EntitlementWriterType.FileCountLimit);
 
         // Assert
         // Should be Max(user_limit, role_limit) = Max(10, 20) = 20
@@ -937,7 +937,7 @@ public class EntitlementServiceTests
         });
 
         // Act
-        var limit = _entitlementService.ReadFileCountLimitEntitlement(networkUser);
+        var limit = NetworkEntitlementWriterFactory.ReadEntitlement<int?>(networkUser, NetworkEntitlementWriterFactory.EntitlementWriterType.FileCountLimit);
 
         // Assert
         Assert.That(limit, Is.EqualTo(30));
@@ -950,17 +950,17 @@ public class EntitlementServiceTests
         var networkUser = new NetworkUser { Entitlements = JsonDocument.Parse("{}") };
 
         // Act (Write)
-        networkUser = _entitlementService.WriteFileCountLimitEntitlement(networkUser, 55);
+        networkUser = NetworkEntitlementWriterFactory.WriteEntitlement(networkUser, 55, NetworkEntitlementWriterFactory.EntitlementWriterType.FileCountLimit);
 
         // Assert (Write)
-        var readLimit = _entitlementService.ReadFileCountLimitEntitlement(networkUser);
+        var readLimit = NetworkEntitlementWriterFactory.ReadEntitlement<int?>(networkUser, NetworkEntitlementWriterFactory.EntitlementWriterType.FileCountLimit);
         Assert.That(readLimit, Is.EqualTo(55));
 
         // Act (Remove)
-        networkUser = _entitlementService.RemoveFileCountLimitEntitlement(networkUser);
+        networkUser = NetworkEntitlementWriterFactory.RemoveEntitlement<int?>(networkUser, NetworkEntitlementWriterFactory.EntitlementWriterType.FileCountLimit);
 
         // Assert (Remove)
-        var removedLimit = _entitlementService.ReadFileCountLimitEntitlement(networkUser);
+        var removedLimit = NetworkEntitlementWriterFactory.ReadEntitlement<int?>(networkUser, NetworkEntitlementWriterFactory.EntitlementWriterType.FileCountLimit);
         Assert.That(removedLimit, Is.Null);
     }
 

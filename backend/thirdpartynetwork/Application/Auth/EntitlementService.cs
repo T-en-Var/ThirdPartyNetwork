@@ -1,5 +1,5 @@
+using System.Text;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using Microsoft.EntityFrameworkCore;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using thirdpartynetwork.Core.Models;
@@ -15,24 +15,22 @@ public class EntitlementService(
     IFileRepository fileRepository,
     IBlogRepository blogRepository,
     IConfigurationRepository configurationRepository,
-    ICustomPageRepository customPageRepository) : IEntitlementService
+    ICustomPageRepository customPageRepository,
+    INetworkEntitlementValidator networkEntitlementValidator) : IEntitlementService
 {
     private async Task<Network> GetMainNetwork()
     {
         var network = await networkRepository.GetMainNetworkDetailsAsync();
+        networkEntitlementValidator.ValidateNetworkEntitlement(network);
         return network;
     }
 
     private async Task<Network> GetNetwork(Guid networkId)
     {
         var network = await networkRepository.GetByIdEntitlementAsync(networkId);
+        networkEntitlementValidator.ValidateNetworkEntitlement(network);
 
-        if (network == null)
-        {
-            throw new NotFoundHttpException("Network not found");
-        }
-
-        return network;
+        return network!;
     }
 
     private async Task<NetworkUser> GetNetworkUser(Guid userProxyId, Guid networkId)
@@ -48,13 +46,8 @@ public class EntitlementService(
         );
 
         var networkUser = networkUsers.FirstOrDefault();
-
-        if (networkUser == null)
-        {
-            throw new NotFoundHttpException("NetworkUser not found");
-        }
-
-        return networkUser;
+        networkEntitlementValidator.ValidateNetworkUser(networkUser);
+        return networkUser!;
     }
 
     public async Task<bool> CheckUserAddNetworkFileEntitlementAsync(Guid userProxyId, Guid networkId, IFormFile file)
@@ -64,520 +57,172 @@ public class EntitlementService(
         // - enough space in user / role
         //
 
-        // Global Checks
-        var mainNetwork = await GetMainNetwork();
-
-        if (!mainNetwork.Entitlement.AllowFiles)
-        {
-            Console.WriteLine("mainNetwork.Entitlement.AllowFiles was false");
-            return false;
-        }
-
         // Network Checks
-        var network = await GetNetwork(networkId);
-
-        if (!network.Entitlement.AllowFiles)
+        try
         {
-            Console.WriteLine("network.Entitlement.AllowFiles was false");
+            var mainNetwork = await GetMainNetwork();
+            networkEntitlementValidator.CheckNetworkPropertyIsAllowed(mainNetwork.Entitlement.AllowFiles);
+            var network = await GetNetwork(networkId);
+            networkEntitlementValidator.CheckNetworkPropertyIsAllowed(network.Entitlement.AllowFiles);
+
+            // Network File Checks
+            var networkFiles = await fileRepository.GetByNetworkIdAsync(networkId);
+            networkEntitlementValidator.CheckNetworkFileCount(networkFiles.Count, network.Entitlement.FileCountLimit);
+            networkEntitlementValidator.CheckNetworkFileSizeLimit(file, network.Entitlement.FileSizeLimit);
+            networkEntitlementValidator.CheckNetworkFileStorageReached(networkFiles, file, network.Entitlement.FileStorageLimit);
+
+            // User Checks. If a role limit exists, use the larger limit.
+            var networkUser = await GetNetworkUser(userProxyId, networkId);
+            var userFileSizeLimit = NetworkEntitlementWriterFactory.ReadEntitlement<int?>(networkUser, NetworkEntitlementWriterFactory.EntitlementWriterType.FileSizeLimit) 
+                ?? network.Entitlement.FileSizeLimit;
+            var userFiles = await fileRepository.GetByAuthorIdAsync(networkId, networkUser.Id);
+            var userFileCountLimit = NetworkEntitlementWriterFactory.ReadEntitlement<int?>(networkUser, NetworkEntitlementWriterFactory.EntitlementWriterType.FileCountLimit) 
+                ?? network.Entitlement.FileCountLimit;
+            var userFileStorageLimit = NetworkEntitlementWriterFactory.ReadEntitlement<int?>(networkUser, NetworkEntitlementWriterFactory.EntitlementWriterType.FileStorageLimit) 
+                ?? network.Entitlement.FileStorageLimit;
+                
+            networkEntitlementValidator.CheckNetworkFileSizeLimit(file, userFileSizeLimit);
+            networkEntitlementValidator.CheckNetworkFileCount(userFiles.Count, userFileCountLimit);
+            networkEntitlementValidator.CheckNetworkFileStorageReached(userFiles, file, userFileStorageLimit);
+
+        return true; 
+
+        }
+        catch (BaseHttpException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(new StringBuilder().Append("mainNetwork.Entitlement.AllowFiles").Append(ex.Message).ToString());
             return false;
         }
-
-        var networkFiles = await fileRepository.GetByNetworkIdAsync(networkId);
-        if (networkFiles.Count >= network.Entitlement.FileCountLimit)
-        {
-            Console.WriteLine("network.Entitlement.FileCountLimit reached");
-            return false;
-        }
-
-        if (file.Length > network.Entitlement.FileSizeLimit * 1024.0) // FileSizeLimit is in KB
-        {
-            Console.WriteLine("network.Entitlement.FileSizeLimit reached");
-            return false;
-        }
-
-        var totalNetworkFileStorageSize = networkFiles.Sum(networkFile => networkFile.SizeBytes);
-        if (totalNetworkFileStorageSize + file.Length >
-            network.Entitlement.FileStorageLimit * 1024.0) // FileStorageLimit is in KB
-        {
-            Console.WriteLine("network.Entitlement.FileStorageLimit reached");
-            return false;
-        }
-
-        // User Checks
-        var networkUser = await GetNetworkUser(userProxyId, networkId);
-
-        // Includes role limit, if found takes the largest value.
-        var userFileSizeLimit = ReadFileSizeLimitEntitlement(networkUser) ?? network.Entitlement.FileSizeLimit;
-        if (file.Length > userFileSizeLimit * 1024.0)
-        {
-            Console.WriteLine("userFileSizeLimit reached");
-            return false;
-        }
-
-        var userFiles = await fileRepository.GetByAuthorIdAsync(networkId, networkUser.Id);
-
-        var userFileCountLimit = ReadFileCountLimitEntitlement(networkUser) ?? network.Entitlement.FileCountLimit;
-        if (userFiles.Count >= userFileCountLimit)
-        {
-            Console.WriteLine("userFileCountLimit reached");
-            return false;
-        }
-
-        var totalUserFileStorageSize = userFiles.Sum(networkFile => networkFile.SizeBytes);
-        var userFileStorageLimit =
-            ReadFileStorageLimitEntitlement(networkUser) ?? network.Entitlement.FileStorageLimit; // is in KB
-        if (totalUserFileStorageSize + file.Length > userFileStorageLimit * 1024.0)
-        {
-            Console.WriteLine("totalUserFileStorageSize reached");
-            return false;
-        }
-
-        return true;
     }
 
     public async Task<bool> CheckUserAddBlogEntitlementAsync(Guid userProxyId, Guid networkId)
     {
-        // Global Checks
-        var mainNetwork = await GetMainNetwork();
-
-        if (!mainNetwork.Entitlement.AllowBlogs)
+        try
         {
-            Console.WriteLine("mainNetwork.Entitlement.AllowBlogs was false");
+            var mainNetwork = await GetMainNetwork();
+            networkEntitlementValidator.CheckNetworkPropertyIsAllowed(mainNetwork.Entitlement.AllowBlogs);
+            var network = await GetNetwork(networkId);
+            networkEntitlementValidator.CheckNetworkPropertyIsAllowed(network.Entitlement.AllowBlogs);
+
+            var networkBlogs = await blogRepository.GetByNetworkIdAsync(networkId);
+            networkEntitlementValidator.CheckNetworkFileCount(networkBlogs.Count, network.Entitlement.BlogCountLimit);
+
+            var networkUser = await GetNetworkUser(userProxyId, networkId);
+            var userBlogs = await blogRepository.GetByAuthorIdAsync(networkId, networkUser.Id);
+            var userBlogCountLimit = NetworkEntitlementWriterFactory.ReadEntitlement<int?>(networkUser, NetworkEntitlementWriterFactory.EntitlementWriterType.BlogCountLimit) 
+            ?? network.Entitlement.BlogCountLimit;
+
+            networkEntitlementValidator.CheckNetworkFileCount(userBlogs.Count, userBlogCountLimit);
+
+            return true;
+
+        }
+        catch (BaseHttpException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(new StringBuilder().Append("mainNetwork.Entitlement.AllowBlogs").Append(ex.Message).ToString());
             return false;
         }
-
-        // Network Checks
-        var network = await GetNetwork(networkId);
-
-        if (!network.Entitlement.AllowBlogs)
-        {
-            Console.WriteLine("network.Entitlement.AllowBlogs was false");
-            return false;
-        }
-
-        var networkBlogs = await blogRepository.GetByNetworkIdAsync(networkId);
-        if (networkBlogs.Count >= network.Entitlement.BlogCountLimit)
-        {
-            Console.WriteLine("network.Entitlement.BlogCountLimit reached");
-            return false;
-        }
-
-        // User Checks
-        var networkUser = await GetNetworkUser(userProxyId, networkId);
-
-        var userBlogs = await blogRepository.GetByAuthorIdAsync(networkId, networkUser.Id);
-
-        var userBlogCountLimit = ReadBlogCountLimitEntitlement(networkUser) ?? network.Entitlement.BlogCountLimit;
-        if (userBlogs.Count >= userBlogCountLimit)
-        {
-            Console.WriteLine("userBlogCountLimit reached");
-            return false;
-        }
-
-        return true;
     }
 
     public async Task<bool> CheckUserAddConfigurationEntitlementAsync(Guid userProxyId, Guid networkId)
     {
-        // Global Checks
-        var mainNetwork = await GetMainNetwork();
-
-        if (!mainNetwork.Entitlement.AllowConfigurations)
+        try
         {
-            Console.WriteLine("mainNetwork.Entitlement.AllowConfigurations was false");
+            // Global Checks
+            // Network Checks
+            var mainNetwork = await GetMainNetwork();
+            networkEntitlementValidator.CheckNetworkPropertyIsAllowed(mainNetwork.Entitlement.AllowConfigurations);
+            var network = await GetNetwork(networkId);
+            networkEntitlementValidator.CheckNetworkPropertyIsAllowed(network.Entitlement.AllowConfigurations);
+
+            var networkConfigurations = await configurationRepository.GetByNetworkIdAsync(networkId);
+            networkEntitlementValidator.CheckNetworkFileCount(networkConfigurations.Count, network.Entitlement.ConfigurationCountLimit);
+
+            // User Checks
+            var networkUser = await GetNetworkUser(userProxyId, networkId);
+            var userConfigs = await configurationRepository.GetByAuthorIdAsync(networkId, networkUser.Id);
+            var userConfigurationCountLimit = NetworkEntitlementWriterFactory.ReadEntitlement<int?>(networkUser, NetworkEntitlementWriterFactory.EntitlementWriterType.ConfigurationCountLimit) 
+            ?? network.Entitlement.ConfigurationCountLimit;
+            
+            networkEntitlementValidator.CheckNetworkFileCount(userConfigs.Count, userConfigurationCountLimit);
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(new StringBuilder().Append("mainNetwork.Entitlement.AllowConfigurations").Append(ex.Message).ToString());
             return false;
         }
-
-        // Network Checks
-        var network = await GetNetwork(networkId);
-
-        if (!network.Entitlement.AllowConfigurations)
-        {
-            Console.WriteLine("network.Entitlement.AllowConfigurations was false");
-            return false;
-        }
-
-        var networkConfigurations = await configurationRepository.GetByNetworkIdAsync(networkId);
-        if (networkConfigurations.Count >= network.Entitlement.ConfigurationCountLimit)
-        {
-            Console.WriteLine("network.Entitlement.ConfigurationCountLimit reached");
-            return false;
-        }
-
-        // User Checks
-        var networkUser = await GetNetworkUser(userProxyId, networkId);
-
-        var userConfigs = await configurationRepository.GetByAuthorIdAsync(networkId, networkUser.Id);
-
-        var userConfigurationCountLimit = ReadConfigurationCountLimitEntitlement(networkUser) ??
-                                          network.Entitlement.ConfigurationCountLimit;
-        if (userConfigs.Count >= userConfigurationCountLimit)
-        {
-            Console.WriteLine("userConfigurationCountLimit reached");
-            return false;
-        }
-
-        return true;
     }
 
     public async Task<bool> CheckUserAddCustomPageEntitlementAsync(Guid userProxyId, Guid networkId)
     {
-        // Global Checks
-        var mainNetwork = await GetMainNetwork();
-
-        if (!mainNetwork.Entitlement.AllowCustomPages)
+        try
         {
-            Console.WriteLine("mainNetwork.Entitlement.AllowCustomPages was false");
+            // Global Checks
+            // Network Checks
+            var mainNetwork = await GetMainNetwork();
+            networkEntitlementValidator.CheckNetworkPropertyIsAllowed(mainNetwork.Entitlement.AllowCustomPages);
+            var network = await GetNetwork(networkId);
+            networkEntitlementValidator.CheckNetworkPropertyIsAllowed(network.Entitlement.AllowCustomPages);
+
+
+            var networkCustomPages = await customPageRepository.GetByNetworkIdAsync(networkId);
+            networkEntitlementValidator.CheckNetworkFileCount(networkCustomPages.Count, network.Entitlement.CustomPageCountLimit);
+
+            // User Checks
+            var networkUser = await GetNetworkUser(userProxyId, networkId);
+            var userCustomPages = await customPageRepository.GetByAuthorIdAsync(networkId, networkUser.Id);
+            var userCustomPageCountLimit = NetworkEntitlementWriterFactory.ReadEntitlement<int?>(networkUser, NetworkEntitlementWriterFactory.EntitlementWriterType.CustomPageCountLimit) ?? network.Entitlement.CustomPageCountLimit;
+            networkEntitlementValidator.CheckNetworkFileCount(userCustomPages.Count, userCustomPageCountLimit);
+
+            return true;   
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(new StringBuilder().Append("mainNetwork.Entitlement.AllowCustomPages").Append(ex.Message).ToString());
             return false;
         }
-
-        // Network Checks
-        var network = await GetNetwork(networkId);
-
-        if (!network.Entitlement.AllowCustomPages)
-        {
-            Console.WriteLine("network.Entitlement.AllowCustomPages was false");
-            return false;
-        }
-
-        var networkCustomPages = await customPageRepository.GetByNetworkIdAsync(networkId);
-        if (networkCustomPages.Count >= network.Entitlement.CustomPageCountLimit)
-        {
-            Console.WriteLine("network.Entitlement.CustomPageCountLimit reached");
-            return false;
-        }
-
-        // User Checks
-        var networkUser = await GetNetworkUser(userProxyId, networkId);
-
-        var userCustomPages = await customPageRepository.GetByAuthorIdAsync(networkId, networkUser.Id);
-
-        var userCustomPageCountLimit =
-            ReadCustomPageCountLimitEntitlement(networkUser) ?? network.Entitlement.CustomPageCountLimit;
-        if (userCustomPages.Count >= userCustomPageCountLimit)
-        {
-            Console.WriteLine("userCustomPageCountLimit reached");
-            return false;
-        }
-
-        return true;
     }
 
     public async Task<bool> CheckUserAddCustomPageBlockEntitlementAsync(Guid userProxyId, Guid networkId,
         Guid customPageId, JsonElement pageBlockData)
     {
-        var pageBlockCharCount = pageBlockData.GetRawText().Length;
-
-        // Network Checks
-        var network = await GetNetwork(networkId);
-
-        if (!network.Entitlement.AllowCustomPages)
+        try
         {
-            Console.WriteLine("network.Entitlement.AllowCustomPages was false");
+            var error = new Exception();
+            var pageBlockCharCount = pageBlockData.GetRawText().Length;
+
+            // Network Checks
+            var network = await GetNetwork(networkId);
+            networkEntitlementValidator.CheckNetworkPropertyIsAllowed(network.Entitlement.AllowCustomPages);
+            var networkCustomPage = await customPageRepository.GetByIdAsync(customPageId);
+            networkEntitlementValidator.CheckNetworkFileCount(networkCustomPage?.Pages.Count ?? 0, network.Entitlement.CustomPageBlockCountLimit);
+            networkEntitlementValidator.CheckNetworkFileCount(pageBlockCharCount, network.Entitlement.CustomPageBlockSizeLimit);
+
+            // User Checks
+            var networkUser = await GetNetworkUser(userProxyId, networkId);
+            var userCustomPages = await customPageRepository.GetByAuthorIdAsync(networkId, networkUser.Id);
+            var userCustomPageBlockCountLimit = NetworkEntitlementWriterFactory.ReadEntitlement<int?>(networkUser, NetworkEntitlementWriterFactory.EntitlementWriterType.CustomPageBlockCountLimit) ?? network.Entitlement.CustomPageBlockCountLimit;
+            networkEntitlementValidator.CheckNetworkFileCount(userCustomPages.Count, userCustomPageBlockCountLimit);
+
+            var userCustomPageBlockSizeLimit = NetworkEntitlementWriterFactory.ReadEntitlement<int?>(networkUser, NetworkEntitlementWriterFactory.EntitlementWriterType.CustomPageBlockSizeLimit) ?? network.Entitlement.CustomPageBlockSizeLimit;
+            networkEntitlementValidator.CheckNetworkFileCount(pageBlockCharCount, userCustomPageBlockSizeLimit);
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(new StringBuilder().Append("mainNetwork.Entitlement.AllowCustomPages").Append(ex.Message).ToString());
             return false;
         }
-
-        var networkCustomPage = await customPageRepository.GetByIdAsync(customPageId);
-        if ((networkCustomPage?.Pages.Count ?? 0) >= network.Entitlement.CustomPageBlockCountLimit)
-        {
-            Console.WriteLine("network.Entitlement.CustomPageBlockCountLimit reached");
-            return false;
-        }
-
-        if (pageBlockCharCount >= network.Entitlement.CustomPageBlockSizeLimit)
-        {
-            Console.WriteLine("userCustomPageBlockSizeLimit reached");
-            return false;
-        }
-
-        // User Checks
-        var networkUser = await GetNetworkUser(userProxyId, networkId);
-
-        var userCustomPages = await customPageRepository.GetByAuthorIdAsync(networkId, networkUser.Id);
-
-        var userCustomPageBlockCountLimit = ReadCustomPageBlockCountLimitEntitlement(networkUser) ??
-                                            network.Entitlement.CustomPageBlockCountLimit;
-        if (userCustomPages.Count >= userCustomPageBlockCountLimit)
-        {
-            Console.WriteLine("userCustomPageBlockCountLimit reached");
-            return false;
-        }
-
-        var userCustomPageBlockSizeLimit = ReadCustomPageBlockSizeLimitEntitlement(networkUser) ??
-                                           network.Entitlement.CustomPageBlockSizeLimit;
-        if (pageBlockCharCount >= userCustomPageBlockSizeLimit)
-        {
-            Console.WriteLine("userCustomPageBlockSizeLimit reached");
-            return false;
-        }
-
-        return true;
-    }
-
-    private static NetworkUser WriteEntitlement<T>(NetworkUser networkUser, string key, T value)
-    {
-        var jsonString = networkUser.Entitlements.RootElement.GetRawText();
-        var root = JsonNode.Parse(jsonString) ?? new JsonObject();
-
-        root[key] = JsonValue.Create(value);
-        networkUser.Entitlements = JsonDocument.Parse(root.ToJsonString());
-
-        return networkUser;
-    }
-
-    private static T? ReadEntitlement<T>(JsonDocument? entitlements, string key, T? defaultValue = default)
-    {
-        if (entitlements == null) return defaultValue;
-        if (entitlements.RootElement.TryGetProperty(key, out var element))
-        {
-            return element.Deserialize<T>() ?? defaultValue;
-        }
-
-        return defaultValue;
-    }
-
-    private static NetworkUser RemoveEntitlement(NetworkUser networkUser, string key)
-    {
-        var root = JsonNode.Parse(networkUser.Entitlements.RootElement.GetRawText())?.AsObject();
-
-        if (root != null && root.Remove(key))
-        {
-            // Only update the property if something was actually removed
-            networkUser.Entitlements = JsonDocument.Parse(root.ToJsonString());
-        }
-
-        return networkUser;
-    }
-
-    // CustomPage PageBlock Size Limit
-    private const string CustomPageBlockSizeLimit = "CustomPageBlockSizeLimit";
-
-    public NetworkUser WriteCustomPageBlockSizeLimitEntitlement(NetworkUser networkUser, int blogCountLimit)
-    {
-        return WriteEntitlement(networkUser, CustomPageBlockSizeLimit, blogCountLimit);
-    }
-
-    public int? ReadCustomPageBlockSizeLimitEntitlement(NetworkUser networkUser)
-    {
-        var limits = new List<int?>
-        {
-            ReadEntitlement<int?>(networkUser.Entitlements, CustomPageBlockSizeLimit)
-        };
-
-        if (networkUser.NetworkUserRoles != null)
-        {
-            limits.AddRange(networkUser.NetworkUserRoles
-                .Select(x => ReadEntitlement<int?>(x.Role.Entitlements, CustomPageBlockSizeLimit)));
-        }
-
-        return limits.Max();
-    }
-
-    public NetworkUser RemoveCustomPageBlockSizeLimitEntitlement(NetworkUser networkUser)
-    {
-        return RemoveEntitlement(networkUser, CustomPageBlockSizeLimit);
-    }
-
-    // CustomPage PageBlock Count Limit
-    private const string CustomPageBlockCountLimit = "CustomPageBlockCountLimit";
-
-    public NetworkUser WriteCustomPageBlockCountLimitEntitlement(NetworkUser networkUser, int blogCountLimit)
-    {
-        return WriteEntitlement(networkUser, CustomPageBlockCountLimit, blogCountLimit);
-    }
-
-    public int? ReadCustomPageBlockCountLimitEntitlement(NetworkUser networkUser)
-    {
-        var limits = new List<int?>
-        {
-            ReadEntitlement<int?>(networkUser.Entitlements, CustomPageBlockCountLimit)
-        };
-
-        if (networkUser.NetworkUserRoles != null)
-        {
-            limits.AddRange(networkUser.NetworkUserRoles
-                .Select(x => ReadEntitlement<int?>(x.Role.Entitlements, CustomPageBlockCountLimit)));
-        }
-
-        return limits.Max();
-    }
-
-    public NetworkUser RemoveCustomPageBlockCountLimitEntitlement(NetworkUser networkUser)
-    {
-        return RemoveEntitlement(networkUser, CustomPageBlockCountLimit);
-    }
-
-    // CustomPage Count Limit
-    private const string CustomPageCountLimit = "CustomPageCountLimit";
-
-    public NetworkUser WriteCustomPageCountLimitEntitlement(NetworkUser networkUser, int blogCountLimit)
-    {
-        return WriteEntitlement(networkUser, CustomPageCountLimit, blogCountLimit);
-    }
-
-    public int? ReadCustomPageCountLimitEntitlement(NetworkUser networkUser)
-    {
-        var limits = new List<int?>
-        {
-            ReadEntitlement<int?>(networkUser.Entitlements, CustomPageCountLimit)
-        };
-
-        if (networkUser.NetworkUserRoles != null)
-        {
-            limits.AddRange(networkUser.NetworkUserRoles
-                .Select(x => ReadEntitlement<int?>(x.Role.Entitlements, CustomPageCountLimit)));
-        }
-
-        return limits.Max();
-    }
-
-    public NetworkUser RemoveCustomPageCountLimitEntitlement(NetworkUser networkUser)
-    {
-        return RemoveEntitlement(networkUser, CustomPageCountLimit);
-    }
-
-    // Configuration Count Limit
-    private const string ConfigurationCountLimit = "ConfigurationCountLimit";
-
-    public NetworkUser WriteConfigurationCountLimitEntitlement(NetworkUser networkUser, int blogCountLimit)
-    {
-        return WriteEntitlement(networkUser, ConfigurationCountLimit, blogCountLimit);
-    }
-
-    public int? ReadConfigurationCountLimitEntitlement(NetworkUser networkUser)
-    {
-        var limits = new List<int?>
-        {
-            ReadEntitlement<int?>(networkUser.Entitlements, ConfigurationCountLimit)
-        };
-
-        if (networkUser.NetworkUserRoles != null)
-        {
-            limits.AddRange(networkUser.NetworkUserRoles
-                .Select(x => ReadEntitlement<int?>(x.Role.Entitlements, ConfigurationCountLimit)));
-        }
-
-        return limits.Max();
-    }
-
-    public NetworkUser RemoveConfigurationCountLimitEntitlement(NetworkUser networkUser)
-    {
-        return RemoveEntitlement(networkUser, ConfigurationCountLimit);
-    }
-
-    // Blog Count Limit
-    private const string BlogCountLimit = "BlogCountLimit";
-
-    public NetworkUser WriteBlogCountLimitEntitlement(NetworkUser networkUser, int blogCountLimit)
-    {
-        return WriteEntitlement(networkUser, BlogCountLimit, blogCountLimit);
-    }
-
-    public int? ReadBlogCountLimitEntitlement(NetworkUser networkUser)
-    {
-        var limits = new List<int?>
-        {
-            ReadEntitlement<int?>(networkUser.Entitlements, BlogCountLimit)
-        };
-
-        if (networkUser.NetworkUserRoles != null)
-        {
-            limits.AddRange(networkUser.NetworkUserRoles
-                .Select(x => ReadEntitlement<int?>(x.Role.Entitlements, BlogCountLimit)));
-        }
-
-        return limits.Max();
-    }
-
-    public NetworkUser RemoveBlogCountLimitEntitlement(NetworkUser networkUser)
-    {
-        return RemoveEntitlement(networkUser, BlogCountLimit);
-    }
-
-    // File Count Limit
-    private const string FileCountLimit = "FileCountLimit";
-
-    public NetworkUser WriteFileCountLimitEntitlement(NetworkUser networkUser, int fileCountLimit)
-    {
-        return WriteEntitlement(networkUser, FileCountLimit, fileCountLimit);
-    }
-
-    public int? ReadFileCountLimitEntitlement(NetworkUser networkUser)
-    {
-        var limits = new List<int?>
-        {
-            ReadEntitlement<int?>(networkUser.Entitlements, FileCountLimit)
-        };
-
-        if (networkUser.NetworkUserRoles != null)
-        {
-            limits.AddRange(networkUser.NetworkUserRoles
-                .Select(x => ReadEntitlement<int?>(x.Role.Entitlements, FileCountLimit)));
-        }
-
-        return limits.Max();
-    }
-
-    public NetworkUser RemoveFileCountLimitEntitlement(NetworkUser networkUser)
-    {
-        return RemoveEntitlement(networkUser, FileCountLimit);
-    }
-
-    // File Size Limit
-    private const string FileSizeLimit = "FileSizeLimit";
-
-    public NetworkUser WriteFileSizeLimitEntitlement(NetworkUser networkUser, int fileCountLimit)
-    {
-        return WriteEntitlement(networkUser, FileSizeLimit, fileCountLimit);
-    }
-
-    public int? ReadFileSizeLimitEntitlement(NetworkUser networkUser)
-    {
-        var limits = new List<int?>
-        {
-            ReadEntitlement<int?>(networkUser.Entitlements, FileSizeLimit)
-        };
-
-        if (networkUser.NetworkUserRoles != null)
-        {
-            limits.AddRange(networkUser.NetworkUserRoles
-                .Select(x => ReadEntitlement<int?>(x.Role.Entitlements, FileSizeLimit)));
-        }
-
-        return limits.Max();
-    }
-
-    public NetworkUser RemoveFileSizeLimitEntitlement(NetworkUser networkUser)
-    {
-        return RemoveEntitlement(networkUser, FileSizeLimit);
-    }
-
-    // File Storage Limit
-    private const string FileStorageLimit = "FileStorageLimit";
-
-    public NetworkUser WriteFileStorageLimitEntitlement(NetworkUser networkUser, int fileCountLimit)
-    {
-        return WriteEntitlement(networkUser, FileStorageLimit, fileCountLimit);
-    }
-
-    public int? ReadFileStorageLimitEntitlement(NetworkUser networkUser)
-    {
-        var limits = new List<int?>
-        {
-            ReadEntitlement<int?>(networkUser.Entitlements, FileStorageLimit)
-        };
-
-        if (networkUser.NetworkUserRoles != null)
-        {
-            limits.AddRange(networkUser.NetworkUserRoles
-                .Select(x => ReadEntitlement<int?>(x.Role.Entitlements, FileStorageLimit)));
-        }
-
-        return limits.Max();
-    }
-
-    public NetworkUser RemoveFileStorageLimitEntitlement(NetworkUser networkUser)
-    {
-        return RemoveEntitlement(networkUser, FileStorageLimit);
     }
 }
