@@ -1,8 +1,6 @@
 using thirdpartynetwork.Core.Enum;
 using thirdpartynetwork.Core.Helper;
 using thirdpartynetwork.Core.Interfaces.Auth;
-using thirdpartynetwork.Core.Interfaces.Repositories;
-using thirdpartynetwork.Core.Interfaces.Services;
 using thirdpartynetwork.Core.Models;
 using File = thirdpartynetwork.Core.Models.File;
 
@@ -14,7 +12,6 @@ public class ContentViewingLinkService(
     IBlogRepository blogRepository,
     IConfigurationRepository configurationRepository,
     ICustomPageRepository customPageRepository,
-    IPageBlockRepository pageBlockRepository,
     IAccessLevelVerifier accessLevelVerifier,
     IIdentityService identityService,
     ICDNService cdnService) : IContentViewingLinkService
@@ -52,20 +49,10 @@ public class ContentViewingLinkService(
         var content = await GetContentAsync(link.ContentKind, link.ContentId);
         if (content == null) return null;
 
-        UserContentBaseModel? accessCheckContent = content;
-        var accessCheckKind = link.ContentKind;
-        if (link.ContentKind == ContentKind.PageBlock)
-        {
-            accessCheckContent = await customPageRepository.GetByIdBypassingAccessAsync(((PageBlock)content).CustomPageId);
-            accessCheckKind = ContentKind.CustomPage;
-        }
-
-        if (accessCheckContent == null) return null;
-
         var callerId = link.IssuedForUserProxyId ?? Guid.Empty;
-        var readPermission = ContentKindMapper.ReadPermissionFor(accessCheckKind);
+        var readPermission = ContentKindMapper.ReadPermissionFor(link.ContentKind);
         var stillAllowed = await accessLevelVerifier.CheckAccessForCallerAsync(
-            accessCheckContent, accessCheckContent.NetworkId, callerId, readPermission);
+            content, content.NetworkId, callerId, readPermission);
         if (!stillAllowed) return null;
 
         if (link.Mode == ContentViewingLinkMode.OneTimeView)
@@ -112,7 +99,6 @@ public class ContentViewingLinkService(
         ContentKind.Blog => await blogRepository.GetByIdBypassingAccessAsync(id),
         ContentKind.Configuration => await configurationRepository.GetByIdBypassingAccessAsync(id),
         ContentKind.CustomPage => await customPageRepository.GetByIdBypassingAccessAsync(id),
-        ContentKind.PageBlock => await pageBlockRepository.GetByIdBypassingAccessAsync(id),
         _ => throw new NotSupportedException($"Unknown ContentKind {kind}")
     };
 }

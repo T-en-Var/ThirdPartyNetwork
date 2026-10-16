@@ -8,5 +8,4 @@ public enum ContentKindFlags
     Blog = 1 << 1,
     Configuration = 1 << 2,
     CustomPage = 1 << 3,
-    PageBlock = 1 << 4,
 }

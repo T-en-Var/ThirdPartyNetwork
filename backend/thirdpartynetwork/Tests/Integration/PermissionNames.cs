@@ -11,7 +11,6 @@ public static class PermissionNames
         ContentKind.Blog => Constants.Permissions.ReadBlog,
         ContentKind.Configuration => Constants.Permissions.ReadConfiguration,
         ContentKind.CustomPage => Constants.Permissions.ReadCustomPage,
-        ContentKind.PageBlock => Constants.Permissions.ReadPageBlock,
         _ => throw new NotSupportedException(kind.ToString()),
     };
 
@@ -21,7 +20,6 @@ public static class PermissionNames
         ContentKind.Blog => Constants.Permissions.ManageBlog,
         ContentKind.Configuration => Constants.Permissions.ManageConfiguration,
         ContentKind.CustomPage => Constants.Permissions.ManageCustomPage,
-        ContentKind.PageBlock => Constants.Permissions.ManagePageBlock,
         _ => throw new NotSupportedException(kind.ToString()),
     };
 
@@ -31,7 +29,6 @@ public static class PermissionNames
         ContentKind.Blog => Constants.Permissions.ModerateBlog,
         ContentKind.Configuration => Constants.Permissions.ModerateConfiguration,
         ContentKind.CustomPage => Constants.Permissions.ModerateCustomPage,
-        ContentKind.PageBlock => Constants.Permissions.ModeratePageBlock,
         _ => throw new NotSupportedException(kind.ToString()),
     };
 }

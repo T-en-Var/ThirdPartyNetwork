@@ -1,12 +1,10 @@
 ﻿using System.Text.Json;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using thirdpartynetwork.Core;
 using thirdpartynetwork.Core.Models;
 using thirdpartynetwork.Core.Data;
 using thirdpartynetwork.Core.Enum;
 using thirdpartynetwork.Core.Interfaces.Helpers;
-using File = thirdpartynetwork.Core.Models.File;
 using Role = thirdpartynetwork.Core.Models.Role;
 
 
@@ -42,7 +40,7 @@ namespace thirdpartynetwork
                     Description = "Dummy Network Description",
                     IsPublic = true,
                     RedirectURI = "#",
-                    FeatureFlag = new ()
+                    FeatureFlag = new()
                     {
                         AllowBlogs = false,
                         AllowConfigurations = false,
@@ -81,7 +79,6 @@ namespace thirdpartynetwork
 
                 userRole.RolePermissions = new List<RolePermission>()
                 {
-                    
                     new()
                     {
                         Permission = context.Permissions.First(p => p.Name == Constants.Permissions.ReadNetwork),
@@ -124,7 +121,7 @@ namespace thirdpartynetwork
                     adminRole,
                     userRole
                 };
-                
+
                 var mainNetwork = context.Networks.FirstOrDefault(x => x.Name == Constants.Networks.Main)!;
 
                 var dummyAdmin = new User() { };
@@ -139,7 +136,7 @@ namespace thirdpartynetwork
                     Email = "dummy@admin.com",
                     Password = passwordHasher.HashPassword("dummy@admin.com"),
                 };
-                
+
                 dummyAdmin.UserProxies.Add(dummyAdminProxy);
 
                 var dummyNetworkAdmin = new NetworkUser()
@@ -148,7 +145,7 @@ namespace thirdpartynetwork
                     Network = dummyNetwork,
                     FeatureFlags = JsonDocument.Parse("{}")
                 };
-                
+
                 var nu1 = new NetworkUser()
                 {
                     UserProxy = dummyAdminProxy,
@@ -192,7 +189,7 @@ namespace thirdpartynetwork
                     Email = "dummy@user.com",
                     Password = passwordHasher.HashPassword("dummy@user.com"),
                 };
-                
+
                 dummyUser.UserProxies.Add(dummyUserProxy);
 
                 var dummyNetworkUser = new NetworkUser()
@@ -201,7 +198,7 @@ namespace thirdpartynetwork
                     Network = dummyNetwork,
                     FeatureFlags = JsonDocument.Parse("{}")
                 };
-                
+
                 var nu2 = new NetworkUser()
                 {
                     UserProxy = dummyUserProxy,
@@ -264,76 +261,35 @@ namespace thirdpartynetwork
             await using var transaction = await context.Database.BeginTransactionAsync();
             try
             {
-                var network = new Network
-                {
-                    Name = Constants.Networks.Main,
-                    Description = "TrojoNetworks' main network",
-                    ImageFile = null,
-                    RedirectURI = "#",
-                    IsSystemProtected = true,
-                    IsPublic = true,
-                    FeatureFlag = new ()
-                    {
-                        AllowBlogs = true,
-                        AllowConfigurations = true,
-                        AllowFiles = true,
-                        AllowCustomPages = true,
-                    }
-                };
+                // ---
+                // Basic required population
+                // ---
 
-                var permissions = new List<Permission>
+                var permissions = Constants.PermissionsToBeInDatabase.Select(p => new Permission
                 {
-                    new()
-                    {
-                        Name = Constants.Permissions.Administrator,
-                        Description = "User has ALL permissions and can do ANYTHING.", IsSystemProtected = true
-                    },
-                    new() { Name = Constants.Permissions.ReadNetwork, Description = "", IsSystemProtected = true },
-                    new() { Name = Constants.Permissions.ManageNetwork, Description = "", IsSystemProtected = true },
-                    new() { Name = Constants.Permissions.ReadAccess, Description = "", IsSystemProtected = true },
-                    new() { Name = Constants.Permissions.ManageAccess, Description = "", IsSystemProtected = true },
-                    new() { Name = Constants.Permissions.ReadPermission, Description = "", IsSystemProtected = true },
-                    new() { Name = Constants.Permissions.ManagePermission, Description = "", IsSystemProtected = true },
-                    new() { Name = Constants.Permissions.ReadRole, Description = "", IsSystemProtected = true },
-                    new() { Name = Constants.Permissions.ManageRole, Description = "", IsSystemProtected = true },
-                    new() { Name = Constants.Permissions.ReadUser, Description = "", IsSystemProtected = true },
-                    new() { Name = Constants.Permissions.ManageUser, Description = "", IsSystemProtected = true },
-                    new() { Name = Constants.Permissions.ReadCustomPage, Description = "", IsSystemProtected = true },
-                    new() { Name = Constants.Permissions.ManageCustomPage, Description = "", IsSystemProtected = true },
-                    new() { Name = Constants.Permissions.ReadPageBlock, Description = "", IsSystemProtected = true },
-                    new() { Name = Constants.Permissions.ManagePageBlock, Description = "", IsSystemProtected = true },
-                    new() { Name = Constants.Permissions.ReadFile, Description = "", IsSystemProtected = true },
-                    new() { Name = Constants.Permissions.ManageFile, Description = "", IsSystemProtected = true },
-                    new() { Name = Constants.Permissions.ReadConfiguration, Description = "", IsSystemProtected = true },
-                    new() { Name = Constants.Permissions.ManageConfiguration, Description = "", IsSystemProtected = true },
-                    new() { Name = Constants.Permissions.ReadBlog, Description = "", IsSystemProtected = true },
-                    new() { Name = Constants.Permissions.ManageBlog, Description = "", IsSystemProtected = true },
-                    new() { Name = Constants.Permissions.ManageContentAccess, Description = "", IsSystemProtected = true },
-                    new() { Name = Constants.Permissions.ModerateFile, Description = "", IsSystemProtected = true },
-                    new() { Name = Constants.Permissions.ModerateBlog, Description = "", IsSystemProtected = true },
-                    new() { Name = Constants.Permissions.ModerateConfiguration, Description = "", IsSystemProtected = true },
-                    new() { Name = Constants.Permissions.ModerateCustomPage, Description = "", IsSystemProtected = true },
-                    new() { Name = Constants.Permissions.ModeratePageBlock, Description = "", IsSystemProtected = true },
-                };
+                    Name = p,
+                    Description = string.Empty,
+                    IsSystemProtected = true
+                }).ToArray();
 
                 var accesses = new List<Access>
                 {
                     new()
                     {
                         Name = Constants.Access.AccessUsername,
-                        Description = "Allows Network to Access User's Username", 
+                        Description = "Allows Network to Access User's Username",
                         IsSystemProtected = true
                     },
                     new()
                     {
                         Name = Constants.Access.AccessFirstname,
-                        Description = "Allows Network to Access User's Firstname", 
+                        Description = "Allows Network to Access User's Firstname",
                         IsSystemProtected = true
                     },
                     new()
                     {
                         Name = Constants.Access.AccessLastname,
-                        Description = "Allows Network to Access User's Lastname", 
+                        Description = "Allows Network to Access User's Lastname",
                         IsSystemProtected = true
                     },
                     new()
@@ -345,9 +301,43 @@ namespace thirdpartynetwork
                     new()
                     {
                         Name = Constants.Access.AccessProfilePicture,
-                        Description = "Allows Network to Access User's ProfilePicture", 
+                        Description = "Allows Network to Access User's ProfilePicture",
                         IsSystemProtected = true
                     }
+                };
+
+                // ---
+                // Main Network
+                // ---
+
+                var network = new Network
+                {
+                    Name = Constants.Networks.Main,
+                    Description = "TrojoNetworks' main network",
+                    ImageFile = null,
+                    RedirectURI = "#",
+                    IsSystemProtected = true,
+                    IsPublic = true,
+                    FeatureFlag = new()
+                    {
+                        AllowBlogs = true,
+                        BlogCountLimit = 500,
+
+                        AllowConfigurations = true,
+                        ConfigurationCountLimit = 500,
+
+                        AllowFiles = true,
+                        FileCountLimit = 500,
+                        FileSizeLimit = 100_000, // 100_000 kb = 100 MB
+                        FileStorageLimit = 5_000_000, // 5 GB
+
+                        AllowCustomPages = true,
+                        CustomPageCountLimit = 500,
+                        CustomPageBlockCountLimit = 500,
+                        CustomPageBlockSizeLimit = 5_000, // max 5k characters
+                    },
+                    ExternalContentKinds = ContentKindFlags.File | ContentKindFlags.Blog |
+                                           ContentKindFlags.Configuration | ContentKindFlags.CustomPage
                 };
 
                 var adminRole = new Role
@@ -424,7 +414,7 @@ namespace thirdpartynetwork
                     FirstName = "Admin",
                     LastName = "Noodle",
                     Email = "admin@gmail.com",
-                    Password = passwordHasher.HashPassword(Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") == "Development" ? "admin@gmail.com" : "LittleNoodleBigNoodle"),
+                    Password = passwordHasher.HashPassword("admin@gmail.com"),
                     ImageFile = null,
                     IsDefault = true,
                     User = new User()

@@ -22,17 +22,17 @@ public class FlagsEnumValidatorTests
     [Test]
     public void IsDefinedCombination_CombinationOfDefinedFlags_IsValid()
     {
-        // 11010 binary = Blog(00010) | CustomPage(01000) | PageBlock(10000)
-        var combo = ContentKindFlags.Blog | ContentKindFlags.CustomPage | ContentKindFlags.PageBlock;
-        Assert.That((int)combo, Is.EqualTo(0b11010));
+        // 1010 binary = Blog(0010) | CustomPage(1000)
+        var combo = ContentKindFlags.Blog | ContentKindFlags.CustomPage;
+        Assert.That((int)combo, Is.EqualTo(0b1010));
         Assert.That(FlagsEnumValidator.IsDefinedCombination(combo), Is.True);
     }
 
     [Test]
     public void IsDefinedCombination_BitOutsideDefinedRange_IsInvalid()
     {
-        // 1 << 5 is one bit past PageBlock (1 << 4) — no member defines it.
-        Assert.That(FlagsEnumValidator.IsDefinedCombination((ContentKindFlags)(1 << 5)), Is.False);
+        // 1 << 4 is one bit past CustomPage (1 << 3) — no member defines it.
+        Assert.That(FlagsEnumValidator.IsDefinedCombination((ContentKindFlags)(1 << 4)), Is.False);
     }
 
     [Test]
