@@ -4,6 +4,6 @@ namespace thirdpartynetwork.Application.Dtos.NetworkUser
 {
     public class UpdateNetworkUserDto
     {
-        public required JsonElement Entitlements { get; set; }
+        public required JsonElement FeatureFlags { get; set; }
     }
 }

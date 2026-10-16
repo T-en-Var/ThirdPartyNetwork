@@ -10,7 +10,7 @@ public class Role : BaseModel
     public required string Description { get; set; }
     public required bool IsDefault { get; set; }
     public Guid NetworkId { get; set; }
-    public required JsonDocument Entitlements { get; set; } = JsonDocument.Parse("{}");
+    public required JsonDocument FeatureFlags { get; set; } = JsonDocument.Parse("{}");
     public ICollection<RolePermission> RolePermissions { get; set; } = new List<RolePermission>();
     [JsonIgnore]
     public ICollection<NetworkUserRole> NetworkUserRoles { get; set; } = new List<NetworkUserRole>();
