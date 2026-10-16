@@ -30,7 +30,7 @@ public class IdentityVerifierTests
         {
             Id = Guid.NewGuid(), Name = Constants.Networks.Main, IsPublic = false, Description = "Main network",
             RedirectURI = "",
-            Entitlement = new()
+            FeatureFlag = new()
             {
                 AllowBlogs = true,
                 AllowConfigurations = true,
@@ -46,7 +46,7 @@ public class IdentityVerifierTests
         var role = new Role
         {
             Id = Guid.NewGuid(), Name = "r", Description = "d", Network = main, NetworkId = main.Id, IsDefault = false,
-            Entitlements = JsonDocument.Parse("{}")
+            FeatureFlags = JsonDocument.Parse("{}")
         };
         var rolePerm = new RolePermission
             { Permission = permissionAdmin, Role = role, PermissionId = permissionAdmin.Id, RoleId = role.Id };
@@ -55,7 +55,7 @@ public class IdentityVerifierTests
         var nu = new NetworkUser
         {
             Id = Guid.NewGuid(), NetworkId = main.Id, UserProxy = proxy, UserProxyId = proxy.Id,
-            Entitlements = JsonDocument.Parse("{}")
+            FeatureFlags = JsonDocument.Parse("{}")
         };
         var nur = new NetworkUserRole { NetworkUserId = nu.Id, RoleId = role.Id, Role = role, NetworkUser = nu };
         nu.NetworkUserRoles.Add(nur);
@@ -87,7 +87,7 @@ public class IdentityVerifierTests
             IsPublic = false,
             Description = "",
             RedirectURI = "",
-            Entitlement = new()
+            FeatureFlag = new()
             {
                 AllowBlogs = true,
                 AllowConfigurations = true,
@@ -99,7 +99,7 @@ public class IdentityVerifierTests
         var role = new Role
         {
             Id = Guid.NewGuid(), Name = "r2", Description = "d2", Network = net, NetworkId = net.Id, IsDefault = false,
-            Entitlements = JsonDocument.Parse("{}")
+            FeatureFlags = JsonDocument.Parse("{}")
         };
         var rp = new RolePermission
             { Permission = permission, Role = role, PermissionId = permission.Id, RoleId = role.Id };
@@ -109,7 +109,7 @@ public class IdentityVerifierTests
         var proxy = new UserProxy { Id = Guid.NewGuid(), User = user, IsDefault = true };
 
         var nu = new NetworkUser { Id = Guid.NewGuid(), NetworkId = net.Id, UserProxy = proxy, UserProxyId = proxy.Id,
-            Entitlements = JsonDocument.Parse("{}") };
+            FeatureFlags = JsonDocument.Parse("{}") };
         var nur = new NetworkUserRole { NetworkUserId = nu.Id, RoleId = role.Id, Role = role, NetworkUser = nu };
         nu.NetworkUserRoles.Add(nur);
         proxy.NetworkUsers.Add(nu);

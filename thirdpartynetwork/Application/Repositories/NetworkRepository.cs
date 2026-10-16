@@ -27,13 +27,13 @@ namespace thirdpartynetwork.Application.Repositories
 
             var currentUser = await identityService.GetUserProxyAsync(true);
 
-            var allowEntitlement = bypass ||
+            var allowFeatureFlag = bypass ||
                                    await identityVerifier.IsAllowedAsync(id, currentUser.Id,
                                        Constants.Permissions.ManageNetwork);
 
-            if (allowEntitlement)
+            if (allowFeatureFlag)
             {
-                query = query.Include(x => x.Entitlement);
+                query = query.Include(x => x.FeatureFlag);
             }
 
             return query;
@@ -45,19 +45,19 @@ namespace thirdpartynetwork.Application.Repositories
                 .Include(x => x.ImageFile)
                 .Include(x => x.NetworkUsers)
                 .Include(x => x.Roles)
-                .Include(x => x.Entitlement)
+                .Include(x => x.FeatureFlag)
                 .AsQueryable();
 
             var currentUser = await identityService.GetUserProxyAsync(true);
 
-            var allowEntitlement = bypass ||
+            var allowFeatureFlag = bypass ||
                                    await identityVerifier.IsSuperAdminOrHasSuperPermissionAsync(currentUser.Id,
                                        Constants.Permissions.ManageNetwork);
-            Console.WriteLine($"allowEntitlement: {allowEntitlement}");
+            Console.WriteLine($"allowFeatureFlag: {allowFeatureFlag}");
 
-            if (allowEntitlement)
+            if (allowFeatureFlag)
             {
-                query = query.Include(x => x.Entitlement);
+                query = query.Include(x => x.FeatureFlag);
             }
 
             return query;
@@ -148,7 +148,7 @@ namespace thirdpartynetwork.Application.Repositories
 
         public async Task<Network> GetMainNetworkDetailsAsync()
         {
-            var mainNetwork = await _context.Networks.Include(x => x.Entitlement)
+            var mainNetwork = await _context.Networks.Include(x => x.FeatureFlag)
                 .FirstOrDefaultAsync(n => n.Name == Constants.Networks.Main);
             if (mainNetwork == null) throw new Exception("Main network not found, that is NOT good.");
 
@@ -173,10 +173,10 @@ namespace thirdpartynetwork.Application.Repositories
                 .Where(n => n.Id == id);
         }
 
-        public async Task<Network?> GetByIdEntitlementAsync(Guid id)
+        public async Task<Network?> GetByIdFeatureFlagAsync(Guid id)
         {
             return await _context.Networks
-                .Include(n => n.Entitlement)
+                .Include(n => n.FeatureFlag)
                 .FirstOrDefaultAsync(n => n.Id == id);
         }
 

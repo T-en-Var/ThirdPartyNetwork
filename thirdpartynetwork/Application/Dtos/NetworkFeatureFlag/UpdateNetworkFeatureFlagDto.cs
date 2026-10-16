@@ -1,6 +1,6 @@
 ﻿namespace thirdpartynetwork.Application.Dtos.Network
 {
-    public class CreateNetworkEntitlementDto
+    public class UpdateNetworkFeatureFlagDto
     {
         public bool AllowFiles { get; set; }
         public int FileCountLimit { get; set; } = 0;

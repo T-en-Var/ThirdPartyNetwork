@@ -42,7 +42,7 @@ namespace thirdpartynetwork
                     Description = "Dummy Network Description",
                     IsPublic = true,
                     RedirectURI = "#",
-                    Entitlement = new ()
+                    FeatureFlag = new ()
                     {
                         AllowBlogs = false,
                         AllowConfigurations = false,
@@ -57,7 +57,7 @@ namespace thirdpartynetwork
                     Description = "Admin Role",
                     Network = dummyNetwork,
                     IsDefault = false,
-                    Entitlements = JsonDocument.Parse("{}")
+                    FeatureFlags = JsonDocument.Parse("{}")
                 };
 
                 adminRole.RolePermissions = new List<RolePermission>()
@@ -76,7 +76,7 @@ namespace thirdpartynetwork
                     Description = "User Role",
                     Network = dummyNetwork,
                     IsDefault = true,
-                    Entitlements = JsonDocument.Parse("{}")
+                    FeatureFlags = JsonDocument.Parse("{}")
                 };
 
                 userRole.RolePermissions = new List<RolePermission>()
@@ -146,14 +146,14 @@ namespace thirdpartynetwork
                 {
                     UserProxy = dummyAdminProxy,
                     Network = dummyNetwork,
-                    Entitlements = JsonDocument.Parse("{}")
+                    FeatureFlags = JsonDocument.Parse("{}")
                 };
                 
                 var nu1 = new NetworkUser()
                 {
                     UserProxy = dummyAdminProxy,
                     Network = mainNetwork,
-                    Entitlements = JsonDocument.Parse("{}")
+                    FeatureFlags = JsonDocument.Parse("{}")
                 };
 
                 dummyAdminProxy.NetworkUsers = new List<NetworkUser>()
@@ -199,14 +199,14 @@ namespace thirdpartynetwork
                 {
                     UserProxy = dummyUserProxy,
                     Network = dummyNetwork,
-                    Entitlements = JsonDocument.Parse("{}")
+                    FeatureFlags = JsonDocument.Parse("{}")
                 };
                 
                 var nu2 = new NetworkUser()
                 {
                     UserProxy = dummyUserProxy,
                     Network = mainNetwork,
-                    Entitlements = JsonDocument.Parse("{}")
+                    FeatureFlags = JsonDocument.Parse("{}")
                 };
 
                 dummyUserProxy.NetworkUsers = new List<NetworkUser>()
@@ -272,7 +272,7 @@ namespace thirdpartynetwork
                     RedirectURI = "#",
                     IsSystemProtected = true,
                     IsPublic = true,
-                    Entitlement = new ()
+                    FeatureFlag = new ()
                     {
                         AllowBlogs = true,
                         AllowConfigurations = true,
@@ -357,7 +357,7 @@ namespace thirdpartynetwork
                     IsSystemProtected = true,
                     Network = network,
                     IsDefault = false,
-                    Entitlements = JsonDocument.Parse("{}")
+                    FeatureFlags = JsonDocument.Parse("{}")
                 };
 
                 adminRole.RolePermissions = new List<RolePermission>
@@ -376,7 +376,7 @@ namespace thirdpartynetwork
                     IsSystemProtected = true,
                     Network = network,
                     IsDefault = true,
-                    Entitlements = JsonDocument.Parse("{}")
+                    FeatureFlags = JsonDocument.Parse("{}")
                 };
 
                 userRole.RolePermissions = new List<RolePermission>()
@@ -434,7 +434,7 @@ namespace thirdpartynetwork
                 {
                     UserProxy = adminUser,
                     Network = network,
-                    Entitlements = JsonDocument.Parse("{}")
+                    FeatureFlags = JsonDocument.Parse("{}")
                 };
 
                 adminNetworkUser.NetworkUserRoles = new List<NetworkUserRole>

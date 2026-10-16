@@ -324,7 +324,7 @@ today (its columns are flattened into `File`/`Blog`/`Configuration`/`CustomPage`
   a network — or having a membership row removed for any reason — hard-deletes every piece of
   content that member authored there, which directly contradicts this plan's own "`AuthorOwned` =
   portable" framing (Q2). Pointing at the durable `UserProxy` persona instead fixes that, and
-  simplifies the per-user-per-network entitlement queries in `EntitlementService.cs` (currently
+  simplifies the per-user-per-network featureFlag queries in `FeatureFlagService.cs` (currently
   `GetByAuthorIdAsync(networkId, networkUser.Id)`) to a direct `WHERE NetworkId = @n AND
   AuthorUserProxyId = @u` — both scoping keys already live on the content row, no join through
   `NetworkUser` needed either way. `NetworkId` is **untouched and stays required**: it's tenancy
@@ -849,7 +849,7 @@ callers relying on "any editor role can fix any post" lose that ability and must
    3. Only then drop the old `AccessLevel` column, wire up `AccessLevelVerifier` (§3.3),
       implement `IsContentOwnerAsync` (§3.2), ship grant CRUD endpoints and the
       publish/unpublish actions (§6).
-   Also update `EntitlementService`'s `GetByAuthorIdAsync`-style queries to the new
+   Also update `FeatureFlagService`'s `GetByAuthorIdAsync`-style queries to the new
    `AuthorUserProxyId` column while in here.
 4. **`ContentViewingLink`** — model/migration/repository/service, keyed by `ContentKind`+
    `ContentId` from the start (§2.3) so all five kinds get it in one pass rather than

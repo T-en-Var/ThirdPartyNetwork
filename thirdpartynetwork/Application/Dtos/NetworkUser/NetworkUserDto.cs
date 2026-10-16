@@ -13,7 +13,7 @@ namespace thirdpartynetwork.Application.Dtos.NetworkUser
         public DateTime CreatedOn { get; set; }
         public ICollection<NetworkUserAccessNtADto> NetworkUserAccesses { get; set; } = [];
         public ICollection<NetworkUserRoleNtRDto> NetworkUserRoles { get; set; } = [];
-        public required JsonElement Entitlements { get; set; }
+        public required JsonElement FeatureFlags { get; set; }
     }
     
     public class NetworkUserLightDto
@@ -24,7 +24,7 @@ namespace thirdpartynetwork.Application.Dtos.NetworkUser
         public required UserProxyLightShortProfileDto UserProxy { get; set; }
         public bool AccessIncomplete { get; set; }
         public DateTime CreatedOn { get; set; }
-        public required JsonElement Entitlements { get; set; }
+        public required JsonElement FeatureFlags { get; set; }
     }
     
     public class NetworkUserLightUserInfoDto
@@ -34,7 +34,7 @@ namespace thirdpartynetwork.Application.Dtos.NetworkUser
         public required Guid UserProxyId { get; set; }
         public bool AccessIncomplete { get; set; }
         public DateTime CreatedOn { get; set; }
-        public required JsonElement Entitlements { get; set; }
+        public required JsonElement FeatureFlags { get; set; }
         public required UserProxyLightDto UserProxy { get; set; }
         public ICollection<NetworkUserAccessNtADto> NetworkUserAccesses { get; set; } = [];
         public ICollection<NetworkUserRoleNtRDto> NetworkUserRoles { get; set; } = [];
@@ -47,7 +47,7 @@ namespace thirdpartynetwork.Application.Dtos.NetworkUser
         public required Guid UserProxyId { get; set; }
         public bool AccessIncomplete { get; set; }
         public DateTime CreatedOn { get; set; }
-        public required JsonElement Entitlements { get; set; }
+        public required JsonElement FeatureFlags { get; set; }
         public required NetworkLightDto Network { get; set; }
     }
     

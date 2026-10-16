@@ -13,7 +13,7 @@ namespace thirdpartynetwork.Core.Models
         [JsonIgnore]
         public Network Network { get; set; }
         public bool AccessIncomplete { get; set; } = false;
-        public required JsonDocument Entitlements { get; set; } = JsonDocument.Parse("{}");
+        public required JsonDocument FeatureFlags { get; set; } = JsonDocument.Parse("{}");
         public ICollection<NetworkUserAccess> NetworkUserAccesses { get; set; } = new List<NetworkUserAccess>();
         public ICollection<NetworkUserRole> NetworkUserRoles { get; set; } = new List<NetworkUserRole>();
         // public ICollection<File> Files { get; set; } = new List<File>();

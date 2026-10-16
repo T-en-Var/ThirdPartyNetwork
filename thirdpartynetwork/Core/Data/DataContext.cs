@@ -14,7 +14,7 @@ namespace thirdpartynetwork.Core.Data
         public DbSet<ContentModerationFlag> ContentModerationFlags { get; set; }
         public DbSet<Network> Networks { get; set; }
         public DbSet<NetworkAccess> NetworkAccesses { get; set; }
-        public DbSet<NetworkEntitlement> NetworkEntitlements { get; set; }
+        public DbSet<NetworkFeatureFlag> NetworkFeatureFlags { get; set; }
         public DbSet<NetworkUser> NetworkUsers { get; set; }
         public DbSet<NetworkUserAccess> NetworkUserAccesses { get; set; }
         public DbSet<NetworkUserRole> NetworkUserRoles { get; set; }
@@ -99,14 +99,14 @@ namespace thirdpartynetwork.Core.Data
                 .WithOne(r => r.Network)
                 .HasForeignKey(r => r.NetworkId);
             
-            modelBuilder.Entity<NetworkEntitlement>()
+            modelBuilder.Entity<NetworkFeatureFlag>()
                 .HasKey(e => e.NetworkId);
 
-            // One-to-one: Network -> NetworkEntitlement
+            // One-to-one: Network -> NetworkFeatureFlag
             modelBuilder.Entity<Network>()
-                .HasOne(n => n.Entitlement)
+                .HasOne(n => n.FeatureFlag)
                 .WithOne()
-                .HasForeignKey<NetworkEntitlement>(e => e.NetworkId)
+                .HasForeignKey<NetworkFeatureFlag>(e => e.NetworkId)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Cascade);
             
@@ -114,25 +114,25 @@ namespace thirdpartynetwork.Core.Data
             if (Database.ProviderName == "Microsoft.EntityFrameworkCore.InMemory")
             {
                 entityRole
-                    .Property(b => b.Entitlements)
+                    .Property(b => b.FeatureFlags)
                     .HasConversion(
                         v => v.RootElement.GetRawText(),
                         v => JsonDocument.Parse(v, default)
                     );
             }
-            entityRole.Property(b => b.Entitlements).HasDefaultValueSql("'{}'");
+            entityRole.Property(b => b.FeatureFlags).HasDefaultValueSql("'{}'");
             
             var entityNetworkUser = modelBuilder.Entity<NetworkUser>();
             if (Database.ProviderName == "Microsoft.EntityFrameworkCore.InMemory")
             {
                 entityNetworkUser
-                    .Property(b => b.Entitlements)
+                    .Property(b => b.FeatureFlags)
                     .HasConversion(
                         v => v.RootElement.GetRawText(),
                         v => JsonDocument.Parse(v, default)
                     );
             }
-            entityNetworkUser.Property(b => b.Entitlements).HasDefaultValueSql("'{}'");
+            entityNetworkUser.Property(b => b.FeatureFlags).HasDefaultValueSql("'{}'");
             
             // * ----------------------- *
             //         UserContent

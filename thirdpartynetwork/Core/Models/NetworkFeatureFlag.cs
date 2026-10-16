@@ -1,6 +1,6 @@
 namespace thirdpartynetwork.Core.Models;
 
-public class NetworkEntitlement : BaseModel
+public class NetworkFeatureFlag : BaseModel
 {
     public Guid NetworkId { get; set; }
     public bool AllowFiles { get; set; } = false;
