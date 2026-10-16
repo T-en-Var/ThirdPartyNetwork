@@ -11,7 +11,7 @@ public class ConfigurationService(
     INetworkService networkService,
     IIdentityService identityService,
     INetworkUserService networkUserService,
-    IEntitlementService entitlementService,
+    IEntitlementValidator entitlementService,
     IMapper mapper) : UserContentBaseService<Configuration>(repository, networkUserService), IConfigurationService
 {
     private readonly INetworkUserService _networkUserService = networkUserService;

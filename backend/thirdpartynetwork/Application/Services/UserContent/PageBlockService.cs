@@ -11,7 +11,7 @@ namespace thirdpartynetwork.Application.Services
         ICustomPageService customPageService,
         IIdentityService identityService,
         INetworkUserService networkUserService,
-        IEntitlementService entitlementService,
+        IEntitlementValidator entitlementService,
         IMapper mapper) : UserContentBaseService<PageBlock>(repository, networkUserService), IPageBlockService
     {
         private readonly INetworkUserService _networkUserService = networkUserService;

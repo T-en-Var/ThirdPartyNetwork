@@ -10,7 +10,7 @@ namespace thirdpartynetwork.Application.Services
         INetworkService networkService,
         IIdentityService identityService,
         INetworkUserService networkUserService,
-        IEntitlementService entitlementService,
+        IEntitlementValidator entitlementService,
         IMapper mapper
     ) : UserContentBaseService<CustomPage>(repository, networkUserService), ICustomPageService
     {
