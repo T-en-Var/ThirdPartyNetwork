@@ -24,28 +24,28 @@ public class MappingProfiles : Profile
         CreateMap<UpdateNetworkAccessDto, NetworkAccess>();
 
 
-        CreateMap<NetworkUser, NetworkUserDto>().ForMember(dest => dest.Entitlements,
-            opt => opt.MapFrom(src => src.Entitlements.RootElement.Clone()));
+        CreateMap<NetworkUser, NetworkUserDto>().ForMember(dest => dest.FeatureFlags,
+            opt => opt.MapFrom(src => src.FeatureFlags.RootElement.Clone()));
         CreateMap<NetworkUser, NetworkUserLightDto>()
-            .ForMember(dest => dest.Entitlements, opt => opt.MapFrom(src =>
-                src.Entitlements.RootElement.Clone()
+            .ForMember(dest => dest.FeatureFlags, opt => opt.MapFrom(src =>
+                src.FeatureFlags.RootElement.Clone()
             ));
         CreateMap<NetworkUser, NetworkUserLightWithNetworkDto>()
-            .ForMember(dest => dest.Entitlements, opt => opt.MapFrom(src =>
-                src.Entitlements.RootElement.Clone()
+            .ForMember(dest => dest.FeatureFlags, opt => opt.MapFrom(src =>
+                src.FeatureFlags.RootElement.Clone()
             ));
         CreateMap<NetworkUser, NetworkUserLightUserInfoDto>()
-            .ForMember(dest => dest.Entitlements, opt => opt.MapFrom(src =>
-                src.Entitlements.RootElement.Clone()
+            .ForMember(dest => dest.FeatureFlags, opt => opt.MapFrom(src =>
+                src.FeatureFlags.RootElement.Clone()
             ));
         CreateMap<NetworkUser, NetworkUserLightWithNetworkDto>()
-            .ForMember(dest => dest.Entitlements, opt => opt.MapFrom(src =>
-                src.Entitlements.RootElement.Clone()
+            .ForMember(dest => dest.FeatureFlags, opt => opt.MapFrom(src =>
+                src.FeatureFlags.RootElement.Clone()
             ));
         CreateMap<CreateNetworkUserDto, NetworkUser>();
         CreateMap<UpdateNetworkUserDto, NetworkUser>()
-            .ForMember(dest => dest.Entitlements, opt => opt.MapFrom(src =>
-                JsonDocument.Parse(src.Entitlements.GetRawText(), default)
+            .ForMember(dest => dest.FeatureFlags, opt => opt.MapFrom(src =>
+                JsonDocument.Parse(src.FeatureFlags.GetRawText(), default)
             ));
 
         CreateMap<NetworkUserAccess, NetworkUserAccessDto>();
@@ -66,20 +66,20 @@ public class MappingProfiles : Profile
         CreateMap<UpdateAccessDto, Access>();
 
         CreateMap<Role, RoleDto>()
-            .ForMember(dest => dest.Entitlements, opt => opt.MapFrom(src =>
-                src.Entitlements.RootElement.Clone()
+            .ForMember(dest => dest.FeatureFlags, opt => opt.MapFrom(src =>
+                src.FeatureFlags.RootElement.Clone()
             ));
         CreateMap<Role, RoleLightDto>()
-            .ForMember(dest => dest.Entitlements, opt => opt.MapFrom(src =>
-                src.Entitlements.RootElement.Clone()
+            .ForMember(dest => dest.FeatureFlags, opt => opt.MapFrom(src =>
+                src.FeatureFlags.RootElement.Clone()
             ));
         CreateMap<CreateRoleDto, Role>()
-            .ForMember(dest => dest.Entitlements, opt => opt.MapFrom(src =>
-                JsonDocument.Parse(src.Entitlements.GetRawText(), default)
+            .ForMember(dest => dest.FeatureFlags, opt => opt.MapFrom(src =>
+                JsonDocument.Parse(src.FeatureFlags.GetRawText(), default)
             ));
         CreateMap<UpdateRoleDto, Role>()
-            .ForMember(dest => dest.Entitlements, opt => opt.MapFrom(src =>
-                JsonDocument.Parse(src.Entitlements.GetRawText(), default)
+            .ForMember(dest => dest.FeatureFlags, opt => opt.MapFrom(src =>
+                JsonDocument.Parse(src.FeatureFlags.GetRawText(), default)
             ));
 
         CreateMap<RolePermission, RolePermissionDto>();
@@ -218,9 +218,9 @@ public class MappingProfiles : Profile
         CreateMap<ContentAccessGrant, ContentAccessGrantDto>();
         CreateMap<ContentModerationFlag, ContentModerationFlagDto>();
 
-        CreateMap<NetworkEntitlement, NetworkEntitlementDto>();
-        CreateMap<CreateNetworkEntitlementDto, NetworkEntitlement>();
-        CreateMap<UpdateNetworkEntitlementDto, NetworkEntitlement>();
+        CreateMap<NetworkFeatureFlag, NetworkFeatureFlagDto>();
+        CreateMap<CreateNetworkFeatureFlagDto, NetworkFeatureFlag>();
+        CreateMap<UpdateNetworkFeatureFlagDto, NetworkFeatureFlag>();
     }
 
     private T? MapFieldIfAccessGranted<T>(

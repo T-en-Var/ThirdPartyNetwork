@@ -10,7 +10,7 @@ namespace thirdpartynetwork.Application.Services
         INetworkService networkService,
         IIdentityService identityService,
         INetworkUserService networkUserService,
-        IEntitlementValidator entitlementService,
+        IFeatureFlagValidator featureFlagService,
         IMapper mapper
     ) : UserContentBaseService<CustomPage>(repository, networkUserService), ICustomPageService
     {
@@ -37,7 +37,7 @@ namespace thirdpartynetwork.Application.Services
             var networkUser = await _networkUserService.GetByIdsAsync(networkId, userProxy.Id);
             if (networkUser == null) throw new NotFoundHttpException("NetworkUser not found");
 
-            if (!await entitlementService.CheckUserAddCustomPageEntitlementAsync(networkUser.UserProxyId, networkId))
+            if (!await featureFlagService.CheckUserAddCustomPageFeatureFlagAsync(networkUser.UserProxyId, networkId))
                 throw new UnauthorizedHttpException("You are exceeding a custom page limit.");
 
             var customPage = mapper.Map<CustomPage>(createCustomPage);

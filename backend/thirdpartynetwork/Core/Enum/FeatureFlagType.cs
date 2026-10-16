@@ -1,6 +1,6 @@
 namespace thirdpartynetwork.Core.Enum;
 
-public enum EntitlementType
+public enum FeatureFlagType
 {
     BlogCountLimit,
     ConfigurationCountLimit,

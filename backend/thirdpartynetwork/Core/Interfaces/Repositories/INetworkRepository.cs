@@ -14,7 +14,7 @@ namespace thirdpartynetwork.Core.Interfaces.Repositories
         Task<Network?> GetByNameAsync(string name);
         IQueryable<Network> GetByNameQueryable(string name);
         IQueryable<Network> GetByIdQueryable(Guid id);
-        Task<Network?> GetByIdEntitlementAsync(Guid id);
+        Task<Network?> GetByIdFeatureFlagAsync(Guid id);
         Task<Network> CreateAsync(Network network);
         Task<Network> UpdateAsync(Network network);
         Task DeleteAsync(Network network);

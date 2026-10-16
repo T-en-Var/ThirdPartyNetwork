@@ -105,7 +105,7 @@ public class AccessLevelVerifierTests
         IsPublic = isPublic,
         Description = "",
         RedirectURI = "#",
-        Entitlement = new NetworkEntitlement { NetworkId = id },
+        FeatureFlag = new NetworkFeatureFlag { NetworkId = id },
         ExternalContentKinds = externalContentKinds ?? ContentKindFlags.File,
     };
 
@@ -148,12 +148,12 @@ public class AccessLevelVerifierTests
         var role = new Role
         {
             Id = Guid.NewGuid(), Name = permissionName, Description = "", IsDefault = false, NetworkId = networkId,
-            Entitlements = JsonDocument.Parse("{}"),
+            FeatureFlags = JsonDocument.Parse("{}"),
         };
         var networkUser = new NetworkUser
         {
             Id = Guid.NewGuid(), UserProxyId = userProxyId, NetworkId = networkId,
-            Entitlements = JsonDocument.Parse("{}"),
+            FeatureFlags = JsonDocument.Parse("{}"),
         };
 
         ctx.Permissions.Add(permission);
@@ -288,7 +288,7 @@ public class AccessLevelVerifierTests
         ctx.NetworkUsers.Add(new NetworkUser
         {
             Id = Guid.NewGuid(), UserProxyId = userId, NetworkId = networkId,
-            Entitlements = JsonDocument.Parse("{}"),
+            FeatureFlags = JsonDocument.Parse("{}"),
         });
         await ctx.SaveChangesAsync();
 
@@ -307,12 +307,12 @@ public class AccessLevelVerifierTests
         ctx.Networks.Add(new Network
         {
             Id = publicNetworkId, Name = "pub", IsPublic = true, Description = "", RedirectURI = "#",
-            Entitlement = new NetworkEntitlement { NetworkId = publicNetworkId },
+            FeatureFlag = new NetworkFeatureFlag { NetworkId = publicNetworkId },
         });
         ctx.Networks.Add(new Network
         {
             Id = privateNetworkId, Name = "priv", IsPublic = false, Description = "", RedirectURI = "#",
-            Entitlement = new NetworkEntitlement { NetworkId = privateNetworkId },
+            FeatureFlag = new NetworkFeatureFlag { NetworkId = privateNetworkId },
         });
 
         var fileGrantedToPrivateNetwork = NewFile(publishedAt: DateTime.UtcNow);
@@ -419,7 +419,7 @@ public class AccessLevelVerifierTests
         ctx.NetworkUsers.Add(new NetworkUser
         {
             Id = Guid.NewGuid(), UserProxyId = userId, NetworkId = networkId,
-            Entitlements = JsonDocument.Parse("{}"),
+            FeatureFlags = JsonDocument.Parse("{}"),
         });
         await ctx.SaveChangesAsync();
 
@@ -1235,7 +1235,7 @@ public class AccessLevelVerifierTests
         ctx.NetworkUsers.Add(new NetworkUser
         {
             Id = Guid.NewGuid(), UserProxyId = callerId, NetworkId = networkId,
-            Entitlements = JsonDocument.Parse("{}"),
+            FeatureFlags = JsonDocument.Parse("{}"),
         });
         await ctx.SaveChangesAsync();
 

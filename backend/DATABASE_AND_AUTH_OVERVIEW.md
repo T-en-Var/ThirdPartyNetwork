@@ -1,4 +1,4 @@
-# ThirdPartyNetwork — Database, Permissions & Entitlements Overview
+# ThirdPartyNetwork — Database, Permissions & FeatureFlags Overview
 
 Generated from a source read of the codebase on 2026-08-12. This is a snapshot, not a
 living spec — re-verify against the code before relying on specifics (file/line
@@ -24,7 +24,7 @@ The app is a **multi-tenant identity/SSO provider**. A single physical person (`
 can have multiple `UserProxy` "personas" (think: different display name/avatar/email per
 context). Each `UserProxy` can join multiple `Network`s (tenants), and per network gets a
 `NetworkUser` membership row that carries roles, ad-hoc permission-scope grants, and
-usage-entitlement overrides. Networks also own their own user-generated content (files,
+usage-featureFlag overrides. Networks also own their own user-generated content (files,
 blogs, custom pages, config).
 
 ```mermaid
@@ -36,7 +36,7 @@ erDiagram
     Role }o--o{ Permission : "via RolePermission"
     NetworkUser }o--o{ Access : "via NetworkUserAccess"
     Network }o--o{ Network : "via NetworkAccess"
-    Network ||--|| NetworkEntitlement : has
+    Network ||--|| NetworkFeatureFlag : has
     Network ||--o{ File : owns
     Network ||--o{ Blog : owns
     Network ||--o{ Configuration : owns
@@ -58,15 +58,15 @@ Note: none of `Username`, `Email` have a unique DB constraint (see §6.5).
 | Entity | Purpose | Key fields |
 |---|---|---|
 | `Network` | A tenant / third-party client. One network, `"TrojoNetworks"` (`Constants.Networks.Main`), is the **main/super network** — see §3.3. | `Name`, `IsPublic`, `Description`, `RedirectURI`, `ImageFileId`, `IsSystemProtected` |
-| `NetworkUser` | Membership: one `UserProxy` inside one `Network`. Carries a JSON `Entitlements` override blob and `AccessIncomplete` flag. | `NetworkId`, `UserProxyId`, `Entitlements` (jsonb), `AccessIncomplete` |
-| `NetworkEntitlement` | 1:1 with `Network` (PK = `NetworkId`). Quota/feature-flag config — see §4. | `AllowFiles`, `FileCountLimit`, `FileSizeLimit`, `FileStorageLimit`, `AllowBlogs`, `BlogCountLimit`, `AllowConfigurations`, `ConfigurationCountLimit`, `AllowCustomPages`, `CustomPageCountLimit`, `CustomPageBlockCountLimit`, `CustomPageBlockSizeLimit` |
+| `NetworkUser` | Membership: one `UserProxy` inside one `Network`. Carries a JSON `FeatureFlags` override blob and `AccessIncomplete` flag. | `NetworkId`, `UserProxyId`, `FeatureFlags` (jsonb), `AccessIncomplete` |
+| `NetworkFeatureFlag` | 1:1 with `Network` (PK = `NetworkId`). Quota/feature-flag config — see §4. | `AllowFiles`, `FileCountLimit`, `FileSizeLimit`, `FileStorageLimit`, `AllowBlogs`, `BlogCountLimit`, `AllowConfigurations`, `ConfigurationCountLimit`, `AllowCustomPages`, `CustomPageCountLimit`, `CustomPageBlockCountLimit`, `CustomPageBlockSizeLimit` |
 
 ### 1.3 RBAC (roles/permissions)
 
 | Entity | Purpose |
 |---|---|
 | `Permission` | An action right, e.g. `"Read Network"`, `"Manage User"`, `"Administrator"`. Global by default; `NetworkId` (nullable FK, added in the `NetworkCreatePermission` migration) lets a permission be scoped to one network — networks created via the API get such network-scoped permission rows. |
-| `Role` | Named bundle of permissions, always scoped to one `Network` (`NetworkId`). Also carries its own JSON `Entitlements` override blob (see §4). `IsDefault` marks the role auto-assigned to new members. |
+| `Role` | Named bundle of permissions, always scoped to one `Network` (`NetworkId`). Also carries its own JSON `FeatureFlags` override blob (see §4). `IsDefault` marks the role auto-assigned to new members. |
 | `RolePermission` | N:N join, composite PK `(RoleId, PermissionId)`. |
 | `NetworkUserRole` | N:N join assigning `Role`s to a `NetworkUser`, composite PK `(NetworkUserId, RoleId)`. |
 
@@ -138,11 +138,11 @@ content (profile picture, cover image, embed).
   (`SaveAndUpdateAsync`/`SaveAndUpdateAllAsync`). Repository code paths that call
   `context.SaveChangesAsync()` directly leave it at `default(DateTime)`.
 - jsonb columns: `PageBlock.Data`, `Configuration.Value`, `Blog.Body`,
-  `Role.Entitlements`, `NetworkUser.Entitlements` (the latter two default to SQL `'{}'`).
+  `Role.FeatureFlags`, `NetworkUser.FeatureFlags` (the latter two default to SQL `'{}'`).
   Under the EF InMemory provider (used in tests) these are stored as plain strings via a
   manual `HasConversion`, so JSON-shape bugs can hide in unit tests and only appear
   against real Postgres.
-- Cascade deletes: `Network → CustomPage/PageBlock/Configuration/Blog/File/NetworkEntitlement/Role`
+- Cascade deletes: `Network → CustomPage/PageBlock/Configuration/Blog/File/NetworkFeatureFlag/Role`
   all cascade. **⚠️ Changed by the PLAN.md pass:** `UserContent.AuthorUserProxyId → UserProxy`
   is now `SetNull`, not cascade — losing network membership no longer deletes what you
   authored there (the old `AuthorId → NetworkUser` cascade was the actual bug this fixed:
@@ -304,32 +304,32 @@ anything else on that network.
 
 ---
 
-## 4. Entitlements — usage quotas / feature flags
+## 4. FeatureFlags — usage quotas / feature flags
 
-Distinct from both RBAC and Access-consent: entitlements answer "how much of feature X
+Distinct from both RBAC and Access-consent: featureFlags answer "how much of feature X
 can this user/network still use", not "is this action allowed" or "can this network see
 my email".
 
-Three layers, resolved by `EntitlementService`:
+Three layers, resolved by `FeatureFlagService`:
 
-1. **Main network's `NetworkEntitlement`** acts as a **global hard ceiling**. Any
+1. **Main network's `NetworkFeatureFlag`** acts as a **global hard ceiling**. Any
    feature disabled on the main network (`AllowFiles`, `AllowBlogs`, etc.) is disabled
-   everywhere, full stop (checked first in every `CheckUserAdd*EntitlementAsync`
+   everywhere, full stop (checked first in every `CheckUserAdd*FeatureFlagAsync`
    method).
-2. **Per-`Network` `NetworkEntitlement`** — the tenant's own caps. `NetworkService.
-   UpdateEntitlementAsync` further enforces that the *sum* of all non-main networks'
+2. **Per-`Network` `NetworkFeatureFlag`** — the tenant's own caps. `NetworkService.
+   UpdateFeatureFlagAsync` further enforces that the *sum* of all non-main networks'
    limits can't exceed the main network's limit (`ValidateGlobalLimits`) — i.e.
-   entitlements are budgeted out of a shared global pool, not independently settable.
-3. **Per-user overrides**, stored as ad-hoc keys in the JSON `Entitlements` blob on
+   featureFlags are budgeted out of a shared global pool, not independently settable.
+3. **Per-user overrides**, stored as ad-hoc keys in the JSON `FeatureFlags` blob on
    either `Role` or `NetworkUser` (e.g. `"FileCountLimit"`, `"BlogCountLimit"`,
-   `"CustomPageBlockSizeLimit"` — see the `Read*/Write*/Remove*Entitlement` method pairs
-   in `EntitlementService`). When a user holds multiple roles, or has both a personal
+   `"CustomPageBlockSizeLimit"` — see the `Read*/Write*/Remove*FeatureFlag` method pairs
+   in `FeatureFlagService`). When a user holds multiple roles, or has both a personal
    override and a role override, **the highest limit found wins** (`.Max()` across all
    sources) — there's no "most restrictive applies" mode; a user in two roles gets
    whichever role is more generous.
 
 Enforcement itself is **entirely application-level, at write time** (e.g.
-`CheckUserAddNetworkFileEntitlementAsync` sums existing file sizes/counts per network
+`CheckUserAddNetworkFileFeatureFlagAsync` sums existing file sizes/counts per network
 and per author and compares against the limits above before allowing an upload). There
 is no DB-level constraint backing any of this — it's advisory/app-enforced only.
 
@@ -452,12 +452,12 @@ explicitly-flagged, deliberate behavior change (PLAN.md §4), not a side effect.
   Promoted from `Blog` onto the base model for all five content types; `AccessLevelVerifier`
   denies everyone but the author when it's null, unconditionally — no grant can override it.
 - **Author DTO exposure changed shape.** `UserContentBaseDto.Author` used to be a
-  `NetworkUserLightDto` (which leaked the author's raw `Entitlements` quota-override JSON to
+  `NetworkUserLightDto` (which leaked the author's raw `FeatureFlags` quota-override JSON to
   any viewer). Author is now a `UserProxy` persona (§1.5), and the DTO field
   (`AuthorUserProxy`) maps to `UserProxyLightShortProfileDto` — the same consent-gated
   redaction (`MapFieldIfAccessGranted`) already used elsewhere, so this also resolves the
-  entitlement-leak note that used to live here.
-- **Quota checks are (coincidentally) viewer-predicate-filtered.** `EntitlementService`'s
+  featureFlag-leak note that used to live here.
+- **Quota checks are (coincidentally) viewer-predicate-filtered.** `FeatureFlagService`'s
   "how many files/blogs has this author already got" counts run through the same
   `GetAccessPredicateAsync`-filtered query used for viewer-facing lists. In the normal
   self-upload flow the caller *is* the author, so `AuthorId == currentUserId` makes the
@@ -619,9 +619,9 @@ authenticated user, in any role, on any existing network, can create new network
 new network auto-grants its creator an `Admin` role with the `Administrator` permission
 scoped to that network (`NetworkService.CreateAsync`). There's no rate limit, quota, or
 approval step, so a single account can spin up unbounded networks (each with its own
-`NetworkEntitlement`, `Role`s, `Permission` rows). New networks default all entitlement
+`NetworkFeatureFlag`, `Role`s, `Permission` rows). New networks default all featureFlag
 flags to `false`/`0`, which limits practical abuse (no storage/content can be created
-until an admin explicitly raises entitlements), but it's still unauthenticated-by-role
+until an admin explicitly raises featureFlags), but it's still unauthenticated-by-role
 tenant sprawl, and every creation also feeds the new network's `RedirectURI` host into
 the **global** `IDynamicAudienceCache` used for JWT audience validation
 (`RefreshIssuerCacheAsync`) — so any user can add an arbitrary host to the
@@ -640,7 +640,7 @@ authenticated or not. Contrast with `GetNetworkById` (`GET /networks/{networkId}
 which requires `ReadNetwork`, and the list endpoint (`GetAll`), which filters out
 non-`IsPublic` networks via `FilterNetworksAsync`. `GetDetailsByIdAsync` performs **no**
 `IsPublic` check at all — it returns the full `NetworkDto` (description, redirect URI,
-role list, network-access/consent-scope list, entitlement config) for **any** network id,
+role list, network-access/consent-scope list, featureFlag config) for **any** network id,
 public or private, to an anonymous caller; the only per-caller behavior is that the
 `NetworkUsers` collection on the DTO gets filtered down to the caller's own membership
 (empty for anonymous callers). This looks like it was intentionally left open to support
@@ -678,10 +678,10 @@ by network latency. No ASP.NET rate-limiting middleware is registered in `Progra
 
 ### 6.11 🟢 Low — verbose `Console.WriteLine` logging of auth internals
 
-`PermissionHandler`, `IdentityVerifier`, `JtiCacheService`, `EntitlementService`, and
+`PermissionHandler`, `IdentityVerifier`, `JtiCacheService`, `FeatureFlagService`, and
 `DynamicAudienceCache` all log step-by-step authorization decisions via
 `Console.WriteLine` rather than `ILogger`, including internals like exactly which
-entitlement/permission check failed and why, and full audience lists on every check
+featureFlag/permission check failed and why, and full audience lists on every check
 (`DynamicAudienceCache.IsValidAudience`). This is unstructured (no log levels, can't be
 selectively silenced/filtered in production), and in a container/hosting setup where
 stdout is captured as application logs, this is a steady stream of authorization-decision
@@ -713,7 +713,7 @@ whatever environment `DOTNET_ENVIRONMENT != "Development"` describes (staging/pr
 
 - **Clean seed** (runs once, when no `Network` rows exist, or if `forceCleanSeed` is
   flipped to `true` in source): creates the main network `"TrojoNetworks"`
-  (`IsSystemProtected = true`, all entitlement flags `true`), the full `Permission`
+  (`IsSystemProtected = true`, all featureFlag flags `true`), the full `Permission`
   catalog (all `IsSystemProtected = true`), the 5 `Access` scopes (Username/Firstname/
   Lastname/Email/ProfilePicture, all system-protected and marked `IsRequired` on the
   main network), an `Admin` role (holds `Administrator`) and default `User` role (holds

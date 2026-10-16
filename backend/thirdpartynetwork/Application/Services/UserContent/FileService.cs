@@ -11,7 +11,7 @@ namespace thirdpartynetwork.Application.Services
         IIdentityService identityService,
         INetworkUserService networkUserService,
         ICDNService cdnService,
-        IEntitlementValidator entitlementService,
+        IFeatureFlagValidator featureFlagService,
         IMapper mapper) : UserContentBaseService<File>(repository, networkUserService), IFileService
     {
         private readonly INetworkUserService _networkUserService = networkUserService;
@@ -52,7 +52,7 @@ namespace thirdpartynetwork.Application.Services
             var userProxy = await identityService.GetUserProxyAsync();
             var networkUser = await _networkUserService.GetByIdsAsync(networkId, userProxy.Id) ?? throw new NotFoundHttpException("NetworkUser not found");
 
-            if (!await entitlementService.CheckUserAddNetworkFileEntitlementAsync(networkUser.UserProxyId, networkId, file))
+            if (!await featureFlagService.CheckUserAddNetworkFileFeatureFlagAsync(networkUser.UserProxyId, networkId, file))
                 throw new UnauthorizedHttpException("You are exceeding a file upload limit.");
 
             var objectId = Guid.NewGuid();
