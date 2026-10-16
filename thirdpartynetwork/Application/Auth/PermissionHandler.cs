@@ -175,16 +175,25 @@ public class PermissionHandler(
         var httpContext = httpContextAccessor.HttpContext;
         if (httpContext == null) throw new UnauthorizedHttpException();
 
+        var currentUser = await identityService.GetUserProxyAsync();
+
+        if (await identityVerifier.IsSuperAdminOrHasSuperPermissionAsync(currentUser.Id, permission))
+            return true;
+
+        // PageBlock isn't a ContentKind (see ResolveContentRouteMatch), but a block's manage-
+        // ownership is still its own row's AuthorUserProxyId, so it's resolved directly here.
+        if (httpContext.Request.RouteValues.ContainsKey("pageBlockId"))
+        {
+            var pageBlockId = httpContext.GetGuidFromHttpContextUrl("pageBlockId");
+            return pageBlockId != Guid.Empty &&
+                   await identityVerifier.IsPageBlockOwnerAsync(currentUser.Id, pageBlockId);
+        }
+
         var route = ResolveContentRouteMatch(httpContext);
         if (route == null) return false;
 
         var contentId = httpContext.GetGuidFromHttpContextUrl(route.Value.CompareString);
         if (contentId == Guid.Empty) return false;
-
-        var currentUser = await identityService.GetUserProxyAsync();
-
-        if (await identityVerifier.IsSuperAdminOrHasSuperPermissionAsync(currentUser.Id, permission))
-            return true;
 
         return await identityVerifier.IsContentOwnerAsync(currentUser.Id, route.Value.Kind, contentId);
     }
@@ -198,6 +207,14 @@ public class PermissionHandler(
 
         if (permission == Constants.Permissions.IsContentOwner)
         {
+            // PageBlock isn't a ContentKind (see ResolveContentRouteMatch) — resolved directly.
+            if (httpContext.Request.RouteValues.ContainsKey("pageBlockId"))
+            {
+                var pageBlockId = httpContext.GetGuidFromHttpContextUrl("pageBlockId");
+                return pageBlockId != Guid.Empty &&
+                       await identityVerifier.IsPageBlockOwnerAsync(currentUser.Id, pageBlockId);
+            }
+
             var route = ResolveContentRouteMatch(httpContext);
             if (route == null) return false;
 
@@ -221,12 +238,12 @@ public class PermissionHandler(
     {
         var routeValues = httpContext.Request.RouteValues;
 
-        // pageBlockId before customPageId: PageBlock routes nest under customPages
-        // customPages/{customPageId}/pageBlocks/{pageBlockId}
+        // PageBlock isn't a ContentKind — callers must check for "pageBlockId" themselves
+        // before falling back to this (see HandleContentManageRequirementAsync /
+        // HandleOwnerRequirementAsync).
         if (routeValues.ContainsKey("fileId")) return (Core.Enum.ContentKind.File, "fileId");
         if (routeValues.ContainsKey("blogId")) return (Core.Enum.ContentKind.Blog, "blogId");
         if (routeValues.ContainsKey("configurationId")) return (Core.Enum.ContentKind.Configuration, "configurationId");
-        if (routeValues.ContainsKey("pageBlockId")) return (Core.Enum.ContentKind.PageBlock, "pageBlockId");
         if (routeValues.ContainsKey("customPageId")) return (Core.Enum.ContentKind.CustomPage, "customPageId");
 
         return null;

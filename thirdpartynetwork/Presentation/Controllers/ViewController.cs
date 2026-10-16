@@ -23,7 +23,6 @@ public class ViewController(IContentViewingLinkService linkService, IMapper mapp
             ContentKind.Blog => Ok(mapper.Map<BlogDto>((Blog)result.Content, opts => opts.Items["networkId"] = networkId)),
             ContentKind.Configuration => Ok(mapper.Map<ConfigurationDto>((Configuration)result.Content, opts => opts.Items["networkId"] = networkId)),
             ContentKind.CustomPage => Ok(mapper.Map<CustomPageDto>((CustomPage)result.Content, opts => opts.Items["networkId"] = networkId)),
-            ContentKind.PageBlock => Ok(mapper.Map<PageBlockDto>((PageBlock)result.Content, opts => opts.Items["networkId"] = networkId)),
             _ => NotFound(),
         };
     }

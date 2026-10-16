@@ -18,7 +18,6 @@ public static class ContentKindCatalog
         new ContentKindDescriptor(ContentKind.Blog, "blogs", "blogId", HasList: true, AnonRedirectSegment: "view"),
         new ContentKindDescriptor(ContentKind.Configuration, "configurations", "configurationId", HasList: true, AnonRedirectSegment: "view"),
         new ContentKindDescriptor(ContentKind.CustomPage, "customPages", "customPageId", HasList: true, AnonRedirectSegment: "view"),
-        new ContentKindDescriptor(ContentKind.PageBlock, "customPages/{parentCustomPageId}/pageBlocks", "pageBlockId", HasList: false, AnonRedirectSegment: "view"),
     ];
 }
 
@@ -131,39 +130,6 @@ public static class ContentKindFixtures
                 await ctx.SaveChangesAsync();
                 return new SeededContent(kind, networkId, page.Id, null, authorUserProxyId);
             }
-            case ContentKind.PageBlock:
-            {
-                // Parent CustomPage carries the requested state — see method doc.
-                var parent = new CustomPage
-                {
-                    Id = Guid.NewGuid(),
-                    Name = "Parent CustomPage",
-                    Slug = $"parent-page-{Guid.NewGuid():N}",
-                    NetworkId = networkId,
-                    AuthorUserProxyId = authorUserProxyId,
-                    PublishedAt = publishedAt,
-                    OwnershipMode = ownershipMode,
-                    DeletedAt = deletedAt,
-                };
-                ctx.CustomPages.Add(parent);
-
-                var block = new PageBlock
-                {
-                    Id = Guid.NewGuid(),
-                    Text = "block text",
-                    Position = 0,
-                    Data = JsonDocument.Parse("{}"),
-                    CustomPageId = parent.Id,
-                    NetworkId = networkId,
-                    AuthorUserProxyId = authorUserProxyId,
-                    PublishedAt = publishedAt,
-                    OwnershipMode = ownershipMode,
-                    DeletedAt = deletedAt,
-                };
-                ctx.PageBlocks.Add(block);
-                await ctx.SaveChangesAsync();
-                return new SeededContent(kind, networkId, block.Id, parent.Id, authorUserProxyId);
-            }
             default:
                 throw new NotSupportedException(kind.ToString());
         }
@@ -186,10 +152,6 @@ public static class ContentKindFixtures
         {
             name = "New CustomPage", slug = $"new-page-{Guid.NewGuid():N}",
         }),
-        ContentKind.PageBlock => JsonContent(new
-        {
-            text = "new block", position = 0, data = JsonDocument.Parse("{}").RootElement,
-        }),
         _ => throw new NotSupportedException(kind.ToString()),
     };
 
@@ -208,10 +170,6 @@ public static class ContentKindFixtures
         ContentKind.CustomPage => JsonContent(new
         {
             name = "Updated CustomPage", slug = $"updated-page-{Guid.NewGuid():N}",
-        }),
-        ContentKind.PageBlock => JsonContent(new
-        {
-            text = "updated block", position = 1, data = JsonDocument.Parse("{}").RootElement,
         }),
         _ => throw new NotSupportedException(kind.ToString()),
     };

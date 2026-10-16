@@ -1,11 +1,9 @@
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.EntityFrameworkCore;
 using thirdpartynetwork.Core;
 using thirdpartynetwork.Core.Data;
 using thirdpartynetwork.Core.Enum;
 using thirdpartynetwork.Core.Interfaces.Auth;
 using thirdpartynetwork.Core.Models;
-using File = thirdpartynetwork.Core.Models.File;
 
 namespace thirdpartynetwork.Application.Auth;
 
@@ -14,6 +12,21 @@ public class IdentityVerifier(DataContext context) : IIdentityVerifier
     public async Task<bool> IsContentOwnerAsync(Guid userProxyId, ContentKind contentKind, Guid targetContentId)
     {
         var content = await GetContentOwnershipFactsAsync(contentKind, targetContentId);
+        return await IsOwnerOfAsync(userProxyId, content);
+    }
+
+    public async Task<bool> IsPageBlockOwnerAsync(Guid userProxyId, Guid pageBlockId)
+    {
+        var x = await context.PageBlocks.Where(f => f.Id == pageBlockId)
+            .Select(f => new { f.AuthorUserProxyId, f.OwnershipMode, f.NetworkId })
+            .FirstOrDefaultAsync();
+        var content = x == null ? null : ((Guid?, OwnershipMode, Guid)?)(x.AuthorUserProxyId, x.OwnershipMode, x.NetworkId);
+
+        return await IsOwnerOfAsync(userProxyId, content);
+    }
+
+    private async Task<bool> IsOwnerOfAsync(Guid userProxyId, (Guid? AuthorUserProxyId, OwnershipMode OwnershipMode, Guid NetworkId)? content)
+    {
         if (content == null) return false;
 
         var (authorUserProxyId, ownershipMode, networkId) = content.Value;
@@ -59,13 +72,6 @@ public class IdentityVerifier(DataContext context) : IIdentityVerifier
             case ContentKind.CustomPage:
             {
                 var x = await context.CustomPages.Where(f => f.Id == contentId)
-                    .Select(f => new { f.AuthorUserProxyId, f.OwnershipMode, f.NetworkId })
-                    .FirstOrDefaultAsync();
-                return x == null ? null : (x.AuthorUserProxyId, x.OwnershipMode, x.NetworkId);
-            }
-            case ContentKind.PageBlock:
-            {
-                var x = await context.PageBlocks.Where(f => f.Id == contentId)
                     .Select(f => new { f.AuthorUserProxyId, f.OwnershipMode, f.NetworkId })
                     .FirstOrDefaultAsync();
                 return x == null ? null : (x.AuthorUserProxyId, x.OwnershipMode, x.NetworkId);

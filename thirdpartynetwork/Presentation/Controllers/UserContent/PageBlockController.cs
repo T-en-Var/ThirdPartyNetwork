@@ -2,7 +2,6 @@ using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using thirdpartynetwork.Application.Auth.Requirements;
 using thirdpartynetwork.Core;
-using thirdpartynetwork.Core.Enum;
 
 namespace thirdpartynetwork.Presentation.Controllers;
 
@@ -10,9 +9,6 @@ namespace thirdpartynetwork.Presentation.Controllers;
 [ApiController]
 public class PageBlockController(
     IPageBlockService service,
-    IContentAccessGrantService accessGrantService,
-    IContentViewingLinkService viewingLinkService,
-    IContentModerationFlagService moderationFlagService,
     IMapper mapper) : ControllerBase
 {
     [HttpGet("{pageBlockId:guid}")]
@@ -25,7 +21,6 @@ public class PageBlockController(
         if (pageBlock == null) return NotFound();
 
         var dto = mapper.Map<PageBlockDto>(pageBlock, opts => { opts.Items["networkId"] = networkId; });
-        dto.ViewingUrl = await viewingLinkService.ComputeViewingUrlAsync(pageBlock, ContentKind.PageBlock, Request.Scheme, Request.Host.ToString());
         return Ok(dto);
     }
 
@@ -92,59 +87,5 @@ public class PageBlockController(
         if (pageBlock == null) return NotFound();
         var updated = await service.SetOwnershipModeAsync(pageBlock, dto.Mode);
         return Ok(mapper.Map<PageBlockDto>(updated, opts => { opts.Items["networkId"] = networkId; }));
-    }
-
-    [HttpGet("{pageBlockId:guid}/access")]
-    [RequirePermission(Constants.Permissions.ManageContentAccess, Constants.Permissions.IsContentOwner)]
-    [ProducesResponseType(200, Type = typeof(IEnumerable<ContentAccessGrantDto>))]
-    public async Task<IActionResult> GetPageBlockAccessGrants(Guid networkId, Guid customPageId, Guid pageBlockId)
-    {
-        var grants = await accessGrantService.GetForContentAsync(ContentKind.PageBlock, pageBlockId);
-        return Ok(mapper.Map<IEnumerable<ContentAccessGrantDto>>(grants));
-    }
-
-    [HttpPost("{pageBlockId:guid}/access")]
-    [RequirePermission(Constants.Permissions.ManageContentAccess, Constants.Permissions.IsContentOwner)]
-    [ProducesResponseType(201, Type = typeof(ContentAccessGrantDto))]
-    public async Task<IActionResult> CreatePageBlockAccessGrant(Guid networkId, Guid customPageId, Guid pageBlockId, [FromBody] CreateContentAccessGrantDto dto)
-    {
-        var grant = await accessGrantService.CreateAsync(networkId, ContentKind.PageBlock, pageBlockId, dto);
-        return Ok(mapper.Map<ContentAccessGrantDto>(grant));
-    }
-
-    [HttpDelete("{pageBlockId:guid}/access/{grantId:guid}")]
-    [RequirePermission(Constants.Permissions.ManageContentAccess, Constants.Permissions.IsContentOwner)]
-    [ProducesResponseType(204)]
-    public async Task<IActionResult> RevokePageBlockAccessGrant(Guid networkId, Guid customPageId, Guid pageBlockId, Guid grantId)
-    {
-        await accessGrantService.RevokeAsync(networkId, grantId);
-        return NoContent();
-    }
-
-    [HttpGet("{pageBlockId:guid}/moderation-flags")]
-    [RequirePermission(Constants.Permissions.ModeratePageBlock)]
-    [ProducesResponseType(200, Type = typeof(IEnumerable<ContentModerationFlagDto>))]
-    public async Task<IActionResult> GetPageBlockModerationFlags(Guid networkId, Guid customPageId, Guid pageBlockId)
-    {
-        var flags = await moderationFlagService.GetForContentAsync(ContentKind.PageBlock, pageBlockId);
-        return Ok(mapper.Map<IEnumerable<ContentModerationFlagDto>>(flags));
-    }
-
-    [HttpPost("{pageBlockId:guid}/moderation-flags")]
-    [RequirePermission(Constants.Permissions.ModeratePageBlock)]
-    [ProducesResponseType(201, Type = typeof(ContentModerationFlagDto))]
-    public async Task<IActionResult> CreatePageBlockModerationFlag(Guid networkId, Guid customPageId, Guid pageBlockId, [FromBody] CreateContentModerationFlagDto dto)
-    {
-        var flag = await moderationFlagService.CreateAsync(networkId, ContentKind.PageBlock, pageBlockId, dto);
-        return Ok(mapper.Map<ContentModerationFlagDto>(flag));
-    }
-
-    [HttpPut("{pageBlockId:guid}/moderation-flags/{flagId:guid}/resolve")]
-    [RequirePermission(Constants.Permissions.ModeratePageBlock)]
-    [ProducesResponseType(200, Type = typeof(ContentModerationFlagDto))]
-    public async Task<IActionResult> ResolvePageBlockModerationFlag(Guid networkId, Guid customPageId, Guid pageBlockId, Guid flagId, [FromBody] ResolveContentModerationFlagDto dto)
-    {
-        var flag = await moderationFlagService.ResolveAsync(networkId, flagId, dto);
-        return Ok(mapper.Map<ContentModerationFlagDto>(flag));
     }
 }

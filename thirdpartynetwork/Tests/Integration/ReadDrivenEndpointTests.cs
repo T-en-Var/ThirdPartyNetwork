@@ -41,8 +41,6 @@ public class ReadDrivenEndpointTests : IntegrationTestBase
     [TestCaseSource(nameof(ListCases))]
     public async Task List_AlwaysReturns200_ButRowVisibilityMatchesAccessRules(ContentKind kind, CallerSpec spec)
     {
-        if (kind == ContentKind.PageBlock) Assert.Ignore("PageBlock has no List endpoint.");
-
         var author = await CallerCatalog.BuildAsync(Ctx, CallerSpec.Author, kind, ContentNetwork, ExternalNetwork, MainNetwork);
         var published = await ContentKindFixtures.CreateAsync(Ctx, kind, ContentNetwork.Id, authorUserProxyId: author.UserProxyId, publishedAt: DateTime.UtcNow);
         var draft = await ContentKindFixtures.CreateAsync(Ctx, kind, ContentNetwork.Id, authorUserProxyId: author.UserProxyId);
@@ -348,9 +346,7 @@ public class ReadDrivenEndpointTests : IntegrationTestBase
     private static string ItemRoute(ContentKind kind, SeededContent content)
     {
         var descriptor = ContentKindCatalog.All.First(d => d.Kind == kind);
-        return kind == ContentKind.PageBlock
-            ? $"networks/{content.NetworkId}/customPages/{content.ParentCustomPageId}/pageBlocks/{content.ContentId}"
-            : descriptor.ItemRoute(content.NetworkId, content.ContentId);
+        return descriptor.ItemRoute(content.NetworkId, content.ContentId);
     }
 
     private static async Task<HashSet<Guid>> ExtractIdsAsync(HttpResponseMessage response, ContentKind kind)

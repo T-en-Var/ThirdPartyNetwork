@@ -5,7 +5,6 @@ public static class Constants
     public static class Roles
     {
         public const string Admin = "Admin";
-        public const string Client = "Client";
         public const string User = "User";
     }
 
@@ -28,7 +27,6 @@ public static class Constants
         public const string SystemManaged = "System Managed";
 
         public const string Administrator = "Administrator";
-        // public const string OnlyOwner = "Only Recourse Owner";
 
         public const string ReadNetwork = "Read Network";
         public const string ManageNetwork = "Manage Network";
@@ -53,7 +51,6 @@ public static class Constants
         public const string ModerateBlog = "Moderate Blog";
         public const string ModerateConfiguration = "Moderate Configuration";
         public const string ModerateCustomPage = "Moderate CustomPage";
-        public const string ModeratePageBlock = "Moderate PageBlock";
 
         public const string ReadUser = "Read User";
         public const string ManageUser = "Manage User";
@@ -87,14 +84,19 @@ public static class Constants
 
     public static readonly string[] ContentPermissions = [
         Permissions.ReadCustomPage,
-        // Permissions.ManageCustomPage,
         Permissions.ReadPageBlock,
-        // Permissions.ManagePageBlock,
         Permissions.ReadFile,
-        // Permissions.ManageFile,
         Permissions.ReadConfiguration,
-        // Permissions.ManageConfiguration,
         Permissions.ReadBlog,
+    ];
+
+    public static readonly string[] ContentManagePermissions =
+    [
+        Permissions.ManageFile,
+        Permissions.ManageBlog,
+        Permissions.ManageConfiguration,
+        Permissions.ManageCustomPage,
+        Permissions.ManagePageBlock,
     ];
 
     public static readonly string[] OwnerPermissions =
@@ -107,12 +109,23 @@ public static class Constants
         // Permissions.ReadUser,
     ];
 
-    public static readonly string[] ContentManagePermissions =
-    [
-        Permissions.ManageFile,
-        Permissions.ManageBlog,
-        Permissions.ManageConfiguration,
-        Permissions.ManageCustomPage,
-        Permissions.ManagePageBlock,
+    public static readonly string[] PermissionsToBeInDatabase = [
+        Permissions.Administrator,
+        Permissions.ReadNetwork,
+        Permissions.ManageNetwork,
+        ..GeneralPermissions,
+        Permissions.ManageAccess,
+        Permissions.ManagePermission,
+        Permissions.ReadRole,
+        Permissions.ManageRole,
+        Permissions.ReadUser,
+        Permissions.ManageUser,
+        ..ContentPermissions,
+        ..ContentManagePermissions,
+        Permissions.ManageContentAccess,
+        Permissions.ModerateFile,
+        Permissions.ModerateBlog,
+        Permissions.ModerateConfiguration,
+        Permissions.ModerateCustomPage,
     ];
 }
