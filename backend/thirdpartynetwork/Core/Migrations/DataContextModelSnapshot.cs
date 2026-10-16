@@ -497,7 +497,7 @@ namespace thirdpartynetwork.Core.Migrations
                     b.ToTable("NetworkAccesses");
                 });
 
-            modelBuilder.Entity("thirdpartynetwork.Core.Models.NetworkEntitlement", b =>
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.NetworkFeatureFlag", b =>
                 {
                     b.Property<Guid>("NetworkId")
                         .HasColumnType("uuid");
@@ -546,7 +546,7 @@ namespace thirdpartynetwork.Core.Migrations
 
                     b.HasKey("NetworkId");
 
-                    b.ToTable("NetworkEntitlements");
+                    b.ToTable("NetworkFeatureFlags");
                 });
 
             modelBuilder.Entity("thirdpartynetwork.Core.Models.NetworkUser", b =>
@@ -561,7 +561,7 @@ namespace thirdpartynetwork.Core.Migrations
                     b.Property<DateTime>("CreatedOn")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<JsonDocument>("Entitlements")
+                    b.Property<JsonDocument>("FeatureFlags")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
                         .HasColumnType("jsonb")
@@ -731,7 +731,7 @@ namespace thirdpartynetwork.Core.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<JsonDocument>("Entitlements")
+                    b.Property<JsonDocument>("FeatureFlags")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
                         .HasColumnType("jsonb")
@@ -1024,11 +1024,11 @@ namespace thirdpartynetwork.Core.Migrations
                     b.Navigation("Network");
                 });
 
-            modelBuilder.Entity("thirdpartynetwork.Core.Models.NetworkEntitlement", b =>
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.NetworkFeatureFlag", b =>
                 {
                     b.HasOne("thirdpartynetwork.Core.Models.Network", null)
-                        .WithOne("Entitlement")
-                        .HasForeignKey("thirdpartynetwork.Core.Models.NetworkEntitlement", "NetworkId")
+                        .WithOne("FeatureFlag")
+                        .HasForeignKey("thirdpartynetwork.Core.Models.NetworkFeatureFlag", "NetworkId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -1098,7 +1098,7 @@ namespace thirdpartynetwork.Core.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("thirdpartynetwork.Core.Models.CustomPage", "CustomPage")
-                        .WithMany("Blocks")
+                        .WithMany("Pages")
                         .HasForeignKey("CustomPageId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1181,7 +1181,7 @@ namespace thirdpartynetwork.Core.Migrations
 
             modelBuilder.Entity("thirdpartynetwork.Core.Models.CustomPage", b =>
                 {
-                    b.Navigation("Blocks");
+                    b.Navigation("Pages");
                 });
 
             modelBuilder.Entity("thirdpartynetwork.Core.Models.Network", b =>
@@ -1192,7 +1192,7 @@ namespace thirdpartynetwork.Core.Migrations
 
                     b.Navigation("CustomPages");
 
-                    b.Navigation("Entitlement")
+                    b.Navigation("FeatureFlag")
                         .IsRequired();
 
                     b.Navigation("Files");

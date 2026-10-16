@@ -29,9 +29,9 @@ public static class CallerFixtures
             Description = "test network",
             RedirectURI = "#",
             // Generous limits throughout — these tests are about authorization, not
-            // entitlement/quota business rules, so the limits just need to be high enough
-            // to never spuriously trip (NetworkEntitlement defaults everything to 0/disabled).
-            Entitlement = new NetworkEntitlement
+            // featureFlag/quota business rules, so the limits just need to be high enough
+            // to never spuriously trip (NetworkFeatureFlag defaults everything to 0/disabled).
+            FeatureFlag = new NetworkFeatureFlag
             {
                 NetworkId = Guid.Empty, // set by EF via the nav below
                 AllowBlogs = true, BlogCountLimit = 100_000,
@@ -67,7 +67,7 @@ public static class CallerFixtures
         var role = new Role
         {
             Id = Guid.NewGuid(), Name = roleName, Description = "test role", IsDefault = false,
-            Network = network, NetworkId = network.Id, Entitlements = JsonDocument.Parse("{}"),
+            Network = network, NetworkId = network.Id, FeatureFlags = JsonDocument.Parse("{}"),
         };
         ctx.Roles.Add(role);
 
@@ -101,7 +101,7 @@ public static class CallerFixtures
         var networkUser = new NetworkUser
         {
             Id = Guid.NewGuid(), NetworkId = network.Id, UserProxyId = proxy.Id, UserProxy = proxy,
-            AccessIncomplete = accessIncomplete, Entitlements = JsonDocument.Parse("{}"),
+            AccessIncomplete = accessIncomplete, FeatureFlags = JsonDocument.Parse("{}"),
         };
         ctx.NetworkUsers.Add(networkUser);
         foreach (var role in roles)

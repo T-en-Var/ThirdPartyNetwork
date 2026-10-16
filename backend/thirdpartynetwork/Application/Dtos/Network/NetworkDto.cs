@@ -15,7 +15,7 @@ namespace thirdpartynetwork.Application.Dtos.Network
         public ICollection<NetworkAccessNtADto> NetworkAccesses { get; set; } = [];
         public ICollection<RoleLightDto> Roles { get; set; } = [];
         public ICollection<NetworkUserLightUserInfoDto> NetworkUsers { get; set; } = [];
-        public NetworkEntitlementDto? Entitlement { get; set; }
+        public NetworkFeatureFlagDto? FeatureFlag { get; set; }
         public required bool IsSystemProtected { get; set; }
     }
     
@@ -28,7 +28,7 @@ namespace thirdpartynetwork.Application.Dtos.Network
         public FileDto? ImageFile { get; set; }
         public DateTime CreatedOn { get; set; }
         public required bool IsPublic { get; init; }
-        public NetworkEntitlementDto? Entitlement { get; set; }
+        public NetworkFeatureFlagDto? FeatureFlag { get; set; }
         public required bool IsSystemProtected { get; set; }
     }
 }

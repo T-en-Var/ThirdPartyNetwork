@@ -2,6 +2,7 @@ using System.Text.Json;
 using Moq;
 using NUnit.Framework;
 using thirdpartynetwork.Application.Auth;
+using thirdpartynetwork.Core.Enum;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using thirdpartynetwork.Core.Models;
 using File = thirdpartynetwork.Core.Models.File;
@@ -10,7 +11,7 @@ using IFormFile = Microsoft.AspNetCore.Http.IFormFile;
 namespace thirdpartynetwork.Tests.Auth;
 
 [TestFixture]
-public class EntitlementServiceTests
+public class FeatureFlagServiceTests
 {
     private Mock<INetworkRepository> _networkRepositoryMock;
     private Mock<INetworkUserRepository> _networkUserRepositoryMock;
@@ -18,8 +19,7 @@ public class EntitlementServiceTests
     private Mock<IBlogRepository> _blogRepositoryMock;
     private Mock<IConfigurationRepository> _configurationRepositoryMock;
     private Mock<ICustomPageRepository> _customPageRepositoryMock;
-
-    private EntitlementService _entitlementService;
+    private FeatureFlagValidator _featureFlagService;
 
     [SetUp]
     public void SetUp()
@@ -31,7 +31,7 @@ public class EntitlementServiceTests
         _configurationRepositoryMock = new Mock<IConfigurationRepository>();
         _customPageRepositoryMock = new Mock<ICustomPageRepository>();
 
-        _entitlementService = new EntitlementService(
+        _featureFlagService = new FeatureFlagValidator(
             _networkRepositoryMock.Object,
             _networkUserRepositoryMock.Object,
             _fileRepositoryMock.Object,
@@ -44,7 +44,7 @@ public class EntitlementServiceTests
         {
             Id = Guid.NewGuid(),
             Name = "Main Network",
-            Entitlement = new NetworkEntitlement
+            FeatureFlag = new NetworkFeatureFlag
             {
                 AllowFiles = true,
                 AllowBlogs = true,
@@ -61,10 +61,10 @@ public class EntitlementServiceTests
             .ReturnsAsync(mainNetwork);
     }
 
-    #region CheckUserAddNetworkFileEntitlementAsync Tests
+    #region CheckUserAddNetworkFileFeatureFlagAsync Tests
 
     [Test]
-    public async Task CheckUserAddNetworkFileEntitlementAsync_HappyPath_ReturnsTrue()
+    public async Task CheckUserAddNetworkFileFeatureFlagAsync_HappyPath_ReturnsTrue()
     {
         // Arrange
         var networkId = Guid.NewGuid();
@@ -76,7 +76,7 @@ public class EntitlementServiceTests
             Description = "Test Network Description",
             IsPublic = false,
             RedirectURI = "#",
-            Entitlement = new NetworkEntitlement
+            FeatureFlag = new NetworkFeatureFlag
             {
                 AllowFiles = true, FileCountLimit = 10, FileSizeLimit = 1000, FileStorageLimit = 5000 // 5000 KB
             }
@@ -84,12 +84,12 @@ public class EntitlementServiceTests
         var networkUser = new NetworkUser
         {
             Id = Guid.NewGuid(), UserProxyId = userProxyId, NetworkId = networkId,
-            Entitlements = JsonDocument.Parse("{}"), NetworkUserRoles = new List<NetworkUserRole>()
+            FeatureFlags = JsonDocument.Parse("{}"), NetworkUserRoles = new List<NetworkUserRole>()
         };
         var file = new Mock<IFormFile>();
         file.Setup(f => f.Length).Returns(500); // 500 bytes
 
-        _networkRepositoryMock.Setup(r => r.GetByIdEntitlementAsync(networkId)).ReturnsAsync(network);
+        _networkRepositoryMock.Setup(r => r.GetByIdFeatureFlagAsync(networkId)).ReturnsAsync(network);
         _fileRepositoryMock.Setup(r => r.GetByNetworkIdAsync(networkId)).ReturnsAsync(new List<File>());
         _networkUserRepositoryMock
             .Setup(r => r.GetByUserProxyIdAsync(userProxyId,
@@ -100,27 +100,27 @@ public class EntitlementServiceTests
 
         // Act
         var result =
-            await _entitlementService.CheckUserAddNetworkFileEntitlementAsync(userProxyId, networkId, file.Object);
+            await _featureFlagService.CheckUserAddNetworkFileFeatureFlagAsync(userProxyId, networkId, file.Object);
 
         // Assert
         Assert.That(result, Is.True);
     }
 
     [Test]
-    public void CheckUserAddNetworkFileEntitlementAsync_NetworkNotFound_ThrowsNotFound()
+    public void CheckUserAddNetworkFileFeatureFlagAsync_NetworkNotFound_ThrowsNotFound()
     {
         // Arrange
         var networkId = Guid.NewGuid();
-        _networkRepositoryMock.Setup(r => r.GetByIdEntitlementAsync(networkId)).ReturnsAsync((Network)null!);
+        _networkRepositoryMock.Setup(r => r.GetByIdFeatureFlagAsync(networkId)).ReturnsAsync((Network)null!);
 
         // Act & Assert
         Assert.ThrowsAsync<NotFoundHttpException>(() =>
-            _entitlementService.CheckUserAddNetworkFileEntitlementAsync(Guid.NewGuid(), networkId,
+            _featureFlagService.CheckUserAddNetworkFileFeatureFlagAsync(Guid.NewGuid(), networkId,
                 new Mock<IFormFile>().Object));
     }
 
     [Test]
-    public async Task CheckUserAddNetworkFileEntitlementAsync_FilesNotAllowed_ReturnsFalse()
+    public async Task CheckUserAddNetworkFileFeatureFlagAsync_FilesNotAllowed_ReturnsFalse()
     {
         // Arrange
         var networkId = Guid.NewGuid();
@@ -130,13 +130,13 @@ public class EntitlementServiceTests
             Name = "Test Network",
             Description = "Test Network Description",
             IsPublic = false,
-            RedirectURI = "#", Entitlement = new NetworkEntitlement { AllowFiles = false }
+            RedirectURI = "#", FeatureFlag = new NetworkFeatureFlag { AllowFiles = false }
         };
-        _networkRepositoryMock.Setup(r => r.GetByIdEntitlementAsync(networkId)).ReturnsAsync(network);
+        _networkRepositoryMock.Setup(r => r.GetByIdFeatureFlagAsync(networkId)).ReturnsAsync(network);
 
         // Act
         var result =
-            await _entitlementService.CheckUserAddNetworkFileEntitlementAsync(Guid.NewGuid(), networkId,
+            await _featureFlagService.CheckUserAddNetworkFileFeatureFlagAsync(Guid.NewGuid(), networkId,
                 new Mock<IFormFile>().Object);
 
         // Assert
@@ -144,7 +144,7 @@ public class EntitlementServiceTests
     }
 
     [Test]
-    public async Task CheckUserAddNetworkFileEntitlementAsync_NetworkFileCountLimitReached_ReturnsFalse()
+    public async Task CheckUserAddNetworkFileFeatureFlagAsync_NetworkFileCountLimitReached_ReturnsFalse()
     {
         // Arrange
         var networkId = Guid.NewGuid();
@@ -154,9 +154,9 @@ public class EntitlementServiceTests
             Name = "Test Network",
             Description = "Test Network Description",
             IsPublic = false,
-            RedirectURI = "#", Entitlement = new NetworkEntitlement { AllowFiles = true, FileCountLimit = 1 }
+            RedirectURI = "#", FeatureFlag = new NetworkFeatureFlag { AllowFiles = true, FileCountLimit = 1 }
         };
-        _networkRepositoryMock.Setup(r => r.GetByIdEntitlementAsync(networkId)).ReturnsAsync(network);
+        _networkRepositoryMock.Setup(r => r.GetByIdFeatureFlagAsync(networkId)).ReturnsAsync(network);
         _fileRepositoryMock.Setup(r => r.GetByNetworkIdAsync(networkId)).ReturnsAsync(new List<File>
         {
             new()
@@ -167,7 +167,7 @@ public class EntitlementServiceTests
 
         // Act
         var result =
-            await _entitlementService.CheckUserAddNetworkFileEntitlementAsync(Guid.NewGuid(), networkId,
+            await _featureFlagService.CheckUserAddNetworkFileFeatureFlagAsync(Guid.NewGuid(), networkId,
                 new Mock<IFormFile>().Object);
 
         // Assert
@@ -175,7 +175,7 @@ public class EntitlementServiceTests
     }
 
     [Test]
-    public async Task CheckUserAddNetworkFileEntitlementAsync_NetworkStorageLimitExceeded_ReturnsFalse()
+    public async Task CheckUserAddNetworkFileFeatureFlagAsync_NetworkStorageLimitExceeded_ReturnsFalse()
     {
         // Arrange
         var networkId = Guid.NewGuid();
@@ -186,18 +186,18 @@ public class EntitlementServiceTests
             Description = "Test Network Description",
             IsPublic = false,
             RedirectURI = "#",
-            Entitlement = new NetworkEntitlement { AllowFiles = true, FileStorageLimit = 1, FileSizeLimit = 2048 }
+            FeatureFlag = new NetworkFeatureFlag { AllowFiles = true, FileStorageLimit = 1, FileSizeLimit = 2048 }
         }; // 1 KB
         var existingFile = new File { SizeBytes = 1000, Bucket = "private", ObjectKey = Guid.NewGuid().ToString() };
         var newFile = new Mock<IFormFile>();
         newFile.Setup(f => f.Length).Returns(25); // 1000 + 25 > 1024
 
-        _networkRepositoryMock.Setup(r => r.GetByIdEntitlementAsync(networkId)).ReturnsAsync(network);
+        _networkRepositoryMock.Setup(r => r.GetByIdFeatureFlagAsync(networkId)).ReturnsAsync(network);
         _fileRepositoryMock.Setup(r => r.GetByNetworkIdAsync(networkId)).ReturnsAsync(new List<File> { existingFile });
 
         // Act
         var result =
-            await _entitlementService.CheckUserAddNetworkFileEntitlementAsync(Guid.NewGuid(), networkId,
+            await _featureFlagService.CheckUserAddNetworkFileFeatureFlagAsync(Guid.NewGuid(), networkId,
                 newFile.Object);
 
         // Assert
@@ -205,7 +205,7 @@ public class EntitlementServiceTests
     }
 
     [Test]
-    public void CheckUserAddNetworkFileEntitlementAsync_NetworkUserNotFound_ThrowsNotFound()
+    public void CheckUserAddNetworkFileFeatureFlagAsync_NetworkUserNotFound_ThrowsNotFound()
     {
         // Arrange
         var networkId = Guid.NewGuid();
@@ -217,10 +217,10 @@ public class EntitlementServiceTests
             Description = "Test Network Description",
             IsPublic = false,
             RedirectURI = "#",
-            Entitlement = new NetworkEntitlement
+            FeatureFlag = new NetworkFeatureFlag
                 { AllowFiles = true, FileCountLimit = 2, FileStorageLimit = 2, FileSizeLimit = 2 }
         };
-        _networkRepositoryMock.Setup(r => r.GetByIdEntitlementAsync(networkId)).ReturnsAsync(network);
+        _networkRepositoryMock.Setup(r => r.GetByIdFeatureFlagAsync(networkId)).ReturnsAsync(network);
         _fileRepositoryMock.Setup(r => r.GetByNetworkIdAsync(networkId)).ReturnsAsync(new List<File>());
         _networkUserRepositoryMock.Setup(r =>
                 r.GetByUserProxyIdAsync(userProxyId,
@@ -229,12 +229,12 @@ public class EntitlementServiceTests
 
         // Act & Assert
         Assert.ThrowsAsync<NotFoundHttpException>(() =>
-            _entitlementService.CheckUserAddNetworkFileEntitlementAsync(userProxyId, networkId,
+            _featureFlagService.CheckUserAddNetworkFileFeatureFlagAsync(userProxyId, networkId,
                 new Mock<IFormFile>().Object));
     }
 
     [Test]
-    public async Task CheckUserAddNetworkFileEntitlementAsync_UserFileCountLimitExceeded_ReturnsFalse()
+    public async Task CheckUserAddNetworkFileFeatureFlagAsync_UserFileCountLimitExceeded_ReturnsFalse()
     {
         // Arrange
         var networkId = Guid.NewGuid();
@@ -246,15 +246,15 @@ public class EntitlementServiceTests
             Description = "Test Network Description",
             IsPublic = false,
             RedirectURI = "#",
-            Entitlement = new NetworkEntitlement { AllowFiles = true, FileCountLimit = 10 }
+            FeatureFlag = new NetworkFeatureFlag { AllowFiles = true, FileCountLimit = 10 }
         };
         var networkUser = new NetworkUser
         {
             Id = Guid.NewGuid(), UserProxyId = userProxyId, NetworkId = networkId,
-            Entitlements = JsonDocument.Parse("{\"FileCountLimit\": 1}"), NetworkUserRoles = new List<NetworkUserRole>()
+            FeatureFlags = JsonDocument.Parse("{\"FileCountLimit\": 1}"), NetworkUserRoles = new List<NetworkUserRole>()
         };
 
-        _networkRepositoryMock.Setup(r => r.GetByIdEntitlementAsync(networkId)).ReturnsAsync(network);
+        _networkRepositoryMock.Setup(r => r.GetByIdFeatureFlagAsync(networkId)).ReturnsAsync(network);
         _fileRepositoryMock.Setup(r => r.GetByNetworkIdAsync(networkId)).ReturnsAsync(new List<File>());
         _networkUserRepositoryMock
             .Setup(r => r.GetByUserProxyIdAsync(userProxyId,
@@ -271,7 +271,7 @@ public class EntitlementServiceTests
 
         // Act
         var result =
-            await _entitlementService.CheckUserAddNetworkFileEntitlementAsync(userProxyId, networkId,
+            await _featureFlagService.CheckUserAddNetworkFileFeatureFlagAsync(userProxyId, networkId,
                 new Mock<IFormFile>().Object);
 
         // Assert
@@ -281,7 +281,7 @@ public class EntitlementServiceTests
     }
 
     [Test]
-    public async Task CheckUserAddNetworkFileEntitlementAsync_UserHasRoleWithHigherLimit_ReturnsTrue()
+    public async Task CheckUserAddNetworkFileFeatureFlagAsync_UserHasRoleWithHigherLimit_ReturnsTrue()
     {
         // Arrange
         var networkId = Guid.NewGuid();
@@ -293,12 +293,12 @@ public class EntitlementServiceTests
             Description = "Test Network Description",
             IsPublic = false,
             RedirectURI = "#",
-            Entitlement = new NetworkEntitlement
+            FeatureFlag = new NetworkFeatureFlag
                 { AllowFiles = true, FileCountLimit = 1, FileSizeLimit = 1000, FileStorageLimit = 5000 }
         };
         var role = new Role
         {
-            Entitlements = JsonDocument.Parse("{\"FileCountLimit\": 5}"),
+            FeatureFlags = JsonDocument.Parse("{\"FileCountLimit\": 5}"),
             Name = "Role Name",
             Description = "Role Description",
             IsDefault = false,
@@ -307,7 +307,7 @@ public class EntitlementServiceTests
         var networkUser = new NetworkUser
         {
             Id = Guid.NewGuid(), UserProxyId = userProxyId, NetworkId = networkId,
-            Entitlements = JsonDocument.Parse("{}"), // No personal override
+            FeatureFlags = JsonDocument.Parse("{}"), // No personal override
         };
         networkUser.NetworkUserRoles = new List<NetworkUserRole>
         {
@@ -318,7 +318,7 @@ public class EntitlementServiceTests
             }
         };
 
-        _networkRepositoryMock.Setup(r => r.GetByIdEntitlementAsync(networkId)).ReturnsAsync(network);
+        _networkRepositoryMock.Setup(r => r.GetByIdFeatureFlagAsync(networkId)).ReturnsAsync(network);
         _fileRepositoryMock.Setup(r => r.GetByNetworkIdAsync(networkId)).ReturnsAsync(new List<File>());
         _networkUserRepositoryMock
             .Setup(r => r.GetByUserProxyIdAsync(userProxyId,
@@ -336,7 +336,7 @@ public class EntitlementServiceTests
 
         // Act
         var result =
-            await _entitlementService.CheckUserAddNetworkFileEntitlementAsync(userProxyId, networkId,
+            await _featureFlagService.CheckUserAddNetworkFileFeatureFlagAsync(userProxyId, networkId,
                 new Mock<IFormFile>().Object);
 
         // Assert
@@ -345,10 +345,10 @@ public class EntitlementServiceTests
 
     #endregion
 
-    #region CheckUserAddBlogEntitlementAsync Tests
+    #region CheckUserAddBlogFeatureFlagAsync Tests
 
     [Test]
-    public async Task CheckUserAddBlogEntitlementAsync_HappyPath_ReturnsTrue()
+    public async Task CheckUserAddBlogFeatureFlagAsync_HappyPath_ReturnsTrue()
     {
         // Arrange
         var networkId = Guid.NewGuid();
@@ -360,15 +360,15 @@ public class EntitlementServiceTests
             Description = "Test Network Description",
             IsPublic = false,
             RedirectURI = "#",
-            Entitlement = new NetworkEntitlement { AllowBlogs = true, BlogCountLimit = 5 }
+            FeatureFlag = new NetworkFeatureFlag { AllowBlogs = true, BlogCountLimit = 5 }
         };
         var networkUser = new NetworkUser
         {
             Id = Guid.NewGuid(), UserProxyId = userProxyId, NetworkId = networkId,
-            Entitlements = JsonDocument.Parse("{}"), NetworkUserRoles = new List<NetworkUserRole>()
+            FeatureFlags = JsonDocument.Parse("{}"), NetworkUserRoles = new List<NetworkUserRole>()
         };
 
-        _networkRepositoryMock.Setup(r => r.GetByIdEntitlementAsync(networkId)).ReturnsAsync(network);
+        _networkRepositoryMock.Setup(r => r.GetByIdFeatureFlagAsync(networkId)).ReturnsAsync(network);
         _blogRepositoryMock.Setup(r => r.GetByNetworkIdAsync(networkId)).ReturnsAsync(new List<Blog>());
         _networkUserRepositoryMock
             .Setup(r => r.GetByUserProxyIdAsync(userProxyId,
@@ -378,14 +378,14 @@ public class EntitlementServiceTests
             .ReturnsAsync(new List<Blog>());
 
         // Act
-        var result = await _entitlementService.CheckUserAddBlogEntitlementAsync(userProxyId, networkId);
+        var result = await _featureFlagService.CheckUserAddBlogFeatureFlagAsync(userProxyId, networkId);
 
         // Assert
         Assert.That(result, Is.True);
     }
 
     [Test]
-    public async Task CheckUserAddBlogEntitlementAsync_UserLimitExactlyMet_ReturnsFalse()
+    public async Task CheckUserAddBlogFeatureFlagAsync_UserLimitExactlyMet_ReturnsFalse()
     {
         // Arrange
         var networkId = Guid.NewGuid();
@@ -397,15 +397,15 @@ public class EntitlementServiceTests
             Description = "Test Network Description",
             IsPublic = false,
             RedirectURI = "#",
-            Entitlement = new NetworkEntitlement { AllowBlogs = true, BlogCountLimit = 10 }
+            FeatureFlag = new NetworkFeatureFlag { AllowBlogs = true, BlogCountLimit = 10 }
         };
         var networkUser = new NetworkUser
         {
             Id = Guid.NewGuid(), UserProxyId = userProxyId, NetworkId = networkId,
-            Entitlements = JsonDocument.Parse("{\"BlogCountLimit\": 1}"), NetworkUserRoles = new List<NetworkUserRole>()
+            FeatureFlags = JsonDocument.Parse("{\"BlogCountLimit\": 1}"), NetworkUserRoles = new List<NetworkUserRole>()
         };
 
-        _networkRepositoryMock.Setup(r => r.GetByIdEntitlementAsync(networkId)).ReturnsAsync(network);
+        _networkRepositoryMock.Setup(r => r.GetByIdFeatureFlagAsync(networkId)).ReturnsAsync(network);
         _blogRepositoryMock.Setup(r => r.GetByNetworkIdAsync(networkId)).ReturnsAsync(new List<Blog>());
         _networkUserRepositoryMock
             .Setup(r => r.GetByUserProxyIdAsync(userProxyId,
@@ -424,7 +424,7 @@ public class EntitlementServiceTests
             }); // User has 1 blog
 
         // Act
-        var result = await _entitlementService.CheckUserAddBlogEntitlementAsync(userProxyId, networkId);
+        var result = await _featureFlagService.CheckUserAddBlogFeatureFlagAsync(userProxyId, networkId);
 
         // Assert
         // This test will fail if the logic is `count > limit` instead of `count >= limit`.
@@ -433,10 +433,10 @@ public class EntitlementServiceTests
 
     #endregion
 
-    #region CheckUserAddCustomPageEntitlementAsync Tests
+    #region CheckUserAddCustomPageFeatureFlagAsync Tests
 
     [Test]
-    public async Task CheckUserAddCustomPageEntitlementAsync_UserLimitReached_ReturnsFalse()
+    public async Task CheckUserAddCustomPageFeatureFlagAsync_UserLimitReached_ReturnsFalse()
     {
         // Arrange
         var networkId = Guid.NewGuid();
@@ -448,17 +448,17 @@ public class EntitlementServiceTests
             Description = "Test Network Description",
             IsPublic = false,
             RedirectURI = "#",
-            Entitlement = new NetworkEntitlement { AllowCustomPages = true, CustomPageCountLimit = 10 }
+            FeatureFlag = new NetworkFeatureFlag { AllowCustomPages = true, CustomPageCountLimit = 10 }
         };
         var networkUser = new NetworkUser
         {
             Id = Guid.NewGuid(), UserProxyId = userProxyId, NetworkId = networkId,
             // Because of the suspected bug in the constant name, this will actually set ConfigurationCountLimit
-            Entitlements = JsonDocument.Parse("{\"ConfigurationCountLimit\": 1}"),
+            FeatureFlags = JsonDocument.Parse("{\"ConfigurationCountLimit\": 1}"),
             NetworkUserRoles = new List<NetworkUserRole>()
         };
 
-        _networkRepositoryMock.Setup(r => r.GetByIdEntitlementAsync(networkId)).ReturnsAsync(network);
+        _networkRepositoryMock.Setup(r => r.GetByIdFeatureFlagAsync(networkId)).ReturnsAsync(network);
         _customPageRepositoryMock.Setup(r => r.GetByNetworkIdAsync(networkId)).ReturnsAsync(new List<CustomPage>());
         _networkUserRepositoryMock
             .Setup(r => r.GetByUserProxyIdAsync(userProxyId,
@@ -468,7 +468,7 @@ public class EntitlementServiceTests
             .ReturnsAsync(new List<CustomPage> { new() { Name = "name", Slug = "slug" } });
 
         // Act
-        var result = await _entitlementService.CheckUserAddCustomPageEntitlementAsync(userProxyId, networkId);
+        var result = await _featureFlagService.CheckUserAddCustomPageFeatureFlagAsync(userProxyId, networkId);
 
         // Assert
         // This test will fail if the constant for CustomPageCountLimit is incorrect,
@@ -478,10 +478,10 @@ public class EntitlementServiceTests
 
     #endregion
 
-    #region CheckUserAddCustomPageBlockEntitlementAsync Tests
+    #region CheckUserAddCustomPageBlockFeatureFlagAsync Tests
 
     [Test]
-    public async Task CheckUserAddCustomPageBlockEntitlementAsync_HappyPath_ReturnsTrue()
+    public async Task CheckUserAddCustomPageBlockFeatureFlagAsync_HappyPath_ReturnsTrue()
     {
         // Arrange
         var networkId = Guid.NewGuid();
@@ -490,7 +490,7 @@ public class EntitlementServiceTests
         var network = new Network
         {
             Id = networkId,
-            Entitlement = new NetworkEntitlement
+            FeatureFlag = new NetworkFeatureFlag
             {
                 AllowCustomPages = true,
                 CustomPageBlockCountLimit = 10,
@@ -506,7 +506,7 @@ public class EntitlementServiceTests
             Id = Guid.NewGuid(),
             UserProxyId = userProxyId,
             NetworkId = networkId,
-            Entitlements = JsonDocument.Parse("{}"),
+            FeatureFlags = JsonDocument.Parse("{}"),
             NetworkUserRoles = new List<NetworkUserRole>()
         };
 
@@ -519,7 +519,7 @@ public class EntitlementServiceTests
             Slug = "slug"
         };
 
-        _networkRepositoryMock.Setup(r => r.GetByIdEntitlementAsync(networkId)).ReturnsAsync(network);
+        _networkRepositoryMock.Setup(r => r.GetByIdFeatureFlagAsync(networkId)).ReturnsAsync(network);
         _customPageRepositoryMock.Setup(r => r.GetByIdAsync(customPageId)).ReturnsAsync(customPage);
 
         _networkUserRepositoryMock
@@ -532,7 +532,7 @@ public class EntitlementServiceTests
 
         // Act
         var result =
-            await _entitlementService.CheckUserAddCustomPageBlockEntitlementAsync(userProxyId, networkId, customPageId,
+            await _featureFlagService.CheckUserAddCustomPageBlockFeatureFlagAsync(userProxyId, networkId, customPageId,
                 pageBlockData);
 
         // Assert
@@ -540,14 +540,14 @@ public class EntitlementServiceTests
     }
 
     [Test]
-    public async Task CheckUserAddCustomPageBlockEntitlementAsync_NetworkNotAllowed_ReturnsFalse()
+    public async Task CheckUserAddCustomPageBlockFeatureFlagAsync_NetworkNotAllowed_ReturnsFalse()
     {
         // Arrange
         var networkId = Guid.NewGuid();
         var network = new Network
         {
             Id = networkId,
-            Entitlement = new NetworkEntitlement
+            FeatureFlag = new NetworkFeatureFlag
             {
                 AllowCustomPages = false
             },
@@ -558,11 +558,11 @@ public class EntitlementServiceTests
         };
         var pageBlockData = JsonDocument.Parse("{}").RootElement;
 
-        _networkRepositoryMock.Setup(r => r.GetByIdEntitlementAsync(networkId)).ReturnsAsync(network);
+        _networkRepositoryMock.Setup(r => r.GetByIdFeatureFlagAsync(networkId)).ReturnsAsync(network);
 
         // Act
         var result =
-            await _entitlementService.CheckUserAddCustomPageBlockEntitlementAsync(Guid.NewGuid(), networkId,
+            await _featureFlagService.CheckUserAddCustomPageBlockFeatureFlagAsync(Guid.NewGuid(), networkId,
                 Guid.NewGuid(), pageBlockData);
 
         // Assert
@@ -570,7 +570,7 @@ public class EntitlementServiceTests
     }
 
     [Test]
-    public async Task CheckUserAddCustomPageBlockEntitlementAsync_NetworkBlockCountLimitReached_ReturnsFalse()
+    public async Task CheckUserAddCustomPageBlockFeatureFlagAsync_NetworkBlockCountLimitReached_ReturnsFalse()
     {
         // Arrange
         var networkId = Guid.NewGuid();
@@ -578,7 +578,7 @@ public class EntitlementServiceTests
         var network = new Network
         {
             Id = networkId,
-            Entitlement = new NetworkEntitlement
+            FeatureFlag = new NetworkFeatureFlag
             {
                 AllowCustomPages = true,
                 CustomPageBlockCountLimit = 2
@@ -609,11 +609,11 @@ public class EntitlementServiceTests
             Slug = "slug"
         };
 
-        _networkRepositoryMock.Setup(r => r.GetByIdEntitlementAsync(networkId)).ReturnsAsync(network);
+        _networkRepositoryMock.Setup(r => r.GetByIdFeatureFlagAsync(networkId)).ReturnsAsync(network);
         _customPageRepositoryMock.Setup(r => r.GetByIdAsync(customPageId)).ReturnsAsync(customPage);
 
         // Act
-        var result = await _entitlementService.CheckUserAddCustomPageBlockEntitlementAsync(Guid.NewGuid(), networkId,
+        var result = await _featureFlagService.CheckUserAddCustomPageBlockFeatureFlagAsync(Guid.NewGuid(), networkId,
             customPageId, JsonDocument.Parse("{}").RootElement);
 
         // Assert
@@ -621,7 +621,7 @@ public class EntitlementServiceTests
     }
 
     [Test]
-    public async Task CheckUserAddCustomPageBlockEntitlementAsync_NetworkBlockSizeLimitReached_ReturnsFalse()
+    public async Task CheckUserAddCustomPageBlockFeatureFlagAsync_NetworkBlockSizeLimitReached_ReturnsFalse()
     {
         // Arrange
         var networkId = Guid.NewGuid();
@@ -629,7 +629,7 @@ public class EntitlementServiceTests
         var network = new Network
         {
             Id = networkId,
-            Entitlement = new NetworkEntitlement
+            FeatureFlag = new NetworkFeatureFlag
                 { AllowCustomPages = true, CustomPageBlockCountLimit = 10, CustomPageBlockSizeLimit = 5 },
             Name = "name",
             IsPublic = false,
@@ -646,12 +646,12 @@ public class EntitlementServiceTests
         };
         var pageBlockData = JsonDocument.Parse("{\"long\":\"data\"}").RootElement;
 
-        _networkRepositoryMock.Setup(r => r.GetByIdEntitlementAsync(networkId)).ReturnsAsync(network);
+        _networkRepositoryMock.Setup(r => r.GetByIdFeatureFlagAsync(networkId)).ReturnsAsync(network);
         _customPageRepositoryMock.Setup(r => r.GetByIdAsync(customPageId)).ReturnsAsync(customPage);
 
         // Act
         var result =
-            await _entitlementService.CheckUserAddCustomPageBlockEntitlementAsync(Guid.NewGuid(), networkId,
+            await _featureFlagService.CheckUserAddCustomPageBlockFeatureFlagAsync(Guid.NewGuid(), networkId,
                 customPageId, pageBlockData);
 
         // Assert
@@ -659,7 +659,7 @@ public class EntitlementServiceTests
     }
 
     [Test]
-    public async Task CheckUserAddCustomPageBlockEntitlementAsync_UserBlockCountLimitReached_ReturnsFalse()
+    public async Task CheckUserAddCustomPageBlockFeatureFlagAsync_UserBlockCountLimitReached_ReturnsFalse()
     {
         // Arrange
         var networkId = Guid.NewGuid();
@@ -668,7 +668,7 @@ public class EntitlementServiceTests
         var network = new Network
         {
             Id = networkId,
-            Entitlement = new NetworkEntitlement
+            FeatureFlag = new NetworkFeatureFlag
             {
                 AllowCustomPages = true,
                 CustomPageBlockCountLimit = 10,
@@ -684,7 +684,7 @@ public class EntitlementServiceTests
             Id = Guid.NewGuid(),
             UserProxyId = userProxyId,
             NetworkId = networkId,
-            Entitlements = JsonDocument.Parse("{}"),
+            FeatureFlags = JsonDocument.Parse("{}"),
             NetworkUserRoles = new List<NetworkUserRole>()
         };
 
@@ -696,7 +696,7 @@ public class EntitlementServiceTests
             Slug = "slug"
         };
 
-        _networkRepositoryMock.Setup(r => r.GetByIdEntitlementAsync(networkId)).ReturnsAsync(network);
+        _networkRepositoryMock.Setup(r => r.GetByIdFeatureFlagAsync(networkId)).ReturnsAsync(network);
         _customPageRepositoryMock.Setup(r => r.GetByIdAsync(customPageId)).ReturnsAsync(customPage);
         _networkUserRepositoryMock
             .Setup(r => r.GetByUserProxyIdAsync(userProxyId,
@@ -713,7 +713,7 @@ public class EntitlementServiceTests
             .ReturnsAsync(userPages);
 
         // Act
-        var result = await _entitlementService.CheckUserAddCustomPageBlockEntitlementAsync(userProxyId, networkId,
+        var result = await _featureFlagService.CheckUserAddCustomPageBlockFeatureFlagAsync(userProxyId, networkId,
             customPageId, JsonDocument.Parse("{}").RootElement);
 
         // Assert
@@ -721,7 +721,7 @@ public class EntitlementServiceTests
     }
 
     [Test]
-    public async Task CheckUserAddCustomPageBlockEntitlementAsync_UserBlockSizeLimitReached_ReturnsFalse()
+    public async Task CheckUserAddCustomPageBlockFeatureFlagAsync_UserBlockSizeLimitReached_ReturnsFalse()
     {
         // Arrange
         var networkId = Guid.NewGuid();
@@ -730,7 +730,7 @@ public class EntitlementServiceTests
         var network = new Network
         {
             Id = networkId,
-            Entitlement = new NetworkEntitlement
+            FeatureFlag = new NetworkFeatureFlag
             {
                 AllowCustomPages = true,
                 CustomPageBlockCountLimit = 10,
@@ -746,7 +746,7 @@ public class EntitlementServiceTests
             Id = Guid.NewGuid(),
             UserProxyId = userProxyId,
             NetworkId = networkId,
-            Entitlements = JsonDocument.Parse("{\"CustomPageBlockSizeLimit\": 5}"),
+            FeatureFlags = JsonDocument.Parse("{\"CustomPageBlockSizeLimit\": 5}"),
             NetworkUserRoles = new List<NetworkUserRole>()
         };
 
@@ -759,7 +759,7 @@ public class EntitlementServiceTests
         };
         var pageBlockData = JsonDocument.Parse("{\"data\":\"long\"}").RootElement;
 
-        _networkRepositoryMock.Setup(r => r.GetByIdEntitlementAsync(networkId)).ReturnsAsync(network);
+        _networkRepositoryMock.Setup(r => r.GetByIdFeatureFlagAsync(networkId)).ReturnsAsync(network);
         _customPageRepositoryMock.Setup(r => r.GetByIdAsync(customPageId)).ReturnsAsync(customPage);
         _networkUserRepositoryMock
             .Setup(r => r.GetByUserProxyIdAsync(userProxyId,
@@ -770,7 +770,7 @@ public class EntitlementServiceTests
 
         // Act
         var result =
-            await _entitlementService.CheckUserAddCustomPageBlockEntitlementAsync(userProxyId, networkId, customPageId,
+            await _featureFlagService.CheckUserAddCustomPageBlockFeatureFlagAsync(userProxyId, networkId, customPageId,
                 pageBlockData);
 
         // Assert
@@ -779,67 +779,67 @@ public class EntitlementServiceTests
 
     #endregion
 
-    #region Read/Write/Remove Entitlement Tests
+    #region Read/Write/Remove FeatureFlag Tests
 
     [Test]
     public void CustomPageCountLimit_And_ConfigurationCountLimit_DoNotConflict()
     {
         // Arrange
-        var networkUser = new NetworkUser { Entitlements = JsonDocument.Parse("{}") };
+        var networkUser = new NetworkUser { FeatureFlags = JsonDocument.Parse("{}") };
         const int customPageLimit = 5;
         const int configLimit = 10;
 
         // Act
-        networkUser = _entitlementService.WriteCustomPageCountLimitEntitlement(networkUser, customPageLimit);
-        networkUser = _entitlementService.WriteConfigurationCountLimitEntitlement(networkUser, configLimit);
+        networkUser = NetworkFeatureFlagFactory.WriteFeatureFlag(networkUser, customPageLimit ,FeatureFlagType.CustomPageCountLimit);
+        networkUser = NetworkFeatureFlagFactory.WriteFeatureFlag(networkUser, configLimit, FeatureFlagType.ConfigurationCountLimit);
 
         // Assert
-        var readCustomPageLimit = _entitlementService.ReadCustomPageCountLimitEntitlement(networkUser);
-        var readConfigLimit = _entitlementService.ReadConfigurationCountLimitEntitlement(networkUser);
+        var readCustomPageLimit = NetworkFeatureFlagFactory.ReadFeatureFlag<int?>(networkUser, FeatureFlagType.CustomPageCountLimit);
+        var readConfigLimit = NetworkFeatureFlagFactory.ReadFeatureFlag<int?>(networkUser, FeatureFlagType.ConfigurationCountLimit);
 
-        // This will fail if WriteCustomPageCountLimitEntitlement uses the same key as WriteConfigurationCountLimitEntitlement
+        // This will fail if WriteCustomPageCountLimitFeatureFlag uses the same key as WriteConfigurationCountLimitFeatureFlag
         Assert.That(readCustomPageLimit, Is.EqualTo(customPageLimit), "Custom CustomPage limit should be preserved.");
         Assert.That(readConfigLimit, Is.EqualTo(configLimit), "Configuration limit should be preserved.");
     }
 
     [Test]
-    public void ReadFileCountLimitEntitlement_NoLimits_ReturnsNull()
+    public void ReadFileCountLimitFeatureFlag_NoLimits_ReturnsNull()
     {
         // Arrange
         var networkUser = new NetworkUser
-            { Entitlements = JsonDocument.Parse("{}"), NetworkUserRoles = new List<NetworkUserRole>() };
+            { FeatureFlags = JsonDocument.Parse("{}"), NetworkUserRoles = new List<NetworkUserRole>() };
 
         // Act
-        var limit = _entitlementService.ReadFileCountLimitEntitlement(networkUser);
+        var limit = NetworkFeatureFlagFactory.ReadFeatureFlag<int?>(networkUser, FeatureFlagType.FileCountLimit);
 
         // Assert
         Assert.That(limit, Is.Null);
     }
 
     [Test]
-    public void ReadFileCountLimitEntitlement_OnlyUserLimit_ReturnsUserLimit()
+    public void ReadFileCountLimitFeatureFlag_OnlyUserLimit_ReturnsUserLimit()
     {
         // Arrange
         var networkUser = new NetworkUser
         {
-            Entitlements = JsonDocument.Parse("{\"FileCountLimit\": 10}"),
+            FeatureFlags = JsonDocument.Parse("{\"FileCountLimit\": 10}"),
             NetworkUserRoles = new List<NetworkUserRole>()
         };
 
         // Act
-        var limit = _entitlementService.ReadFileCountLimitEntitlement(networkUser);
+        var limit = NetworkFeatureFlagFactory.ReadFeatureFlag<int?>(networkUser, FeatureFlagType.FileCountLimit);
 
         // Assert
         Assert.That(limit, Is.EqualTo(10));
     }
 
     [Test]
-    public void ReadFileCountLimitEntitlement_OnlyRoleLimit_ReturnsRoleLimit()
+    public void ReadFileCountLimitFeatureFlag_OnlyRoleLimit_ReturnsRoleLimit()
     {
         // Arrange
         var roleWithLimit = new Role
         {
-            Entitlements = JsonDocument.Parse("{\"FileCountLimit\": 20}"),
+            FeatureFlags = JsonDocument.Parse("{\"FileCountLimit\": 20}"),
             Name = "name",
             Description = "description",
             IsDefault = false,
@@ -847,7 +847,7 @@ public class EntitlementServiceTests
         };
         var networkUser = new NetworkUser
         {
-            Entitlements = JsonDocument.Parse("{}"),
+            FeatureFlags = JsonDocument.Parse("{}"),
         };
         networkUser.NetworkUserRoles = new List<NetworkUserRole>
         {
@@ -859,19 +859,19 @@ public class EntitlementServiceTests
         };
 
         // Act
-        var limit = _entitlementService.ReadFileCountLimitEntitlement(networkUser);
+        var limit = NetworkFeatureFlagFactory.ReadFeatureFlag<int?>(networkUser, FeatureFlagType.FileCountLimit);
 
         // Assert
         Assert.That(limit, Is.EqualTo(20));
     }
 
     [Test]
-    public void ReadFileCountLimitEntitlement_UserAndRoleLimits_ReturnsMax()
+    public void ReadFileCountLimitFeatureFlag_UserAndRoleLimits_ReturnsMax()
     {
         // Arrange
         var roleWithLimit = new Role
         {
-            Entitlements = JsonDocument.Parse("{\"FileCountLimit\": 20}"),
+            FeatureFlags = JsonDocument.Parse("{\"FileCountLimit\": 20}"),
             Name = "name",
             Description = "description",
             IsDefault = false,
@@ -879,7 +879,7 @@ public class EntitlementServiceTests
         };
         var networkUser = new NetworkUser
         {
-            Entitlements = JsonDocument.Parse("{\"FileCountLimit\": 10}"),
+            FeatureFlags = JsonDocument.Parse("{\"FileCountLimit\": 10}"),
         };
         networkUser.NetworkUserRoles = new List<NetworkUserRole>
         {
@@ -891,7 +891,7 @@ public class EntitlementServiceTests
         };
 
         // Act
-        var limit = _entitlementService.ReadFileCountLimitEntitlement(networkUser);
+        var limit = NetworkFeatureFlagFactory.ReadFeatureFlag<int?>(networkUser, FeatureFlagType.FileCountLimit);
 
         // Assert
         // Should be Max(user_limit, role_limit) = Max(10, 20) = 20
@@ -899,12 +899,12 @@ public class EntitlementServiceTests
     }
 
     [Test]
-    public void ReadFileCountLimitEntitlement_MultipleRoleLimits_ReturnsMaxRoleLimit()
+    public void ReadFileCountLimitFeatureFlag_MultipleRoleLimits_ReturnsMaxRoleLimit()
     {
         // Arrange
         var role1 = new Role
         {
-            Entitlements = JsonDocument.Parse("{\"FileCountLimit\": 20}"),
+            FeatureFlags = JsonDocument.Parse("{\"FileCountLimit\": 20}"),
             Name = "name 1",
             Description = "description",
             IsDefault = false,
@@ -912,7 +912,7 @@ public class EntitlementServiceTests
         };
         var role2 = new Role
         {
-            Entitlements = JsonDocument.Parse("{\"FileCountLimit\": 30}"),
+            FeatureFlags = JsonDocument.Parse("{\"FileCountLimit\": 30}"),
             Name = "name 1",
             Description = "description",
             IsDefault = false,
@@ -920,7 +920,7 @@ public class EntitlementServiceTests
         };
         var networkUser = new NetworkUser
         {
-            Entitlements = JsonDocument.Parse("{}"),
+            FeatureFlags = JsonDocument.Parse("{}"),
         };
         networkUser.NetworkUserRoles = new List<NetworkUserRole>
         {
@@ -937,30 +937,30 @@ public class EntitlementServiceTests
         });
 
         // Act
-        var limit = _entitlementService.ReadFileCountLimitEntitlement(networkUser);
+        var limit = NetworkFeatureFlagFactory.ReadFeatureFlag<int?>(networkUser, FeatureFlagType.FileCountLimit);
 
         // Assert
         Assert.That(limit, Is.EqualTo(30));
     }
 
     [Test]
-    public void WriteAndRemoveFileCountLimitEntitlement_Works()
+    public void WriteAndRemoveFileCountLimitFeatureFlag_Works()
     {
         // Arrange
-        var networkUser = new NetworkUser { Entitlements = JsonDocument.Parse("{}") };
+        var networkUser = new NetworkUser { FeatureFlags = JsonDocument.Parse("{}") };
 
         // Act (Write)
-        networkUser = _entitlementService.WriteFileCountLimitEntitlement(networkUser, 55);
+        networkUser = NetworkFeatureFlagFactory.WriteFeatureFlag(networkUser, 55, FeatureFlagType.FileCountLimit);
 
         // Assert (Write)
-        var readLimit = _entitlementService.ReadFileCountLimitEntitlement(networkUser);
+        var readLimit = NetworkFeatureFlagFactory.ReadFeatureFlag<int?>(networkUser, FeatureFlagType.FileCountLimit);
         Assert.That(readLimit, Is.EqualTo(55));
 
         // Act (Remove)
-        networkUser = _entitlementService.RemoveFileCountLimitEntitlement(networkUser);
+        networkUser = NetworkFeatureFlagFactory.RemoveFeatureFlag<int?>(networkUser, FeatureFlagType.FileCountLimit);
 
         // Assert (Remove)
-        var removedLimit = _entitlementService.ReadFileCountLimitEntitlement(networkUser);
+        var removedLimit = NetworkFeatureFlagFactory.ReadFeatureFlag<int?>(networkUser, FeatureFlagType.FileCountLimit);
         Assert.That(removedLimit, Is.Null);
     }
 

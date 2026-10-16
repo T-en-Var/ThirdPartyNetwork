@@ -16,7 +16,7 @@ public class BlogService(
     IIdentityService identityService,
     INetworkUserService networkUserService,
     IFileService fileService,
-    IEntitlementService entitlementService,
+    IFeatureFlagValidator featureFlagService,
     IAccessLevelVerifier accessLevelVerifier,
     IMapper mapper) : UserContentBaseService<Blog>(repository, networkUserService), IBlogService
 {
@@ -46,7 +46,7 @@ public class BlogService(
         var networkUser = await _networkUserService.GetByIdsAsync(networkId, userProxy.Id);
         if (networkUser == null) throw new NotFoundHttpException("NetworkUser not found");
         
-        if (!await entitlementService.CheckUserAddBlogEntitlementAsync(networkUser.UserProxyId, networkId))
+        if (!await featureFlagService.CheckUserAddBlogFeatureFlagAsync(networkUser.UserProxyId, networkId))
             throw new UnauthorizedHttpException("You are exceeding a blog limit.");
         
         var baseSlug = SlugGenerator.GenerateSlug(createBlog.Title);

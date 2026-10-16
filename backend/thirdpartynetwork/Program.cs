@@ -202,7 +202,7 @@ builder.Services.AddScoped<IConfigurationRepository, ConfigurationRepository>();
 builder.Services.AddScoped<IBlogRepository, BlogRepository>();
 builder.Services.AddScoped<INetworkAccessRepository, NetworkAccessRepository>();
 builder.Services.AddScoped<INetworkRepository, NetworkRepository>();
-builder.Services.AddScoped<INetworkEntitlementRepository, NetworkEntitlementRepository>();
+builder.Services.AddScoped<INetworkFeatureFlagRepository, NetworkFeatureFlagRepository>();
 builder.Services.AddScoped<INetworkUserAccessRepository, NetworkUserAccessRepository>();
 builder.Services.AddScoped<INetworkUserRepository, NetworkUserRepository>();
 builder.Services.AddScoped<INetworkUserRoleRepository, NetworkUserRoleRepository>();
@@ -231,7 +231,7 @@ builder.Services.AddScoped<IContentModerationFlagService, ContentModerationFlagS
 builder.Services.AddScoped<IAccessService, AccessService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICustomPageService, CustomPageService>();
-builder.Services.AddScoped<IEntitlementService, EntitlementService>();
+builder.Services.AddScoped<IFeatureFlagValidator, FeatureFlagValidator>();
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IPublicImageService, PublicImageService>();
 builder.Services.AddScoped<IConfigurationService, ConfigurationService>();

@@ -12,7 +12,7 @@ namespace thirdpartynetwork.Core.Interfaces.Services
         Task<Network?> GetDetailsByIdAsync(Guid networkId);
         Task<Network> CreateAsync(CreateNetworkDto createNetworkDto);
         Task<Network> UpdateAsync(Guid id, UpdateNetworkDto updateNetworkDto);
-        Task<NetworkEntitlement> UpdateEntitlementAsync(Guid id, UpdateNetworkEntitlementDto updateNetworkDto);
+        Task<NetworkFeatureFlag> UpdateFeatureFlagAsync(Guid id, UpdateNetworkFeatureFlagDto updateNetworkDto);
         Task DeleteByIdAsync(Guid id);
         Task<Network> GetMainNetworkAsync();
         Task<Network> GetMainNetworkDetailsAsync();

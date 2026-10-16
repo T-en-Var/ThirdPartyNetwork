@@ -12,7 +12,7 @@ namespace thirdpartynetwork.Application.Dtos.Role
         public required bool IsDefault { get; set; }
         public ICollection<RolePermissionRtPDto> RolePermissions { get; set; } = [];
         public ICollection<NetworkUserRoleRtNDto> NetworkUserRoles { get; set; } = [];
-        public required JsonElement Entitlements { get; set; }
+        public required JsonElement FeatureFlags { get; set; }
         public NetworkLightDto Network { get; set; }
     }
     
@@ -23,6 +23,6 @@ namespace thirdpartynetwork.Application.Dtos.Role
         public required string Description { get; set; }
         public required bool IsDefault { get; set; }
         public ICollection<RolePermissionRtPDto> RolePermissions { get; set; } = [];
-        public required JsonElement Entitlements { get; set; }
+        public required JsonElement FeatureFlags { get; set; }
     }
 }

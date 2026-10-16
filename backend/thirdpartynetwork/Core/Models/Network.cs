@@ -15,7 +15,7 @@ namespace thirdpartynetwork.Core.Models
         // One-to-one relationship
         public Guid? ImageFileId { get; set; }
         public File? ImageFile { get; set; }
-        public virtual required NetworkEntitlement Entitlement { get; set; }
+        public virtual required NetworkFeatureFlag FeatureFlag { get; set; }
 
         // One-to-many
         public ICollection<NetworkUser> NetworkUsers { get; set; } = new List<NetworkUser>();
