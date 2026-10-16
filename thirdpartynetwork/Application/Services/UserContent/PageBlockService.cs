@@ -47,7 +47,7 @@ namespace thirdpartynetwork.Application.Services
             var pageBlock = mapper.Map<PageBlock>(createPageBlock);
             pageBlock.NetworkId = networkId;
             pageBlock.CustomPageId = customPageId;
-            pageBlock.Author = networkUser;
+            pageBlock.AuthorUserProxyId = networkUser.UserProxyId;
 
             pageBlock = await repository.CreateAsync(pageBlock);
             return pageBlock;

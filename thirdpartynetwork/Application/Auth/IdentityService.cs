@@ -74,6 +74,9 @@ public class IdentityService(
 
     private async Task<UserProxy?> _GetUserProxyAsync(Guid userProxyId)
     {
+        // invariant: services should not call DataContext
+        // but: calling a repository invokes a cycle
+        // adding more layers for this only occasion is not worth
         return await dataContext.UserProxies
             .Include(up => up.NetworkUsers)
             .Include(up => up.User)

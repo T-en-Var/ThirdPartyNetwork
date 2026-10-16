@@ -31,7 +31,8 @@ public class PermissionHandler(
                 break;
             }
 
-            var isAllowed = await CheckPermissionAsync(permission, isAuthenticated);
+            var isAllowed = await CheckPermissionAsync(permission, isAuthenticated, requirement.IsListEndpoint,
+                requirement.RouteKey, requirement.IsCreateEndpoint);
             
             Console.WriteLine(isAllowed
                 ? "[PermissionHandler] Passed"
@@ -48,26 +49,35 @@ public class PermissionHandler(
         Console.WriteLine("[PermissionHandler] Complete.");
     }
     
-    private async Task<bool> CheckPermissionAsync(string permission, bool isAuthenticated)
+    private async Task<bool> CheckPermissionAsync(string permission, bool isAuthenticated, bool isListEndpoint,
+        string? routeKey, bool isCreateEndpoint)
     {
-        // Phase 1: If not logged in, they ONLY pass if the resource is publicly accessible enough.
+        // If not logged in, they ONLY pass if the resource is publicly accessible enough.
         if (!isAuthenticated)
         {
-            return Constants.ContentPermissions.Contains(permission) 
-                   && await HandleContentRequirementAsync(permission);
+            return Constants.ContentPermissions.Contains(permission)
+                   && await HandleContentRequirementAsync(permission, isListEndpoint, routeKey);
         }
 
-        // Phase 2: specific Context Checks (Resource Owner or Content)
+        // specific Context Checks (Resource Owner or Content)
         if (Constants.OwnerPermissions.Contains(permission))
         {
-            if (await HandleOwnerRequirementAsync(permission)) return true;
-        }
-        else if (Constants.ContentPermissions.Contains(permission))
-        {
-            if (await HandleContentRequirementAsync(permission)) return true;
+            return await HandleOwnerRequirementAsync(permission);
         }
 
-        // Phase 3: Default role checking
+        if (Constants.ContentPermissions.Contains(permission))
+        {
+            return await HandleContentRequirementAsync(permission, isListEndpoint, routeKey);
+        }
+
+        if (Constants.ContentManagePermissions.Contains(permission))
+        {
+            return isCreateEndpoint
+                ? await HandleRequirementAsync(permission)
+                : await HandleContentManageRequirementAsync(permission);
+        }
+
+        // role checking
         if (Constants.GeneralPermissions.Contains(permission))
         {
             return await HandleGeneralRequirementAsync(permission);
@@ -108,46 +118,31 @@ public class PermissionHandler(
         return false;
     }
 
-    private async Task<bool> HandleContentRequirementAsync(string permission)
+    private async Task<bool> HandleContentRequirementAsync(string permission, bool isListEndpoint, string? routeKey)
     {
-        string compareString;
-        if (Constants.SlugContentPermissions.Contains(permission))
+        if (isListEndpoint) return true;
+
+        if (routeKey == null)
         {
-            // Currently, ONLY blog has this.
-            // Se we play it easy
-            compareString = "slug";
-        }
-        else
-        {
-            compareString = permission switch
-            {
-                Constants.Permissions.ReadFile => "fileId",
-                Constants.Permissions.ReadCustomPage => "customPageId",
-                Constants.Permissions.ReadPageBlock => "pageBlockId",
-                Constants.Permissions.ReadConfiguration => "configurationId",
-                _ => throw new Exception("Unknown permission")
-            };
+            throw new Exception(
+                $"[PermissionHandler] [RequirePermission({permission})] needs RouteKey set " +
+                "(or IsListEndpoint = true if this is a list endpoint).");
         }
 
         var httpContext = httpContextAccessor.HttpContext;
         if (httpContext == null) throw new UnauthorizedHttpException();
 
-        Console.WriteLine($"[PermissionHandler] Checking content permission: {compareString}");
+        Console.WriteLine($"[PermissionHandler] Checking content permission: {routeKey}");
 
-        // In case the request is for getting a list of resources, but not a specific resource.
-        // Then we pass the filtering to the service layer to filter per resource.
-        if (!httpContext.HasGuidInHttpContextUrl(compareString)) 
-            return true;
-
-        var compareValue = httpContext.GetStringFromHttpContextUrl(compareString);
+        var compareValue = httpContext.GetStringFromHttpContextUrl(routeKey);
 
         if (compareValue == null)
         {
-            // This now assumes we call a route where we get a list of results, not singular.
-            // That is handled by the repository as we check per resource.
-            return true;
+            throw new Exception(
+                $"[PermissionHandler] Expected route parameter '{routeKey}' for permission " +
+                $"'{permission}', but none was found on this request.");
         }
-        
+
         var networkId = httpContext.GetGuidFromHttpContextUrl("networkId");
         var userProxy = await identityService.GetUserProxyAsync(true);
 
@@ -175,12 +170,40 @@ public class PermissionHandler(
         };
     }
 
+    private async Task<bool> HandleContentManageRequirementAsync(string permission)
+    {
+        var httpContext = httpContextAccessor.HttpContext;
+        if (httpContext == null) throw new UnauthorizedHttpException();
+
+        var route = ResolveContentRouteMatch(httpContext);
+        if (route == null) return false;
+
+        var contentId = httpContext.GetGuidFromHttpContextUrl(route.Value.CompareString);
+        if (contentId == Guid.Empty) return false;
+
+        var currentUser = await identityService.GetUserProxyAsync();
+
+        if (await identityVerifier.IsSuperAdminOrHasSuperPermissionAsync(currentUser.Id, permission))
+            return true;
+
+        return await identityVerifier.IsContentOwnerAsync(currentUser.Id, route.Value.Kind, contentId);
+    }
+
     private async Task<bool> HandleOwnerRequirementAsync(string permission)
     {
         var httpContext = httpContextAccessor.HttpContext;
         if (httpContext == null) throw new UnauthorizedHttpException();
 
         var currentUser = await identityService.GetUserProxyAsync();
+
+        if (permission == Constants.Permissions.IsContentOwner)
+        {
+            var route = ResolveContentRouteMatch(httpContext);
+            if (route == null) return false;
+
+            return await identityVerifier.IsContentOwnerAsync(currentUser.Id, route.Value.Kind,
+                httpContext.GetGuidFromHttpContextUrl(route.Value.CompareString));
+        }
 
         return permission switch
         {
@@ -192,6 +215,21 @@ public class PermissionHandler(
                 httpContext.GetGuidFromHttpContextUrl("userProxyId")),
             _ => false
         };
+    }
+
+    private static (Core.Enum.ContentKind Kind, string CompareString)? ResolveContentRouteMatch(HttpContext httpContext)
+    {
+        var routeValues = httpContext.Request.RouteValues;
+
+        // pageBlockId before customPageId: PageBlock routes nest under customPages
+        // customPages/{customPageId}/pageBlocks/{pageBlockId}
+        if (routeValues.ContainsKey("fileId")) return (Core.Enum.ContentKind.File, "fileId");
+        if (routeValues.ContainsKey("blogId")) return (Core.Enum.ContentKind.Blog, "blogId");
+        if (routeValues.ContainsKey("configurationId")) return (Core.Enum.ContentKind.Configuration, "configurationId");
+        if (routeValues.ContainsKey("pageBlockId")) return (Core.Enum.ContentKind.PageBlock, "pageBlockId");
+        if (routeValues.ContainsKey("customPageId")) return (Core.Enum.ContentKind.CustomPage, "customPageId");
+
+        return null;
     }
 
     private void PreChecks()

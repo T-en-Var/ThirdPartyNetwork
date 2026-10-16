@@ -50,4 +50,10 @@ namespace thirdpartynetwork.Application.Dtos.NetworkUser
         public required JsonElement Entitlements { get; set; }
         public required NetworkLightDto Network { get; set; }
     }
+    
+    public class NetworkUserUserProxyCascadeDto : NetworkUserLightWithNetworkDto
+    {
+        public ICollection<NetworkUserAccessNtADto> NetworkUserAccesses { get; set; } = [];
+        public ICollection<NetworkUserRoleNtRDto> NetworkUserRoles { get; set; } = [];
+    }
 }

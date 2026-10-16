@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using thirdpartynetwork.Core;
 using thirdpartynetwork.Core.Models;
@@ -307,6 +308,12 @@ namespace thirdpartynetwork
                     new() { Name = Constants.Permissions.ManageConfiguration, Description = "", IsSystemProtected = true },
                     new() { Name = Constants.Permissions.ReadBlog, Description = "", IsSystemProtected = true },
                     new() { Name = Constants.Permissions.ManageBlog, Description = "", IsSystemProtected = true },
+                    new() { Name = Constants.Permissions.ManageContentAccess, Description = "", IsSystemProtected = true },
+                    new() { Name = Constants.Permissions.ModerateFile, Description = "", IsSystemProtected = true },
+                    new() { Name = Constants.Permissions.ModerateBlog, Description = "", IsSystemProtected = true },
+                    new() { Name = Constants.Permissions.ModerateConfiguration, Description = "", IsSystemProtected = true },
+                    new() { Name = Constants.Permissions.ModerateCustomPage, Description = "", IsSystemProtected = true },
+                    new() { Name = Constants.Permissions.ModeratePageBlock, Description = "", IsSystemProtected = true },
                 };
 
                 var accesses = new List<Access>
@@ -456,45 +463,6 @@ namespace thirdpartynetwork
                 context.Networks.Add(network);
                 context.Permissions.AddRange(permissions);
                 await context.SaveChangesAsync();
-
-                var networkFile = new File
-                {
-                    PublicId = Guid.Parse("00000000-0000-0000-0000-000000000000"),
-                    Url = "https://res.cloudinary.com/dm77smcp6/image/upload/v1758720300/favicon-nobg_doh41c.png",
-                    Format = "png",
-                    SizeBytes = 675110,
-                    Width = 1024,
-                    Height = 1024,
-                    MediaType = "image",
-                    Name = "networkIcon.png",
-                    Network = network,
-                    Author = adminNetworkUser,
-                    IsSystemProtected = true,
-                    AccessLevel = AccessLevel.Public
-                };
-
-                context.Files.Add(networkFile);
-
-                network.ImageFileId = networkFile.Id;
-
-                adminUser.ImageFile = new File
-                {
-                    PublicId = Guid.Parse("00000000-0000-0000-0000-000000000000"),
-                    Url =
-                        "https://res.cloudinary.com/dm77smcp6/image/upload/v1758664348/01997890-52ad-7de0-8128-5e0b6b885f95/93adb17e-02d5-4fd3-b088-9ca793613a75.png",
-                    Format = "png",
-                    SizeBytes = 68212,
-                    Width = 1024,
-                    Height = 1024,
-                    MediaType = "image",
-                    Name = "adminAvatar.png",
-                    Network = network,
-                    Author = adminNetworkUser,
-                    IsSystemProtected = true,
-                    AccessLevel = AccessLevel.Public,
-                };
-
-                await context.SaveChangesAsync();
             }
             catch
             {
@@ -509,13 +477,8 @@ namespace thirdpartynetwork
         {
             Console.WriteLine("Clearing database.");
 
-            var storedFiles = context.Files.ToList();
-
-            foreach (var file in storedFiles.Where(file => !file.IsSystemProtected))
-            {
-                Console.WriteLine("Deleting file: " + file.Name);
-                await cdnService.DeleteAsync($"{file.NetworkId}/{file.PublicId}", file.MediaType);
-            }
+            Console.WriteLine("Clearing all files from MinIO.");
+            await cdnService.ClearAllFilesAsync();
 
             var dbSets = context.GetType().GetProperties()
                 .Where(p => p.PropertyType.IsGenericType &&

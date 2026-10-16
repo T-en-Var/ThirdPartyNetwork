@@ -14,7 +14,8 @@ public class MappingProfiles : Profile
         CreateMap<Network, NetworkDto>();
         CreateMap<Network, NetworkLightDto>();
         CreateMap<CreateNetworkDto, Network>();
-        CreateMap<UpdateNetworkDto, Network>();
+        CreateMap<UpdateNetworkDto, Network>()
+            .ForMember(dest => dest.ExternalContentKinds, opt => opt.Condition(src => src.ExternalContentKinds.HasValue));
 
         CreateMap<NetworkAccess, NetworkAccessDto>();
         CreateMap<NetworkAccess, NetworkAccessNtADto>();
@@ -164,13 +165,14 @@ public class MappingProfiles : Profile
         CreateMap<UpdateUserProxyDto, UserProxy>();
         CreateMap<AddUserProxyDto, UserProxy>();
 
-        CreateMap<File, FileDto>();
+        CreateMap<File, FileDto>()
+            .ForMember(dest => dest.ViewingUrl, opt => opt.MapFrom<FileViewingUrlResolver>());
         CreateMap<File, FileLightDto>();
         CreateMap<CreateFileDto, File>();
         CreateMap<UpdateFileDto, File>();
 
-        CreateMap<CustomPage, PageDto>();
-        CreateMap<CustomPage, PageLightDto>();
+        CreateMap<CustomPage, CustomPageDto>();
+        CreateMap<CustomPage, CustomPageLightDto>();
         CreateMap<CreateCustomPageDto, CustomPage>();
         CreateMap<UpdateCustomPageDto, CustomPage>();
 
@@ -212,6 +214,9 @@ public class MappingProfiles : Profile
         CreateMap<Configuration, ConfigurationLightDto>();
         CreateMap<CreateConfigurationDto, Configuration>();
         CreateMap<UpdateConfigurationDto, Configuration>();
+
+        CreateMap<ContentAccessGrant, ContentAccessGrantDto>();
+        CreateMap<ContentModerationFlag, ContentModerationFlagDto>();
 
         CreateMap<NetworkEntitlement, NetworkEntitlementDto>();
         CreateMap<CreateNetworkEntitlementDto, NetworkEntitlement>();

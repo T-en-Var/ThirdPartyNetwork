@@ -40,7 +40,7 @@ public class ConfigurationService(
         
         var configuration = mapper.Map<Configuration>(createConfiguration);
         configuration.Network = network;
-        configuration.Author = networkUser;
+        configuration.AuthorUserProxyId = networkUser.UserProxyId;
 
         return await repository.CreateAsync(configuration);
     }

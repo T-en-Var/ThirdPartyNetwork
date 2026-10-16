@@ -1,12 +1,9 @@
-using thirdpartynetwork.Core.Enum;
-
 namespace thirdpartynetwork.Core.Models;
 
 public class File : UserContentBaseModel
 {
-    public Guid Id { get; set; }
-    public required Guid PublicId { get; set; }
-    public string Url { get; set; }
+    public required string Bucket { get; set; }
+    public required string ObjectKey { get; set; }
     public string Format { get; set; }
     public long SizeBytes { get; set; }
     public int? Width { get; set; }
