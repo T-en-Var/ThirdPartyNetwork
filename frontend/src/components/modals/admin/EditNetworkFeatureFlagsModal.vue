@@ -3,9 +3,9 @@
     :title="'Edit Network'"
     @close="$emit('close')"
   >
-    <div class="edit-network-entitlements-modal__intro">
-      <span class="edit-network-entitlements-modal__network-label">
-        Network Name: <span class="edit-network-entitlements-modal__network-name">{{ network.name }}</span>
+    <div class="edit-network-feature-flags-modal__intro">
+      <span class="edit-network-feature-flags-modal__network-label">
+        Network Name: <span class="edit-network-feature-flags-modal__network-name">{{ network.name }}</span>
       </span>
       <p
         v-if="props.network.isSystemProtected"
@@ -17,9 +17,9 @@
       </p>
     </div>
 
-    <entitlements-form
+    <feature-flags-form
       :network="fakeNetwork"
-      v-model="entitlementsData"
+      v-model="featureFlagsData"
       :auto-increase-max="mainNetwork.id == network.id"
     />
 
@@ -40,16 +40,16 @@
       >
         <span
           v-if="isSubmitting"
-          class="edit-network-entitlements-modal__saving"
+          class="edit-network-feature-flags-modal__saving"
         >
           <svg
-            class="edit-network-entitlements-modal__spinner-icon"
+            class="edit-network-feature-flags-modal__spinner-icon"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
           >
             <circle
-              class="edit-network-entitlements-modal__spinner-track"
+              class="edit-network-feature-flags-modal__spinner-track"
               cx="12"
               cy="12"
               r="10"
@@ -57,7 +57,7 @@
               stroke-width="4"
             ></circle>
             <path
-              class="edit-network-entitlements-modal__spinner-head"
+              class="edit-network-feature-flags-modal__spinner-head"
               fill="currentColor"
               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
             ></path>
@@ -73,15 +73,15 @@
 <script setup lang="ts">
 import { computed, onMounted, type ComputedRef } from 'vue';
 import ModalContainer from '@/components/modals/ModalContainer.vue';
-import type { EntitlementLimits, NetworkDto, SettableEntitlement } from '@/types';
-import EntitlementsForm from '@/components/EntitlementsForm.vue';
-import { useEntitlements } from '@/composables/useEntitlements';
+import type { FeatureFlagLimits, NetworkDto, SettableFeatureFlag } from '@/types';
+import FeatureFlagsForm from '@/components/FeatureFlagsForm.vue';
+import { useFeatureFlags } from '@/composables/useFeatureFlags';
 
 const props = withDefaults(
   defineProps<{
     mainNetwork: NetworkDto;
     network: NetworkDto;
-    totalLimits: EntitlementLimits;
+    totalLimits: FeatureFlagLimits;
     isSubmitting: boolean;
   }>(),
   {
@@ -91,55 +91,55 @@ const props = withDefaults(
 
 const emit = defineEmits<{
   (e: 'close'): void;
-  (e: 'update', networkEntilement: SettableEntitlement): void;
+  (e: 'update', networkFeatureFlag: SettableFeatureFlag): void;
 }>();
 
-const { entitlementsData, initEntitlements, getSubmitData } = useEntitlements(props.network);
+const { featureFlagsData, initFeatureFlags, getSubmitData } = useFeatureFlags(props.network);
 
 const fakeNetwork: ComputedRef<NetworkDto> = computed(() => {
   return {
     ...props.mainNetwork,
-    entitlement: {
+    featureFlag: {
       networkId: props.mainNetwork.id,
-      allowFiles: props.mainNetwork.entitlement!.allowFiles,
+      allowFiles: props.mainNetwork.featureFlag!.allowFiles,
       fileCountLimit:
-        props.mainNetwork.entitlement!.fileCountLimit -
+        props.mainNetwork.featureFlag!.fileCountLimit -
         props.totalLimits['fileCountLimit'] +
-        props.network.entitlement!.fileCountLimit,
-      fileSizeLimit: props.mainNetwork.entitlement!.fileSizeLimit,
+        props.network.featureFlag!.fileCountLimit,
+      fileSizeLimit: props.mainNetwork.featureFlag!.fileSizeLimit,
       fileStorageLimit:
-        props.mainNetwork.entitlement!.fileStorageLimit -
+        props.mainNetwork.featureFlag!.fileStorageLimit -
         props.totalLimits['fileStorageLimit'] +
-        props.network.entitlement!.fileStorageLimit,
-      allowBlogs: props.mainNetwork.entitlement!.allowBlogs,
+        props.network.featureFlag!.fileStorageLimit,
+      allowBlogs: props.mainNetwork.featureFlag!.allowBlogs,
       blogCountLimit:
-        props.mainNetwork.entitlement!.blogCountLimit -
+        props.mainNetwork.featureFlag!.blogCountLimit -
         props.totalLimits['blogCountLimit'] +
-        props.network.entitlement!.blogCountLimit,
-      allowConfigurations: props.mainNetwork.entitlement!.allowConfigurations,
+        props.network.featureFlag!.blogCountLimit,
+      allowConfigurations: props.mainNetwork.featureFlag!.allowConfigurations,
       configurationCountLimit:
-        props.mainNetwork.entitlement!.configurationCountLimit -
+        props.mainNetwork.featureFlag!.configurationCountLimit -
         props.totalLimits['configurationCountLimit'] +
-        props.network.entitlement!.configurationCountLimit,
-      allowCustomPages: props.mainNetwork.entitlement!.allowCustomPages,
+        props.network.featureFlag!.configurationCountLimit,
+      allowCustomPages: props.mainNetwork.featureFlag!.allowCustomPages,
       customPageCountLimit:
-        props.mainNetwork.entitlement!.customPageCountLimit -
+        props.mainNetwork.featureFlag!.customPageCountLimit -
         props.totalLimits['customPageCountLimit'] +
-        props.network.entitlement!.customPageCountLimit,
+        props.network.featureFlag!.customPageCountLimit,
       customPageBlockCountLimit:
-        props.mainNetwork.entitlement!.customPageBlockCountLimit -
+        props.mainNetwork.featureFlag!.customPageBlockCountLimit -
         props.totalLimits['customPageBlockCountLimit'] +
-        props.network.entitlement!.customPageBlockCountLimit,
+        props.network.featureFlag!.customPageBlockCountLimit,
       customPageBlockSizeLimit:
-        props.mainNetwork.entitlement!.customPageBlockSizeLimit -
+        props.mainNetwork.featureFlag!.customPageBlockSizeLimit -
         props.totalLimits['customPageBlockSizeLimit'] +
-        props.network.entitlement!.customPageBlockSizeLimit,
+        props.network.featureFlag!.customPageBlockSizeLimit,
     },
   };
 });
 
 onMounted(() => {
-  initEntitlements(props.network.entitlement!, false);
+  initFeatureFlags(props.network.featureFlag!, false);
 });
 
 function handleSubmit() {

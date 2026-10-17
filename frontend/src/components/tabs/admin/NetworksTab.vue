@@ -38,7 +38,7 @@
     >
       <div class="card">
         <div class="admin-networks-tab__limits-header">
-          <h1 class="admin-networks-tab__limits-title">Global Entitlement Limits</h1>
+          <h1 class="admin-networks-tab__limits-title">Global Feature Flag Limits</h1>
           <button
             @click="handleEditNetwork(mainNetwork)"
             class="admin-networks-tab__edit-link"
@@ -49,7 +49,7 @@
 
         <div class="admin-networks-tab__limits-groups">
           <div
-            v-for="group in groupedEntitlements"
+            v-for="group in groupedFeatureFlags"
             :key="group.name"
             class="admin-networks-tab__limits-group"
           >
@@ -67,14 +67,14 @@
                 <div class="admin-networks-tab__limit-item-value">
                   <span
                     class="admin-networks-tab__limit-item-used"
-                    :title="`${getEntitlementNumber(totalMetrics, item.key)?.toLocaleString()} used`"
+                    :title="`${getFeatureFlagNumber(totalMetrics, item.key)?.toLocaleString()} used`"
                     :class="{
                       'admin-networks-tab__limit-item-used--over':
-                        (getEntitlementNumber(totalMetrics, item.key) as number) >
+                        (getFeatureFlagNumber(totalMetrics, item.key) as number) >
                         totalLimits[item.key],
                     }"
                     >{{
-                      getEntitlementNumber(totalMetrics, item.key)?.toLocaleString('nl-NL')
+                      getFeatureFlagNumber(totalMetrics, item.key)?.toLocaleString('nl-NL')
                     }}</span
                   >
                   <span
@@ -87,7 +87,7 @@
                     }"
                   >
                     {{
-                      getEntitlementNumber(totalMetrics, item.key) !== undefined
+                      getFeatureFlagNumber(totalMetrics, item.key) !== undefined
                         ? ` / ${totalLimits[item.key].toLocaleString('nl-NL')} / `
                         : ''
                     }}</span
@@ -104,7 +104,7 @@
           </div>
 
           <div
-            v-if="groupedEntitlements.length === 0"
+            v-if="groupedFeatureFlags.length === 0"
             class="admin-networks-tab__limits-empty"
           >
             No active limits found.
@@ -184,10 +184,10 @@
           class="admin-networks-tab__advanced-filters"
         >
           <div>
-            <p class="admin-networks-tab__filters-label">Feature Entitlements</p>
+            <p class="admin-networks-tab__filters-label">Feature Flags</p>
             <div class="admin-networks-tab__filter-chips">
               <button
-                v-for="key in Object.keys(entitlementKeys).filter((k) => k.startsWith('allow'))"
+                v-for="key in Object.keys(featureFlagKeys).filter((k) => k.startsWith('allow'))"
                 :key="key"
                 @click="toggleBooleanFilter(key)"
                 class="admin-networks-tab__filter-chip"
@@ -207,7 +207,7 @@
             <p class="admin-networks-tab__filters-label">Capacity Thresholds</p>
             <div class="admin-networks-tab__threshold-list">
               <div
-                v-for="key in allEntitlementKeys.filter((k) => k.includes('Limit'))"
+                v-for="key in allFeatureFlagKeys.filter((k) => k.includes('Limit'))"
                 :key="key"
                 class="admin-networks-tab__threshold-card"
                 :class="{ 'admin-networks-tab__threshold-card--expanded': !!activeRangeFilters[key] }"
@@ -223,8 +223,8 @@
                       (event) =>
                         (event.target as HTMLInputElement).checked
                           ? (activeRangeFilters[key] = [
-                              [0, mainNetwork!.entitlement![key]],
-                              [0, mainNetwork!.entitlement![key]],
+                              [0, mainNetwork!.featureFlag![key]],
+                              [0, mainNetwork!.featureFlag![key]],
                             ])
                           : delete activeRangeFilters[key]
                     "
@@ -253,7 +253,7 @@
                     <DualSlider
                       v-model="activeRangeFilters[key][0]"
                       :min="0"
-                      :max="mainNetwork!.entitlement![key]"
+                      :max="mainNetwork!.featureFlag![key]"
                     />
                   </div>
 
@@ -277,13 +277,13 @@
                     <DualSlider
                       v-model="activeRangeFilters[key][1]"
                       :min="0"
-                      :max="mainNetwork!.entitlement![key]"
+                      :max="mainNetwork!.featureFlag![key]"
                     />
                   </div>
 
                   <div class="admin-networks-tab__threshold-minmax">
                     <span>Min: 0</span>
-                    <span>Global Max: {{ mainNetwork!.entitlement![key] }}</span>
+                    <span>Global Max: {{ mainNetwork!.featureFlag![key] }}</span>
                   </div>
 
                   <div
@@ -331,7 +331,7 @@
 
               <div class="admin-networks-tab__filter-chips">
                 <button
-                  v-for="key in allEntitlementKeys"
+                  v-for="key in allFeatureFlagKeys"
                   :key="key"
                   @click="toggleSort(key)"
                   class="admin-networks-tab__sort-chip"
@@ -347,7 +347,7 @@
 
               <div class="admin-networks-tab__filter-chips">
                 <button
-                  v-for="key in allEntitlementKeys"
+                  v-for="key in allFeatureFlagKeys"
                   :key="key"
                   @click="toggleSort(`used-${key}`)"
                   class="admin-networks-tab__sort-chip"
@@ -380,8 +380,8 @@
                   Network Name
                 </th>
                 <th class="table__cell table__cell--head admin-networks-tab__col-id">ID</th>
-                <th class="table__cell table__cell--head admin-networks-tab__col-entitlements">
-                  Entitlements
+                <th class="table__cell table__cell--head admin-networks-tab__col-feature-flags">
+                  Feature Flags
                 </th>
                 <th class="table__cell table__cell--head admin-networks-tab__col-users">Users</th>
                 <th
@@ -412,32 +412,32 @@
                     :sensitive="true"
                   />
                 </td>
-                <td class="table__cell admin-networks-tab__entitlements-cell">
-                  <div class="admin-networks-tab__entitlement-chips">
-                    <template v-if="Object.keys(network.entitlement || {}).length > 0">
+                <td class="table__cell admin-networks-tab__feature-flags-cell">
+                  <div class="admin-networks-tab__feature-flag-chips">
+                    <template v-if="Object.keys(network.featureFlag || {}).length > 0">
                       <span
-                        v-for="(val, key) in network.entitlement || ({} as Partial<NetworkEntitlementDto>)"
+                        v-for="(val, key) in network.featureFlag || ({} as Partial<NetworkFeatureFlagDto>)"
                         v-show="key != 'networkId'"
                         :key="key"
-                        class="admin-networks-tab__entitlement-chip"
+                        class="admin-networks-tab__feature-flag-chip"
                       >
-                        <span class="admin-networks-tab__entitlement-chip-key">{{ key }}</span>
+                        <span class="admin-networks-tab__feature-flag-chip-key">{{ key }}</span>
                         <span
-                          class="admin-networks-tab__entitlement-chip-value"
+                          class="admin-networks-tab__feature-flag-chip-value"
                           :class="{
-                            'admin-networks-tab__entitlement-chip-value--true': val === true,
-                            'admin-networks-tab__entitlement-chip-value--false': val === false,
-                            'admin-networks-tab__entitlement-chip-value--number':
+                            'admin-networks-tab__feature-flag-chip-value--true': val === true,
+                            'admin-networks-tab__feature-flag-chip-value--false': val === false,
+                            'admin-networks-tab__feature-flag-chip-value--number':
                               val !== true && val !== false,
                           }"
                           ><span
                             :class="{
-                              'admin-networks-tab__entitlement-chip-used--over':
-                                (getEntitlementNumber(network, key) ?? 0) > (val as number),
+                              'admin-networks-tab__feature-flag-chip-used--over':
+                                (getFeatureFlagNumber(network, key) ?? 0) > (val as number),
                             }"
-                            >{{ getEntitlementNumber(network, key)?.toLocaleString('nl-NL') }}</span
-                          >{{ getEntitlementNumber(network, key) !== undefined ? '/' : ''
-                          }}<span class="admin-networks-tab__entitlement-chip-max">{{
+                            >{{ getFeatureFlagNumber(network, key)?.toLocaleString('nl-NL') }}</span
+                          >{{ getFeatureFlagNumber(network, key) !== undefined ? '/' : ''
+                          }}<span class="admin-networks-tab__feature-flag-chip-max">{{
                             (val as number)?.toLocaleString('nl-NL')
                           }}</span></span
                         >
@@ -446,10 +446,10 @@
 
                     <span
                       v-else
-                      class="admin-networks-tab__no-entitlements"
+                      class="admin-networks-tab__no-feature-flags"
                     >
                       <svg
-                        class="admin-networks-tab__no-entitlements-icon"
+                        class="admin-networks-tab__no-feature-flags-icon"
                         fill="currentColor"
                         viewBox="0 0 20 20"
                       >
@@ -459,7 +459,7 @@
                           clip-rule="evenodd"
                         />
                       </svg>
-                      No active entitlements
+                      No active feature flags
                     </span>
                   </div>
                 </td>
@@ -471,7 +471,7 @@
                     @click="handleEditNetwork(network)"
                     class="admin-networks-tab__action-link"
                   >
-                    Entitlements
+                    Feature Flags
                   </button>
                   <button
                     @click="handleManageNetwork(network)"
@@ -500,7 +500,7 @@
         </div>
 
         <div v-if="mainNetwork">
-          <EditNetworkEntitlementsModal
+          <EditNetworkFeatureFlagsModal
             v-if="showEditNetworkModal && selectedNetwork"
             :is-submitting="isSubmitting"
             :main-network="mainNetwork"
@@ -518,16 +518,16 @@
 <script lang="ts" setup>
 import SecurableField from '@/components/fields/SecurableField.vue';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
-import EditNetworkEntitlementsModal from '@/components/modals/admin/EditNetworkEntitlementsModal.vue';
-import { entitlementKeys } from '@/composables/useEntitlements';
+import EditNetworkFeatureFlagsModal from '@/components/modals/admin/EditNetworkFeatureFlagsModal.vue';
+import { featureFlagKeys } from '@/composables/useFeatureFlags';
 import useNetworks from '@/composables/useNetworks';
 import { DEFAULT_STORES, useHistoryStore } from '@/stores/history';
 import type {
-  EntitlementLimits,
+  FeatureFlagLimits,
   NetworkDto,
-  NetworkEntitlementDto,
+  NetworkFeatureFlagDto,
   NetworkMetricsDto,
-  SettableEntitlement,
+  SettableFeatureFlag,
 } from '@/types';
 import { capitalize, computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
@@ -535,15 +535,15 @@ import DualSlider from '@/components/DualSlider.vue';
 import { extractApiErrorMessage } from '@/lib/utils';
 import { useGlobalStore } from '@/stores/global';
 
-interface EntitlementItem {
+interface FeatureFlagItem {
   label: string;
   value: string | number | boolean;
-  key: keyof EntitlementLimits;
+  key: keyof FeatureFlagLimits;
 }
 
-interface EntitlementGroup {
+interface FeatureFlagGroup {
   name: string;
-  items: EntitlementItem[];
+  items: FeatureFlagItem[];
 }
 
 const router = useRouter();
@@ -554,7 +554,7 @@ const { execute: fetchNetworks, error, loading, data: networks } = useNetworks()
 const { execute: fetchNetworksMetrics, data: networksMetrics } = useNetworks().fetchNetworksMetrics;
 const { execute: forceFetchNetworks } = useNetworks().forceFetchNetworks;
 const { execute: fetchMainNetwork, data: mainNetwork } = useNetworks().fetchMainNetworkDetails;
-const { execute: updateNetworkEntitlement } = useNetworks().updateNetworkEntitlement;
+const { execute: updateNetworkFeatureFlag } = useNetworks().updateNetworkFeatureFlag;
 
 const showEditNetworkModal = ref(false);
 const selectedNetwork = ref<NetworkDto | null>(null);
@@ -585,16 +585,16 @@ const allNetworks = computed<ComboNetwork[]>(() => {
     })
     .filter((n): n is ComboNetwork => n !== null);
 });
-const allEntitlementKeys = computed(() => Object.values(entitlementKeys).flat());
+const allFeatureFlagKeys = computed(() => Object.values(featureFlagKeys).flat());
 
-const groupedEntitlements = computed(() => {
-  const entitlements = mainNetwork.value?.entitlement || ({} as NetworkEntitlementDto);
-  const groups: EntitlementGroup[] = [];
+const groupedFeatureFlags = computed(() => {
+  const featureFlags = mainNetwork.value?.featureFlag || ({} as NetworkFeatureFlagDto);
+  const groups: FeatureFlagGroup[] = [];
 
-  Object.entries(entitlementKeys).forEach(([parentKey, childKeys]) => {
-    if (entitlements[parentKey as keyof NetworkEntitlementDto] === true) {
+  Object.entries(featureFlagKeys).forEach(([parentKey, childKeys]) => {
+    if (featureFlags[parentKey as keyof NetworkFeatureFlagDto] === true) {
       const items = childKeys
-        .filter((key) => entitlements[key] !== undefined)
+        .filter((key) => featureFlags[key] !== undefined)
         .map((key) => {
           return {
             label: capitalize(
@@ -603,7 +603,7 @@ const groupedEntitlements = computed(() => {
                 .replace('Limit', '')
                 .trim(),
             ), // 'fileCountLimit' -> 'File Count'
-            value: entitlements[key],
+            value: featureFlags[key],
             key,
           };
         });
@@ -648,26 +648,26 @@ const totalMetrics = computed<NetworkMetricsDto>(() => {
 
 const totalLimits = computed(() => {
   return (allNetworks.value || []).reduce((acc, network) => {
-    const entitlement = network.entitlement;
-    if (!entitlement) return acc;
+    const featureFlag = network.featureFlag;
+    if (!featureFlag) return acc;
 
-    allEntitlementKeys.value.forEach((key) => {
-      const value = entitlement[key];
+    allFeatureFlagKeys.value.forEach((key) => {
+      const value = featureFlag[key];
       acc[key] = (acc[key] || 0) + value;
     });
 
     return acc;
-  }, {} as EntitlementLimits);
+  }, {} as FeatureFlagLimits);
 });
 
 const remainingLimits = computed(() => {
-  const entitlements = mainNetwork.value?.entitlement || ({} as NetworkEntitlementDto);
+  const featureFlags = mainNetwork.value?.featureFlag || ({} as NetworkFeatureFlagDto);
   const totals = totalLimits.value;
   const remaining: Record<string, number> = {};
 
   Object.keys(totals).forEach((key) => {
-    const max = Number(entitlements[key as keyof NetworkEntitlementDto]) || 0;
-    const used = totals[key as keyof EntitlementLimits] || 0;
+    const max = Number(featureFlags[key as keyof NetworkFeatureFlagDto]) || 0;
+    const used = totals[key as keyof FeatureFlagLimits] || 0;
     remaining[key] = max - used;
   });
 
@@ -693,14 +693,14 @@ const filteredNetworks = computed(() => {
       for (const [key, targetValue] of Object.entries(activeBooleanFilters.value)) {
         if (
           targetValue !== null &&
-          n.entitlement?.[key as keyof NetworkEntitlementDto] !== targetValue
+          n.featureFlag?.[key as keyof NetworkFeatureFlagDto] !== targetValue
         )
           return false;
       }
 
       for (const [key, type] of Object.entries(activeRangeFilters.value)) {
         let range = type[0];
-        let val = (n.entitlement?.[key as keyof NetworkEntitlementDto] as number) || 0;
+        let val = (n.featureFlag?.[key as keyof NetworkFeatureFlagDto] as number) || 0;
         if (val < range[0] || val > range[1]) return false;
 
         range = type[1];
@@ -724,8 +724,8 @@ const filteredNetworks = computed(() => {
         valA = a[key] as number;
         valB = b[key] as number;
       } else {
-        valB = (b.entitlement?.[sortBy.value as keyof NetworkEntitlementDto] as number) ?? 0;
-        valA = (a.entitlement?.[sortBy.value as keyof NetworkEntitlementDto] as number) ?? 0;
+        valB = (b.featureFlag?.[sortBy.value as keyof NetworkFeatureFlagDto] as number) ?? 0;
+        valA = (a.featureFlag?.[sortBy.value as keyof NetworkFeatureFlagDto] as number) ?? 0;
       }
 
       if (valA < valB) return sortOrder.value === 'asc' ? -1 : 1;
@@ -744,9 +744,9 @@ onMounted(async () => {
   await fetchNetworks();
 });
 
-const getEntitlementNumber = (
+const getFeatureFlagNumber = (
   input: NetworkMetricsDto,
-  key: keyof NetworkEntitlementDto,
+  key: keyof NetworkFeatureFlagDto,
 ): number | undefined => {
   const comboKey = key.replace('Limit', '') as keyof NetworkMetricsDto;
   let value = input[comboKey] as number;
@@ -787,20 +787,20 @@ const handleEditNetwork = (network: NetworkDto) => {
   showEditNetworkModal.value = true;
 };
 
-const handleUpdateNetwork = async (networkEntitlement: SettableEntitlement) => {
+const handleUpdateNetwork = async (networkFeatureFlag: SettableFeatureFlag) => {
   if (!selectedNetwork.value) return;
 
-  const payload: SettableEntitlement = {
-    ...networkEntitlement,
+  const payload: SettableFeatureFlag = {
+    ...networkFeatureFlag,
   };
 
   try {
-    await updateNetworkEntitlement(selectedNetwork.value.id, payload);
+    await updateNetworkFeatureFlag(selectedNetwork.value.id, payload);
     showEditNetworkModal.value = false;
   } catch (err) {
-    console.error('Error updating network entitlements:', err);
+    console.error('Error updating network feature flags:', err);
     globalStore.addToast({
-      message: extractApiErrorMessage(err, 'Failed to update network entitlements.'),
+      message: extractApiErrorMessage(err, 'Failed to update network feature flags.'),
       type: 'error',
       duration: 5000,
     });

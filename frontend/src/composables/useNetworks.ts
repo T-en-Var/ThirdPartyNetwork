@@ -1,9 +1,9 @@
 import type {
   NetworkDto,
-  NetworkEntitlementDto,
+  NetworkFeatureFlagDto,
   NetworkMetricsDto,
   UpdateNetworkDto,
-  SettableEntitlement,
+  SettableFeatureFlag,
 } from '@/types';
 import api from '@/api/api';
 import { globalCache, useCachedApi, useMutation } from './useApi';
@@ -64,18 +64,18 @@ export default function useNetworks() {
     },
   );
 
-  const updateNetworkEntitlement = useMutation<
-    NetworkEntitlementDto,
-    [networkId: string, payload: SettableEntitlement],
+  const updateNetworkFeatureFlag = useMutation<
+    NetworkFeatureFlagDto,
+    [networkId: string, payload: SettableFeatureFlag],
     unknown
-  >(async (networkId, payload) => await api.put(`/networks/${networkId}/entitlements`, payload), {
-    itemKeyFactory: (_, networkId) => `networks_${networkId}_entitlement`,
+  >(async (networkId, payload) => await api.put(`/networks/${networkId}/featureFlags`, payload), {
+    itemKeyFactory: (_, networkId) => `networks_${networkId}_featureFlag`,
     listKeyFactory: () => `networks`,
     listUpdater: (currentList, result, networkId) => {
       let networkList = currentList as unknown as NetworkDto[];
       networkList = networkList.map((item) => {
         if (item.id == result.networkId) {
-          item.entitlement = result;
+          item.featureFlag = result;
         }
         return item;
       });
@@ -83,7 +83,7 @@ export default function useNetworks() {
       const mainNetwork = globalCache.get('mainNetwork_details');
 
       if (mainNetwork && networkId == (mainNetwork.data.value as NetworkDto).id) {
-        (mainNetwork.data.value as NetworkDto).entitlement = result;
+        (mainNetwork.data.value as NetworkDto).featureFlag = result;
       }
 
       return networkList as unknown as unknown[];
@@ -109,7 +109,7 @@ export default function useNetworks() {
     fetchNetworksMetrics,
     fetchNetwork,
     fetchNetworkDetails,
-    updateNetworkEntitlement,
+    updateNetworkFeatureFlag,
     updateNetwork,
     deleteNetwork,
   };

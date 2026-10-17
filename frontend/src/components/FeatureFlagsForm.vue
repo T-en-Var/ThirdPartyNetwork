@@ -1,22 +1,22 @@
 <template>
-  <div class="entitlements-form">
+  <div class="feature-flags-form">
     <div
-      v-for="group in entitlementGroups"
+      v-for="group in featureFlagGroups"
       :key="group.title"
     >
       <section
-        v-if="network.entitlement && (autoIncreaseMax || network.entitlement?.[group.allowKey])"
-        class="entitlements-form__group"
+        v-if="network.featureFlag && (autoIncreaseMax || network.featureFlag?.[group.allowKey])"
+        class="feature-flags-form__group"
       >
-        <div class="entitlements-form__group-header">
-          <h3 class="entitlements-form__group-title">
+        <div class="feature-flags-form__group-header">
+          <h3 class="feature-flags-form__group-title">
             {{ group.title }}
           </h3>
 
           <label class="toggle-switch">
             <input
               type="checkbox"
-              v-model="localValue[group.allowKey as keyof SettableEntitlementForm]"
+              v-model="localValue[group.allowKey as keyof SettableFeatureFlagForm]"
               class="toggle-switch__input"
             />
             <div class="toggle-switch__track"></div>
@@ -24,16 +24,16 @@
         </div>
 
         <div
-          v-if="localValue[group.allowKey as keyof SettableEntitlementForm]"
-          class="entitlements-form__group-body"
+          v-if="localValue[group.allowKey as keyof SettableFeatureFlagForm]"
+          class="feature-flags-form__group-body"
         >
           <div
             v-for="limit in group.limits"
             :key="limit.key"
-            class="entitlements-form__limit"
+            class="feature-flags-form__limit"
           >
-            <div class="entitlements-form__limit-header">
-              <span class="entitlements-form__limit-label">{{ limit.label }}</span>
+            <div class="feature-flags-form__limit-header">
+              <span class="feature-flags-form__limit-label">{{ limit.label }}</span>
               <label class="toggle-switch">
                 <input
                   type="checkbox"
@@ -46,40 +46,40 @@
 
             <div
               :class="[
-                'entitlements-form__limit-content',
-                { 'entitlements-form__limit-content--active': localValue[limit.setKey] },
+                'feature-flags-form__limit-content',
+                { 'feature-flags-form__limit-content--active': localValue[limit.setKey] },
               ]"
             >
-              <div class="entitlements-form__limit-meta">
+              <div class="feature-flags-form__limit-meta">
                 <span
                   v-if="!autoIncreaseMax"
-                  class="entitlements-form__limit-range"
+                  class="feature-flags-form__limit-range"
                 >
-                  Range: 0 - {{ Number(network.entitlement[limit.key]) }}
+                  Range: 0 - {{ Number(network.featureFlag[limit.key]) }}
                 </span>
                 <span v-else></span>
 
-                <div class="entitlements-form__limit-input-wrap">
+                <div class="feature-flags-form__limit-input-wrap">
                   <input
                     type="number"
-                    v-model.number="localValue[limit.key as keyof SettableEntitlementForm]"
+                    v-model.number="localValue[limit.key as keyof SettableFeatureFlagForm]"
                     @blur="
                       clamp(
-                        limit.key as keyof SettableEntitlementForm,
-                        network.entitlement[limit.key] as number,
+                        limit.key as keyof SettableFeatureFlagForm,
+                        network.featureFlag[limit.key] as number,
                       )
                     "
                     @change="
                       clamp(
-                        limit.key as keyof SettableEntitlementForm,
-                        network.entitlement[limit.key] as number,
+                        limit.key as keyof SettableFeatureFlagForm,
+                        network.featureFlag[limit.key] as number,
                       )
                     "
-                    class="entitlements-form__limit-input"
+                    class="feature-flags-form__limit-input"
                   />
                   <span
                     v-if="limit.unit"
-                    class="entitlements-form__limit-unit"
+                    class="feature-flags-form__limit-unit"
                   >
                     {{ limit.unit }}
                   </span>
@@ -89,10 +89,10 @@
               <input
                 v-if="!autoIncreaseMax"
                 type="range"
-                v-model.number="localValue[limit.key as keyof SettableEntitlementForm]"
+                v-model.number="localValue[limit.key as keyof SettableFeatureFlagForm]"
                 :min="0"
-                :max="Number(network.entitlement[limit.key])"
-                class="entitlements-form__limit-slider"
+                :max="Number(network.featureFlag[limit.key])"
+                class="feature-flags-form__limit-slider"
               />
             </div>
           </div>
@@ -103,12 +103,12 @@
 </template>
 
 <script setup lang="ts">
-import type { NetworkDto, SettableEntitlementForm, NetworkEntitlementDto } from '@/types';
+import type { NetworkDto, SettableFeatureFlagForm, NetworkFeatureFlagDto } from '@/types';
 import { computed } from 'vue';
 
 const props = defineProps<{
   network: NetworkDto;
-  modelValue: SettableEntitlementForm;
+  modelValue: SettableFeatureFlagForm;
   autoIncreaseMax?: boolean;
 }>();
 
@@ -119,20 +119,20 @@ const localValue = computed({
   set: (val) => emit('update:modelValue', val),
 });
 
-export interface EntitlementLimit {
+export interface FeatureFlagLimit {
   label: string;
-  key: keyof NetworkEntitlementDto;
-  setKey: keyof SettableEntitlementForm;
+  key: keyof NetworkFeatureFlagDto;
+  setKey: keyof SettableFeatureFlagForm;
   unit?: string;
 }
 
-export interface EntitlementGroup {
+export interface FeatureFlagGroup {
   title: string;
-  allowKey: keyof NetworkEntitlementDto;
-  limits: EntitlementLimit[];
+  allowKey: keyof NetworkFeatureFlagDto;
+  limits: FeatureFlagLimit[];
 }
 
-const entitlementGroups: EntitlementGroup[] = [
+const featureFlagGroups: FeatureFlagGroup[] = [
   {
     title: 'File Management',
     allowKey: 'allowFiles',
@@ -187,7 +187,7 @@ const entitlementGroups: EntitlementGroup[] = [
   },
 ];
 
-function clamp(key: keyof SettableEntitlementForm, max: number) {
+function clamp(key: keyof SettableFeatureFlagForm, max: number) {
   const val = props.modelValue[key];
   if (typeof val !== 'number') return;
 

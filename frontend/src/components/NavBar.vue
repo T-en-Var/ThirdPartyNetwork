@@ -149,6 +149,8 @@ const openSignupModal = () => {
   margin: 0.5rem 1rem;
 
   @media (max-width: $layout-sm) {
+    border-right: none;
+
     &.navbar__logo--hidden {
       display: none;
     }

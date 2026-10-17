@@ -37,13 +37,13 @@
       <div class="network-modal__info-banner">
         <span class="network-modal__info-icon">i</span>
         <p class="network-modal__info-text">
-          Unspecified entitlements will default to role-specific/network-wide limits.
+          Unspecified feature flags will default to role-specific/network-wide limits.
         </p>
       </div>
 
-      <entitlements-form
+      <feature-flags-form
         :network="network"
-        v-model="entitlementsData"
+        v-model="featureFlagsData"
       />
 
       <modal-form-actions
@@ -64,10 +64,10 @@ import { ref, watch, computed, onMounted } from 'vue';
 import ModalContainer from '@/components/modals/ModalContainer.vue';
 import ModalFormActions from '@/components/modals/ModalFormActions.vue';
 import CheckboxList from '@/components/CheckboxList.vue';
-import type { NetworkDto, NetworkUserDto, ManageUserForm, SettableEntitlement } from '@/types';
+import type { NetworkDto, NetworkUserDto, ManageUserForm, SettableFeatureFlag } from '@/types';
 import { getNameDisplayUserProxy } from '@/lib/user';
-import EntitlementsForm from '@/components/EntitlementsForm.vue';
-import { useEntitlements } from '@/composables/useEntitlements';
+import FeatureFlagsForm from '@/components/FeatureFlagsForm.vue';
+import { useFeatureFlags } from '@/composables/useFeatureFlags';
 
 const props = defineProps<{
   network: NetworkDto;
@@ -80,10 +80,10 @@ const emit = defineEmits(['close', 'update']);
 
 const localForm = ref({ ...props.manageUserForm });
 
-const { entitlementsData, initEntitlements, getSubmitData } = useEntitlements(props.network);
+const { featureFlagsData, initFeatureFlags, getSubmitData } = useFeatureFlags(props.network);
 
 onMounted(() => {
-  initEntitlements(props.selectedUser.entitlements as SettableEntitlement);
+  initFeatureFlags(props.selectedUser.featureFlags as SettableFeatureFlag);
 });
 
 watch(
@@ -98,7 +98,7 @@ const availableRoles = computed(() => {
 });
 
 function handleSubmit() {
-  localForm.value.entitlements = getSubmitData();
+  localForm.value.featureFlags = getSubmitData();
 
   emit('update', localForm.value);
 }

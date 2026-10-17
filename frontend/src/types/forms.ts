@@ -1,8 +1,8 @@
-import type { SettableEntitlement } from './NetworkEntitlement/NetworkEntitlementDto';
+import type { SettableFeatureFlag } from './NetworkFeatureFlag/NetworkFeatureFlagDto';
 
 export type ManageUserForm = {
   roleIds: string[];
-  entitlements: SettableEntitlement;
+  featureFlags: SettableFeatureFlag;
 };
 
 export type RoleForm = {
@@ -10,7 +10,7 @@ export type RoleForm = {
   description: string;
   permissionIds: string[];
   isDefault: boolean;
-  entitlements: SettableEntitlement;
+  featureFlags: SettableFeatureFlag;
 };
 
 export type NetworkForm = {

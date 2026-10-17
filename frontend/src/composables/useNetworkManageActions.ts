@@ -38,7 +38,7 @@ import type {
   ConfigurationDto,
 } from '@/types';
 import type { RoleForm, ManageUserForm, ConfirmForm } from '@/types/forms';
-import type { UpdateFileDto, SettableEntitlement } from '@/types';
+import type { UpdateFileDto, SettableFeatureFlag } from '@/types';
 
 /**
  * Encapsulates all of the "manage network" action dispatch logic (blog / configuration /
@@ -86,13 +86,13 @@ export default function useNetworkManageActions(networkId: ComputedRef<string>) 
   const confirmButtonColor = ref('');
   const confirmationAction = ref(() => {});
 
-  const manageUserForm = reactive<ManageUserForm>({ roleIds: [], entitlements: {} });
+  const manageUserForm = reactive<ManageUserForm>({ roleIds: [], featureFlags: {} });
   const manageRoleForm = reactive<RoleForm>({
     name: '',
     description: '',
     permissionIds: [],
     isDefault: false,
-    entitlements: {},
+    featureFlags: {},
   });
 
   function confirm(form: ConfirmForm) {
@@ -472,7 +472,7 @@ export default function useNetworkManageActions(networkId: ComputedRef<string>) 
   function openManageUserModal(user: NetworkUserDto) {
     selectedUser.value = user;
     manageUserForm.roleIds = user.networkUserRoles?.map((nur) => nur.role.id) || [];
-    manageUserForm.entitlements = user.entitlements as SettableEntitlement;
+    manageUserForm.featureFlags = user.featureFlags as SettableFeatureFlag;
 
     showModal.manageUser.value = true;
   }
@@ -505,7 +505,7 @@ export default function useNetworkManageActions(networkId: ComputedRef<string>) 
     const { execute: updateNetworkUser } = composables.networkUsers.updateNetworkUser;
 
     const payload: UpdateNetworkUserDto = {
-      entitlements: localForm.entitlements,
+      featureFlags: localForm.featureFlags,
     };
 
     try {
@@ -518,7 +518,7 @@ export default function useNetworkManageActions(networkId: ComputedRef<string>) 
       );
 
       manageUserForm.roleIds = localForm.roleIds;
-      manageUserForm.entitlements = localForm.entitlements;
+      manageUserForm.featureFlags = localForm.featureFlags;
 
       showModal.manageUser.value = false;
     } catch (err) {
@@ -536,7 +536,7 @@ export default function useNetworkManageActions(networkId: ComputedRef<string>) 
       name: localForm.value.name.trim(),
       description: localForm.value.description.trim(),
       isDefault: localForm.value.isDefault,
-      entitlements: localForm.value.entitlements,
+      featureFlags: localForm.value.featureFlags,
     };
 
     try {
@@ -559,7 +559,7 @@ export default function useNetworkManageActions(networkId: ComputedRef<string>) 
       name: localForm.name.trim(),
       description: localForm.description.trim(),
       isDefault: localForm.isDefault,
-      entitlements: localForm.entitlements,
+      featureFlags: localForm.featureFlags,
     };
 
     try {

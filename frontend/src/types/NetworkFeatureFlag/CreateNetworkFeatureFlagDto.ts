@@ -1,4 +1,4 @@
-export interface CreateNetworkEntitlementDto {
+export interface CreateNetworkFeatureFlagDto {
   allowFiles: boolean;
   fileCountLimit: number;
   fileSizeLimit: number;

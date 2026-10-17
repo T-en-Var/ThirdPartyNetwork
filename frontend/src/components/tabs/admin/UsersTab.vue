@@ -4,7 +4,7 @@
       <div>
         <h1 class="admin-users-tab__title">Manage Users</h1>
         <p class="admin-users-tab__subtitle">
-          Global user registry, metrics, and effective entitlements
+          Global user registry, metrics, and effective feature flags
         </p>
       </div>
       <button
@@ -110,34 +110,34 @@
             <div>
               <p class="admin-users-tab__calc-box-title">Calculate Limits Using</p>
               <p class="admin-users-tab__calc-box-text">
-                Select which entitlement rules apply when calculating global limits.
+                Select which feature flag rules apply when calculating global limits.
               </p>
             </div>
             <div class="admin-users-tab__calc-box-options">
               <label class="admin-users-tab__checkbox-label">
                 <input
                   type="checkbox"
-                  v-model="includeRoleEntitlements"
+                  v-model="includeRoleFeatureFlags"
                   class="checkbox"
                 />
-                Include Role Entitlements
+                Include Role Feature Flags
               </label>
               <label class="admin-users-tab__checkbox-label">
                 <input
                   type="checkbox"
-                  v-model="includeUserEntitlements"
+                  v-model="includeUserFeatureFlags"
                   class="checkbox"
                 />
-                Include User Entitlements (Overrides)
+                Include User Feature Flags (Overrides)
               </label>
             </div>
           </div>
 
           <div>
-            <p class="admin-users-tab__filters-label">Feature Entitlements</p>
+            <p class="admin-users-tab__filters-label">Feature Flags</p>
             <div class="admin-users-tab__filter-chips">
               <button
-                v-for="key in allEntitlementKeys.filter((k) => k.startsWith('allow'))"
+                v-for="key in allFeatureFlagKeys.filter((k) => k.startsWith('allow'))"
                 :key="key"
                 @click="toggleBooleanFilter(key)"
                 class="admin-users-tab__filter-chip"
@@ -382,10 +382,10 @@
                     Manage
                   </button>
                   <button
-                    @click="openEntitlementsModal(user)"
-                    class="admin-users-tab__action-link admin-users-tab__action-link--entitlements"
+                    @click="openFeatureFlagsModal(user)"
+                    class="admin-users-tab__action-link admin-users-tab__action-link--feature-flags"
                   >
-                    Entitlements
+                    Feature Flags
                   </button>
                 </td>
               </tr>
@@ -402,20 +402,20 @@
         </div>
       </div>
     </div>
-    <ViewUserEntitlementsModal
-      v-if="showEntitlementsModal && selectedUser"
+    <ViewUserFeatureFlagsModal
+      v-if="showFeatureFlagsModal && selectedUser"
       :user="selectedUser"
-      @close="showEntitlementsModal = false"
-      @edit-user-entitlement="openEditEntitlementModal"
+      @close="showFeatureFlagsModal = false"
+      @edit-user-feature-flag="openEditFeatureFlagModal"
     />
 
     <EditUserModal
-      v-if="showEditNetworkUserEntitlementModal && selectedNetwork && selectedNetworkUser"
+      v-if="showEditNetworkUserFeatureFlagModal && selectedNetwork && selectedNetworkUser"
       :network="selectedNetwork"
       :selected-user="selectedNetworkUser"
       :is-submitting="isSubmitting"
       :manageUserForm="manageUserForm"
-      @close="showEditNetworkUserEntitlementModal = false"
+      @close="showEditNetworkUserFeatureFlagModal = false"
       @update="handleUpdateNetworkUser"
     />
 
@@ -431,9 +431,9 @@ import CdnFile from '@/components/cdn/CdnFile.vue';
 import SecurableField from '@/components/fields/SecurableField.vue';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import DualSlider from '@/components/DualSlider.vue';
-import ViewUserEntitlementsModal from '@/components/modals/admin/ViewUserEntitlementsModal.vue';
+import ViewUserFeatureFlagsModal from '@/components/modals/admin/ViewUserFeatureFlagsModal.vue';
 import useUsers from '@/composables/useUsers';
-import { entitlementKeys } from '@/composables/useEntitlements';
+import { featureFlagKeys } from '@/composables/useFeatureFlags';
 import { defaultProxy } from '@/lib/user';
 import type {
   ManageUserForm,
@@ -442,7 +442,7 @@ import type {
   UpdateNetworkUserDto,
   UserWithNetworksDto,
   UserMetricsDto,
-  SettableEntitlement,
+  SettableFeatureFlag,
 } from '@/types';
 import { capitalize, computed, onMounted, ref } from 'vue';
 import useNetworks from '@/composables/useNetworks';
@@ -467,19 +467,19 @@ const showFilters = ref(false);
 const isSubmitting = ref(false);
 
 const showTempModal = ref(false);
-const showEntitlementsModal = ref(false);
+const showFeatureFlagsModal = ref(false);
 const selectedUser = ref<UserWithNetworksDto | null>(null);
-const showEditNetworkUserEntitlementModal = ref(false);
+const showEditNetworkUserFeatureFlagModal = ref(false);
 const selectedNetwork = ref<NetworkDto | null>(null);
 const selectedNetworkUser = ref<NetworkUserDto | null>(null);
-const manageUserForm = ref<ManageUserForm>({ roleIds: [], entitlements: {} });
+const manageUserForm = ref<ManageUserForm>({ roleIds: [], featureFlags: {} });
 
-const openEntitlementsModal = (user: UserWithNetworksDto) => {
+const openFeatureFlagsModal = (user: UserWithNetworksDto) => {
   selectedUser.value = user;
-  showEntitlementsModal.value = true;
+  showFeatureFlagsModal.value = true;
 };
 
-const openEditEntitlementModal = async (networkId: string) => {
+const openEditFeatureFlagModal = async (networkId: string) => {
   const network = networks.value?.find((n) => n.id == networkId);
   if (!network) throw new Error('Network not found.');
 
@@ -500,11 +500,11 @@ const openEditEntitlementModal = async (networkId: string) => {
   if (!networkUser) throw new Error('NetworkUser not found.');
 
   manageUserForm.value.roleIds = networkUser.networkUserRoles?.map((nur) => nur.role.id) || [];
-  manageUserForm.value.entitlements = networkUser.entitlements as SettableEntitlement;
+  manageUserForm.value.featureFlags = networkUser.featureFlags as SettableFeatureFlag;
 
   selectedNetwork.value = network;
   selectedNetworkUser.value = networkUser;
-  showEditNetworkUserEntitlementModal.value = true;
+  showEditNetworkUserFeatureFlagModal.value = true;
 };
 
 async function handleUpdateNetworkUser(localForm: ManageUserForm) {
@@ -520,7 +520,7 @@ async function handleUpdateNetworkUser(localForm: ManageUserForm) {
   const { execute: updateNetworkUser } = useNetworkUsers().updateNetworkUser;
 
   const payload: UpdateNetworkUserDto = {
-    entitlements: localForm.entitlements,
+    featureFlags: localForm.featureFlags,
   };
 
   try {
@@ -533,9 +533,9 @@ async function handleUpdateNetworkUser(localForm: ManageUserForm) {
     );
 
     manageUserForm.value.roleIds = localForm.roleIds;
-    manageUserForm.value.entitlements = localForm.entitlements;
+    manageUserForm.value.featureFlags = localForm.featureFlags;
 
-    showEditNetworkUserEntitlementModal.value = false;
+    showEditNetworkUserFeatureFlagModal.value = false;
   } catch (err) {
     console.error('Error updating user settings:', err);
     globalStore.addToast({
@@ -548,8 +548,8 @@ async function handleUpdateNetworkUser(localForm: ManageUserForm) {
   }
 }
 
-const includeRoleEntitlements = ref(true);
-const includeUserEntitlements = ref(true);
+const includeRoleFeatureFlags = ref(true);
+const includeUserFeatureFlags = ref(true);
 
 const activeBooleanFilters = ref<Record<string, boolean | null>>({});
 const activeRangeFilters = ref<Record<string, [number, number]>>({});
@@ -571,7 +571,7 @@ onMounted(async () => {
   await fetchUsers();
 });
 
-const allEntitlementKeys = computed(() => Object.values(entitlementKeys).flat());
+const allFeatureFlagKeys = computed(() => Object.values(featureFlagKeys).flat());
 
 type ComboUser = UserWithNetworksDto & UserMetricsDto;
 

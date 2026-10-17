@@ -1740,7 +1740,7 @@ input:checked + .edit-role-modal__toggle-track {
   padding: 1.5rem;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 }
-.network-home-tab__entitlements {
+.network-home-tab__feature-flags {
   margin-top: 1.5rem;
   display: grid;
   grid-template-columns: 1fr;
@@ -1750,7 +1750,7 @@ input:checked + .edit-role-modal__toggle-track {
     grid-template-columns: repeat(3, 1fr);
   }
 }
-.network-home-tab__entitlement-card {
+.network-home-tab__feature-flag-card {
   position: relative;
   overflow: hidden;
   border-radius: 0.75rem;
@@ -1760,19 +1760,19 @@ input:checked + .edit-role-modal__toggle-track {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   transition: all 0.2s ease;
 }
-.network-home-tab__entitlement-card--locked {
+.network-home-tab__feature-flag-card--locked {
   border-color: var(--input-border);
   background-color: color-mix(in srgb, var(--text-color) 4%, var(--bg-color));
   opacity: 0.75;
 }
-.network-home-tab__entitlement-header {
+.network-home-tab__feature-flag-header {
   margin-bottom: 1rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
 }
-.network-home-tab__entitlement-title {
+.network-home-tab__feature-flag-title {
   font-weight: 700;
   letter-spacing: -0.01em;
   color: var(--text-color);

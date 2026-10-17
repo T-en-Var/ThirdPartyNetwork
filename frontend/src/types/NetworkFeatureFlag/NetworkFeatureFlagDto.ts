@@ -1,4 +1,4 @@
-export interface EntitlementLimits {
+export interface FeatureFlagLimits {
   fileCountLimit: number;
   fileSizeLimit: number; // in KB
   fileStorageLimit: number; // in KB
@@ -12,7 +12,7 @@ export interface EntitlementLimits {
   customPageBlockSizeLimit: number; // in chars
 }
 
-export interface NetworkEntitlementDto extends EntitlementLimits {
+export interface NetworkFeatureFlagDto extends FeatureFlagLimits {
   networkId: string;
 
   allowFiles: boolean;
@@ -21,7 +21,7 @@ export interface NetworkEntitlementDto extends EntitlementLimits {
   allowCustomPages: boolean;
 }
 
-export interface SettableEntitlement {
+export interface SettableFeatureFlag {
   allowFiles?: boolean;
   fileCountLimit?: number;
   fileSizeLimit?: number;
@@ -39,7 +39,7 @@ export interface SettableEntitlement {
   customPageBlockSizeLimit?: number;
 }
 
-export interface SettableEntitlementForm extends SettableEntitlement {
+export interface SettableFeatureFlagForm extends SettableFeatureFlag {
   setAllowFiles?: boolean;
   setFileCountLimit?: boolean;
   setFileSizeLimit?: boolean;

@@ -1,3 +1,3 @@
 export interface UpdateNetworkUserDto {
-  entitlements: unknown;
+  featureFlags: unknown;
 }

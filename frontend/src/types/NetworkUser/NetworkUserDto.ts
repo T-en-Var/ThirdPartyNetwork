@@ -13,7 +13,7 @@ export interface NetworkUserDto {
   createdOn: string;
   networkUserAccesses: NetworkUserAccessNtADto[];
   networkUserRoles: NetworkUserRoleNtRDto[];
-  entitlements: unknown;
+  featureFlags: unknown;
 }
 
 export interface NetworkUserLightDto {
@@ -23,7 +23,7 @@ export interface NetworkUserLightDto {
   userProxy: UserProxyLightShortProfileDto;
   accessIncomplete: boolean;
   createdOn: string;
-  entitlements: unknown;
+  featureFlags: unknown;
 }
 
 export interface NetworkUserLightUserInfoDto {
@@ -32,7 +32,7 @@ export interface NetworkUserLightUserInfoDto {
   userProxyId: string;
   accessIncomplete: boolean;
   createdOn: string;
-  entitlements: unknown;
+  featureFlags: unknown;
   userProxy: UserProxyLightDto;
   networkUserAccesses: NetworkUserAccessNtADto[];
   networkUserRoles: NetworkUserRoleNtRDto[];
@@ -44,7 +44,7 @@ export interface NetworkUserLightWithNetworkDto {
   userProxyId: string;
   accessIncomplete: boolean;
   createdOn: string;
-  entitlements: unknown;
+  featureFlags: unknown;
   network: NetworkLightDto;
 }
 

@@ -58,9 +58,9 @@ export * from './Network/CreateNetworkDto';
 export * from './Network/UpdateNetworkDto';
 export * from './Network/NetworkDto';
 
-export * from './NetworkEntitlement/CreateNetworkEntitlementDto';
-export * from './NetworkEntitlement/UpdateNetworkEntitlementDto';
-export * from './NetworkEntitlement/NetworkEntitlementDto';
+export * from './NetworkFeatureFlag/CreateNetworkFeatureFlagDto';
+export * from './NetworkFeatureFlag/UpdateNetworkFeatureFlagDto';
+export * from './NetworkFeatureFlag/NetworkFeatureFlagDto';
 
 export * from './Metric/UserMetricDto';
 export * from './Metric/NetworkMetricsDto';

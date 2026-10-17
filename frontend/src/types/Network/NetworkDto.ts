@@ -3,7 +3,7 @@ import type { ContentKindFlags } from '../Enums/ContentKindFlags';
 import type { NetworkAccessNtADto } from '../NetworkAccess/NetworkAccessDto';
 import type { RoleLightDto } from '../Role/RoleDto';
 import type { NetworkUserLightUserInfoDto } from '../NetworkUser/NetworkUserDto';
-import type { NetworkEntitlementDto } from '../NetworkEntitlement/NetworkEntitlementDto';
+import type { NetworkFeatureFlagDto } from '../NetworkFeatureFlag/NetworkFeatureFlagDto';
 
 export interface NetworkDto {
   id: string;
@@ -17,7 +17,7 @@ export interface NetworkDto {
   networkAccesses: NetworkAccessNtADto[];
   roles: RoleLightDto[];
   networkUsers: NetworkUserLightUserInfoDto[];
-  entitlement: NetworkEntitlementDto | null;
+  featureFlag: NetworkFeatureFlagDto | null;
   isSystemProtected: boolean;
 }
 
@@ -29,6 +29,6 @@ export interface NetworkLightDto {
   imageFile: FileDto | null;
   createdOn: string;
   isPublic: boolean;
-  entitlement: NetworkEntitlementDto | null;
+  featureFlag: NetworkFeatureFlagDto | null;
   isSystemProtected: boolean;
 }

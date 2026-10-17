@@ -9,7 +9,7 @@ export interface RoleDto {
   isDefault: boolean;
   rolePermissions: RolePermissionRtPDto[];
   networkUserRoles: NetworkUserRoleRtNDto[];
-  entitlements: unknown;
+  featureFlags: unknown;
   network: NetworkLightDto;
 }
 
@@ -19,5 +19,5 @@ export interface RoleLightDto {
   description: string;
   isDefault: boolean;
   rolePermissions: RolePermissionRtPDto[];
-  entitlements: unknown;
+  featureFlags: unknown;
 }

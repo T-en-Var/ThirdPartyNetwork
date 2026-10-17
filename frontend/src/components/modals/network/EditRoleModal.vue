@@ -72,15 +72,15 @@
           Permissions
         </button>
         <button
-          @click="activeTab = 'entitlements'"
-          :class="{ 'edit-role-modal__subtab--active': activeTab === 'entitlements' }"
+          @click="activeTab = 'featureFlags'"
+          :class="{ 'edit-role-modal__subtab--active': activeTab === 'featureFlags' }"
           class="edit-role-modal__subtab"
         >
           <span
             class="edit-role-modal__subtab-dot"
-            :class="{ 'edit-role-modal__subtab-dot--active': activeTab === 'entitlements' }"
+            :class="{ 'edit-role-modal__subtab-dot--active': activeTab === 'featureFlags' }"
           ></span>
-          Entitlements
+          Feature Flags
         </button>
       </div>
 
@@ -108,19 +108,19 @@
       </div>
 
       <div
-        v-if="activeTab === 'entitlements'"
+        v-if="activeTab === 'featureFlags'"
         class="edit-role-modal__panel"
       >
         <div class="network-modal__info-banner">
           <span class="network-modal__info-icon">i</span>
           <p class="network-modal__info-text">
-            Unspecified entitlements will default to network-wide limits.
+            Unspecified feature flags will default to network-wide limits.
           </p>
         </div>
 
-        <entitlements-form
+        <feature-flags-form
           :network="network"
-          v-model="entitlementsData"
+          v-model="featureFlagsData"
         />
       </div>
 
@@ -141,11 +141,11 @@ import { onMounted, ref } from 'vue';
 import ModalContainer from '@/components/modals/ModalContainer.vue';
 import ModalFormActions from '@/components/modals/ModalFormActions.vue';
 import CheckboxList from '@/components/CheckboxList.vue';
-import type { RoleDto, NetworkDto, RoleForm, SettableEntitlement } from '@/types';
+import type { RoleDto, NetworkDto, RoleForm, SettableFeatureFlag } from '@/types';
 import usePermissions from '@/composables/usePermissions';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
-import { useEntitlements } from '@/composables/useEntitlements';
-import EntitlementsForm from '@/components/EntitlementsForm.vue';
+import { useFeatureFlags } from '@/composables/useFeatureFlags';
+import FeatureFlagsForm from '@/components/FeatureFlagsForm.vue';
 
 const {
   data: permissions,
@@ -153,7 +153,7 @@ const {
   error,
   execute: fetchPermissions,
 } = usePermissions().fetchPermissions;
-const activeTab = ref<'permissions' | 'entitlements'>('permissions');
+const activeTab = ref<'permissions' | 'featureFlags'>('permissions');
 
 const isSubmitting = ref(false);
 
@@ -163,19 +163,19 @@ const props = defineProps<{
   manageRoleForm: RoleForm;
 }>();
 
-const { entitlementsData, initEntitlements, getSubmitData } = useEntitlements(props.network);
+const { featureFlagsData, initFeatureFlags, getSubmitData } = useFeatureFlags(props.network);
 
 const emit = defineEmits(['close', 'update']);
 
 onMounted(async () => {
   await fetchPermissions();
 
-  initEntitlements(props.selectedRole.entitlements as SettableEntitlement);
+  initFeatureFlags(props.selectedRole.featureFlags as SettableFeatureFlag);
 });
 
 function handleSubmit() {
   isSubmitting.value = true;
-  localForm.value.entitlements = getSubmitData();
+  localForm.value.featureFlags = getSubmitData();
 
   emit('update', localForm.value);
 }

@@ -41,17 +41,17 @@
       </div>
 
       <div
-        v-if="network.entitlement"
-        class="network-home-tab__entitlements"
+        v-if="network.featureFlag"
+        class="network-home-tab__feature-flags"
       >
         <div
-          class="network-home-tab__entitlement-card"
-          :class="{ 'network-home-tab__entitlement-card--locked': !network.entitlement.allowFiles }"
+          class="network-home-tab__feature-flag-card"
+          :class="{ 'network-home-tab__feature-flag-card--locked': !network.featureFlag.allowFiles }"
         >
-          <div class="network-home-tab__entitlement-header">
-            <h3 class="network-home-tab__entitlement-title">Files</h3>
+          <div class="network-home-tab__feature-flag-header">
+            <h3 class="network-home-tab__feature-flag-title">Files</h3>
             <span
-              v-if="!network.entitlement.allowFiles"
+              v-if="!network.featureFlag.allowFiles"
               class="badge badge--neutral"
             >
               Locked
@@ -65,13 +65,13 @@
             :has-value="!!files"
           />
 
-          <template v-else-if="network.entitlement.allowFiles">
+          <template v-else-if="network.featureFlag.allowFiles">
             <div class="network-home-tab__usage">
               <div>
                 <div class="network-home-tab__usage-row">
                   <span class="network-home-tab__usage-label">Usage</span>
                   <span class="network-home-tab__usage-value">
-                    {{ fileCount }} / {{ network.entitlement.fileCountLimit }}
+                    {{ fileCount }} / {{ network.featureFlag.fileCountLimit }}
                   </span>
                 </div>
                 <div class="network-home-tab__progress">
@@ -79,7 +79,7 @@
                     class="network-home-tab__progress-fill"
                     :style="{
                       width:
-                        Math.min((fileCount / network.entitlement.fileCountLimit) * 100, 100) +
+                        Math.min((fileCount / network.featureFlag.fileCountLimit) * 100, 100) +
                         '%',
                     }"
                   ></div>
@@ -91,7 +91,7 @@
                   {{ (fileStorage / 1024).toFixed(1) }}
                 </span>
                 <span class="network-home-tab__storage-limit">
-                  / {{ network.entitlement.fileStorageLimit }} KB
+                  / {{ network.featureFlag.fileStorageLimit }} KB
                 </span>
               </div>
             </div>
@@ -106,13 +106,13 @@
         </div>
 
         <div
-          class="network-home-tab__entitlement-card"
-          :class="{ 'network-home-tab__entitlement-card--locked': !network.entitlement.allowBlogs }"
+          class="network-home-tab__feature-flag-card"
+          :class="{ 'network-home-tab__feature-flag-card--locked': !network.featureFlag.allowBlogs }"
         >
-          <div class="network-home-tab__entitlement-header">
-            <h3 class="network-home-tab__entitlement-title">Blogs</h3>
+          <div class="network-home-tab__feature-flag-header">
+            <h3 class="network-home-tab__feature-flag-title">Blogs</h3>
             <span
-              v-if="!network.entitlement.allowBlogs"
+              v-if="!network.featureFlag.allowBlogs"
               class="badge badge--neutral"
             >
               Locked
@@ -126,13 +126,13 @@
             :has-value="!!blogs"
           />
 
-          <template v-else-if="network.entitlement.allowBlogs">
+          <template v-else-if="network.featureFlag.allowBlogs">
             <div class="network-home-tab__usage">
               <div>
                 <div class="network-home-tab__usage-row">
                   <span class="network-home-tab__usage-label">Usage</span>
                   <span class="network-home-tab__usage-value">
-                    {{ blogCount }} / {{ network.entitlement.blogCountLimit }}
+                    {{ blogCount }} / {{ network.featureFlag.blogCountLimit }}
                   </span>
                 </div>
                 <div class="network-home-tab__progress">
@@ -140,7 +140,7 @@
                     class="network-home-tab__progress-fill"
                     :style="{
                       width:
-                        Math.min((blogCount / network.entitlement.blogCountLimit) * 100, 100) +
+                        Math.min((blogCount / network.featureFlag.blogCountLimit) * 100, 100) +
                         '%',
                     }"
                   ></div>
@@ -158,15 +158,15 @@
         </div>
 
         <div
-          class="network-home-tab__entitlement-card"
+          class="network-home-tab__feature-flag-card"
           :class="{
-            'network-home-tab__entitlement-card--locked': !network.entitlement.allowConfigurations,
+            'network-home-tab__feature-flag-card--locked': !network.featureFlag.allowConfigurations,
           }"
         >
-          <div class="network-home-tab__entitlement-header">
-            <h3 class="network-home-tab__entitlement-title">Configurations</h3>
+          <div class="network-home-tab__feature-flag-header">
+            <h3 class="network-home-tab__feature-flag-title">Configurations</h3>
             <span
-              v-if="!network.entitlement.allowConfigurations"
+              v-if="!network.featureFlag.allowConfigurations"
               class="badge badge--neutral"
             >
               Locked
@@ -180,13 +180,13 @@
             :has-value="!!configs"
           />
 
-          <template v-else-if="network.entitlement.allowConfigurations">
+          <template v-else-if="network.featureFlag.allowConfigurations">
             <div class="network-home-tab__usage">
               <div>
                 <div class="network-home-tab__usage-row">
                   <span class="network-home-tab__usage-label">Usage</span>
                   <span class="network-home-tab__usage-value">
-                    {{ configCount }} / {{ network.entitlement.configurationCountLimit }}
+                    {{ configCount }} / {{ network.featureFlag.configurationCountLimit }}
                   </span>
                 </div>
                 <div class="network-home-tab__progress">
@@ -195,7 +195,7 @@
                     :style="{
                       width:
                         Math.min(
-                          (configCount / network.entitlement.configurationCountLimit) * 100,
+                          (configCount / network.featureFlag.configurationCountLimit) * 100,
                           100,
                         ) + '%',
                     }"
@@ -214,15 +214,15 @@
         </div>
 
         <div
-          class="network-home-tab__entitlement-card"
+          class="network-home-tab__feature-flag-card"
           :class="{
-            'network-home-tab__entitlement-card--locked': !network.entitlement.allowCustomPages,
+            'network-home-tab__feature-flag-card--locked': !network.featureFlag.allowCustomPages,
           }"
         >
-          <div class="network-home-tab__entitlement-header">
-            <h3 class="network-home-tab__entitlement-title">Custom Pages</h3>
+          <div class="network-home-tab__feature-flag-header">
+            <h3 class="network-home-tab__feature-flag-title">Custom Pages</h3>
             <span
-              v-if="!network.entitlement.allowCustomPages"
+              v-if="!network.featureFlag.allowCustomPages"
               class="badge badge--neutral"
             >
               Locked
@@ -236,13 +236,13 @@
             :has-value="!!pages"
           />
 
-          <template v-else-if="network.entitlement.allowCustomPages">
+          <template v-else-if="network.featureFlag.allowCustomPages">
             <div class="network-home-tab__usage">
               <div>
                 <div class="network-home-tab__usage-row">
                   <span class="network-home-tab__usage-label">Usage</span>
                   <span class="network-home-tab__usage-value">
-                    {{ pageCount }} / {{ network.entitlement.customPageCountLimit }}
+                    {{ pageCount }} / {{ network.featureFlag.customPageCountLimit }}
                   </span>
                 </div>
                 <div class="network-home-tab__progress">
@@ -251,7 +251,7 @@
                     :style="{
                       width:
                         Math.min(
-                          (pageCount / network.entitlement.customPageCountLimit) * 100,
+                          (pageCount / network.featureFlag.customPageCountLimit) * 100,
                           100,
                         ) + '%',
                     }"
@@ -328,13 +328,13 @@ const {
 const pageCount = computed(() => pages.value?.length ?? 0);
 
 onMounted(async () => {
-  const { id, entitlement } = props.network;
-  if (!entitlement) return;
+  const { id, featureFlag } = props.network;
+  if (!featureFlag) return;
 
-  if (entitlement.allowFiles) loadFiles(id);
-  if (entitlement.allowBlogs) loadBlogs(id);
-  if (entitlement.allowConfigurations) loadConfigs(id);
-  if (entitlement.allowCustomPages) loadPages(id);
+  if (featureFlag.allowFiles) loadFiles(id);
+  if (featureFlag.allowBlogs) loadBlogs(id);
+  if (featureFlag.allowConfigurations) loadConfigs(id);
+  if (featureFlag.allowCustomPages) loadPages(id);
 });
 
 defineEmits<{

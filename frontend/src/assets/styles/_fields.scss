@@ -141,19 +141,19 @@
   }
 }
 
-// --- EntitlementsForm ---
-.entitlements-form {
+// --- FeatureFlagsForm ---
+.feature-flags-form {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
 }
-.entitlements-form__group {
+.feature-flags-form__group {
   margin-bottom: 1rem;
   overflow: hidden;
   border-radius: 0.75rem;
   border: 1px solid var(--input-border);
 }
-.entitlements-form__group-header {
+.feature-flags-form__group-header {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -162,35 +162,35 @@
   background-color: color-mix(in srgb, var(--text-color) 4%, transparent);
   padding: 0.5rem 1rem;
 }
-.entitlements-form__group-title {
+.feature-flags-form__group-title {
   font-size: 0.625rem;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: var(--text-light);
 }
-.entitlements-form__group-body {
+.feature-flags-form__group-body {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
   padding: 1rem;
 }
-.entitlements-form__limit {
+.feature-flags-form__limit {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
 }
-.entitlements-form__limit-header {
+.feature-flags-form__limit-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
-.entitlements-form__limit-label {
+.feature-flags-form__limit-label {
   font-size: 0.875rem;
   font-weight: 700;
   color: var(--text-color);
 }
-.entitlements-form__limit-content {
+.feature-flags-form__limit-content {
   opacity: 0.3;
   filter: grayscale(1);
   pointer-events: none;
@@ -198,24 +198,24 @@
     opacity 0.3s ease,
     filter 0.3s ease;
 }
-.entitlements-form__limit-content--active {
+.feature-flags-form__limit-content--active {
   opacity: 1;
   filter: none;
   pointer-events: auto;
 }
-.entitlements-form__limit-meta {
+.feature-flags-form__limit-meta {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 0.5rem;
 }
-.entitlements-form__limit-range {
+.feature-flags-form__limit-range {
   font-size: 0.625rem;
   font-weight: 700;
   text-transform: uppercase;
   color: var(--text-light);
 }
-.entitlements-form__limit-input-wrap {
+.feature-flags-form__limit-input-wrap {
   display: flex;
   align-items: center;
   gap: 0.25rem;
@@ -230,7 +230,7 @@
     border-color: var(--primary-accent-color);
   }
 }
-.entitlements-form__limit-input {
+.feature-flags-form__limit-input {
   width: 5rem;
   appearance: none;
   border: none;
@@ -241,13 +241,13 @@
   color: var(--primary-accent-color);
   outline: none;
 }
-.entitlements-form__limit-unit {
+.feature-flags-form__limit-unit {
   font-size: 0.5625rem;
   font-weight: 900;
   text-transform: uppercase;
   color: var(--text-light);
 }
-.entitlements-form__limit-slider {
+.feature-flags-form__limit-slider {
   height: 0.25rem;
   width: 100%;
   cursor: pointer;

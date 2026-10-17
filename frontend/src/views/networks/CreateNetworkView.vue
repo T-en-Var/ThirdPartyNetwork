@@ -104,7 +104,7 @@
                   </div>
                   <AddFileModal
                     v-if="showUploadModal"
-                    :network="networkState.data.value"
+                    :network-id="networkState.data.value.id"
                     @close="showUploadModal = false"
                     @uploaded="handleImageUploaded"
                     media-type="image"
@@ -145,60 +145,6 @@
               <p class="create-network-view__checkbox-hint">
                 Public networks are discoverable by all users
               </p>
-            </section>
-
-            <!-- Accesses -->
-            <section>
-              <div class="create-network-view__accesses-header">
-                <h2 class="create-network-view__section-title">
-                  What information would you like to see of your users?
-                </h2>
-                <button
-                  type="button"
-                  class="btn btn--primary"
-                  @click="showAddAccessModal = true"
-                >
-                  Add Access
-                </button>
-              </div>
-
-              <div class="create-network-view__accesses-list">
-                <div
-                  v-for="(networkAccess, index) in fakeNetwork.networkAccesses"
-                  :key="index"
-                  class="create-network-view__access-item"
-                >
-                  <div>
-                    <h3 class="create-network-view__access-name">
-                      {{ networkAccess.access.name }}
-                    </h3>
-                    <p class="create-network-view__access-status">
-                      {{ networkAccess.isRequired ? 'Is required' : 'Is optional' }}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    class="create-network-view__access-remove-btn"
-                    @click="removeAccess(index)"
-                  >
-                    Remove
-                  </button>
-                </div>
-                <div
-                  v-if="!fakeNetwork.networkAccesses.length"
-                  class="create-network-view__accesses-empty"
-                >
-                  No accesses added yet
-                </div>
-              </div>
-
-              <AddAccessModal
-                v-if="showAddAccessModal"
-                :network="fakeNetwork"
-                :is-submitting="isSubmitting"
-                @close="showAddAccessModal = false"
-                @add-access="addAccessToNetwork"
-              />
             </section>
 
             <!-- Form Actions -->
@@ -243,15 +189,12 @@ import {
   type NetworkDto,
   type CreateNetworkDto,
   type FileDto,
-  ContentKindFlags,
-  type CreateNetworkAccessForm,
 } from '@/types';
 import api from '@/api/api';
 import { useGlobalStore } from '@/stores/global';
 import type { AxiosError } from 'axios';
 import ErrorAlert from '@/components/ErrorAlert.vue';
 import AddFileModal from '@/components/modals/usercontent/AddFileModal.vue';
-import AddAccessModal from '@/components/modals/network/AddAccessModal.vue';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import CdnFile from '@/components/cdn/CdnFile.vue';
 import ForceLoadModal from '@/components/modals/ForceWaitModal.vue';
@@ -268,7 +211,6 @@ const progessValue = ref(0);
 
 const uploadedFile = ref<FileDto | null>(null);
 const showUploadModal = ref(false);
-const showAddAccessModal = ref(false);
 
 const networkState = useNetworks().fetchMainNetwork;
 const authStore = useAuthStore();
@@ -284,33 +226,6 @@ const form = ref<CreateNetworkDto>({
   fileLink: null,
   redirectURI: '',
 });
-
-const fakeNetwork = ref<NetworkDto>({
-  ...form.value,
-  createdOn: new Date(),
-  id: '',
-  isSystemProtected: false,
-  networkAccesses: [],
-  networkUsers: [],
-  roles: [],
-  imageFile: null, 
-  externalContentKinds: ContentKindFlags.File, 
-  entitlement: null
-});
-
-function addAccessToNetwork(networkAccess: CreateNetworkAccessForm) {
-  if (!networkAccess.access) return;
-  fakeNetwork.value.networkAccesses.push({
-    accessId: networkAccess.access.id,
-    isRequired: networkAccess.isRequired,
-    access: networkAccess.access,
-  });
-  showAddAccessModal.value = false;
-}
-
-function removeAccess(index: number) {
-  fakeNetwork.value.networkAccesses.splice(index, 1);
-}
 
 async function handleSubmit() {
   error.value = '';
@@ -346,61 +261,10 @@ async function handleSubmit() {
     global.stopFetching();
   }
 
-  titleValue.value = 'Uploading network accesses';
-  progessValue.value = 25;
-
-  try {
-    global.startFetching();
-
-    await Promise.all([
-      ...fakeNetwork.value.networkAccesses.map((networkAccess) => {
-        return api.post(`/networks/${newNetwork.id}/accesses/${networkAccess.access.id}`, {
-          isRequired: networkAccess.isRequired,
-        });
-      }),
-    ]);
-  } catch (err) {
-    console.error('Error adding network accesses:', err);
-    const axiosError = err as AxiosError<ErrorMessage>;
-    error.value =
-      axiosError.response?.data?.message ||
-      'Failed to create Network Access requirements. Please try again later, or remove them here and add them later.';
-    isSubmitting.value = false;
-    return;
-  } finally {
-    global.stopFetching();
-  }
-
   titleValue.value = 'Updating network accesses';
   progessValue.value = 75;
 
   if (newNetwork.networkUsers.length === 0) throw new Error('no network creator');
-
-  try {
-    global.startFetching();
-
-    await Promise.all([
-      ...fakeNetwork.value.networkAccesses.map((networkAccess) =>
-        api.put(
-          `/networks/${newNetwork.id}/users/${newNetwork.networkUsers[0].id}/accesses/${networkAccess.access.id}/`,
-          { isAccepted: true },
-        ),
-      ),
-    ]);
-  } catch (err) {
-    console.error('Error accepting Network Access for creator:', err);
-    const axiosError = err as AxiosError<ErrorMessage>;
-    error.value =
-      axiosError.response?.data?.message ||
-      'Failed to accept Network Access for your user. Please accept them yourself later. You will be redirected automatically after 5 seconds.';
-    setTimeout(() => {
-      router.push(`/networks/${newNetwork.id}/manage`);
-    }, 5000);
-    isSubmitting.value = false;
-    return;
-  } finally {
-    global.stopFetching();
-  }
 
   titleValue.value = 'Redirecting you';
   progessValue.value = 100;

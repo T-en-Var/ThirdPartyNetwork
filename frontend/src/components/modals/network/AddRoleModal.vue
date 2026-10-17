@@ -106,7 +106,7 @@ const localForm = ref<RoleForm>({
   description: '',
   permissionIds: [],
   isDefault: false,
-  entitlements: {},
+  featureFlags: {},
 });
 
 onMounted(async () => {
