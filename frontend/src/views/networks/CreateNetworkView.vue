@@ -106,7 +106,7 @@
                     v-if="showUploadModal"
                     :network-id="networkState.data.value.id"
                     @close="showUploadModal = false"
-                    @uploaded="handleImageUploaded"
+                    @submit="handleImageSubmitted"
                     media-type="image"
                   />
                 </div>
@@ -147,6 +147,12 @@
               </p>
             </section>
 
+            <!-- Preview -->
+            <div>
+              <h2 class="create-network-view__section-title">Preview</h2>
+              <NetworkCard :network="placeholderNetwork" />
+            </div>
+
             <!-- Form Actions -->
             <div class="form__actions">
               <button
@@ -182,13 +188,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import {
   type ErrorMessage,
   type NetworkDto,
   type CreateNetworkDto,
   type FileDto,
+  ContentKindFlags,
 } from '@/types';
 import api from '@/api/api';
 import { useGlobalStore } from '@/stores/global';
@@ -200,6 +207,7 @@ import CdnFile from '@/components/cdn/CdnFile.vue';
 import ForceLoadModal from '@/components/modals/ForceWaitModal.vue';
 import { useAuthStore } from '@/stores/auth';
 import useNetworks from '@/composables/useNetworks';
+import NetworkCard from '@/components/NetworkCard.vue';
 
 const router = useRouter();
 const global = useGlobalStore();
@@ -226,6 +234,24 @@ const form = ref<CreateNetworkDto>({
   fileLink: null,
   redirectURI: '',
 });
+
+const placeholderNetwork = computed<NetworkDto>(() => {
+  return {
+    id: "create/#",
+    name: form.value.name,
+    description: form.value.description,
+    redirectURI: "placeholder-redirectURI",
+    imageFile: uploadedFile.value,
+    createdOn: new Date(),
+    isPublic: form.value.isPublic,
+    externalContentKinds: ContentKindFlags.None,
+    networkAccesses: [],
+    roles: [],
+    networkUsers: [],
+    featureFlag: null,
+    isSystemProtected: false,
+  }
+})
 
 async function handleSubmit() {
   error.value = '';
@@ -280,7 +306,7 @@ function navigateBack() {
 function openUploadModal() {
   showUploadModal.value = true;
 }
-function handleImageUploaded(file: FileDto) {
+function handleImageSubmitted(file: FileDto) {
   form.value.fileLink = { id: file.id };
   uploadedFile.value = file;
   showUploadModal.value = false;

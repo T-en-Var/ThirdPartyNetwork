@@ -112,7 +112,7 @@
             v-if="showUploadModal"
             :network-id="network.id"
             @close="showUploadModal = false"
-            @uploaded="handleImageUploaded"
+            @submit="handleImageUploaded"
             media-type="image"
           />
         </section>

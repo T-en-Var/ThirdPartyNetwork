@@ -163,7 +163,7 @@
       :network-id="networkId"
       media-type="image"
       @close="showImageModal = false"
-      @uploaded="handleImageInserted"
+      @submit="handleImageInserted"
     />
   </div>
 </template>

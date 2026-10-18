@@ -1,6 +1,6 @@
 <template>
   <modal-container
-    title="Add File to Network (50MB)"
+    title="Add File to Network"
     @close="$emit('close')"
     :close-on-escape="!loading"
   >
@@ -131,6 +131,7 @@
           <button
             type="submit"
             class="btn btn--primary"
+            @click="submitFile"
             :disabled="isSubmitting || !inputIsValid"
           >
             <span v-if="isSubmitting">Submitted...</span>
@@ -187,7 +188,7 @@ withDefaults(
 
 const emit = defineEmits<{
   (e: 'close'): void;
-  (e: 'uploaded', file: FileDto): void;
+  (e: 'submit', file: FileDto): void;
 }>();
 
 const authStore = useAuthStore();
@@ -246,11 +247,18 @@ const inputIsValid = computed(() => {
 
 const isSubmitting = computed(() => loading.value);
 
+function submitFile() {
+  const file = selectedExistingFile.value;
+  if (!file) return;
+
+  emit('submit', file);
+}
+
 async function handleSubmit(form: CreateUserContentForm) {
   if (!inputIsValid.value) return;
 
   if (activeTab.value === 'existing') {
-    emit('uploaded', selectedExistingFile.value!);
+    emit('submit', selectedExistingFile.value!);
     selectedExistingFile.value = null;
   }
 
@@ -260,7 +268,7 @@ async function handleSubmit(form: CreateUserContentForm) {
     try {
       const file = await uploadFile(form.networkId, selectedFile.value!);
 
-      emit('uploaded', file);
+      emit('submit', file);
       selectedFile.value = null;
     } catch (_) {
       void _;

@@ -79,7 +79,7 @@
           v-if="manage.showAddFileModal.value"
           :network-ids="userProxy!.networkUsers.map((nu) => nu.network.id)"
           @close="manage.showAddFileModal.value = false"
-          @uploaded="manage.handle.value.files.openEdit"
+          @submit="manage.handle.value.files.openEdit"
         />
       </div>
     </div>

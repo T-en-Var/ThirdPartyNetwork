@@ -118,7 +118,7 @@
           media-type="any"
           :network-id="network.id"
           @close="showModal.addFile.value = false"
-          @uploaded="handle.files.openEdit"
+          @submit="handle.files.openEdit"
         />
       </div>
     </div>
@@ -126,7 +126,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, computed } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 
 import NetworkSidebar from '@/components/sidebar/NetworkSidebar.vue';
