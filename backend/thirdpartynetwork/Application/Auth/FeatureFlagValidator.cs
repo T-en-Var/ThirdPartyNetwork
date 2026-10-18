@@ -1,4 +1,3 @@
-using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using thirdpartynetwork.Core.Enum;
@@ -20,17 +19,12 @@ public class FeatureFlagValidator(
 {
     private async Task<Network> GetMainNetwork()
     {
-        var network = await networkRepository.GetMainNetworkDetailsAsync();
-        ValidateNetworkFeatureFlag(network);
-        return network;
+        return await networkRepository.GetMainNetworkDetailsAsync() ?? throw new NotFoundHttpException("Network not found");
     }
 
     private async Task<Network> GetNetwork(Guid networkId)
     {
-        var network = await networkRepository.GetByIdFeatureFlagAsync(networkId);
-        ValidateNetworkFeatureFlag(network);
-
-        return network!;
+        return await networkRepository.GetByIdFeatureFlagAsync(networkId) ?? throw new NotFoundHttpException("Network not found");
     }
 
     private async Task<NetworkUser> GetNetworkUser(Guid userProxyId, Guid networkId)
@@ -45,43 +39,30 @@ public class FeatureFlagValidator(
                 .ThenInclude(n => n.FeatureFlag)
         );
 
-        var networkUser = networkUsers.FirstOrDefault();
-        ValidateNetworkUser(networkUser);
-        return networkUser!;
+        return networkUsers.FirstOrDefault() ?? throw new NotFoundHttpException("Networkuser not found");
     }
 
     public async Task<bool> CheckUserAddNetworkFileFeatureFlagAsync(Guid userProxyId, Guid networkId, IFormFile file)
     {
-        // checks if:
-        // - enough space in network
-        // - enough space in user / role
-        //
-
-        // Network Checks
         var mainNetwork = await GetMainNetwork();
         if (!mainNetwork.FeatureFlag.AllowFiles) { return false; }
+
         var network = await GetNetwork(networkId);
         if (!network.FeatureFlag.AllowFiles) { return false; }
 
-        // Network File Checks
         var networkFiles = await fileRepository.GetByNetworkIdAsync(networkId);
-        if (!CheckNetworkFileCount(networkFiles.Count, network.FeatureFlag.FileCountLimit)) { return false; }
-        if (!CheckNetworkFileSizeLimit(file, network.FeatureFlag.FileSizeLimit)) { return false; }
-        if (!CheckNetworkFileStorageReached(networkFiles, file, network.FeatureFlag.FileStorageLimit)) { return false; }
+        if (!FeatureFlagHelper.CheckLimitCount(networkFiles.Count, network.FeatureFlag.FileCountLimit)) { return false; }
+        if (!FeatureFlagHelper.CheckFileSizeLimit(file, network.FeatureFlag.FileSizeLimit)) { return false; }
+        if (!FeatureFlagHelper.CheckNetworkFileStorageReached(networkFiles, file, network.FeatureFlag.FileStorageLimit)) { return false; }
 
-        // User Checks. If a role limit exists, use the larger limit.
         var networkUser = await GetNetworkUser(userProxyId, networkId);
-        var userFileSizeLimit = NetworkFeatureFlagFactory.ReadFeatureFlag<int?>(networkUser, FeatureFlagType.FileSizeLimit)
-            ?? network.FeatureFlag.FileSizeLimit;
+        var userFileSizeLimit = FeatureFlagHelper.GetUserFeatureFlagAndRoleFeatureFlag(networkUser, FeatureFlagType.FileSizeLimit) ?? network.FeatureFlag.FileSizeLimit;
         var userFiles = await fileRepository.GetByAuthorIdAsync(networkId, networkUser.Id);
-        var userFileCountLimit = NetworkFeatureFlagFactory.ReadFeatureFlag<int?>(networkUser, FeatureFlagType.FileCountLimit)
-            ?? network.FeatureFlag.FileCountLimit;
-        var userFileStorageLimit = NetworkFeatureFlagFactory.ReadFeatureFlag<int?>(networkUser, FeatureFlagType.FileStorageLimit)
-            ?? network.FeatureFlag.FileStorageLimit;
-
-        if (!CheckNetworkFileSizeLimit(file, userFileSizeLimit)) { return false; }
-        if (!CheckNetworkFileCount(userFiles.Count, userFileCountLimit)) { return false; }
-        if (!CheckNetworkFileStorageReached(userFiles, file, userFileStorageLimit)) { return false; }
+        var userFileCountLimit = FeatureFlagHelper.GetUserFeatureFlagAndRoleFeatureFlag(networkUser, FeatureFlagType.FileCountLimit) ?? network.FeatureFlag.FileCountLimit;
+        var userFileStorageLimit = FeatureFlagHelper.GetUserFeatureFlagAndRoleFeatureFlag(networkUser, FeatureFlagType.FileStorageLimit) ?? network.FeatureFlag.FileStorageLimit;
+        if (!FeatureFlagHelper.CheckFileSizeLimit(file, userFileSizeLimit)) { return false; }
+        if (!FeatureFlagHelper.CheckLimitCount(userFiles.Count, userFileCountLimit)) { return false; }
+        if (!FeatureFlagHelper.CheckNetworkFileStorageReached(userFiles, file, userFileStorageLimit)) { return false; }
 
         return true;
     }
@@ -90,66 +71,55 @@ public class FeatureFlagValidator(
     {
         var mainNetwork = await GetMainNetwork();
         if (!mainNetwork.FeatureFlag.AllowBlogs) { return false; }
+
         var network = await GetNetwork(networkId);
         if (!network.FeatureFlag.AllowBlogs) { return false; }
 
         var networkBlogs = await blogRepository.GetByNetworkIdAsync(networkId);
-        if (!CheckNetworkFileCount(networkBlogs.Count, network.FeatureFlag.BlogCountLimit)) { return false; }
+        if (!FeatureFlagHelper.CheckLimitCount(networkBlogs.Count, network.FeatureFlag.BlogCountLimit)) { return false; }
 
         var networkUser = await GetNetworkUser(userProxyId, networkId);
+        var userBlogCountLimit = FeatureFlagHelper.GetUserFeatureFlagAndRoleFeatureFlag(networkUser, FeatureFlagType.BlogCountLimit) ?? network.FeatureFlag.BlogCountLimit;
         var userBlogs = await blogRepository.GetByAuthorIdAsync(networkId, networkUser.Id);
-        var userBlogCountLimit = NetworkFeatureFlagFactory.ReadFeatureFlag<int?>(networkUser, FeatureFlagType.BlogCountLimit)
-        ?? network.FeatureFlag.BlogCountLimit;
-
-        if (!CheckNetworkFileCount(userBlogs.Count, userBlogCountLimit)) { return false; }
+        if (!FeatureFlagHelper.CheckLimitCount(userBlogs.Count, userBlogCountLimit)) { return false; }
 
         return true;
-
     }
 
     public async Task<bool> CheckUserAddConfigurationFeatureFlagAsync(Guid userProxyId, Guid networkId)
     {
-
-        // Global Checks
-        // Network Checks
         var mainNetwork = await GetMainNetwork();
         if (!mainNetwork.FeatureFlag.AllowConfigurations) { return false; }
+
         var network = await GetNetwork(networkId);
         if (!network.FeatureFlag.AllowConfigurations) { return false; }
 
         var networkConfigurations = await configurationRepository.GetByNetworkIdAsync(networkId);
-        if (!CheckNetworkFileCount(networkConfigurations.Count, network.FeatureFlag.ConfigurationCountLimit)) { return false; }
+        if (!FeatureFlagHelper.CheckLimitCount(networkConfigurations.Count, network.FeatureFlag.ConfigurationCountLimit)) { return false; }
 
-        // User Checks
         var networkUser = await GetNetworkUser(userProxyId, networkId);
         var userConfigs = await configurationRepository.GetByAuthorIdAsync(networkId, networkUser.Id);
-        var userConfigurationCountLimit = NetworkFeatureFlagFactory.ReadFeatureFlag<int?>(networkUser, FeatureFlagType.ConfigurationCountLimit)
-        ?? network.FeatureFlag.ConfigurationCountLimit;
-
-        if (!CheckNetworkFileCount(userConfigs.Count, userConfigurationCountLimit)) { return false; }
+        var userConfigurationCountLimit = FeatureFlagHelper.GetUserFeatureFlagAndRoleFeatureFlag(networkUser, FeatureFlagType.ConfigurationCountLimit) ?? network.FeatureFlag.ConfigurationCountLimit;
+        if (!FeatureFlagHelper.CheckLimitCount(userConfigs.Count, userConfigurationCountLimit)) { return false; }
 
         return true;
     }
 
     public async Task<bool> CheckUserAddCustomPageFeatureFlagAsync(Guid userProxyId, Guid networkId)
     {
-
-        // Global Checks
-        // Network Checks
         var mainNetwork = await GetMainNetwork();
         if (!mainNetwork.FeatureFlag.AllowCustomPages) { return false; }
+
         var network = await GetNetwork(networkId);
         if (!network.FeatureFlag.AllowCustomPages) { return false; }
 
-
         var networkCustomPages = await customPageRepository.GetByNetworkIdAsync(networkId);
-        if (!CheckNetworkFileCount(networkCustomPages.Count, network.FeatureFlag.CustomPageCountLimit)) { return false; }
+        if (!FeatureFlagHelper.CheckLimitCount(networkCustomPages.Count, network.FeatureFlag.CustomPageCountLimit)) { return false; }
 
-        // User Checks
         var networkUser = await GetNetworkUser(userProxyId, networkId);
         var userCustomPages = await customPageRepository.GetByAuthorIdAsync(networkId, networkUser.Id);
-        var userCustomPageCountLimit = NetworkFeatureFlagFactory.ReadFeatureFlag<int?>(networkUser, FeatureFlagType.CustomPageCountLimit) ?? network.FeatureFlag.CustomPageCountLimit;
-        if (!CheckNetworkFileCount(userCustomPages.Count, userCustomPageCountLimit)) { return false; }
+        var userCustomPageCountLimit = FeatureFlagHelper.GetUserFeatureFlagAndRoleFeatureFlag(networkUser, FeatureFlagType.CustomPageCountLimit) ?? network.FeatureFlag.CustomPageCountLimit;
+        if (!FeatureFlagHelper.CheckLimitCount(userCustomPages.Count, userCustomPageCountLimit)) { return false; }
 
         return true;
     }
@@ -157,56 +127,22 @@ public class FeatureFlagValidator(
     public async Task<bool> CheckUserAddCustomPageBlockFeatureFlagAsync(Guid userProxyId, Guid networkId,
         Guid customPageId, JsonElement pageBlockData)
     {
-        var error = new Exception();
         var pageBlockCharCount = pageBlockData.GetRawText().Length;
-
-        // Network Checks
         var network = await GetNetwork(networkId);
         if (!network.FeatureFlag.AllowCustomPages) { return false; }
-        var networkCustomPage = await customPageRepository.GetByIdAsync(customPageId);
-        if (!CheckNetworkFileCount(networkCustomPage?.Pages.Count ?? 0, network.FeatureFlag.CustomPageBlockCountLimit)) { return false; }
-        if (!CheckNetworkFileCount(pageBlockCharCount, network.FeatureFlag.CustomPageBlockSizeLimit)) { return false; }
 
-        // User Checks
+        var networkCustomPage = await customPageRepository.GetByIdAsync(customPageId);
+        if (!FeatureFlagHelper.CheckLimitCount(networkCustomPage?.Pages.Count ?? 0, network.FeatureFlag.CustomPageBlockCountLimit)) { return false; }
+        if (!FeatureFlagHelper.CheckLimitCount(pageBlockCharCount, network.FeatureFlag.CustomPageBlockSizeLimit)) { return false; }
+
         var networkUser = await GetNetworkUser(userProxyId, networkId);
         var userCustomPages = await customPageRepository.GetByAuthorIdAsync(networkId, networkUser.Id);
-        var userCustomPageBlockCountLimit = NetworkFeatureFlagFactory.ReadFeatureFlag<int?>(networkUser, FeatureFlagType.CustomPageBlockCountLimit) ?? network.FeatureFlag.CustomPageBlockCountLimit;
-        if (!CheckNetworkFileCount(userCustomPages.Count, userCustomPageBlockCountLimit)) { return false; }
+        var userCustomPageBlockCountLimit = FeatureFlagHelper.GetUserFeatureFlagAndRoleFeatureFlag(networkUser, FeatureFlagType.CustomPageBlockCountLimit) ?? network.FeatureFlag.CustomPageBlockCountLimit;
+        if (!FeatureFlagHelper.CheckLimitCount(userCustomPages.Count, userCustomPageBlockCountLimit)) { return false; }
 
-        var userCustomPageBlockSizeLimit = NetworkFeatureFlagFactory.ReadFeatureFlag<int?>(networkUser, FeatureFlagType.CustomPageBlockSizeLimit) ?? network.FeatureFlag.CustomPageBlockSizeLimit;
-        if (!CheckNetworkFileCount(pageBlockCharCount, userCustomPageBlockSizeLimit)) { return false; }
+        var userCustomPageBlockSizeLimit = FeatureFlagHelper.GetUserFeatureFlagAndRoleFeatureFlag(networkUser, FeatureFlagType.CustomPageBlockSizeLimit) ?? network.FeatureFlag.CustomPageBlockSizeLimit;
+        if (!FeatureFlagHelper.CheckLimitCount(pageBlockCharCount, userCustomPageBlockSizeLimit)) { return false; }
 
         return true;
-    }
-
-    private void ValidateNetworkFeatureFlag(Network? network)
-    {
-        if (network == null)
-        {
-            throw new NotFoundHttpException("Network not found");
-        }
-    }
-
-    private void ValidateNetworkUser(NetworkUser? networkUser)
-    {
-        if (networkUser == null)
-        {
-            throw new NotFoundHttpException("Networkuser not found");
-        }
-    }
-    private bool CheckNetworkFileCount(int count, int fileCountLimit)
-    {
-        return count < fileCountLimit;
-    }
-
-    private bool CheckNetworkFileSizeLimit(IFormFile file, int fileSizeLimit)
-    {
-        return file.Length <= fileSizeLimit * 1024.0; // FileSizeLimit is in KB
-    }
-
-    private bool CheckNetworkFileStorageReached(ICollection<thirdpartynetwork.Core.Models.File> files, IFormFile file, int fileStorageLimit)
-    {
-        var totalNetworkFileStorageSize = files.Sum(networkFile => networkFile.SizeBytes);
-        return totalNetworkFileStorageSize + file.Length <= fileStorageLimit * 1024.0; // FileStorageLimit is in KB the limit
     }
 }
