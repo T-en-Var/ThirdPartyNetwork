@@ -420,13 +420,15 @@ export default function useNetworkManageActions(networkId: ComputedRef<string>) 
     },
 
     accesses: {
-      create: async (accessData: CreateNetworkAccessForm) =>
-        accessData.access &&
-        (await genericMutation(composables.accesses.createAccess)(
+      create: async (accessData: CreateNetworkAccessForm) =>{
+        if (!accessData.access) return;
+        await genericMutation(composables.accesses.createNetworkAccess)(
           networkId.value,
           accessData.access.id,
           accessData.isRequired,
-        )),
+        )
+        showModal.addAccess.value = false;
+      },
 
       toggle: (networkAccess: NetworkAccessDto) =>
         confirm({

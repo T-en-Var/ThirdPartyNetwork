@@ -221,13 +221,12 @@
 .card {
   background-color: var(--card-bg);
   border: 1px solid var(--input-border);
-  border-radius: 1.5rem;
+  border-radius: var(--radius);
   padding: 2rem;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
   transition: box-shadow 0.3s ease, transform 0.3s ease;
 
   &:hover {
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--input-border-2);
   }
 }
 .card__header {

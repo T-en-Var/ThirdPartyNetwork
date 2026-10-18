@@ -159,10 +159,19 @@ export function prependItem<T>(currentList: T[], result: T): T[] {
   return [result, ...currentList];
 }
 
-export function replaceById<T extends { id: string }>(currentList: T[], result: T): T[] {
-  return currentList.map((item) => (item.id === result.id ? result : item));
+export function replaceById<T, K = string>(
+  currentList: T[],
+  result: T,
+  keyFn: (item: T) => K = (item) => (item as { id: K }).id,
+): T[] {
+  const key = keyFn(result);
+  return currentList.map((item) => (keyFn(item) === key ? result : item));
 }
 
-export function removeById<T extends { id: string }>(currentList: T[], id: string): T[] {
-  return currentList.filter((item) => item.id !== id);
+export function removeById<T, K = string>(
+  currentList: T[],
+  id: K,
+  keyFn: (item: T) => K = (item) => (item as { id: K }).id,
+): T[] {
+  return currentList.filter((item) => keyFn(item) !== id);
 }

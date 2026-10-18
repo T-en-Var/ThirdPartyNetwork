@@ -20,36 +20,17 @@
         </div>
       </div>
 
-      <!-- Loading State -->
-      <div
-        v-if="loading"
-        class="info-network-view__loading"
-      >
-        <div class="spinner-border spinner-border--lg"></div>
-      </div>
-
-      <!-- Error State -->
-      <div
-        v-else-if="error"
-        class="info-network-view__error"
-      >
-        <ErrorAlert
-          :message="error"
-          @dismiss="error = ''"
-        />
-        <div class="info-network-view__error-actions">
-          <button
-            @click="router.push('/networks')"
-            class="btn btn--primary"
-          >
-            Return to Networks
-          </button>
-        </div>
-      </div>
+      <LoadingErrorComponent
+        :loading="loading"
+        :error="error"
+        :has-value="!!network"
+        button-value="Return to Networks"
+        @button-action="router.push('/networks')"
+      />
 
       <!-- Network Content -->
       <div
-        v-else-if="network"
+        v-if="!loading && !error && network"
         class="info-network-view__content"
       >
         <!-- Network Header with Logo -->
@@ -157,15 +138,6 @@
           </div>
         </div>
 
-        <!-- Connected Websites -->
-        <div class="info-network-view__section">
-          <h3 class="info-network-view__section-title">Connected Websites</h3>
-
-          <div class="info-network-view__empty-box">
-            <p>No websites are currently using this network for authentication.</p>
-          </div>
-        </div>
-
         <!-- Network Information -->
         <div class="info-network-view__section">
           <h3 class="info-network-view__section-title">Network Information</h3>
@@ -193,8 +165,8 @@
         </div>
 
         <!-- User Information -->
-        <div v-if="isUserInNetwork && currentNetworkUser">
-          <h3 class="info-network-view__section-title">User Information</h3>
+        <div v-if="isUserInNetwork && currentNetworkUser && currentUser">
+          <h3 class="info-network-view__section-title">{{ currentUser.username }}'s Information</h3>
 
           <div class="info-network-view__box">
             <div class="info-network-view__detail-grid">
@@ -291,6 +263,13 @@
           </div>
         </div>
 
+        <!-- Action Error -->
+        <ErrorAlert
+          v-if="actionError"
+          :message="actionError"
+          @dismiss="actionError = ''"
+        />
+
         <!-- Action Buttons -->
         <div class="info-network-view__footer-actions">
           <button
@@ -323,10 +302,13 @@ import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import { useGlobalStore } from '@/stores/global';
 import ErrorAlert from '@/components/ErrorAlert.vue';
+import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import ConfirmationModal from '@/components/modals/ConfirmationModal.vue';
 import api from '@/api/api';
 import NetworkLogo from '@/components/NetworkLogo.vue';
 import useNetworks from '@/composables/useNetworks';
+import { extractApiErrorMessage } from '@/lib/utils';
+import { type UserProxyDto } from '@/types';
 
 const router = useRouter();
 const route = useRoute();
@@ -347,8 +329,11 @@ const confirmButtonText = ref('');
 const confirmButtonColor = ref('');
 const isSubmitting = ref(false);
 const confirmationAction = ref(() => {});
+const actionError = ref('');
+const currentUser = ref<UserProxyDto | null>(null);
 
 function handleLeaveNetwork() {
+  actionError.value = '';
   showConfirmationModal.value = true;
   confirmationTitle.value = 'Confirm Leave Network';
   confirmationMessage.value = 'Are you sure you want to leave this network?';
@@ -368,6 +353,11 @@ function handleLeaveNetwork() {
 
       await api.delete(`/networks/${networkId}/users/${networkUserId}`);
       router.push('/networks');
+    } catch (err) {
+      actionError.value = extractApiErrorMessage(
+        err,
+        'Failed to leave network. Please try again later.',
+      );
     } finally {
       isSubmitting.value = false;
       showConfirmationModal.value = false;
@@ -381,11 +371,16 @@ async function handleToggle(accessId: string) {
   );
   const networkAccess = network.value?.networkAccesses.find((x) => x.access.id === accessId);
 
-  if (!access) return alert('Access not found.');
+  actionError.value = '';
+
+  if (!access && !networkAccess) {
+    actionError.value = 'Access not found.';
+    return;
+  }
 
   showConfirmationModal.value = true;
   confirmationTitle.value = 'Confirm Access Toggle';
-  confirmationMessage.value = `Are you sure you want to ${access.isAccepted ? 'REVOKE' : 'PERMIT'} access to '${networkAccess?.access.name}' to this network?`;
+  confirmationMessage.value = `Are you sure you want to ${access?.isAccepted ? 'REVOKE' : 'PERMIT'} access to '${networkAccess?.access.name}' to this network?`;
   confirmButtonText.value = 'Confirm';
   confirmButtonColor.value = 'green';
 
@@ -399,10 +394,15 @@ async function handleToggle(accessId: string) {
       )?.id;
 
       await api.put(`/networks/${networkId}/users/${networkUserId}/accesses/${accessId}`, {
-        isAccepted: !access.isAccepted,
+        isAccepted: !access?.isAccepted,
       });
 
-      access.isAccepted = !access.isAccepted;
+      initialFetch()
+    } catch (err) {
+      actionError.value = extractApiErrorMessage(
+        err,
+        'Failed to update access. Please try again later.',
+      );
     } finally {
       isSubmitting.value = false;
       showConfirmationModal.value = false;
@@ -427,14 +427,24 @@ const isUserInNetwork = computed(() => {
   return currentNetworkUser.value != null;
 });
 
-onMounted(async () => {
+async function initialFetch() {
   const networkId = route.params.networkId as string;
   global.startFetching();
   try {
     await fetchNetworkDetails(networkId);
+    currentUser.value = await authStore.getUserProxy();
+  } catch (err) {
+    actionError.value = extractApiErrorMessage(
+      err,
+      'Failed to update access. Please try again later.',
+    );
   } finally {
     global.stopFetching();
   }
+}
+
+onMounted(async () => {
+  await initialFetch();
 });
 
 function handleNavigateBack() {
