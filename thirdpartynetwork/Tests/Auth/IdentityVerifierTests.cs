@@ -46,7 +46,7 @@ public class IdentityVerifierTests
         var role = new Role
         {
             Id = Guid.NewGuid(), Name = "r", Description = "d", Network = main, NetworkId = main.Id, IsDefault = false,
-            FeatureFlags = JsonDocument.Parse("{}")
+            FeatureFlags = new RoleFeatureFlag()
         };
         var rolePerm = new RolePermission
             { Permission = permissionAdmin, Role = role, PermissionId = permissionAdmin.Id, RoleId = role.Id };
@@ -55,7 +55,7 @@ public class IdentityVerifierTests
         var nu = new NetworkUser
         {
             Id = Guid.NewGuid(), NetworkId = main.Id, UserProxy = proxy, UserProxyId = proxy.Id,
-            FeatureFlags = JsonDocument.Parse("{}")
+            FeatureFlags = new NetworkUserFeatureFlag()
         };
         var nur = new NetworkUserRole { NetworkUserId = nu.Id, RoleId = role.Id, Role = role, NetworkUser = nu };
         nu.NetworkUserRoles.Add(nur);
@@ -99,7 +99,7 @@ public class IdentityVerifierTests
         var role = new Role
         {
             Id = Guid.NewGuid(), Name = "r2", Description = "d2", Network = net, NetworkId = net.Id, IsDefault = false,
-            FeatureFlags = JsonDocument.Parse("{}")
+            FeatureFlags = new RoleFeatureFlag()
         };
         var rp = new RolePermission
             { Permission = permission, Role = role, PermissionId = permission.Id, RoleId = role.Id };
@@ -109,7 +109,7 @@ public class IdentityVerifierTests
         var proxy = new UserProxy { Id = Guid.NewGuid(), User = user, IsDefault = true };
 
         var nu = new NetworkUser { Id = Guid.NewGuid(), NetworkId = net.Id, UserProxy = proxy, UserProxyId = proxy.Id,
-            FeatureFlags = JsonDocument.Parse("{}") };
+            FeatureFlags = new NetworkUserFeatureFlag() };
         var nur = new NetworkUserRole { NetworkUserId = nu.Id, RoleId = role.Id, Role = role, NetworkUser = nu };
         nu.NetworkUserRoles.Add(nur);
         proxy.NetworkUsers.Add(nu);
