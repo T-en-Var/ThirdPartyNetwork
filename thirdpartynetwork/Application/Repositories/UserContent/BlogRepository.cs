@@ -22,11 +22,8 @@ namespace thirdpartynetwork.Application.Repositories
         {
             var query = _context.Blogs
                 .Include(x => x.CoverImage)
-                .Include(x => x.Author)
-                .ThenInclude(x => x.UserProxy)
-                .Include(x => x.Author)
-                .ThenInclude(x => x.NetworkUserAccesses)
-                .ThenInclude(x => x.Access)
+                .Include(x => x.AuthorUserProxy)
+                .ThenInclude(x => x!.ImageFile)
                 .AsQueryable();
             
             return Task.FromResult(query);

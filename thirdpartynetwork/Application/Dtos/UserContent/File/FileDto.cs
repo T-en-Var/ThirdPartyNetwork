@@ -5,8 +5,8 @@ namespace thirdpartynetwork.Application.Dtos.UserContent.File
 {
     public class FileDto : UserContentBaseDto
     {
-        public Guid PublicId { get; set; }
-        public string Url { get; set; }
+        public string Bucket { get; set; }
+        public string ObjectKey { get; set; }
         public string? Format { get; set; }
         public long SizeBytes { get; set; }
         public int? Width { get; set; }
@@ -19,8 +19,8 @@ namespace thirdpartynetwork.Application.Dtos.UserContent.File
     
     public class FileLightDto : UserContentBaseLightDto
     {
-        public Guid PublicId { get; set; }
-        public string Url { get; set; }
+        public string Bucket { get; set; }
+        public string ObjectKey { get; set; }
         public string? Format { get; set; }
         public long SizeBytes { get; set; }
         public int? Width { get; set; }

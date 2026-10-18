@@ -1,11 +1,20 @@
-# ThirdPartyNetwork — Database, Permissions & Entitlements Overview
+# ThirdPartyNetwork — Database, Permissions & FeatureFlags Overview
 
 Generated from a source read of the codebase on 2026-08-12. This is a snapshot, not a
 living spec — re-verify against the code before relying on specifics (file/line
 references are given throughout so this is easy to do).
 
+**⚠️ Since this snapshot was taken, `PLAN.md` was implemented in full** (unified UGC access
+control, MinIO storage swap, `ContentAccessGrant`/`ContentViewingLink`/
+`ContentModerationFlag`). The two 🔴 critical findings below (§6.1, §6.2) are fixed; the
+content-authorization model in §1.5/§3.6/§5 is substantially rewritten (no more stored
+`AccessLevel`, `File` is MinIO- not Cloudinary-backed, `AuthorId` targets `UserProxy` not
+`NetworkUser`); §5.5's editing/deletion behavior was deliberately narrowed (§4 sign-off).
+The most load-bearing sections have inline `⚠️` notes pointing at what changed, but
+`PLAN.md` is the authoritative design record going forward, not this file. `FILE_SERVICE_SETUP.md` is superseded — see its own header.
+
 Stack: ASP.NET Core (.NET), EF Core with **Npgsql (PostgreSQL)**, JWT bearer auth,
-AutoMapper, Cloudinary for file storage.
+AutoMapper, MinIO for file storage (Cloudinary dropped).
 
 ---
 
@@ -15,7 +24,7 @@ The app is a **multi-tenant identity/SSO provider**. A single physical person (`
 can have multiple `UserProxy` "personas" (think: different display name/avatar/email per
 context). Each `UserProxy` can join multiple `Network`s (tenants), and per network gets a
 `NetworkUser` membership row that carries roles, ad-hoc permission-scope grants, and
-usage-entitlement overrides. Networks also own their own user-generated content (files,
+usage-featureFlag overrides. Networks also own their own user-generated content (files,
 blogs, custom pages, config).
 
 ```mermaid
@@ -27,7 +36,7 @@ erDiagram
     Role }o--o{ Permission : "via RolePermission"
     NetworkUser }o--o{ Access : "via NetworkUserAccess"
     Network }o--o{ Network : "via NetworkAccess"
-    Network ||--|| NetworkEntitlement : has
+    Network ||--|| NetworkFeatureFlag : has
     Network ||--o{ File : owns
     Network ||--o{ Blog : owns
     Network ||--o{ Configuration : owns
@@ -49,15 +58,15 @@ Note: none of `Username`, `Email` have a unique DB constraint (see §6.5).
 | Entity | Purpose | Key fields |
 |---|---|---|
 | `Network` | A tenant / third-party client. One network, `"TrojoNetworks"` (`Constants.Networks.Main`), is the **main/super network** — see §3.3. | `Name`, `IsPublic`, `Description`, `RedirectURI`, `ImageFileId`, `IsSystemProtected` |
-| `NetworkUser` | Membership: one `UserProxy` inside one `Network`. Carries a JSON `Entitlements` override blob and `AccessIncomplete` flag. | `NetworkId`, `UserProxyId`, `Entitlements` (jsonb), `AccessIncomplete` |
-| `NetworkEntitlement` | 1:1 with `Network` (PK = `NetworkId`). Quota/feature-flag config — see §4. | `AllowFiles`, `FileCountLimit`, `FileSizeLimit`, `FileStorageLimit`, `AllowBlogs`, `BlogCountLimit`, `AllowConfigurations`, `ConfigurationCountLimit`, `AllowCustomPages`, `CustomPageCountLimit`, `CustomPageBlockCountLimit`, `CustomPageBlockSizeLimit` |
+| `NetworkUser` | Membership: one `UserProxy` inside one `Network`. Carries a JSON `FeatureFlags` override blob and `AccessIncomplete` flag. | `NetworkId`, `UserProxyId`, `FeatureFlags` (jsonb), `AccessIncomplete` |
+| `NetworkFeatureFlag` | 1:1 with `Network` (PK = `NetworkId`). Quota/feature-flag config — see §4. | `AllowFiles`, `FileCountLimit`, `FileSizeLimit`, `FileStorageLimit`, `AllowBlogs`, `BlogCountLimit`, `AllowConfigurations`, `ConfigurationCountLimit`, `AllowCustomPages`, `CustomPageCountLimit`, `CustomPageBlockCountLimit`, `CustomPageBlockSizeLimit` |
 
 ### 1.3 RBAC (roles/permissions)
 
 | Entity | Purpose |
 |---|---|
 | `Permission` | An action right, e.g. `"Read Network"`, `"Manage User"`, `"Administrator"`. Global by default; `NetworkId` (nullable FK, added in the `NetworkCreatePermission` migration) lets a permission be scoped to one network — networks created via the API get such network-scoped permission rows. |
-| `Role` | Named bundle of permissions, always scoped to one `Network` (`NetworkId`). Also carries its own JSON `Entitlements` override blob (see §4). `IsDefault` marks the role auto-assigned to new members. |
+| `Role` | Named bundle of permissions, always scoped to one `Network` (`NetworkId`). Also carries its own JSON `FeatureFlags` override blob (see §4). `IsDefault` marks the role auto-assigned to new members. |
 | `RolePermission` | N:N join, composite PK `(RoleId, PermissionId)`. |
 | `NetworkUserRole` | N:N join assigning `Role`s to a `NetworkUser`, composite PK `(NetworkUserId, RoleId)`. |
 
@@ -78,26 +87,41 @@ network's *required* `NetworkAccess` grants; this is mirrored into the JWT as an
 
 ### 1.5 User-generated content
 
-All content types derive from `UserContentBaseModel` (itself derived from `BaseModel`):
+**⚠️ Rewritten by the PLAN.md pass (see that file for the full design).** All content types
+derive from `UserContentBaseModel` (itself derived from `BaseModel`):
 
 ```csharp
-AuthorId (→ NetworkUser), NetworkId (→ Network), AccessLevel (enum, default Private)
+AuthorUserProxyId (→ UserProxy, nullable, SetNull), NetworkId (→ Network),
+PublishedAt (nullable DateTime; null = Draft), OwnershipMode (enum: AuthorOwned/NetworkOwned),
+DeletedAt (nullable DateTime, soft delete)
 ```
+
+`AuthorId` used to point at `NetworkUser` and cascade-delete on membership removal — it now
+points at the durable `UserProxy` persona instead (SetNull on delete), so losing network
+membership no longer deletes what you authored there. There is **no more stored
+`AccessLevel` column** — visibility is derived at read time from `PublishedAt` +
+`ContentAccessGrant` (+ `ContentViewingLink`); see the revised §3.6 below.
 
 | Entity | Notes |
 |---|---|
-| `File` | Cloudinary-backed asset. `PublicId`, `Url`, `Format`, `SizeBytes`, `Width/Height`, `Duration`, `MediaType`, `IsSystemProtected`. |
-| `Blog` | `Title`, `Slug`, `Summary`, `Body` (jsonb), optional `CoverImage`, `PublishedAt`. |
+| `File` | MinIO-backed asset (Cloudinary dropped). `Bucket`, `ObjectKey` (unique), `Format`, `SizeBytes`, `Width/Height`, `Duration`, `MediaType`, `IsSystemProtected`. |
+| `Blog` | `Title`, `Slug`, `Summary`, `Body` (jsonb), optional `CoverImage`. (`PublishedAt` moved to the base model, above — no longer Blog-only.) |
 | `Configuration` | Arbitrary `Key` → `Value` (jsonb) per network. |
 | `CustomPage` | `Name`, `Slug`, has many `PageBlock`s (cascade delete). |
 | `PageBlock` | Belongs to one `CustomPage`; `Text`, `Position`, `Data` (jsonb), optional `ParentPageId` (self-referencing, nullable — no FK constraint modeled for it in `DataContext`, only a plain column). |
 
-`AccessLevel` enum (`Core/Enum/AccessLevel.cs`):
-```
-Private = 0            // only the author (or someone with the resource's Manage/Read permission)
-PublicToNetwork = 1     // any member of the same Network
-Public = 2              // anyone, including anonymous
-```
+New polymorphic tables (`ContentKind`+`ContentId`, app-enforced, no DB FK — one table serves
+all five content types instead of five near-identical join tables):
+
+| Entity | Notes |
+|---|---|
+| `ContentAccessGrant` | The sharing primitive. `GranteeType` (Network/NetworkRole/NetworkPermission/User) + matching nullable `Grantee*Id`, `Capabilities` (flags: View/Edit/Share/Comment/Like), soft `RevokedAt` + self-expiring `ExpiresAt`, nullable `GrantedByNetworkUserId` (audit, SetNull). |
+| `ContentViewingLink` | The opaque, unauthenticated share-link broker (`Id` is the token). `IssuedForUserProxyId` (nullable — null means "anyone holding this URL"), `Mode` (OneTimeView/TimeLimited/Permanent), `ExpiresAt`, `UsedAt`. Backs `GET /cdn/{token}` (File) and `GET /view/{token}` (the other four kinds). |
+| `ContentModerationFlag` | Flag/hide only, never edits. `NetworkId` (which network flagged it), `Reason`, `Status` (Open/Resolved/Dismissed), `HiddenInNetwork` (suppresses only within that network's own views, orthogonal to `Status`). |
+
+`Network` also gained `ExternalContentKinds` (flags enum) — governs whether a network never
+specifically invited via a grant can still durably reuse/embed another network's reachable
+content (profile picture, cover image, embed).
 
 ### 1.6 Not persisted to the database
 
@@ -114,14 +138,16 @@ Public = 2              // anyone, including anonymous
   (`SaveAndUpdateAsync`/`SaveAndUpdateAllAsync`). Repository code paths that call
   `context.SaveChangesAsync()` directly leave it at `default(DateTime)`.
 - jsonb columns: `PageBlock.Data`, `Configuration.Value`, `Blog.Body`,
-  `Role.Entitlements`, `NetworkUser.Entitlements` (the latter two default to SQL `'{}'`).
+  `Role.FeatureFlags`, `NetworkUser.FeatureFlags` (the latter two default to SQL `'{}'`).
   Under the EF InMemory provider (used in tests) these are stored as plain strings via a
   manual `HasConversion`, so JSON-shape bugs can hide in unit tests and only appear
   against real Postgres.
-- Cascade deletes: `Network → CustomPage/PageBlock/Configuration/Blog/File/NetworkEntitlement/Role`
-  all cascade. `UserContent.AuthorId → NetworkUser` also cascades (deleting a membership
-  row deletes everything that member authored). `ImageFileId`/`CoverImageId` use
-  `SetNull` instead.
+- Cascade deletes: `Network → CustomPage/PageBlock/Configuration/Blog/File/NetworkFeatureFlag/Role`
+  all cascade. **⚠️ Changed by the PLAN.md pass:** `UserContent.AuthorUserProxyId → UserProxy`
+  is now `SetNull`, not cascade — losing network membership no longer deletes what you
+  authored there (the old `AuthorId → NetworkUser` cascade was the actual bug this fixed:
+  a membership row was never the right thing to tie content's existence to). `ImageFileId`/
+  `CoverImageId` still use `SetNull`, same as before.
 - **No unique indexes exist anywhere except primary keys** — confirmed against
   `DataContextModelSnapshot.cs`. Not on `UserProxy.Username`, `UserProxy.Email`,
   `Network.Name`, `Permission.Name`, `Access.Name`, `Blog.Slug`, or `CustomPage.Slug`.
@@ -241,17 +267,29 @@ it's a footgun for future edits — see §6.9.
   caller's identity at all**. See §6.2 for the concrete impact; this is the second most
   important finding in this document.
 
-### 3.6 Content `AccessLevel` resolution (`AccessLevelVerifier`)
+### 3.6 Content visibility resolution (`AccessLevelVerifier`) — ⚠️ rewritten, no more `AccessLevel`
 
-For a single resource (`CheckAccessAsync`): `Public` → always allowed; otherwise
-requires authentication, then: permission override (`IsAllowedAsync` for that
-network **or** main network) → else `Private` requires `AuthorId == caller` → else
-`PublicToNetwork` requires caller to be a member of that resource's network.
+There is no stored `AccessLevel` column anymore (§1.5). For a single resource
+(`CheckAccessAsync`/`CheckAccessForCallerAsync`): author (zero join) → else an active
+`ContentModerationFlag.HiddenInNetwork` scoped to the request's network suppresses it for
+everyone else → else permission override (`IsAllowedAsync`, unchanged) → else `PublishedAt
+== null` (Draft) is unconditionally denied, no grant can override it → else an active
+`ContentAccessGrant` must grant `View` to the caller (matched by `User`/`Network`/
+`NetworkRole`/`NetworkPermission`), with anonymous callers covered only by a `Network`-type
+grant whose target network is itself `IsPublic` (reusing that flag's existing "publicly
+discoverable" meaning rather than a new `GranteeType=Everyone`).
+
+`CheckAccessForCallerAsync` is the same check parameterized by an explicit caller identity
+rather than the current HTTP request's bearer token — used by `ContentViewingLink`
+resolution (`GET /cdn/{token}`, `GET /view/{token}`), which is deliberately unauthenticated:
+the identity being re-checked is whoever the link was minted for, not whoever is making that
+particular request.
 
 For **listing** resources, the same rules are hand-re-implemented as an
 `Expression<Func<T,bool>>` in `GetAccessPredicateAsync` so EF can translate it to SQL
-(can't run arbitrary C# in a LINQ-to-SQL query). See §6.8 — this duplication is a
-maintenance risk.
+(can't run arbitrary C# in a LINQ-to-SQL query) — the `ContentAccessGrant`/
+`ContentModerationFlag` checks are correlated `EXISTS` subqueries. See §6.8 — this
+duplication is a maintenance risk, unchanged by this rewrite.
 
 ### 3.7 The "AccessIncomplete" hard gate
 
@@ -266,32 +304,32 @@ anything else on that network.
 
 ---
 
-## 4. Entitlements — usage quotas / feature flags
+## 4. FeatureFlags — usage quotas / feature flags
 
-Distinct from both RBAC and Access-consent: entitlements answer "how much of feature X
+Distinct from both RBAC and Access-consent: featureFlags answer "how much of feature X
 can this user/network still use", not "is this action allowed" or "can this network see
 my email".
 
-Three layers, resolved by `EntitlementService`:
+Three layers, resolved by `FeatureFlagService`:
 
-1. **Main network's `NetworkEntitlement`** acts as a **global hard ceiling**. Any
+1. **Main network's `NetworkFeatureFlag`** acts as a **global hard ceiling**. Any
    feature disabled on the main network (`AllowFiles`, `AllowBlogs`, etc.) is disabled
-   everywhere, full stop (checked first in every `CheckUserAdd*EntitlementAsync`
+   everywhere, full stop (checked first in every `CheckUserAdd*FeatureFlagAsync`
    method).
-2. **Per-`Network` `NetworkEntitlement`** — the tenant's own caps. `NetworkService.
-   UpdateEntitlementAsync` further enforces that the *sum* of all non-main networks'
+2. **Per-`Network` `NetworkFeatureFlag`** — the tenant's own caps. `NetworkService.
+   UpdateFeatureFlagAsync` further enforces that the *sum* of all non-main networks'
    limits can't exceed the main network's limit (`ValidateGlobalLimits`) — i.e.
-   entitlements are budgeted out of a shared global pool, not independently settable.
-3. **Per-user overrides**, stored as ad-hoc keys in the JSON `Entitlements` blob on
+   featureFlags are budgeted out of a shared global pool, not independently settable.
+3. **Per-user overrides**, stored as ad-hoc keys in the JSON `FeatureFlags` blob on
    either `Role` or `NetworkUser` (e.g. `"FileCountLimit"`, `"BlogCountLimit"`,
-   `"CustomPageBlockSizeLimit"` — see the `Read*/Write*/Remove*Entitlement` method pairs
-   in `EntitlementService`). When a user holds multiple roles, or has both a personal
+   `"CustomPageBlockSizeLimit"` — see the `Read*/Write*/Remove*FeatureFlag` method pairs
+   in `FeatureFlagService`). When a user holds multiple roles, or has both a personal
    override and a role override, **the highest limit found wins** (`.Max()` across all
    sources) — there's no "most restrictive applies" mode; a user in two roles gets
    whichever role is more generous.
 
 Enforcement itself is **entirely application-level, at write time** (e.g.
-`CheckUserAddNetworkFileEntitlementAsync` sums existing file sizes/counts per network
+`CheckUserAddNetworkFileFeatureFlagAsync` sums existing file sizes/counts per network
 and per author and compares against the limits above before allowing an upload). There
 is no DB-level constraint backing any of this — it's advisory/app-enforced only.
 
@@ -388,16 +426,20 @@ referrer log, browser history, etc.) flipping `AccessLevel` back to `Private` do
 object) is actually deleted. "Hiding" a file only ever hides its *listing*, never its
 *bytes*.
 
-### 5.5 Editing/deleting is a network-wide role grant, not an owner privilege
+### 5.5 Editing/deleting — ⚠️ narrowed by the PLAN.md pass (§4, sign-off flagged)
 
-`ManageBlog`/`ManageFile`/`ManageConfiguration`/`ManageCustomPage`/`ManagePageBlock` are
-**not** content permissions — they skip `AccessLevelVerifier` entirely and resolve
-through the plain role-based path (`PermissionHandler.HandleRequirementAsync`). Anyone
-holding e.g. `ManageBlog` in a network can edit or delete *any other member's* post,
-including their `Private` drafts — there is no "authors can only touch their own
-content" restriction beyond the fact that creation always sets `Author` to the caller.
-Reasonable for a CMS-editor model, but worth being explicit: `AccessLevel` controls who
-can *see* something, not who can *change* it.
+Previously: `ManageBlog`/`ManageFile`/`ManageConfiguration`/`ManageCustomPage`/
+`ManagePageBlock` skipped content-ownership entirely and resolved through the plain
+role-based path — anyone holding e.g. `ManageBlog` in a network could edit or delete *any
+other member's* post, including private drafts.
+
+**Now:** these five permissions are gated by `IdentityVerifier.IsContentOwnerAsync` when
+the route names a specific item (Update/Delete) — author-only for `AuthorOwned` content,
+author-or-network-admin for `NetworkOwned` content (`OwnershipMode`, §1.5). A bare Create
+action (nothing yet to own) still goes through the ordinary role/permission check
+unchanged. Networks relying on "any editor role can fix any post" must set
+`OwnershipMode = NetworkOwned` on that content to keep admin edit rights. This was an
+explicitly-flagged, deliberate behavior change (PLAN.md §4), not a side effect.
 
 ### 5.6 Other content-handling notes
 
@@ -406,18 +448,16 @@ can *see* something, not who can *change* it.
   object on delete. No soft-delete/trash/undo for any type. Only `File.IsSystemProtected`
   blocks a delete/update — the other four content types have no such guard (moot today
   since none of them are ever seeded as protected).
-- **`Blog.PublishedAt` is display metadata only** — nothing in `AccessLevelVerifier` or
-  `BlogRepository` checks it. A `Public` blog with `PublishedAt == null` (a "draft") is
-  exactly as visible as a published one; any draft/published distinction is
-  frontend-only.
-- **Every content DTO leaks the author's raw entitlement overrides.**
-  `UserContentBaseDto.Author` (`NetworkUserLightDto`) includes the author's personal
-  `Entitlements` JSON blob (their quota overrides) to any viewer who can see the content
-  at all. Low sensitivity (quota config, not PII), but it isn't covered by the
-  consent-gated redaction (`MapFieldIfAccessGranted`) that correctly hides
-  username/email/name/avatar based on the target network's accepted `Access` scopes —
-  `Entitlements` just always goes through.
-- **Quota checks are (coincidentally) viewer-predicate-filtered.** `EntitlementService`'s
+- **`PublishedAt` is now the real thing that decides Draft (⚠️ fixed by PLAN.md §2.1).**
+  Promoted from `Blog` onto the base model for all five content types; `AccessLevelVerifier`
+  denies everyone but the author when it's null, unconditionally — no grant can override it.
+- **Author DTO exposure changed shape.** `UserContentBaseDto.Author` used to be a
+  `NetworkUserLightDto` (which leaked the author's raw `FeatureFlags` quota-override JSON to
+  any viewer). Author is now a `UserProxy` persona (§1.5), and the DTO field
+  (`AuthorUserProxy`) maps to `UserProxyLightShortProfileDto` — the same consent-gated
+  redaction (`MapFieldIfAccessGranted`) already used elsewhere, so this also resolves the
+  featureFlag-leak note that used to live here.
+- **Quota checks are (coincidentally) viewer-predicate-filtered.** `FeatureFlagService`'s
   "how many files/blogs has this author already got" counts run through the same
   `GetAccessPredicateAsync`-filtered query used for viewer-facing lists. In the normal
   self-upload flow the caller *is* the author, so `AuthorId == currentUserId` makes the
@@ -431,15 +471,18 @@ can *see* something, not who can *change* it.
 
 Ranked roughly by severity/impact. File:line references point at what was read.
 
-### 6.1 🔴 Critical — Blog `AccessLevel` is not enforced for single-item reads (no auth required)
+### 6.1 ✅ FIXED (PLAN.md §3.1) — Blog `AccessLevel` was not enforced for single-item reads
 
-See §5.2 for the full trace. `GET /networks/{networkId}/blogs/{blogId}` and
-`GET /networks/{networkId}/blogs/{slug}` bypass all authorization — anonymous callers
-can read any blog, including `Private` ones, from any network. This is the most severe
-finding in this document: unlike every other issue here, it requires **no
-authentication at all**.
+See §5.2 for the original trace. `PermissionHandler.HandleContentRequirementAsync`
+hardcoded `"slug"` as the route key for every `SlugContentPermissions` member, so the
+`{blogId:guid}` route's actual key (`"blogId"`) never matched and the check silently
+no-opped (treated as "list request, filter downstream" and let it through). Fixed by
+picking whichever of `"blogId"`/`"slug"` the matched route actually populated, and by
+checking route-key *presence* rather than "is a Guid" (the old presence check,
+`HasGuidInHttpContextUrl`, could never be true for the string-typed `"slug"` route either,
+which was the other half of the bypass).
 
-### 6.2 🔴 Critical — owner-permission checks ignore who's asking
+### 6.2 ✅ FIXED (PLAN.md §3.1) — owner-permission checks used to ignore who's asking
 
 `IdentityVerifier.IsUserOwnerAsync` and `IsUserProxyOwnerAsync`
 (`Application/Auth/IdentityVerifier.cs:19-34`) never filter by the caller's
@@ -489,9 +532,14 @@ user (any role, any network) can satisfy them for *any* target id:
   ReadCustomPage/ReadFile)]` — same bypass for a user's authored content lists.
 
 `IsNetworkUserOwnerAsync` (the third owner check) *is* implemented correctly — it does
-scope by the caller's own `User.UserProxies`. Only the other two are broken, which makes
+scope by the caller's own `User.UserProxies`. Only the other two were broken, which made
 this look like a straightforward implementation bug (missing `.Where(u => u.Id ==
 userProxyId)`) rather than an intentional design choice.
+
+**Fixed:** both now filter the outer query down to the caller's own `userProxyId` first
+(`IsUserOwnerAsync` via a direct `u.Id == userProxyId && u.User.Id == targetUserId`
+comparison; `IsUserProxyOwnerAsync` via the same `.Where(u => u.Id == userProxyId)` shape
+`IsNetworkUserOwnerAsync` already used), same pattern across all three now.
 
 **Fix shape**: both methods need to filter the outer queryable to the caller first, e.g.
 ```csharp
@@ -571,9 +619,9 @@ authenticated user, in any role, on any existing network, can create new network
 new network auto-grants its creator an `Admin` role with the `Administrator` permission
 scoped to that network (`NetworkService.CreateAsync`). There's no rate limit, quota, or
 approval step, so a single account can spin up unbounded networks (each with its own
-`NetworkEntitlement`, `Role`s, `Permission` rows). New networks default all entitlement
+`NetworkFeatureFlag`, `Role`s, `Permission` rows). New networks default all featureFlag
 flags to `false`/`0`, which limits practical abuse (no storage/content can be created
-until an admin explicitly raises entitlements), but it's still unauthenticated-by-role
+until an admin explicitly raises featureFlags), but it's still unauthenticated-by-role
 tenant sprawl, and every creation also feeds the new network's `RedirectURI` host into
 the **global** `IDynamicAudienceCache` used for JWT audience validation
 (`RefreshIssuerCacheAsync`) — so any user can add an arbitrary host to the
@@ -592,7 +640,7 @@ authenticated or not. Contrast with `GetNetworkById` (`GET /networks/{networkId}
 which requires `ReadNetwork`, and the list endpoint (`GetAll`), which filters out
 non-`IsPublic` networks via `FilterNetworksAsync`. `GetDetailsByIdAsync` performs **no**
 `IsPublic` check at all — it returns the full `NetworkDto` (description, redirect URI,
-role list, network-access/consent-scope list, entitlement config) for **any** network id,
+role list, network-access/consent-scope list, featureFlag config) for **any** network id,
 public or private, to an anonymous caller; the only per-caller behavior is that the
 `NetworkUsers` collection on the DTO gets filtered down to the caller's own membership
 (empty for anonymous callers). This looks like it was intentionally left open to support
@@ -630,10 +678,10 @@ by network latency. No ASP.NET rate-limiting middleware is registered in `Progra
 
 ### 6.11 🟢 Low — verbose `Console.WriteLine` logging of auth internals
 
-`PermissionHandler`, `IdentityVerifier`, `JtiCacheService`, `EntitlementService`, and
+`PermissionHandler`, `IdentityVerifier`, `JtiCacheService`, `FeatureFlagService`, and
 `DynamicAudienceCache` all log step-by-step authorization decisions via
 `Console.WriteLine` rather than `ILogger`, including internals like exactly which
-entitlement/permission check failed and why, and full audience lists on every check
+featureFlag/permission check failed and why, and full audience lists on every check
 (`DynamicAudienceCache.IsValidAudience`). This is unstructured (no log levels, can't be
 selectively silenced/filtered in production), and in a container/hosting setup where
 stdout is captured as application logs, this is a steady stream of authorization-decision
@@ -665,7 +713,7 @@ whatever environment `DOTNET_ENVIRONMENT != "Development"` describes (staging/pr
 
 - **Clean seed** (runs once, when no `Network` rows exist, or if `forceCleanSeed` is
   flipped to `true` in source): creates the main network `"TrojoNetworks"`
-  (`IsSystemProtected = true`, all entitlement flags `true`), the full `Permission`
+  (`IsSystemProtected = true`, all featureFlag flags `true`), the full `Permission`
   catalog (all `IsSystemProtected = true`), the 5 `Access` scopes (Username/Firstname/
   Lastname/Email/ProfilePicture, all system-protected and marked `IsRequired` on the
   main network), an `Admin` role (holds `Administrator`) and default `User` role (holds

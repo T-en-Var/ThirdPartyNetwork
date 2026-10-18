@@ -1,6 +1,5 @@
-﻿﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using thirdpartynetwork.Core.Data;
-using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using thirdpartynetwork.Core.Interfaces.Auth;
 using thirdpartynetwork.Core.Models;
 
@@ -18,6 +17,7 @@ namespace thirdpartynetwork.Application.Repositories
             var query = _context.UserProxies.AsQueryable();
 
             query = query
+                .Include(up => up.ImageFile)
                 .Include(x => x.User)
                 .ThenInclude(x => x.UserProxies)
                 .Include(x => x.NetworkUsers)

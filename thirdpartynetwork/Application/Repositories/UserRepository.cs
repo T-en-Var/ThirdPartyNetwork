@@ -26,7 +26,7 @@ namespace thirdpartynetwork.Application.Repositories
                 .Include(u => u.UserProxies)
                 .ThenInclude(x => x.NetworkUsers)
                 .ThenInclude(x => x.Network)
-                .ThenInclude(x => x.Entitlement)
+                .ThenInclude(x => x.FeatureFlag)
                 .Include(u => u.UserProxies)
                 .ThenInclude(x => x.ImageFile)
                 .AsQueryable();

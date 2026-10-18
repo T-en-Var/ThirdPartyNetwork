@@ -6,6 +6,84 @@ architecture proposed in `FILE_SERVICE_SETUP.md`. `TPN_Files_Suggestion.md` is t
 the product brief; this document answers its open questions and turns them into a build
 plan.
 
+**Status**: §0–§9 below is the original design and has been implemented and merged
+(commit `eb72549`, "First wave of implementation", branch `alpha`). The **Wave 1
+Implementation Review** immediately below is a checklist of how the real code compares to
+that design — read it first if you're reviewing the shipped work. **Wave 2 — Planned
+Features**, at the end of this document, covers what's requested for the next round:
+on-demand resized image variants and universal pagination.
+
+---
+
+## Wave 1 — Implementation Review (commit `eb72549`, branch `alpha`)
+
+`git show --stat eb72549`: 104 files changed, +10,251/-735. This section is a review
+checklist against the actual code, not a restatement of §0–§9 — read it alongside a diff
+of that commit. Everything *not* called out below matches §0–§9 field-for-field: model
+properties, enum values and member names, migration sequencing (including the
+backfill-before-drop-column order from §7), permission constants, and the generic
+grant/moderation/link mechanism shared identically across all five `UserContent*`
+controllers.
+
+**Confirmed implemented, matching the design:**
+- `UserContentBaseModel`: `AuthorUserProxyId`, `PublishedAt`, `OwnershipMode`, `DeletedAt`
+  present; `AccessLevel` fully dropped as a column, backfilled correctly before the drop
+  (`Core/Migrations/20260814214123_ContentAccessGrantAndVisibilityModel.cs`).
+- `ContentAccessGrant`, `ContentViewingLink` — including the `IssuedForUserProxyId == null`
+  / spent-`OneTimeView` `UsedAt` gates from the latest `Tier()` revision, and the
+  defense-in-depth re-check in `ContentViewingLinkService.ResolveAsync` against the link's
+  originally-issued-for identity — and `ContentModerationFlag` (`HiddenInNetwork` wired
+  into both `CheckAccessForCallerAsync` and `GetAccessPredicateAsync`).
+- All three §3.1 must-fix-alongside bugs — confirmed fixed by diffing against the
+  pre-wave-1 commit: the Blog single-item bypass, and both broken owner checks.
+- `IdentityVerifier.IsContentOwnerAsync` implemented exactly to spec (no more
+  `NotImplementedException`).
+- §3.4's `Constants.Permissions` additions and the §5 MinIO storage swap (two-client
+  presign pattern, bucket bootstrap, `docker-compose.yml`) — both match.
+- The generic controller mechanism (§6): every `UserContent*Controller` exposes `/access`,
+  `/moderation-flags`, `/publish`, `/unpublish` (plus an `/ownership` action, consistent
+  with but not explicitly named in §6) via one shared set of services, not five duplicated
+  implementations.
+
+**One thing worth a decision rather than being left as-is:** `Tier()` itself was never
+implemented as a callable function — no DTO exposes a `Draft`/`Private`/`Unlisted`/
+`PublicToNetwork` label anywhere. That matches §2.1's own framing ("a display/API label,
+not itself the authorization check"), but it means nothing in the product can currently
+*show* which tier a piece of content is in — only the underlying facts are queryable. If a
+UI needs that label, it doesn't exist yet and should probably be Wave 2 scope too.
+
+**Divergences found — recommend triaging, independent of Wave 2:**
+
+1. **Draft content is visible to more than the author.** `AccessLevelVerifier.
+   CheckAccessForCallerAsync` runs the ordinary RBAC check (e.g. holding `ReadFile`)
+   *before* the `PublishedAt == null` check, so any permission-holder can see a `Draft`
+   row, not just its author. Possibly fine, but it's a real behavior beyond what §2.1's
+   `Tier()` pseudocode implies ("Draft behaves like Private for everyone except the
+   author") — should be a deliberate call, not an accident of check ordering.
+2. **§2.6's `ExternalContentKinds` enforcement sits at write-time, not the read-time
+   choke point the plan specifies**, with three follow-on gaps: `UserProxyService.
+   UpdateAsync` sets `ImageFileId` without calling `CanNetworkExternallyAdoptAsync` at all
+   (unlike the sibling `UserProxyManagerService.AddUserProxyAsync`); that method's final
+   check does an unfiltered `ContentAccessGrant.AnyAsync(...)` with no `View`/grantee-match
+   filter, silently adding an undocumented third condition; and the column's migration
+   default is `0` (`None`), not `ContentKindFlags.File` as §2.6 specifies, so every
+   pre-existing network was backfilled to "nothing externally reusable."
+3. **`GetAccessPredicateAsync` and `CheckAccessForCallerAsync` are still two
+   independently hand-written copies of the same rule** — the exact §3.3/§6.8 duplication
+   risk, inherited rather than factored out.
+4. **`FileController`'s single-item `GET` is gated by `ManageFile`, not `ReadFile`** —
+   every sibling's single-item `GET` uses its own `Read<Type>` permission; `File` alone
+   still has the exact inconsistency the original overview doc flagged (§5.1) before this
+   work started.
+5. **`PageBlockController` has no list endpoint at all** — every sibling controller has
+   one.
+6. **`MainNetworkController`'s two single-item `GET`s are annotated
+   `[ProducesResponseType(typeof(IEnumerable<NetworkDto>))]`** despite each returning one
+   `NetworkDto` — cosmetic, flagged now so it isn't mistaken for a pagination target below.
+
+None of these six block Wave 2 below, but 1 and 2 are worth a conscious decision rather
+than shipping silently as-is.
+
 ---
 
 ## 0. Decisions, up front
@@ -246,7 +324,7 @@ today (its columns are flattened into `File`/`Blog`/`Configuration`/`CustomPage`
   a network — or having a membership row removed for any reason — hard-deletes every piece of
   content that member authored there, which directly contradicts this plan's own "`AuthorOwned` =
   portable" framing (Q2). Pointing at the durable `UserProxy` persona instead fixes that, and
-  simplifies the per-user-per-network entitlement queries in `EntitlementService.cs` (currently
+  simplifies the per-user-per-network featureFlag queries in `FeatureFlagService.cs` (currently
   `GetByAuthorIdAsync(networkId, networkUser.Id)`) to a direct `WHERE NetworkId = @n AND
   AuthorUserProxyId = @u` — both scoping keys already live on the content row, no join through
   `NetworkUser` needed either way. `NetworkId` is **untouched and stays required**: it's tenancy
@@ -771,7 +849,7 @@ callers relying on "any editor role can fix any post" lose that ability and must
    3. Only then drop the old `AccessLevel` column, wire up `AccessLevelVerifier` (§3.3),
       implement `IsContentOwnerAsync` (§3.2), ship grant CRUD endpoints and the
       publish/unpublish actions (§6).
-   Also update `EntitlementService`'s `GetByAuthorIdAsync`-style queries to the new
+   Also update `FeatureFlagService`'s `GetByAuthorIdAsync`-style queries to the new
    `AuthorUserProxyId` column while in here.
 4. **`ContentViewingLink`** — model/migration/repository/service, keyed by `ContentKind`+
    `ContentId` from the start (§2.3) so all five kinds get it in one pass rather than
@@ -812,3 +890,187 @@ building that for TPN-owned content and instead folding MinIO into TPN directly.
 Python service is already in use elsewhere (e.g., a non-TPN homelab service), keep it
 running for those callers — just don't route TPN's `File`/UGC content through it, to avoid
 the dual-authorization-system problem in §0.1. -- it does not exist, so no worries
+
+---
+
+## Wave 2 — Planned Features (next round)
+
+Two features, requested directly: on-demand resized image variants (bandwidth), and
+pagination applied uniformly to every list-returning endpoint. Both are scoped against the
+*actual* Wave 1 code (file paths below are real, from the Implementation Review at the top
+of this document), not the pre-implementation guesses in §0–§9.
+
+### W2.1 Requested-size image variants
+
+**Motivation**: a caller (e.g. a blog rendering a thumbnail grid) should be able to ask
+for `600x600` instead of downloading a full-resolution original every time — pure
+bandwidth/latency win, no change to who can see what.
+
+**New table — `FileVariant`.** A resized copy of an existing `File`, generated once and
+reused (cache-aside), not a new content type: no author, no `AccessLevel`/grants/
+moderation of its own — its visibility is entirely inherited from its `SourceFile`,
+because the endpoint always re-runs the *source* file's normal access check before ever
+looking at variants. This deliberately avoids doubling the ACL surface: a variant is never
+independently shareable.
+
+```mermaid
+erDiagram
+    File ||--o{ FileVariant : "resized copy of"
+
+    FileVariant {
+        guid Id PK
+        guid SourceFileId FK "-> File, Cascade"
+        int Width
+        int Height
+        string Bucket
+        string ObjectKey UK
+        long SizeBytes
+        string Format
+        datetime CreatedOn
+    }
+```
+
+Unique index on `(SourceFileId, Width, Height)` — the cache key. Deleting the source
+`File` cascades and removes every variant (object + row); there's no independent lifecycle
+to manage, no soft-delete, no `IsSystemProtected` — a variant is disposable and
+regenerable from the source at any time.
+
+**Request shape**: `GET networks/{networkId}/files/{fileId}?width=600&height=600` on the
+*existing* single-item endpoint (`FileController.GetNetworkFile`) — both params optional;
+give one and the other is inferred to preserve aspect ratio (bounding-box fit, never a
+stretch); give neither and behavior is unchanged (serves the original, as today).
+Requesting a size against a non-image `MediaType` (video/audio/raw) is a `400` — there's
+nothing to resize.
+
+**Snap to a fixed breakpoint set, don't generate arbitrary sizes.** Accepting literally
+any pixel value defeats the point — every distinct `(SourceFileId, Width, Height)` is its
+own cache entry and its own MinIO object, so free-form input turns a bandwidth
+optimization into unbounded storage growth with a near-zero cache-hit rate. Snap the
+request up to the nearest of a small fixed ladder — e.g. `64, 128, 256, 512, 768, 1024,
+1600, 2048` — and never upscale past the original's own dimensions (if the snapped size
+would exceed the source, just serve the original, no variant created). This also means
+most real callers asking for "600x600" land on the same (e.g. `768`) variant as everyone
+else asking for something similar, which is the entire cache-hit story.
+
+**Generation**: synchronous, cache-aside, on first request for a given size — look up
+`FileVariant` by `(SourceFileId, Width, Height)`; on a miss, fetch the original bytes from
+MinIO, resize, upload the result (private bucket, same as the source — this plan doesn't
+attempt to fix the pre-existing `File.Bucket`-vs-computed-tier gap flagged earlier in this
+document's history, and a variant shouldn't be more "figured out" than its own source),
+insert the `FileVariant` row, then proceed exactly like the no-size-requested path (mint a
+`ContentViewingLink`/`ViewingUrl` against the variant's `Bucket`/`ObjectKey` instead of the
+source's). No background job, no queue — resizes at these sizes are fast enough to do
+inline; revisit with the still-deferred `worker` service (§8) only if that stops being
+true at real volume.
+
+**Prerequisite the Wave 1 audit surfaced**: `MinioService.UploadAsync` never probes image
+dimensions today — `File.Width`/`Height` are `null` for essentially every existing image
+row, because no image-processing library exists in this codebase yet
+(`thirdpartynetwork.csproj` has none). Two things needed before variants can work at all:
+1. **Add an image-processing library.** Recommend `SixLabors.ImageSharp` — pure-managed
+   .NET, no native binary dependency, so it drops into the existing Docker build
+   (`mcr.microsoft.com/dotnet/aspnet:9.0`) with no base-image changes, unlike
+   `Magick.NET`/`libvips` bindings. It does both the dimension probing and the resize.
+2. **Probe and persist `Width`/`Height` at upload time** for image `MediaType`s (closes
+   the gap going forward). For rows uploaded before this ships, backfill lazily rather
+   than batch-migrating: the first variant request against an old row with
+   `Width/Height == null` fetches the original once, records its real dimensions on the
+   `File` row as a side effect, then proceeds — no one-off migration job touching every
+   row up front.
+
+### W2.2 Universal pagination
+
+**Scope, precisely**: every endpoint in the inventory below — 30 `GET`-list actions
+across 15 controllers, all currently returning an unbounded `IEnumerable<T>`/
+`ICollection<T>`/`List<T>` off a bare `.ToListAsync()`, confirmed by a full repo-wide sweep
+(no `Skip`/`Take`/paging primitive exists anywhere in this codebase today). **Out of
+scope**: collections *nested inside* a single-item response (`CustomPageDto.Pages`,
+`UserDto.UserProxies`, etc.) — "endpoints that return a list" means the ~30 index-style
+`GET`s themselves, not every embedded array inside some other resource's DTO. If those
+should be paginated too, say so explicitly — it's a materially bigger, more invasive
+change (every nested-collection DTO shape changes, not just top-level responses) and
+shouldn't be folded in silently.
+
+**One shared mechanism, three pieces, added once, reused everywhere:**
+
+1. **`Application/Dtos/Common/PageRequestDto.cs`** — inbound `[FromQuery]` binding on
+   every list action: `PageNumber` (default `1`), `PageSize` (default `25`, clamped
+   server-side to a max, e.g. `100`, regardless of what's requested — an unbounded
+   `PageSize` is just unpaginated-with-extra-steps).
+2. **`Application/Dtos/Common/PagedResultDto<T>.cs`** — the one response envelope every
+   list endpoint returns from now on: `Items (IReadOnlyList<T>)`, `PageNumber`,
+   `PageSize`, `TotalCount`, `TotalPages`. This is a genuine breaking change to every list
+   endpoint's response shape (bare JSON array → `{ items: [...], pageNumber, pageSize,
+   totalCount, totalPages }`) — flagging that explicitly since there's no API versioning
+   layer today; if any client already depends on the bare-array shape, this needs a
+   coordinated rollout, not a silent swap.
+3. **One `IQueryable<T>` extension, `ToPagedResultAsync(pageNumber, pageSize, ct)`**
+   (`Application/Helpers/` or `Core/Helper/`, next to the other cross-cutting helpers) —
+   runs `CountAsync()` then `Skip((page-1)*size).Take(size).ToListAsync()`, wraps both
+   into a `PagedResultDto<T>`. Every repository's list method becomes a one-line call to
+   this — the actual paging math is written exactly once.
+
+**One hard requirement, stated up front because it's easy to miss across 30 call sites**:
+offset pagination is only correct over a *deterministically ordered* query. Every call
+site must supply its own `.OrderBy(...)` (whatever ordering already makes sense for that
+resource — `CreatedOn` for most content, `PublishedAt` for blogs, `Name` for roles/
+permissions, etc.) with a tie-breaker on `Id`, before calling `ToPagedResultAsync` — the
+extension applies `Skip`/`Take`/`Count`, it never chooses an order, because one wrong
+universal default (e.g. always `CreatedOn`) would be silently meaningless for lists that
+should sort by name.
+
+**Worked example** (every other repository method changes the same way):
+
+```csharp
+// before — Application/Repositories/UserContent/UserContentBaseRepository.cs
+public async Task<ICollection<T>> GetByNetworkIdAsync(Guid networkId) =>
+    await GetAccessibleQueryableAsync()
+        .Where(x => x.NetworkId == networkId)
+        .ToListAsync();
+
+// after
+public async Task<PagedResultDto<T>> GetByNetworkIdAsync(Guid networkId, PageRequestDto page) =>
+    await GetAccessibleQueryableAsync()
+        .Where(x => x.NetworkId == networkId)
+        .OrderByDescending(x => x.CreatedOn).ThenBy(x => x.Id)
+        .ToPagedResultAsync(page.PageNumber, page.PageSize);
+```
+
+The controller side changes identically everywhere too: add `[FromQuery] PageRequestDto
+page` to the action, change the return type from `IEnumerable<TDto>`/`List<TDto>` to
+`PagedResultDto<TDto>`, map `Items` through AutoMapper same as today.
+
+**Full scope — apply the pattern above to every row below.** This is the complete list
+from the Wave 1 audit; nothing returning a list is exempt:
+
+| Controller | Route(s) |
+|---|---|
+| `AccessController` | `GET /accesses` |
+| `MeController` | `GET /me/permissions` |
+| `MetricsController` | `GET /metrics/networks`, `GET /metrics/users` |
+| `NetworkAccessController` | `GET /networks/{networkId}/accesses` |
+| `NetworkController` | `GET /networks` |
+| `NetworkUserAccessController` | `GET /networks/{networkId}/users/{networkUserId}/accesses` |
+| `NetworkUserController` | `GET /networks/{networkId}/users` |
+| `NetworkUserRoleController` | `GET /networks/{networkId}/users/{networkUserId}/roles` |
+| `PermissionController` | `GET /permissions` |
+| `RoleController` | `GET /networks/{networkId}/roles/` |
+| `RolePermissionController` | `GET /networks/{networkId}/roles/{roleId}/permissions` |
+| `UserController` | `GET /users` |
+| `UserProxyController` | `GET /users/{userId}/proxies`, `GET .../proxies/{userProxyId}/networks` |
+| `UserContent/UserProxyContentController` | `GET .../blogs`, `.../configurations`, `.../customPages`, `.../files` |
+| `UserContent/BlogController` | `GET /networks/{networkId}/blogs`, `.../{id}/access`, `.../{id}/moderation-flags` |
+| `UserContent/ConfigurationController` | `GET /networks/{networkId}/configurations`, `.../{id}/access`, `.../{id}/moderation-flags` |
+| `UserContent/CustomPageController` | `GET /networks/{networkId}/customPages/`, `.../{id}/access`, `.../{id}/moderation-flags` |
+| `UserContent/FileController` | `GET /networks/{networkId}/files`, `.../{id}/access`, `.../{id}/moderation-flags` |
+| `UserContent/PageBlockController` | `.../{id}/access`, `.../{id}/moderation-flags`, plus the missing list endpoint (Wave 1 finding #5) — add it paginated from the start rather than adding it unpaginated now and converting it right after |
+
+**Excluded**: `MainNetworkController`'s two `GET`s — despite the `IEnumerable<NetworkDto>`
+attribute, both return one `NetworkDto` (Wave 1 finding #6); don't paginate a single item.
+
+**Implementation order** (small, mechanical, low-risk — this is a sweep, not a redesign):
+ship the three shared pieces first with one converted endpoint as a smoke test (recommend
+`GET /networks`, the simplest list with no nested access-predicate complexity), then
+convert the remaining ~29 in any order — each is an isolated, independently-testable
+change with no cross-endpoint dependencies, unlike Wave 1's atomic-migration sequencing
+concerns.

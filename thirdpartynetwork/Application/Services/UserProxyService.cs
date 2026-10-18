@@ -1,6 +1,7 @@
 ﻿﻿using AutoMapper;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using thirdpartynetwork.Core.Interfaces.Helpers;
+using thirdpartynetwork.Core.Interfaces.Services;
 using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Application.Services
@@ -8,6 +9,7 @@ namespace thirdpartynetwork.Application.Services
     public class UserProxyService(
         IUserProxyRepository repository,
         IUserService userService,
+        IPublicImageService publicImageService,
         IPasswordHasher passwordHasher,
         IMapper mapper) : IUserProxyService
     {
@@ -89,8 +91,12 @@ namespace thirdpartynetwork.Application.Services
                 proxy.Password = existing.Password;
             }
 
-            proxy.ImageFileId = updateUserProxy.FileLink?.Id;
-            
+            if (updateUserProxy.FileLink != null)
+            {
+                proxy.ImageFileId = updateUserProxy.FileLink.Id;
+                await publicImageService.MakePubliclyViewableAsync(updateUserProxy.FileLink.Id);
+            }
+
             proxy = await repository.UpdateAsync(proxy);
             return proxy;
         }

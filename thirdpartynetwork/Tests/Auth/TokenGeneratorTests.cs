@@ -43,7 +43,7 @@ public class TokenGeneratorTests
                 IsPublic = false,
                 Description = "",
                 RedirectURI = "",
-                Entitlement = new()
+                FeatureFlag = new()
                 {
                     AllowBlogs = true,
                     AllowConfigurations = true,
@@ -52,7 +52,7 @@ public class TokenGeneratorTests
                 }
             },
             IsDefault = false,
-            Entitlements = JsonDocument.Parse("{}")
+            FeatureFlags = new RoleFeatureFlag()
         };
         role.RolePermissions.Add(new RolePermission { Permission = permission, Role = role });
 
@@ -62,7 +62,7 @@ public class TokenGeneratorTests
         var networkUser = new NetworkUser
         {
             Id = Guid.NewGuid(), UserProxy = userProxy, UserProxyId = userProxy.Id,
-            Entitlements = JsonDocument.Parse("{}")
+            FeatureFlags = new NetworkUserFeatureFlag()
         };
         var nur = new NetworkUserRole
         {

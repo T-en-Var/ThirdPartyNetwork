@@ -45,7 +45,16 @@ public static class Constants
         public const string IsUserOwner = "IsUserOwner";
         public const string IsNetworkUserOwner = "IsNetworkUserOwner";
         public const string IsUserProxyOwner = "IsUserProxyOwner";
-        
+        public const string IsContentOwner = "IsContentOwner";
+
+        public const string ManageContentAccess = "Manage Content Access";
+
+        public const string ModerateFile = "Moderate File";
+        public const string ModerateBlog = "Moderate Blog";
+        public const string ModerateConfiguration = "Moderate Configuration";
+        public const string ModerateCustomPage = "Moderate CustomPage";
+        public const string ModeratePageBlock = "Moderate PageBlock";
+
         public const string ReadUser = "Read User";
         public const string ManageUser = "Manage User";
 
@@ -76,10 +85,6 @@ public static class Constants
         Permissions.ReadPermission,
     ];
 
-    public static readonly string[] SlugContentPermissions = [
-        Permissions.ReadBlog,
-    ];
-
     public static readonly string[] ContentPermissions = [
         Permissions.ReadCustomPage,
         // Permissions.ManageCustomPage,
@@ -88,16 +93,26 @@ public static class Constants
         Permissions.ReadFile,
         // Permissions.ManageFile,
         Permissions.ReadConfiguration,
-            Permissions.ReadBlog,
         // Permissions.ManageConfiguration,
+        Permissions.ReadBlog,
     ];
-    
+
     public static readonly string[] OwnerPermissions =
     [
         Permissions.IsUserOwner,
         Permissions.IsNetworkUserOwner,
         Permissions.IsUserProxyOwner,
+        Permissions.IsContentOwner,
         // Permissions.ManageUser,
         // Permissions.ReadUser,
+    ];
+
+    public static readonly string[] ContentManagePermissions =
+    [
+        Permissions.ManageFile,
+        Permissions.ManageBlog,
+        Permissions.ManageConfiguration,
+        Permissions.ManageCustomPage,
+        Permissions.ManagePageBlock,
     ];
 }

@@ -1,4 +1,5 @@
 using AutoMapper;
+using thirdpartynetwork.Core.Enum;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
 using thirdpartynetwork.Core.Interfaces.Auth;
 using thirdpartynetwork.Core.Models;
@@ -15,7 +16,8 @@ public class BlogService(
     IIdentityService identityService,
     INetworkUserService networkUserService,
     IFileService fileService,
-    IEntitlementService entitlementService,
+    IFeatureFlagValidator featureFlagService,
+    IAccessLevelVerifier accessLevelVerifier,
     IMapper mapper) : UserContentBaseService<Blog>(repository, networkUserService), IBlogService
 {
     private readonly INetworkUserService _networkUserService = networkUserService;
@@ -44,7 +46,7 @@ public class BlogService(
         var networkUser = await _networkUserService.GetByIdsAsync(networkId, userProxy.Id);
         if (networkUser == null) throw new NotFoundHttpException("NetworkUser not found");
         
-        if (!await entitlementService.CheckUserAddBlogEntitlementAsync(networkUser.UserProxyId, networkId))
+        if (!await featureFlagService.CheckUserAddBlogFeatureFlagAsync(networkUser.UserProxyId, networkId))
             throw new UnauthorizedHttpException("You are exceeding a blog limit.");
         
         var baseSlug = SlugGenerator.GenerateSlug(createBlog.Title);
@@ -60,15 +62,19 @@ public class BlogService(
         var blog = mapper.Map<Blog>(createBlog);
         blog.Slug = finalSlug;
         blog.Network = network;
-        blog.Author = networkUser;
+        blog.AuthorUserProxyId = networkUser.UserProxyId;
 
         if (createBlog.CoverImageId != null)
         {
             var coverImage = await fileService.GetByIdAsync(networkId, createBlog.CoverImageId.Value);
             if (coverImage == null) throw new NotFoundHttpException("Cover image not found");
+
+            if (!await accessLevelVerifier.CanNetworkExternallyAdoptAsync(coverImage, ContentKind.File, networkId))
+                throw new UnauthorizedHttpException("That file's network does not allow its files to be reused externally.");
+
             blog.CoverImage = coverImage;
         }
-        
+
         return await repository.CreateAsync(blog);
     }
 
@@ -83,6 +89,9 @@ public class BlogService(
         {
             var coverImage = await fileService.GetByIdAsync(networkId, updateBlog.CoverImageId.Value);
             if (coverImage == null) throw new NotFoundHttpException("Cover image not found");
+
+            if (!await accessLevelVerifier.CanNetworkExternallyAdoptAsync(coverImage, ContentKind.File, networkId))
+                throw new UnauthorizedHttpException("That file's network does not allow its files to be reused externally.");
         }
 
         var blog = await repository.UpdateAsync(blogId, updateBlog);

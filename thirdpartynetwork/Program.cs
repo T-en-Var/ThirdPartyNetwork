@@ -168,12 +168,16 @@ builder.Services.AddAutoMapper(cfg => { cfg.LicenseKey = Environment.GetEnvironm
 // Other
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IAuthorizationHandler, PermissionHandler>();
-builder.Services.Configure<CloudinaryOptions>(options =>
+builder.Services.Configure<MinioOptions>(options =>
 {
-    options.CloudName = Environment.GetEnvironmentVariable("CLOUDINARY_CLOUD_NAME")!;
-    options.ApiKey = Environment.GetEnvironmentVariable("CLOUDINARY_API_KEY")!;
-    options.ApiSecret = Environment.GetEnvironmentVariable("CLOUDINARY_API_SECRET")!;
-    options.DefaultFolder = "DataFolder";
+    options.RootUser = Environment.GetEnvironmentVariable("MINIO_ROOT_USER")!;
+    options.RootPassword = Environment.GetEnvironmentVariable("MINIO_ROOT_PASSWORD")!;
+    options.InternalEndpoint = Environment.GetEnvironmentVariable("MINIO_INTERNAL_ENDPOINT")!;
+    options.InternalUseSsl = bool.TryParse(Environment.GetEnvironmentVariable("MINIO_INTERNAL_USE_SSL"), out var internalSsl) && internalSsl;
+    options.ExternalEndpoint = Environment.GetEnvironmentVariable("MINIO_EXTERNAL_ENDPOINT")!;
+    options.ExternalUseSsl = !bool.TryParse(Environment.GetEnvironmentVariable("MINIO_EXTERNAL_USE_SSL"), out var externalSsl) || externalSsl;
+    options.PublicBucket = Environment.GetEnvironmentVariable("MINIO_PUBLIC_BUCKET") ?? "public";
+    options.PrivateBucket = Environment.GetEnvironmentVariable("MINIO_PRIVATE_BUCKET") ?? "private";
 });
 builder.Services.Configure<FormOptions>(options =>
 {
@@ -183,11 +187,14 @@ builder.Services.Configure<FormOptions>(options =>
 
 // Add Singletons
 builder.Services.AddSingleton<IDynamicAudienceCache, DynamicAudienceCache>();
-builder.Services.AddSingleton<ICDNService, CloudinaryService>();
+builder.Services.AddSingleton<ICDNService, MinioService>();
 builder.Services.AddSingleton<ICorsOriginCache, CorsOriginCache>();
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, DynamicPermissionPolicyProvider>();
 
 // Add Repositories
+builder.Services.AddScoped<IContentAccessGrantRepository, ContentAccessGrantRepository>();
+builder.Services.AddScoped<IContentViewingLinkRepository, ContentViewingLinkRepository>();
+builder.Services.AddScoped<IContentModerationFlagRepository, ContentModerationFlagRepository>();
 builder.Services.AddScoped<IAccessRepository, AccessRepository>();
 builder.Services.AddScoped<ICustomPageRepository, CustomPageRepository>();
 builder.Services.AddScoped<IFileRepository, FileRepository>();
@@ -195,7 +202,7 @@ builder.Services.AddScoped<IConfigurationRepository, ConfigurationRepository>();
 builder.Services.AddScoped<IBlogRepository, BlogRepository>();
 builder.Services.AddScoped<INetworkAccessRepository, NetworkAccessRepository>();
 builder.Services.AddScoped<INetworkRepository, NetworkRepository>();
-builder.Services.AddScoped<INetworkEntitlementRepository, NetworkEntitlementRepository>();
+builder.Services.AddScoped<INetworkFeatureFlagRepository, NetworkFeatureFlagRepository>();
 builder.Services.AddScoped<INetworkUserAccessRepository, NetworkUserAccessRepository>();
 builder.Services.AddScoped<INetworkUserRepository, NetworkUserRepository>();
 builder.Services.AddScoped<INetworkUserRoleRepository, NetworkUserRoleRepository>();
@@ -217,11 +224,16 @@ builder.Services.AddScoped<IAccessLevelVerifier, AccessLevelVerifier>();
 builder.Services.AddSingleton<WebsocketHandler>();
 
 // Add Services
+builder.Services.AddScoped<IContentAccessGrantService, ContentAccessGrantService>();
+builder.Services.AddScoped<IContentViewingLinkService, ContentViewingLinkService>();
+builder.Services.AddHostedService<ContentViewingLinkCleanupService>();
+builder.Services.AddScoped<IContentModerationFlagService, ContentModerationFlagService>();
 builder.Services.AddScoped<IAccessService, AccessService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICustomPageService, CustomPageService>();
-builder.Services.AddScoped<IEntitlementService, EntitlementService>();
+builder.Services.AddScoped<IFeatureFlagValidator, FeatureFlagValidator>();
 builder.Services.AddScoped<IFileService, FileService>();
+builder.Services.AddScoped<IPublicImageService, PublicImageService>();
 builder.Services.AddScoped<IConfigurationService, ConfigurationService>();
 builder.Services.AddScoped<IBlogService, BlogService>();
 builder.Services.AddScoped<IMeService, MeService>();
@@ -286,6 +298,9 @@ using (var scope = app.Services.CreateScope())
         var dbContext = scope.ServiceProvider.GetRequiredService<DataContext>();
         await dbContext.Database.MigrateAsync();
 
+        var cdnService = scope.ServiceProvider.GetRequiredService<ICDNService>();
+        await cdnService.EnsureBucketsExistAsync();
+
         var seeder = scope.ServiceProvider.GetRequiredService<DatabaseSeeder>();
         await seeder.SeedAsync();
     }
@@ -345,3 +360,7 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+// Marker partial class so WebApplicationFactory<Program> (integration tests) can bind to
+// this top-level-statements entry point. See Tests/Integration/.
+public partial class Program;

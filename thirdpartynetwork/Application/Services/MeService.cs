@@ -1,7 +1,4 @@
-﻿﻿using AutoMapper;
-using thirdpartynetwork.Core.Exceptions.HttpExceptions;
-using thirdpartynetwork.Core.Interfaces.Auth;
-using thirdpartynetwork.Core.Interfaces.Helpers;
+﻿using thirdpartynetwork.Core.Interfaces.Auth;
 using thirdpartynetwork.Core.Models;
 
 namespace thirdpartynetwork.Application.Services

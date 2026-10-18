@@ -9,9 +9,14 @@ namespace thirdpartynetwork.Core.Data
     {
         public DbSet<CustomPage> CustomPages { get; set; }
         public DbSet<File> Files { get; set; }
+        public DbSet<ContentAccessGrant> ContentAccessGrants { get; set; }
+        public DbSet<ContentViewingLink> ContentViewingLinks { get; set; }
+        public DbSet<ContentModerationFlag> ContentModerationFlags { get; set; }
         public DbSet<Network> Networks { get; set; }
         public DbSet<NetworkAccess> NetworkAccesses { get; set; }
-        public DbSet<NetworkEntitlement> NetworkEntitlements { get; set; }
+        public DbSet<NetworkFeatureFlag> NetworkFeatureFlags { get; set; }
+        public DbSet<NetworkUserFeatureFlag> NetworkUserFeatureFlags { get; set; }
+        public DbSet<RoleFeatureFlag> RoleFeatureFlags { get; set; }
         public DbSet<NetworkUser> NetworkUsers { get; set; }
         public DbSet<NetworkUserAccess> NetworkUserAccesses { get; set; }
         public DbSet<NetworkUserRole> NetworkUserRoles { get; set; }
@@ -96,40 +101,36 @@ namespace thirdpartynetwork.Core.Data
                 .WithOne(r => r.Network)
                 .HasForeignKey(r => r.NetworkId);
             
-            modelBuilder.Entity<NetworkEntitlement>()
+            modelBuilder.Entity<NetworkFeatureFlag>()
                 .HasKey(e => e.NetworkId);
 
-            // One-to-one: Network -> NetworkEntitlement
+            modelBuilder.Entity<RoleFeatureFlag>()
+                .HasKey(e => e.RoleId);
+                
+            modelBuilder.Entity<NetworkUserFeatureFlag>()
+                .HasKey(e => e.NetworkUserId);
+
+            // One-to-one: Network -> NetworkFeatureFlag
             modelBuilder.Entity<Network>()
-                .HasOne(n => n.Entitlement)
+                .HasOne(n => n.FeatureFlag)
                 .WithOne()
-                .HasForeignKey<NetworkEntitlement>(e => e.NetworkId)
+                .HasForeignKey<NetworkFeatureFlag>(e => e.NetworkId)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Cascade);
             
-            var entityRole = modelBuilder.Entity<Role>();
-            if (Database.ProviderName == "Microsoft.EntityFrameworkCore.InMemory")
-            {
-                entityRole
-                    .Property(b => b.Entitlements)
-                    .HasConversion(
-                        v => v.RootElement.GetRawText(),
-                        v => JsonDocument.Parse(v, default)
-                    );
-            }
-            entityRole.Property(b => b.Entitlements).HasDefaultValueSql("'{}'");
-            
-            var entityNetworkUser = modelBuilder.Entity<NetworkUser>();
-            if (Database.ProviderName == "Microsoft.EntityFrameworkCore.InMemory")
-            {
-                entityNetworkUser
-                    .Property(b => b.Entitlements)
-                    .HasConversion(
-                        v => v.RootElement.GetRawText(),
-                        v => JsonDocument.Parse(v, default)
-                    );
-            }
-            entityNetworkUser.Property(b => b.Entitlements).HasDefaultValueSql("'{}'");
+            modelBuilder.Entity<Role>()
+                .HasOne(r => r.FeatureFlags)
+                .WithOne()
+                .HasForeignKey<RoleFeatureFlag>(e => e.RoleId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<NetworkUser>()
+                .HasOne(r => r.FeatureFlags)
+                .WithOne()
+                .HasForeignKey<NetworkUserFeatureFlag>(e => e.NetworkUserId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Cascade);
             
             // * ----------------------- *
             //         UserContent
@@ -201,6 +202,10 @@ namespace thirdpartynetwork.Core.Data
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.SetNull);
 
+            modelBuilder.Entity<File>()
+                .HasIndex(f => f.ObjectKey)
+                .IsUnique();
+
             modelBuilder.Entity<PageBlock>()
                 .Property(pb => pb.Data)
                 .HasColumnType("jsonb");
@@ -244,16 +249,113 @@ namespace thirdpartynetwork.Core.Data
                     );
             }
 
+            // * ----------------------- *
+            //      ContentAccessGrant
+            // * ----------------------- *
+
+            modelBuilder.Entity<ContentAccessGrant>()
+                .HasOne(g => g.GranteeNetwork)
+                .WithMany()
+                .HasForeignKey(g => g.GranteeNetworkId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ContentAccessGrant>()
+                .HasOne(g => g.GranteeRole)
+                .WithMany()
+                .HasForeignKey(g => g.GranteeRoleId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ContentAccessGrant>()
+                .HasOne(g => g.GranteePermission)
+                .WithMany()
+                .HasForeignKey(g => g.GranteePermissionId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ContentAccessGrant>()
+                .HasOne(g => g.GranteeUserProxy)
+                .WithMany()
+                .HasForeignKey(g => g.GranteeUserProxyId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ContentAccessGrant>()
+                .HasOne(g => g.GrantedByNetworkUser)
+                .WithMany()
+                .HasForeignKey(g => g.GrantedByNetworkUserId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<ContentAccessGrant>()
+                .HasIndex(g => new { g.ContentKind, g.ContentId })
+                .HasFilter("\"RevokedAt\" IS NULL");
+
+            modelBuilder.Entity<ContentAccessGrant>()
+                .HasIndex(g => new { g.GranteeUserProxyId, g.ContentKind })
+                .HasFilter("\"RevokedAt\" IS NULL");
+
+            modelBuilder.Entity<ContentAccessGrant>()
+                .HasIndex(g => new { g.GranteeNetworkId, g.ContentKind })
+                .HasFilter("\"RevokedAt\" IS NULL");
+
+            // * ----------------------- *
+            //      ContentViewingLink
+            // * ----------------------- *
+
+            modelBuilder.Entity<ContentViewingLink>()
+                .HasOne(l => l.IssuedForUserProxy)
+                .WithMany()
+                .HasForeignKey(l => l.IssuedForUserProxyId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<ContentViewingLink>()
+                .HasOne(l => l.IssuedForNetwork)
+                .WithMany()
+                .HasForeignKey(l => l.IssuedForNetworkId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<ContentViewingLink>()
+                .HasIndex(l => new { l.ContentKind, l.ContentId });
+
+            modelBuilder.Entity<ContentViewingLink>()
+                .HasIndex(l => l.ExpiresAt);
+
+            // * ----------------------- *
+            //     ContentModerationFlag
+            // * ----------------------- *
+
+            modelBuilder.Entity<ContentModerationFlag>()
+                .HasOne(f => f.Network)
+                .WithMany()
+                .HasForeignKey(f => f.NetworkId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ContentModerationFlag>()
+                .HasOne(f => f.FlaggedByNetworkUser)
+                .WithMany()
+                .HasForeignKey(f => f.FlaggedByNetworkUserId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<ContentModerationFlag>()
+                .HasIndex(f => new { f.ContentKind, f.ContentId, f.NetworkId })
+                .HasFilter("\"HiddenInNetwork\" = true");
+
             base.OnModelCreating(modelBuilder);
             return;
 
             void AuthorToMany<T>() where T : UserContentBaseModel
             {
                 modelBuilder.Entity<T>()
-                    .HasOne(m => m.Author)
+                    .HasOne(m => m.AuthorUserProxy)
                     .WithMany()
-                    .HasForeignKey(m => m.AuthorId)
-                    .OnDelete(DeleteBehavior.Cascade);
+                    .HasForeignKey(m => m.AuthorUserProxyId)
+                    .IsRequired(false)
+                    .OnDelete(DeleteBehavior.SetNull);
             }
         }
     }

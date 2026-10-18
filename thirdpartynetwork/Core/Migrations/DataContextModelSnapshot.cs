@@ -57,10 +57,7 @@ namespace thirdpartynetwork.Core.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<int>("AccessLevel")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("AuthorId")
+                    b.Property<Guid?>("AuthorUserProxyId")
                         .HasColumnType("uuid");
 
                     b.Property<JsonDocument>("Body")
@@ -73,8 +70,14 @@ namespace thirdpartynetwork.Core.Migrations
                     b.Property<DateTime>("CreatedOn")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<Guid>("NetworkId")
                         .HasColumnType("uuid");
+
+                    b.Property<int>("OwnershipMode")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime?>("PublishedAt")
                         .HasColumnType("timestamp with time zone");
@@ -96,7 +99,7 @@ namespace thirdpartynetwork.Core.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AuthorId");
+                    b.HasIndex("AuthorUserProxyId");
 
                     b.HasIndex("CoverImageId");
 
@@ -111,13 +114,13 @@ namespace thirdpartynetwork.Core.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<int>("AccessLevel")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("AuthorId")
+                    b.Property<Guid?>("AuthorUserProxyId")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Key")
@@ -126,6 +129,12 @@ namespace thirdpartynetwork.Core.Migrations
 
                     b.Property<Guid>("NetworkId")
                         .HasColumnType("uuid");
+
+                    b.Property<int>("OwnershipMode")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("PublishedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -136,11 +145,168 @@ namespace thirdpartynetwork.Core.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AuthorId");
+                    b.HasIndex("AuthorUserProxyId");
 
                     b.HasIndex("NetworkId");
 
                     b.ToTable("Configurations");
+                });
+
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.ContentAccessGrant", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Capabilities")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("ContentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("ContentKind")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("GrantedByNetworkUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("GranteeNetworkId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("GranteePermissionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("GranteeRoleId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("GranteeType")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("GranteeUserProxyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("RevokedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GrantedByNetworkUserId");
+
+                    b.HasIndex("GranteePermissionId");
+
+                    b.HasIndex("GranteeRoleId");
+
+                    b.HasIndex("ContentKind", "ContentId")
+                        .HasFilter("\"RevokedAt\" IS NULL");
+
+                    b.HasIndex("GranteeNetworkId", "ContentKind")
+                        .HasFilter("\"RevokedAt\" IS NULL");
+
+                    b.HasIndex("GranteeUserProxyId", "ContentKind")
+                        .HasFilter("\"RevokedAt\" IS NULL");
+
+                    b.ToTable("ContentAccessGrants");
+                });
+
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.ContentModerationFlag", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ContentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("ContentKind")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("FlaggedByNetworkUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("HiddenInNetwork")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("NetworkId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FlaggedByNetworkUserId");
+
+                    b.HasIndex("NetworkId");
+
+                    b.HasIndex("ContentKind", "ContentId", "NetworkId")
+                        .HasFilter("\"HiddenInNetwork\" = true");
+
+                    b.ToTable("ContentModerationFlags");
+                });
+
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.ContentViewingLink", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ContentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("ContentKind")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("IssuedForNetworkId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("IssuedForUserProxyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Mode")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("UsedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExpiresAt");
+
+                    b.HasIndex("IssuedForNetworkId");
+
+                    b.HasIndex("IssuedForUserProxyId");
+
+                    b.HasIndex("ContentKind", "ContentId");
+
+                    b.ToTable("ContentViewingLinks");
                 });
 
             modelBuilder.Entity("thirdpartynetwork.Core.Models.CustomPage", b =>
@@ -149,13 +315,13 @@ namespace thirdpartynetwork.Core.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<int>("AccessLevel")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("AuthorId")
+                    b.Property<Guid?>("AuthorUserProxyId")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Name")
@@ -164,6 +330,12 @@ namespace thirdpartynetwork.Core.Migrations
 
                     b.Property<Guid>("NetworkId")
                         .HasColumnType("uuid");
+
+                    b.Property<int>("OwnershipMode")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("PublishedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Slug")
                         .IsRequired()
@@ -174,7 +346,7 @@ namespace thirdpartynetwork.Core.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AuthorId");
+                    b.HasIndex("AuthorUserProxyId");
 
                     b.HasIndex("NetworkId");
 
@@ -187,13 +359,17 @@ namespace thirdpartynetwork.Core.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<int>("AccessLevel")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("AuthorId")
+                    b.Property<Guid?>("AuthorUserProxyId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("Bucket")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<TimeSpan?>("Duration")
@@ -220,8 +396,15 @@ namespace thirdpartynetwork.Core.Migrations
                     b.Property<Guid>("NetworkId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("PublicId")
-                        .HasColumnType("uuid");
+                    b.Property<string>("ObjectKey")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("OwnershipMode")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("PublishedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<long>("SizeBytes")
                         .HasColumnType("bigint");
@@ -229,18 +412,17 @@ namespace thirdpartynetwork.Core.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Url")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<int?>("Width")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AuthorId");
+                    b.HasIndex("AuthorUserProxyId");
 
                     b.HasIndex("NetworkId");
+
+                    b.HasIndex("ObjectKey")
+                        .IsUnique();
 
                     b.ToTable("Files");
                 });
@@ -257,6 +439,9 @@ namespace thirdpartynetwork.Core.Migrations
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<int>("ExternalContentKinds")
+                        .HasColumnType("integer");
 
                     b.Property<Guid?>("ImageFileId")
                         .HasColumnType("uuid");
@@ -312,7 +497,7 @@ namespace thirdpartynetwork.Core.Migrations
                     b.ToTable("NetworkAccesses");
                 });
 
-            modelBuilder.Entity("thirdpartynetwork.Core.Models.NetworkEntitlement", b =>
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.NetworkFeatureFlag", b =>
                 {
                     b.Property<Guid>("NetworkId")
                         .HasColumnType("uuid");
@@ -361,7 +546,7 @@ namespace thirdpartynetwork.Core.Migrations
 
                     b.HasKey("NetworkId");
 
-                    b.ToTable("NetworkEntitlements");
+                    b.ToTable("NetworkFeatureFlags");
                 });
 
             modelBuilder.Entity("thirdpartynetwork.Core.Models.NetworkUser", b =>
@@ -376,7 +561,7 @@ namespace thirdpartynetwork.Core.Migrations
                     b.Property<DateTime>("CreatedOn")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<JsonDocument>("Entitlements")
+                    b.Property<JsonDocument>("FeatureFlags")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
                         .HasColumnType("jsonb")
@@ -451,10 +636,7 @@ namespace thirdpartynetwork.Core.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<int>("AccessLevel")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("AuthorId")
+                    b.Property<Guid?>("AuthorUserProxyId")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedOn")
@@ -467,14 +649,23 @@ namespace thirdpartynetwork.Core.Migrations
                         .IsRequired()
                         .HasColumnType("jsonb");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<Guid>("NetworkId")
                         .HasColumnType("uuid");
+
+                    b.Property<int>("OwnershipMode")
+                        .HasColumnType("integer");
 
                     b.Property<Guid?>("ParentPageId")
                         .HasColumnType("uuid");
 
                     b.Property<int>("Position")
                         .HasColumnType("integer");
+
+                    b.Property<DateTime?>("PublishedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Text")
                         .IsRequired()
@@ -485,7 +676,7 @@ namespace thirdpartynetwork.Core.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AuthorId");
+                    b.HasIndex("AuthorUserProxyId");
 
                     b.HasIndex("CustomPageId");
 
@@ -540,7 +731,7 @@ namespace thirdpartynetwork.Core.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<JsonDocument>("Entitlements")
+                    b.Property<JsonDocument>("FeatureFlags")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
                         .HasColumnType("jsonb")
@@ -654,11 +845,10 @@ namespace thirdpartynetwork.Core.Migrations
 
             modelBuilder.Entity("thirdpartynetwork.Core.Models.Blog", b =>
                 {
-                    b.HasOne("thirdpartynetwork.Core.Models.NetworkUser", "Author")
+                    b.HasOne("thirdpartynetwork.Core.Models.UserProxy", "AuthorUserProxy")
                         .WithMany()
-                        .HasForeignKey("AuthorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("AuthorUserProxyId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("thirdpartynetwork.Core.Models.File", "CoverImage")
                         .WithMany()
@@ -671,7 +861,7 @@ namespace thirdpartynetwork.Core.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Author");
+                    b.Navigation("AuthorUserProxy");
 
                     b.Navigation("CoverImage");
 
@@ -680,11 +870,10 @@ namespace thirdpartynetwork.Core.Migrations
 
             modelBuilder.Entity("thirdpartynetwork.Core.Models.Configuration", b =>
                 {
-                    b.HasOne("thirdpartynetwork.Core.Models.NetworkUser", "Author")
+                    b.HasOne("thirdpartynetwork.Core.Models.UserProxy", "AuthorUserProxy")
                         .WithMany()
-                        .HasForeignKey("AuthorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("AuthorUserProxyId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("thirdpartynetwork.Core.Models.Network", "Network")
                         .WithMany("Configurations")
@@ -692,18 +881,90 @@ namespace thirdpartynetwork.Core.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Author");
+                    b.Navigation("AuthorUserProxy");
 
                     b.Navigation("Network");
                 });
 
-            modelBuilder.Entity("thirdpartynetwork.Core.Models.CustomPage", b =>
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.ContentAccessGrant", b =>
                 {
-                    b.HasOne("thirdpartynetwork.Core.Models.NetworkUser", "Author")
+                    b.HasOne("thirdpartynetwork.Core.Models.NetworkUser", "GrantedByNetworkUser")
                         .WithMany()
-                        .HasForeignKey("AuthorId")
+                        .HasForeignKey("GrantedByNetworkUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("thirdpartynetwork.Core.Models.Network", "GranteeNetwork")
+                        .WithMany()
+                        .HasForeignKey("GranteeNetworkId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("thirdpartynetwork.Core.Models.Permission", "GranteePermission")
+                        .WithMany()
+                        .HasForeignKey("GranteePermissionId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("thirdpartynetwork.Core.Models.Role", "GranteeRole")
+                        .WithMany()
+                        .HasForeignKey("GranteeRoleId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("thirdpartynetwork.Core.Models.UserProxy", "GranteeUserProxy")
+                        .WithMany()
+                        .HasForeignKey("GranteeUserProxyId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("GrantedByNetworkUser");
+
+                    b.Navigation("GranteeNetwork");
+
+                    b.Navigation("GranteePermission");
+
+                    b.Navigation("GranteeRole");
+
+                    b.Navigation("GranteeUserProxy");
+                });
+
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.ContentModerationFlag", b =>
+                {
+                    b.HasOne("thirdpartynetwork.Core.Models.NetworkUser", "FlaggedByNetworkUser")
+                        .WithMany()
+                        .HasForeignKey("FlaggedByNetworkUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("thirdpartynetwork.Core.Models.Network", "Network")
+                        .WithMany()
+                        .HasForeignKey("NetworkId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("FlaggedByNetworkUser");
+
+                    b.Navigation("Network");
+                });
+
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.ContentViewingLink", b =>
+                {
+                    b.HasOne("thirdpartynetwork.Core.Models.Network", "IssuedForNetwork")
+                        .WithMany()
+                        .HasForeignKey("IssuedForNetworkId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("thirdpartynetwork.Core.Models.UserProxy", "IssuedForUserProxy")
+                        .WithMany()
+                        .HasForeignKey("IssuedForUserProxyId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("IssuedForNetwork");
+
+                    b.Navigation("IssuedForUserProxy");
+                });
+
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.CustomPage", b =>
+                {
+                    b.HasOne("thirdpartynetwork.Core.Models.UserProxy", "AuthorUserProxy")
+                        .WithMany()
+                        .HasForeignKey("AuthorUserProxyId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("thirdpartynetwork.Core.Models.Network", "Network")
                         .WithMany("CustomPages")
@@ -711,18 +972,17 @@ namespace thirdpartynetwork.Core.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Author");
+                    b.Navigation("AuthorUserProxy");
 
                     b.Navigation("Network");
                 });
 
             modelBuilder.Entity("thirdpartynetwork.Core.Models.File", b =>
                 {
-                    b.HasOne("thirdpartynetwork.Core.Models.NetworkUser", "Author")
+                    b.HasOne("thirdpartynetwork.Core.Models.UserProxy", "AuthorUserProxy")
                         .WithMany()
-                        .HasForeignKey("AuthorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("AuthorUserProxyId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("thirdpartynetwork.Core.Models.Network", "Network")
                         .WithMany("Files")
@@ -730,7 +990,7 @@ namespace thirdpartynetwork.Core.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Author");
+                    b.Navigation("AuthorUserProxy");
 
                     b.Navigation("Network");
                 });
@@ -764,11 +1024,11 @@ namespace thirdpartynetwork.Core.Migrations
                     b.Navigation("Network");
                 });
 
-            modelBuilder.Entity("thirdpartynetwork.Core.Models.NetworkEntitlement", b =>
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.NetworkFeatureFlag", b =>
                 {
                     b.HasOne("thirdpartynetwork.Core.Models.Network", null)
-                        .WithOne("Entitlement")
-                        .HasForeignKey("thirdpartynetwork.Core.Models.NetworkEntitlement", "NetworkId")
+                        .WithOne("FeatureFlag")
+                        .HasForeignKey("thirdpartynetwork.Core.Models.NetworkFeatureFlag", "NetworkId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -832,11 +1092,10 @@ namespace thirdpartynetwork.Core.Migrations
 
             modelBuilder.Entity("thirdpartynetwork.Core.Models.PageBlock", b =>
                 {
-                    b.HasOne("thirdpartynetwork.Core.Models.NetworkUser", "Author")
+                    b.HasOne("thirdpartynetwork.Core.Models.UserProxy", "AuthorUserProxy")
                         .WithMany()
-                        .HasForeignKey("AuthorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("AuthorUserProxyId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("thirdpartynetwork.Core.Models.CustomPage", "CustomPage")
                         .WithMany("Pages")
@@ -850,7 +1109,7 @@ namespace thirdpartynetwork.Core.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Author");
+                    b.Navigation("AuthorUserProxy");
 
                     b.Navigation("CustomPage");
 
@@ -933,7 +1192,7 @@ namespace thirdpartynetwork.Core.Migrations
 
                     b.Navigation("CustomPages");
 
-                    b.Navigation("Entitlement")
+                    b.Navigation("FeatureFlag")
                         .IsRequired();
 
                     b.Navigation("Files");

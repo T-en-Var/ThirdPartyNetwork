@@ -9,6 +9,7 @@ namespace thirdpartynetwork.Core.Interfaces.Repositories
         Task<File?> GetByIdAsync(Guid networkId, Guid id);
         Task<File> CreateAsync(Guid networkId, File file);
         Task<File> UpdateAsync(Guid networkId, Guid fileId, UpdateFileDto updateFile);
+        Task UpdateBucketAsync(File file, string bucket);
         Task DeleteAsync(File file);
     }
 }

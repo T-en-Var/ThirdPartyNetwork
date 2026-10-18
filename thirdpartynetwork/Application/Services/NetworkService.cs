@@ -1,8 +1,10 @@
 ﻿using System.Text.Json;
 using AutoMapper;
 using thirdpartynetwork.Core;
+using thirdpartynetwork.Core.Enum;
 using thirdpartynetwork.Core.Models;
 using thirdpartynetwork.Core.Exceptions.HttpExceptions;
+using thirdpartynetwork.Core.Helper;
 using thirdpartynetwork.Core.Interfaces.Auth;
 using thirdpartynetwork.Core.Interfaces.Helpers;
 
@@ -10,14 +12,16 @@ namespace thirdpartynetwork.Application.Services
 {
     public class NetworkService(
         INetworkRepository repository,
-        INetworkEntitlementRepository entitlementRepository,
+        INetworkFeatureFlagRepository featureFlagRepository,
         IPermissionService permissionService,
         IMapper mapper,
         IIdentityService identityService,
         ICDNService cdnService,
         IIdentityVerifier identityVerifier,
+        IAccessLevelVerifier accessLevelVerifier,
         IDynamicAudienceCache audienceCache,
-        IFileRepository fileRepository // im sorry
+        IFileRepository fileRepository, // im sorry
+        IPublicImageService publicImageService
     ) : INetworkService
     {
         private static Network? _cachedMainNetwork;
@@ -100,8 +104,20 @@ namespace thirdpartynetwork.Application.Services
 
             if (createNetworkDto.FileLink != null)
             {
+                var imageFile = await fileRepository.GetByIdBypassingAccessAsync(createNetworkDto.FileLink.Id);
+                if (imageFile == null) throw new NotFoundHttpException("Image file not found");
+
+                if (!await accessLevelVerifier.CanNetworkExternallyAdoptAsync(imageFile, ContentKind.File, Guid.Empty))
+                    throw new UnauthorizedHttpException("That file's network does not allow its files to be reused externally.");
+
                 network.ImageFileId = createNetworkDto.FileLink.Id;
+                await publicImageService.MakePubliclyViewableAsync(createNetworkDto.FileLink.Id);
             }
+            
+            // TODO:
+            // These roles and their permissions should move to a file with readonly values
+            // or be configurable.
+            // The featureFlags too.
 
             var userRole = new Role
             {
@@ -109,7 +125,7 @@ namespace thirdpartynetwork.Application.Services
                 Description = "Default role for new users.",
                 IsDefault = true,
                 Network = network,
-                Entitlements = JsonDocument.Parse("{}")
+                FeatureFlags = new RoleFeatureFlag()
             };
 
             var adminRole = new Role
@@ -118,7 +134,7 @@ namespace thirdpartynetwork.Application.Services
                 Description = "Default admin role.",
                 IsDefault = false,
                 Network = network,
-                Entitlements = JsonDocument.Parse("{}")
+                FeatureFlags = new RoleFeatureFlag()
             };
 
             adminRole.RolePermissions =
@@ -188,11 +204,11 @@ namespace thirdpartynetwork.Application.Services
                             Role = adminRole
                         }
                     ],
-                    Entitlements = JsonDocument.Parse("{}")
+                    FeatureFlags = new NetworkUserFeatureFlag()
                 }
             ];
 
-            network.Entitlement = new NetworkEntitlement()
+            network.FeatureFlag = new NetworkFeatureFlag()
             {
                 NetworkId = network.Id,
 
@@ -224,12 +240,25 @@ namespace thirdpartynetwork.Application.Services
         {
             if (!await repository.ExistsAsync(id)) throw new NotFoundHttpException();
 
+            if (updateNetworkDto.ExternalContentKinds is { } externalContentKinds &&
+                !FlagsEnumValidator.IsDefinedCombination(externalContentKinds))
+            {
+                throw new UnprocessableEntityHttpException("ExternalContentKinds contains an unknown flag.");
+            }
+
             var network = mapper.Map<Network>(updateNetworkDto);
             network.Id = id;
 
             if (updateNetworkDto.FileLink != null)
             {
+                var imageFile = await fileRepository.GetByIdBypassingAccessAsync(updateNetworkDto.FileLink.Id);
+                if (imageFile == null) throw new NotFoundHttpException("Image file not found");
+
+                if (!await accessLevelVerifier.CanNetworkExternallyAdoptAsync(imageFile, ContentKind.File, id))
+                    throw new UnauthorizedHttpException("That file's network does not allow its files to be reused externally.");
+
                 network.ImageFileId = updateNetworkDto.FileLink.Id;
+                await publicImageService.MakePubliclyViewableAsync(updateNetworkDto.FileLink.Id);
             }
 
             await RefreshIssuerCacheAsync();
@@ -238,64 +267,64 @@ namespace thirdpartynetwork.Application.Services
             return network;
         }
 
-        public async Task<NetworkEntitlement> UpdateEntitlementAsync(Guid networkId,
-            UpdateNetworkEntitlementDto updateNetworkEntitlementDto)
+        public async Task<NetworkFeatureFlag> UpdateFeatureFlagAsync(Guid networkId,
+            UpdateNetworkFeatureFlagDto updateNetworkFeatureFlagDto)
         {
-            if (!await entitlementRepository.ExistsAsync(networkId))
+            if (!await featureFlagRepository.ExistsAsync(networkId))
                 throw new NotFoundHttpException();
 
             var mainNetwork = await GetMainNetworkDetailsAsync();
 
             if (networkId == mainNetwork.Id)
             {
-                var mainEntitlement = mapper.Map<NetworkEntitlement>(updateNetworkEntitlementDto);
-                mainEntitlement.NetworkId = networkId;
-                return await entitlementRepository.UpdateAsync(mainEntitlement);
+                var mainFeatureFlag = mapper.Map<NetworkFeatureFlag>(updateNetworkFeatureFlagDto);
+                mainFeatureFlag.NetworkId = networkId;
+                return await featureFlagRepository.UpdateAsync(mainFeatureFlag);
             }
 
-            var allEntitlements = await GetAllAsync();
+            var allFeatureFlags = await GetAllAsync();
 
-            ValidateGlobalLimits(networkId, updateNetworkEntitlementDto, mainNetwork.Entitlement,
-                allEntitlements.Select(x => x.Entitlement));
+            ValidateGlobalLimits(networkId, updateNetworkFeatureFlagDto, mainNetwork.FeatureFlag,
+                allFeatureFlags.Select(x => x.FeatureFlag));
 
-            var networkEntitlement = mapper.Map<NetworkEntitlement>(updateNetworkEntitlementDto);
-            networkEntitlement.NetworkId = networkId;
+            var networkFeatureFlag = mapper.Map<NetworkFeatureFlag>(updateNetworkFeatureFlagDto);
+            networkFeatureFlag.NetworkId = networkId;
 
-            networkEntitlement = await entitlementRepository.UpdateAsync(networkEntitlement);
-            return networkEntitlement;
+            networkFeatureFlag = await featureFlagRepository.UpdateAsync(networkFeatureFlag);
+            return networkFeatureFlag;
         }
 
         private static void ValidateGlobalLimits(
             Guid updatingNetworkId,
-            UpdateNetworkEntitlementDto incoming,
-            NetworkEntitlement mainLimit,
-            IEnumerable<NetworkEntitlement> allEntitlements)
+            UpdateNetworkFeatureFlagDto incoming,
+            NetworkFeatureFlag mainLimit,
+            IEnumerable<NetworkFeatureFlag> allFeatureFlags)
         {
-            var otherNetworks = allEntitlements
+            var otherNetworks = allFeatureFlags
                 .Where(e => e.NetworkId != updatingNetworkId && e.NetworkId != mainLimit.NetworkId);
 
             // Validation Logic: (Sum of Others) + (Incoming Value) <= (Main Network Limit)
 
-            var networkEntitlements = otherNetworks as NetworkEntitlement[] ?? otherNetworks.ToArray();
-            if ((networkEntitlements.Sum(e => e.FileCountLimit) + incoming.FileCountLimit) > mainLimit.FileCountLimit)
+            var networkFeatureFlags = otherNetworks as NetworkFeatureFlag[] ?? otherNetworks.ToArray();
+            if ((networkFeatureFlags.Sum(e => e.FileCountLimit) + incoming.FileCountLimit) > mainLimit.FileCountLimit)
                 throw new BadHttpRequestException("File count limit exceeds global capacity.");
 
-            if ((networkEntitlements.Sum(e => e.FileStorageLimit) + incoming.FileStorageLimit) >
+            if ((networkFeatureFlags.Sum(e => e.FileStorageLimit) + incoming.FileStorageLimit) >
                 mainLimit.FileStorageLimit)
                 throw new BadHttpRequestException("Total file storage exceeds global capacity.");
 
-            if ((networkEntitlements.Sum(e => e.BlogCountLimit) + incoming.BlogCountLimit) > mainLimit.BlogCountLimit)
+            if ((networkFeatureFlags.Sum(e => e.BlogCountLimit) + incoming.BlogCountLimit) > mainLimit.BlogCountLimit)
                 throw new BadHttpRequestException("Blog count limit exceeds global capacity.");
 
-            if ((networkEntitlements.Sum(e => e.ConfigurationCountLimit) + incoming.ConfigurationCountLimit) >
+            if ((networkFeatureFlags.Sum(e => e.ConfigurationCountLimit) + incoming.ConfigurationCountLimit) >
                 mainLimit.ConfigurationCountLimit)
                 throw new BadHttpRequestException("Configuration count limit exceeds global capacity.");
 
-            if ((networkEntitlements.Sum(e => e.CustomPageCountLimit) + incoming.CustomPageCountLimit) >
+            if ((networkFeatureFlags.Sum(e => e.CustomPageCountLimit) + incoming.CustomPageCountLimit) >
                 mainLimit.CustomPageCountLimit)
                 throw new BadHttpRequestException("Custom page count limit exceeds global capacity.");
 
-            if ((networkEntitlements.Sum(e => e.CustomPageBlockCountLimit) + incoming.CustomPageBlockCountLimit) >
+            if ((networkFeatureFlags.Sum(e => e.CustomPageBlockCountLimit) + incoming.CustomPageBlockCountLimit) >
                 mainLimit.CustomPageBlockCountLimit)
                 throw new BadHttpRequestException("Custom page block count limit exceeds global capacity.");
 
@@ -314,7 +343,7 @@ namespace thirdpartynetwork.Application.Services
 
             foreach (var networkFile in files)
             {
-                await cdnService.DeleteAsync($"{networkFile.NetworkId}/{networkFile.PublicId}", networkFile.MediaType);
+                await cdnService.DeleteAsync(networkFile.Bucket, networkFile.ObjectKey);
             }
 
             await RefreshIssuerCacheAsync();

@@ -2,8 +2,8 @@
 using AutoMapper;
 using thirdpartynetwork.Core.Models;
 using thirdpartynetwork.Application.Dtos.UserContent.Blog;
-using thirdpartynetwork.Core.Interfaces.Auth;
 using File = thirdpartynetwork.Core.Models.File;
+using thirdpartynetwork.Application.Dtos.FeatureFlag;
 
 namespace thirdpartynetwork.Core.Helper;
 
@@ -14,7 +14,8 @@ public class MappingProfiles : Profile
         CreateMap<Network, NetworkDto>();
         CreateMap<Network, NetworkLightDto>();
         CreateMap<CreateNetworkDto, Network>();
-        CreateMap<UpdateNetworkDto, Network>();
+        CreateMap<UpdateNetworkDto, Network>()
+            .ForMember(dest => dest.ExternalContentKinds, opt => opt.Condition(src => src.ExternalContentKinds.HasValue));
 
         CreateMap<NetworkAccess, NetworkAccessDto>();
         CreateMap<NetworkAccess, NetworkAccessNtADto>();
@@ -22,31 +23,13 @@ public class MappingProfiles : Profile
         CreateMap<CreateNetworkAccessDto, NetworkAccess>();
         CreateMap<UpdateNetworkAccessDto, NetworkAccess>();
 
-
-        CreateMap<NetworkUser, NetworkUserDto>().ForMember(dest => dest.Entitlements,
-            opt => opt.MapFrom(src => src.Entitlements.RootElement.Clone()));
-        CreateMap<NetworkUser, NetworkUserLightDto>()
-            .ForMember(dest => dest.Entitlements, opt => opt.MapFrom(src =>
-                src.Entitlements.RootElement.Clone()
-            ));
-        CreateMap<NetworkUser, NetworkUserLightWithNetworkDto>()
-            .ForMember(dest => dest.Entitlements, opt => opt.MapFrom(src =>
-                src.Entitlements.RootElement.Clone()
-            ));
-        CreateMap<NetworkUser, NetworkUserLightUserInfoDto>()
-            .ForMember(dest => dest.Entitlements, opt => opt.MapFrom(src =>
-                src.Entitlements.RootElement.Clone()
-            ));
-        CreateMap<NetworkUser, NetworkUserLightWithNetworkDto>()
-            .ForMember(dest => dest.Entitlements, opt => opt.MapFrom(src =>
-                src.Entitlements.RootElement.Clone()
-            ));
+        CreateMap<NetworkUser, NetworkUserDto>();
+        CreateMap<NetworkUser, NetworkUserLightDto>();
+        CreateMap<NetworkUser, NetworkUserLightWithNetworkDto>();
+        CreateMap<NetworkUser, NetworkUserLightUserInfoDto>();
+        CreateMap<NetworkUser, NetworkUserLightWithNetworkDto>();
         CreateMap<CreateNetworkUserDto, NetworkUser>();
-        CreateMap<UpdateNetworkUserDto, NetworkUser>()
-            .ForMember(dest => dest.Entitlements, opt => opt.MapFrom(src =>
-                JsonDocument.Parse(src.Entitlements.GetRawText(), default)
-            ));
-
+        CreateMap<UpdateNetworkUserDto, NetworkUser>();
         CreateMap<NetworkUserAccess, NetworkUserAccessDto>();
         CreateMap<NetworkUserAccess, NetworkUserAccessNtADto>();
         CreateMap<NetworkUserAccess, NetworkUserAccessAtNDto>();
@@ -64,22 +47,10 @@ public class MappingProfiles : Profile
         CreateMap<CreateAccessDto, Access>();
         CreateMap<UpdateAccessDto, Access>();
 
-        CreateMap<Role, RoleDto>()
-            .ForMember(dest => dest.Entitlements, opt => opt.MapFrom(src =>
-                src.Entitlements.RootElement.Clone()
-            ));
-        CreateMap<Role, RoleLightDto>()
-            .ForMember(dest => dest.Entitlements, opt => opt.MapFrom(src =>
-                src.Entitlements.RootElement.Clone()
-            ));
-        CreateMap<CreateRoleDto, Role>()
-            .ForMember(dest => dest.Entitlements, opt => opt.MapFrom(src =>
-                JsonDocument.Parse(src.Entitlements.GetRawText(), default)
-            ));
-        CreateMap<UpdateRoleDto, Role>()
-            .ForMember(dest => dest.Entitlements, opt => opt.MapFrom(src =>
-                JsonDocument.Parse(src.Entitlements.GetRawText(), default)
-            ));
+        CreateMap<Role, RoleDto>();
+        CreateMap<Role, RoleLightDto>();
+        CreateMap<CreateRoleDto, Role>();
+        CreateMap<UpdateRoleDto, Role>();
 
         CreateMap<RolePermission, RolePermissionDto>();
         CreateMap<RolePermission, RolePermissionRtPDto>();
@@ -164,13 +135,14 @@ public class MappingProfiles : Profile
         CreateMap<UpdateUserProxyDto, UserProxy>();
         CreateMap<AddUserProxyDto, UserProxy>();
 
-        CreateMap<File, FileDto>();
+        CreateMap<File, FileDto>()
+            .ForMember(dest => dest.ViewingUrl, opt => opt.MapFrom<FileViewingUrlResolver>());
         CreateMap<File, FileLightDto>();
         CreateMap<CreateFileDto, File>();
         CreateMap<UpdateFileDto, File>();
 
-        CreateMap<CustomPage, PageDto>();
-        CreateMap<CustomPage, PageLightDto>();
+        CreateMap<CustomPage, CustomPageDto>();
+        CreateMap<CustomPage, CustomPageLightDto>();
         CreateMap<CreateCustomPageDto, CustomPage>();
         CreateMap<UpdateCustomPageDto, CustomPage>();
 
@@ -213,9 +185,20 @@ public class MappingProfiles : Profile
         CreateMap<CreateConfigurationDto, Configuration>();
         CreateMap<UpdateConfigurationDto, Configuration>();
 
-        CreateMap<NetworkEntitlement, NetworkEntitlementDto>();
-        CreateMap<CreateNetworkEntitlementDto, NetworkEntitlement>();
-        CreateMap<UpdateNetworkEntitlementDto, NetworkEntitlement>();
+        CreateMap<ContentAccessGrant, ContentAccessGrantDto>();
+        CreateMap<ContentModerationFlag, ContentModerationFlagDto>();
+
+        CreateMap<NetworkFeatureFlag, NetworkFeatureFlagDto>();
+        CreateMap<CreateNetworkFeatureFlagDto, NetworkFeatureFlag>();
+        CreateMap<UpdateNetworkFeatureFlagDto, NetworkFeatureFlag>();
+
+        CreateMap<RoleFeatureFlag, FeatureFlagDto>();
+        CreateMap<CreateFeatureFlagDto, RoleFeatureFlag>();
+        CreateMap<UpdateFeatureFlagDto, RoleFeatureFlag>();
+
+        CreateMap<NetworkUserFeatureFlag, FeatureFlagDto>();
+        CreateMap<CreateFeatureFlagDto, NetworkUserFeatureFlag>();
+        CreateMap<UpdateFeatureFlagDto, NetworkUserFeatureFlag>();
     }
 
     private T? MapFieldIfAccessGranted<T>(

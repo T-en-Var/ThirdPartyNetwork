@@ -1,6 +1,6 @@
 ﻿global using thirdpartynetwork.Application.Dtos.Auth;
 global using thirdpartynetwork.Application.Dtos.Network;
-global using thirdpartynetwork.Application.Dtos.NetworkEntitlement;
+global using thirdpartynetwork.Application.Dtos.NetworkFeatureFlag;
 global using thirdpartynetwork.Application.Dtos.NetworkAccess;
 global using thirdpartynetwork.Application.Dtos.NetworkUser;
 global using thirdpartynetwork.Application.Dtos.NetworkUserAccess;
@@ -13,7 +13,10 @@ global using thirdpartynetwork.Application.Dtos.RolePermission;
 global using thirdpartynetwork.Application.Dtos.Permission;
 global using thirdpartynetwork.Application.Dtos.User;
 global using thirdpartynetwork.Application.Dtos.UserProxy;
+global using thirdpartynetwork.Application.Dtos.UserContent.UserContentBase;
 global using thirdpartynetwork.Application.Dtos.UserContent.Configuration;
 global using thirdpartynetwork.Application.Dtos.UserContent.CustomPage;
 global using thirdpartynetwork.Application.Dtos.UserContent.File;
 global using thirdpartynetwork.Application.Dtos.UserContent.PageBlock;
+global using thirdpartynetwork.Application.Dtos.ContentAccessGrant;
+global using thirdpartynetwork.Application.Dtos.ContentModerationFlag;
