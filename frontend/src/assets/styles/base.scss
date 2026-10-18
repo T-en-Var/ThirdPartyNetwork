@@ -5,7 +5,6 @@
 //   base.scss         this file: reset + imports of every other partial
 //   _components.scss  small reusable pieces shared across features (buttons, badges, cards, forms, modals...)
 //   _layout.scss       app shell: navbar, footer, content layout, profile dropdown
-//   _sidebar.scss      the account/admin/network sidebars
 //   _auth.scss         login/signup forms, auth layout, auth modal
 //   _networks.scss     network cards, network lists, network views
 //   _account.scss      account view, account tabs, user proxy
@@ -19,7 +18,6 @@
 @use 'components';
 @use 'modals';
 @use 'layout';
-@use 'sidebar';
 @use 'auth';
 @use 'networks';
 @use 'account';

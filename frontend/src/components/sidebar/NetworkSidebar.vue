@@ -88,3 +88,27 @@ const navItems: ComputedRef<NavCategory[]> = computed(() => [
   },
 ]);
 </script>
+
+<style scoped lang="scss">
+.network-sidebar__back-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-color);
+  text-decoration: none;
+  transition: color 0.2s ease;
+
+  svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  &:hover {
+    color: var(--primary-accent-color);
+  }
+}
+.network-sidebar__back-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+</style>
