@@ -62,6 +62,10 @@ export * from './NetworkFeatureFlag/CreateNetworkFeatureFlagDto';
 export * from './NetworkFeatureFlag/UpdateNetworkFeatureFlagDto';
 export * from './NetworkFeatureFlag/NetworkFeatureFlagDto';
 
+export * from './FeatureFlag/CreateFeatureFlagDto';
+export * from './FeatureFlag/UpdateFeatureFlagDto';
+export * from './FeatureFlag/FeatureFlagDto';
+
 export * from './Metric/UserMetricDto';
 export * from './Metric/NetworkMetricsDto';
 
