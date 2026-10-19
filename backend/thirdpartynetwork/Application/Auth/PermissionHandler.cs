@@ -182,7 +182,7 @@ public class PermissionHandler(
 
         // PageBlock isn't a ContentKind (see ResolveContentRouteMatch), but a block's manage-
         // ownership is still its own row's AuthorUserProxyId, so it's resolved directly here.
-        if (httpContext.Request.RouteValues.ContainsKey("pageBlockId"))
+        if (httpContext.HasParam("pageBlockId"))
         {
             var pageBlockId = httpContext.GetGuidFromHttpContextUrl("pageBlockId");
             return pageBlockId != Guid.Empty &&
@@ -208,7 +208,7 @@ public class PermissionHandler(
         if (permission == Constants.Permissions.IsContentOwner)
         {
             // PageBlock isn't a ContentKind (see ResolveContentRouteMatch) — resolved directly.
-            if (httpContext.Request.RouteValues.ContainsKey("pageBlockId"))
+            if (httpContext.HasParam("pageBlockId"))
             {
                 var pageBlockId = httpContext.GetGuidFromHttpContextUrl("pageBlockId");
                 return pageBlockId != Guid.Empty &&
