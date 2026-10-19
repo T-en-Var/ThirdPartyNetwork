@@ -2,6 +2,11 @@ namespace thirdpartynetwork.Core.Helper;
 
 public static class CustomParser
 {
+    public static bool HasParam(this HttpContext httpContext, string parameterName)
+    {
+        return httpContext.Request.RouteValues.ContainsKey(parameterName);
+    }
+    
     public static Guid GetGuidFromHttpContextUrl(this HttpContext httpContext, string guidName)
     {
         object? guidValue = null;
