@@ -1,0 +1,425 @@
+# ThirdPartyNetwork Documentation
+
+State of the application according to memory as of 2026-10-15.
+
+## 1. Overview & Architecture
+
+### 1.1 What this project is
+
+A project to manage users, their permissions within a network and their content uploaded in that network.
+
+This project can enable other projects, moving away from duplicate logic like authentication, file management, etc...
+
+This would also enable standalone html pages without any real personal backend.
+
+Also, consider the application ONLY the API. The frontend is just a UI which should be able to be replaced by any other interface. No special priviledges.
+
+### 1.2 Layering: Core / Application / Presentation
+> Core (models, interfaces, enums, exceptions, data context) → Application (Auth, Services, Repositories, Dtos, Helpers) → Presentation (Controllers). Not documented anywhere yet.
+
+A simple layered architecture.
+
+Presentation holds the controllers
+
+Core holds the infrastructure logic.
+
+Application holds the domain logic.
+
+### 1.3 Multi-tenancy model ("Networks")
+> Relationship between `Network`, `NetworkUser`, `User`, `UserProxy` — see `DATABASE_AND_AUTH_OVERVIEW.md` §1 as a starting point, verify it's current.
+
+A user can have mutliple user proxies. So they can use a fake persona to check out a network if they don't wish to share their real information.
+
+TODO IDEA: a user proxy can get a mail mask, so when a network they join sends an email to that masked email, it gets forwarded to their real email, but the network doesn't know that.
+
+Users can join as many networks as they wish.
+
+When a user joins a network, it creates a new NetworkUser row. All accesses and roles will be linked to that NetworkUser entity, not directly to the UserProxy. 
+
+[See the ERD for a full overview.](https://lucid.app/lucidchart/67fb1c28-d967-4468-b27c-f1999545cb04/edit?viewport_loc=667%2C-1081%2C2351%2C1561%2C0_0&invitationId=inv_7996726f-4891-4aee-bf22-4c4a22db67a2)
+
+### 1.4 Startup sequence (`Program.cs`)
+> DB migration + bucket bootstrap + seeding on boot, dynamic audience/CORS cache population from `Network.RedirectURI`, OpenAPI schema-transformer workaround for Repository/Proxy recursion.
+
+The program cs does a lot:
+- Sets up jwt authentication
+- Seeds potentially empty database
+
+TODO: don't hardcode the seeding. When adding new permissions, they aren't automatically added to the database. When live, it will probably have to be done by migrations...
+Anyway, I was thinking of having a sort of giant object which the database seeder can use to build the database. This object can be auto created based on Constants (in the Core folder) too.
+
+## 2. Authentication
+
+Basic refresh token access token pair.
+
+Application handles token rotations.
+
+Refresh token is set as `http only` & `secure` so javascript is unable to access the token.
+
+IMPORTANT! The `secure` flag on cookies only works when sending cookies over HTTPS. Probably need to make a check, because if it tries to send over HTTPS but it's actually HTTP, I believe it doesn't send at all. 
+
+### 2.1 JWT issuance & validation
+
+In the past I added all permissions into a token, this has been changed so a user has the `/me/permissions` because the jwt token was becoming (WAY) too large.
+
+### 2.2 Refresh tokens
+
+Has jti. Gets rotated with `/auth[/{networkid}]/refresh`. If a past token is detected to be used in a refresh, it invalidates the whole sessions and refuses future refreshes with the same token chain.
+
+### 2.3 PKCE flow (`PKCEVerifier`)
+
+Used for third party logins.
+
+We need to verify the client that is requesting the token gets the token without it being exposed in transit.
+
+### 2.4 Authorization codes (`AuthorizationCodeStore`)
+
+Remembers the state exchange information for the PKCE flow.
+
+### 2.5 JTI cache / token replay prevention (`JtiCacheService`)
+
+Used for `2.2`.
+
+### 2.6 Global auth vs per-network auth
+> `/auth/login`, `/auth/register`, `/auth/refresh` vs `/auth/{networkId}/login`, `/auth/{networkId}/register`, `/auth/{networkId}/refresh`, plus OAuth-style `/auth/token`.
+
+Both paths work exactly the same. But the routes without `networkId` default to the main network's ID.
+
+### 2.7 Dynamic JWT audience validation
+> `IDynamicAudienceCache`, populated from network redirect URIs at startup — non-obvious, document how/when it's refreshed.
+
+To verify tokens, we should add valid audiences, because those servers obviously don't share the same URL as this application.
+
+The audiences are currently derived from the redirect URL defined on each network. This might need to change, but I think is quite fine for now.
+
+## 3. Authorization & Permissions (RBAC)
+
+A user has roles.
+
+A role has permissions.
+
+All endpoints require a specific permission.
+
+### 3.1 Permission catalog (`Core/Constants.cs`)
+
+All permissions are defined here.
+
+Used by every endpoint to refer to the right permission.
+
+Then in the PermissionHandler is used to categorize the request to check how it should be handled.
+
+### 3.2 Attribute → policy → handler pipeline
+> `RequirePermissionAttribute` → `DynamicPermissionPolicyProvider` → `PermissionHandler`.
+
+This is a bulk of logic.
+
+Built on the IdentityVerifier, it takes all incoming requests which have defined a `RequirePermission` on the route.
+
+If not allowed, the request is anwsered with a 401 or 403.
+
+### 3.3 Roles, Permissions, RolePermissions model
+
+Don't know what is unclear about this after `3.`.
+
+### 3.4 Administrator wildcard & the "main network"
+
+There are admins within networks, obviously.
+
+But we need to monitor the networks.
+
+So the design is as follows: If you have a permission in the main network, this also applies for all other networks.
+
+So if I have "ReadUsers" in the main network, I can read ALL users across ALL networks.
+
+Usually used for the super admins, so they can do everything without limitations.
+
+### 3.5 Ownership checks (`IdentityVerifier`)
+> ⚠️ `DATABASE_AND_AUTH_OVERVIEW.md` marks this as broken for 2 of 3 content kinds — verify current state before documenting as fact.
+
+There was a revision, some time ago, no clue when.
+
+According to claude, `DATABASE_AND_AUTH_OVERVIEW.md` says its broken.
+
+I think that might be false information, but I'd need to check.
+
+But the IdentityVerifier checks if the user is allowed to perform certain actions. 
+
+This mostly does queries to the database, acting as an easy to use interface for other services.
+
+### 3.6 Content visibility resolution (`AccessLevelVerifier`)
+> ⚠️ Marked as rewritten/`AccessLevel`-removed in existing notes — re-verify against current code.
+
+Yes, in the recent giant refactor of the UGC (user generated content) access level was dropped and replaced by a whole ContentAccessGrants table and a ContentViewingLink table.
+
+### 3.7 The `AccessIncomplete` gate
+
+This ties to the Accesses.
+
+A network can define Accesses that the user may comply with.
+
+An access is for example "AccessEmail". If a network sets this as required, a user cannot enter the network without agreeing to give the email.
+
+If "AccessEmail" was not set on the network, then the network will not see the email of the user.
+
+AccessIncomplete gets only triggered in the following scenario:
+1. A user joins a network and agrees to the required accesses.
+2. The network then changes the accesses
+- The user has now an outdated agreement with the network
+3. So ALL the `NetworkUser`s get a flag set that they have to update their accesses.
+
+Now, when a User tries to log in to the network from their external source, a check is performed before handing over the tokens.
+
+If it is detected that the user has `AccessIncomplete`, the user is prompted to accept them first before proceeding.
+
+NOTE: Just realized, a user might try to log in to a network and is prompted with the `AccessIncomplete` screen, it should be able to redirect to the normal application interface and leave the network if they so desire. (Currently you are deadlocked until you accept the required accesses).
+
+## 4. Entitlements
+### 4.1 What entitlements represent (quotas / feature flags)
+
+Both feature flags and usage quotas.
+
+### 4.2 `NetworkEntitlement` model & `EntitlementService`
+
+An admin can bestow limits on a network. This defines what a network can do and how much of that they can do.
+
+The `EntitlementService` does all the checks, though iirc this service is written terribly, like actually abyssmal, absolute charcoal.
+
+So a rework of that is due.
+
+## 5. Data Model Reference
+
+### 5.1 Entity-relationship diagram
+> No full, current ERD exists. `PLAN.md` has a partial ERD for the newer UGC tables only.
+
+[ERD](https://lucid.app/lucidchart/67fb1c28-d967-4468-b27c-f1999545cb04/edit?viewport_loc=667%2C-1081%2C2351%2C1561%2C0_0&invitationId=inv_7996726f-4891-4aee-bf22-4c4a22db67a2)
+
+All below here can be found in the ERD. ERD is not fully complete with all columns, but does represent the whole database structure.
+
+### 5.2 Identity & tenancy entities
+> `User`, `UserProxy`, `Network`, `NetworkUser`.
+### 5.3 Access control entities
+> `Access`, `NetworkAccess`, `NetworkUserAccess`, `Role`, `Permission`, `RolePermission`, `NetworkUserRole`.
+### 5.4 User-generated content entities
+> `UserContentBaseModel` and its subtypes: `Blog`, `CustomPage`, `Configuration`, `File`, `PageBlock`; plus `ContentViewingLink`, `ContentAccessGrant`, `ContentModerationFlag`.
+### 5.5 Enum reference
+> `ContentKind` / `ContentKindFlags`, `ContentCapabilities`, `GranteeType`, `OwnershipMode`, `ContentViewingLinkMode`, `ModerationFlagStatus` — purpose and valid transitions for each.
+### 5.6 Migration history & conventions
+> 55 migrations exist; no doc on how/when to add one, naming conventions, or seeding (`DatabaseSeeder.cs`).
+
+## 6. User-Generated Content & File Delivery
+
+oh boy.. :)
+
+### 6.1 Content kinds and capabilities model
+
+This is new, we (are trying to) survived a big ass refactor.
+
+We currently have 5 kinds of content.
+- File
+- Blog
+- Configuration (basically key-value table)
+- CustomPage
+- PageBlock (A custompage has many pageblocks, which can be formed into a note tree by using the ParentPageBlockId FK)
+
+All the content tables inherit from the same UserContentBaseModel.
+
+I wanted to incorporate a very, VERY, flexible way of handling UGC. Meaning the users/networks have full control on who can see their content.
+
+You can share a piece of content with:
+- A specific other UserProxy
+- A specific network
+- Anyone in the network with a certain permission*
+- Anyone in the network with a certain role*
+
+NOTE: *Just noticed again, what if it shared to another network and we want to also define a specific role or permission?
+Currently, if a piece of content is shared to a permission ID, it automatically shared to all networks :sweat_smile:, woops.
+
+Moderation flags: a moderator can hide content if deemed inappropriate.
+
+Still have to decide what the user can do after this happens, should the content be locked to see why flagged? Need a note/remark on their account?
+
+[Read idea at the end]
+
+### 6.2 File storage: MinIO integration
+> Buckets (`public`/`private`), presigned URLs, internal vs external endpoints — this is the **actual current implementation**, distinct from the stale `FILE_SERVICE_SETUP.md`.
+
+All files will automatically go to the private bucket.
+
+Only once a public ContentViewingLink entry is created, will it be moved to public. It can be moved back, of cours.
+
+### 6.3 Content viewing links (`ContentViewingLink`, `CdnController`, `ViewController`)
+> Token-based sharing/viewing, cleanup background service (`ContentViewingLinkCleanupService`).
+
+A piece of content can be shared publicly. Then it is out there and anyone can access.
+
+But a user can revoke the public access. Then the url should change, so it truly is not accessible anymore.
+
+If a user mints a x times use ContentViewingLink, everytime the file is accessed it subtracts from the counter until seen enough times.
+
+Specific scenario:
+When an image is private, but the author wants to use it in a blog, they should be able to do so. So when the blog is loaded, it tries the load in the image, but sees it is private, it now has to ask the application for a one time use url, which gets minted and sent back to the user. (This flow can be improved, of course, it's just first general idea, maybe we need a table to link content to files, so we can mint viewinglinks more easily)
+
+The author can ofcourse share a one time use URL too manually from the application API/interface.
+
+### 6.4 Content access grants & moderation flags
+
+Described above.
+
+### 6.5 Cloudinary config — legacy/unused?
+> `appsettings.json`/`.env` define `Cloudinary:*` settings but the active CDN service is `MinioService`. Confirm whether Cloudinary is still used anywhere or should be removed from config/docs.
+
+Ah yeah, should remove that. We use our own CDN now.
+
+## 7. API Reference
+
+> One subsection per controller/resource group. Document: purpose, auth requirements (`[Authorize]` / permission attributes), request/response DTOs, and example calls (cross-reference `thirdpartynetwork/thirdpartynetwork.http`).
+
+Dunno what to really explain here.
+
+I'm trying to be RESTful.
+
+### 7.1 Auth (`/auth`)
+### 7.2 Users (`/users`) & User Proxies (`/users/{userId}/proxies`)
+### 7.3 Me (`/me`)
+### 7.4 Networks (`/networks`) & Main Network (`/mainNetwork`)
+### 7.5 Network Users, Roles & Access
+> `NetworkUserController`, `NetworkUserRoleController`, `NetworkUserAccessController`.
+### 7.6 Access & Network Access (`/accesses`, `/networks/{id}/accesses`)
+### 7.7 Roles & Permissions (`/networks/{id}/roles`, `/permissions`, role-permission links)
+### 7.8 Network Entitlements (`/networks/{id}/entitlements`)
+### 7.9 Metrics (`/metrics`)
+### 7.10 CDN & View (`/cdn`, `/view`)
+### 7.11 Websocket (`/websocket`)
+
+Tried to do some wanky stuff with this one, was fun, not really using it anymore.
+
+### 7.12 Health (`/health`)
+
+## 8. Configuration & Environment
+
+### 8.1 Required environment variables
+> `DB_CONNECTION_STRING`, `TOKEN_SECRET`, `LUCKY_PENNY_LICENSE`, `FRONTEND_URL`, `DOTNET_ENVIRONMENT`, `MINIO_ROOT_USER`, `MINIO_ROOT_PASSWORD`, `MINIO_INTERNAL_ENDPOINT`, `MINIO_INTERNAL_USE_SSL`, `MINIO_EXTERNAL_ENDPOINT`, `MINIO_EXTERNAL_USE_SSL`, `MINIO_PUBLIC_BUCKET`, `MINIO_PRIVATE_BUCKET`, `CLOUDINARY_*`. Note: root `.env` and `thirdpartynetwork/.env` currently list slightly different key sets — reconcile.
+
+You should be able to figure all of these ones out, except `LUCKY_PENNY_LICENSE`. You gotta look it up and generate a free licence jwt token.
+
+I'm considering removing automapper (for which the license is) because of this. (considerations been active since 1 year ago, woops)
+
+### 8.2 `appsettings.json` vs `.env` — what lives where
+
+idek.
+
+### 8.3 CORS & allowed origins
+> Dynamic origin cache (`ICorsOriginCache`) populated from network redirect URIs.
+
+Well, it should be a public API. But using the `DynamicAudiencesCache` makes our application more secure.
+
+But this also makes it harder for external companies/users to use the application.
+
+Only relying on `DynamicAudiencesCache` also disables other UI's, unless the UI has it's own network underneath.
+
+## 9. Deployment & CI/CD
+
+Currently, when pushed to main, it is built as docker container.
+
+I have a local home server running the application and a watchtower instance updating the application every 5 minutes.
+
+### 9.1 Docker image build (`Dockerfile`)
+
+Nothing
+
+### 9.2 Local development with `docker-compose.yml`
+> Note: the `tpn` app service is currently commented out — only `minio` runs via compose. Document the intended local dev workflow.
+
+to
+
+### 9.3 GitHub Actions: build & push to GHCR (`.github/workflows/deploy.yml`)
+> Builds on push to `main`, pushes to `ghcr.io/troshujin/thirdpartynetwork:latest`. No test gate currently runs in this workflow — decide/document whether that's intentional.
+
+explain here.
+
+### 9.4 Database migrations in production
+> `dbContext.Database.MigrateAsync()` runs automatically at app startup — document rollback/safety implications.
+
+Generates an SQL migrations file for the production to use.
+
+## 10. Testing
+
+Currently all tests are generated by AI.
+
+### 10.1 Test project layout
+> `Tests/Auth` (unit), `Tests/Controllers`, `Tests/Core`, `Tests/Integration`.
+### 10.2 Running the tests
+### 10.3 Integration test harness
+> `TestWebApplicationFactory`, `IntegrationTestBase`/`IntegrationTestSetup`, `FakeCdnService`, Testcontainers.PostgreSql usage.
+### 10.4 Caller & permission fixtures
+> `CallerCatalog`, `CallerFixtures`, `ContentKindFixtures`, `PermissionNames` — the pattern behind `RbacOnlyEndpointTests`, `OwnershipDrivenEndpointTests`, `ReadDrivenEndpointTests`.
+
+## 11. Ideas at the end
+
+### Custom flows.
+
+When certain actions happen in the applications, network admins/mods can set up specific automations to be executed.
+
+### Custom emails
+
+Every network gets their own email address (maybe they have to apply first).
+
+### API Keys
+
+We probably need API Keys.
+
+### OAuth
+
+Suggestion from Pieter.
+Maybe implement other external logins to make it even easier on the user, like google, facebook, etc.
+
+## 12. Other `.md` files
+
+i let ai check how useful they were:
+
+### DATABASE_AND_AUTH_OVERVIEW.md
+
+§6 has a "Known issues" list (6.3–6.13) — JWT validation inconsistency, in-memory auth state, no DB unique constraints, unrestricted network creation, info disclosure, duplicated access-control logic, no brute-force protection, static seeded creds in source control — none of this is captured in DOCS.md. It's also more self-maintaining than DOCS.md gave it credit for: §6.1/6.2 already mark the two "broken" items as ✅ FIXED (by PLAN.md), consistent with what I verified in code. Only the forward-pointing hedge at §3.5 reads as stale next to its own §6.2.
+
+### TPN_Files_Suggestion.md
+
+These were my original ideas for the now implemented files system.
+
+## Known bugs
+
+checked by AI
+
+BUG-002 — ❌ Still real.
+FileController.cs:28-29 — the single-GET endpoint is still:
+[HttpGet("{fileId:guid}")]
+[RequirePermission(Constants.Permissions.ManageFile)]
+public async Task<IActionResult> GetNetworkFile(...)
+ManageFile routes through HandleContentManageRequirementAsync → IdentityVerifier.IsContentOwnerAsync (author-or-admin only) — it never touches AccessLevelVerifier.CheckFileAccessAsync or ContentAccessGrants. A file shared with a specific user or network is still unreachable via GET /networks/{id}/files/{fileId} to anyone but the author/admin. Unfixed.
+
+BUG-003 — ❌ Still real.
+PermissionHandler.cs:192-218, HandleOwnerRequirementAsync's IsContentOwner branch calls identityVerifier.IsContentOwnerAsync directly with no IsSuperAdminOrHasSuperPermissionAsync check — unlike every sibling handler (HandleRequirementAsync:95, HandleGeneralRequirementAsync:107, HandleContentRequirementAsync:149, HandleContentManageRequirementAsync:186 all check super-admin first). Since Publish/Unpublish/SetOwnershipMode are gated solely by IsContentOwner, a main-network super admin — who bypasses virtually everything else — still gets 403'd trying to publish content they don't personally own. Unfixed.
+
+## 14. Notes
+
+These are some random notes I took a while ago, may or may not be applicable:
+
+For `tpn-frontend` - `src\views\networks\ManageNetworkView.vue:196`, it requires an image url.
+The FileDTO no longer has an image url.
+
+We only have viewing links.
+
+Time for logic.
+
+Q: How should we access public files?
+Always send public links with images which have them?
+
+
+When a user sets the profile picture, set the new profile picture to public.
+Frontend: remind the user that the old picture still exists.
+
+Currently the /authors/{userProxyId}/<contentType> route is defined and shows all content the 
+requesting client is allowed to see. This intended to be used by the original author as well to 
+see all their own created content. But I'm wondering, do I want to add the AccessGrants, ViewingLinks 
+and ModerationFlags? I think I do, but I will see.
+
+Also have to check if the Moderation flags actually hide the content if applicable.

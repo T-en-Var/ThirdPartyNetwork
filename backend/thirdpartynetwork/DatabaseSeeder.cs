@@ -55,7 +55,7 @@ namespace thirdpartynetwork
                     Description = "Admin Role",
                     Network = dummyNetwork,
                     IsDefault = false,
-                    FeatureFlags = JsonDocument.Parse("{}")
+                    FeatureFlags = new RoleFeatureFlag()
                 };
 
                 adminRole.RolePermissions = new List<RolePermission>()
@@ -74,7 +74,7 @@ namespace thirdpartynetwork
                     Description = "User Role",
                     Network = dummyNetwork,
                     IsDefault = true,
-                    FeatureFlags = JsonDocument.Parse("{}")
+                    FeatureFlags = new RoleFeatureFlag()
                 };
 
                 userRole.RolePermissions = new List<RolePermission>()
@@ -143,14 +143,14 @@ namespace thirdpartynetwork
                 {
                     UserProxy = dummyAdminProxy,
                     Network = dummyNetwork,
-                    FeatureFlags = JsonDocument.Parse("{}")
+                    FeatureFlags = new NetworkUserFeatureFlag()
                 };
 
                 var nu1 = new NetworkUser()
                 {
                     UserProxy = dummyAdminProxy,
                     Network = mainNetwork,
-                    FeatureFlags = JsonDocument.Parse("{}")
+                    FeatureFlags = new NetworkUserFeatureFlag()
                 };
 
                 dummyAdminProxy.NetworkUsers = new List<NetworkUser>()
@@ -196,14 +196,14 @@ namespace thirdpartynetwork
                 {
                     UserProxy = dummyUserProxy,
                     Network = dummyNetwork,
-                    FeatureFlags = JsonDocument.Parse("{}")
+                    FeatureFlags = new NetworkUserFeatureFlag()
                 };
 
                 var nu2 = new NetworkUser()
                 {
                     UserProxy = dummyUserProxy,
                     Network = mainNetwork,
-                    FeatureFlags = JsonDocument.Parse("{}")
+                    FeatureFlags = new NetworkUserFeatureFlag()
                 };
 
                 dummyUserProxy.NetworkUsers = new List<NetworkUser>()
@@ -347,7 +347,7 @@ namespace thirdpartynetwork
                     IsSystemProtected = true,
                     Network = network,
                     IsDefault = false,
-                    FeatureFlags = JsonDocument.Parse("{}")
+                    FeatureFlags = new RoleFeatureFlag()
                 };
 
                 adminRole.RolePermissions = new List<RolePermission>
@@ -366,7 +366,7 @@ namespace thirdpartynetwork
                     IsSystemProtected = true,
                     Network = network,
                     IsDefault = true,
-                    FeatureFlags = JsonDocument.Parse("{}")
+                    FeatureFlags = new RoleFeatureFlag()
                 };
 
                 userRole.RolePermissions = new List<RolePermission>()
@@ -424,7 +424,7 @@ namespace thirdpartynetwork
                 {
                     UserProxy = adminUser,
                     Network = network,
-                    FeatureFlags = JsonDocument.Parse("{}")
+                    FeatureFlags = new NetworkUserFeatureFlag()
                 };
 
                 adminNetworkUser.NetworkUserRoles = new List<NetworkUserRole>

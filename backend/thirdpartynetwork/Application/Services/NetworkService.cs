@@ -125,7 +125,7 @@ namespace thirdpartynetwork.Application.Services
                 Description = "Default role for new users.",
                 IsDefault = true,
                 Network = network,
-                FeatureFlags = JsonDocument.Parse("{}")
+                FeatureFlags = new RoleFeatureFlag()
             };
 
             var adminRole = new Role
@@ -134,7 +134,7 @@ namespace thirdpartynetwork.Application.Services
                 Description = "Default admin role.",
                 IsDefault = false,
                 Network = network,
-                FeatureFlags = JsonDocument.Parse("{}")
+                FeatureFlags = new RoleFeatureFlag()
             };
 
             adminRole.RolePermissions =
@@ -204,7 +204,7 @@ namespace thirdpartynetwork.Application.Services
                             Role = adminRole
                         }
                     ],
-                    FeatureFlags = JsonDocument.Parse("{}")
+                    FeatureFlags = new NetworkUserFeatureFlag()
                 }
             ];
 
