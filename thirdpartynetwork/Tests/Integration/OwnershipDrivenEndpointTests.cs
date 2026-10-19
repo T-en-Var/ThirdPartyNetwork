@@ -241,8 +241,6 @@ public class OwnershipDrivenEndpointTests : IntegrationTestBase
     private static string ItemRoute(ContentKind kind, SeededContent content)
     {
         var descriptor = ContentKindCatalog.All.First(d => d.Kind == kind);
-        return kind == ContentKind.PageBlock
-            ? $"networks/{content.NetworkId}/customPages/{content.ParentCustomPageId}/pageBlocks/{content.ContentId}"
-            : descriptor.ItemRoute(content.NetworkId, content.ContentId);
+        return descriptor.ItemRoute(content.NetworkId, content.ContentId);
     }
 }

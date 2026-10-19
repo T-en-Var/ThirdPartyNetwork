@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using NUnit.Framework;
+using thirdpartynetwork.Core;
 using thirdpartynetwork.Core.Enum;
 
 namespace thirdpartynetwork.Tests.Integration;
@@ -46,15 +47,19 @@ public class RbacOnlyEndpointTests : IntegrationTestBase
     // is ownership-gated against its PARENT CustomPage, not broken the same way as the four
     // above. A parent with no author (AuthorOwned + null AuthorUserProxyId) falls back to
     // IsNetworkAdminAsync (admin-only) per IdentityVerifier.IsContentOwnerAsync.
+    private static HttpContent NewPageBlockBody() => new StringContent(
+        JsonSerializer.Serialize(new { text = "new block", position = 0, data = JsonDocument.Parse("{}").RootElement }),
+        System.Text.Encoding.UTF8, "application/json");
+
     [Test]
     public async Task Create_PageBlock_AsSameNetworkAdmin_Succeeds_ViaParentCustomPageOwnership()
     {
         var parent = await ContentKindFixtures.CreateAsync(Ctx, ContentKind.CustomPage, ContentNetwork.Id, publishedAt: DateTime.UtcNow);
-        var admin = await CallerCatalog.BuildAsync(Ctx, CallerSpec.SameNetworkAdmin, ContentKind.PageBlock, ContentNetwork, ExternalNetwork, MainNetwork);
+        var admin = await CallerCatalog.BuildAsync(Ctx, CallerSpec.SameNetworkAdmin, ContentKind.CustomPage, ContentNetwork, ExternalNetwork, MainNetwork);
 
         var response = await admin.Client.PostAsync(
             $"networks/{ContentNetwork.Id}/customPages/{parent.ContentId}/pageBlocks",
-            ContentKindFixtures.BuildCreateRequestBody(ContentKind.PageBlock));
+            NewPageBlockBody());
 
         AssertStatus(response, HttpStatusCode.OK, "Create PageBlock as SameNetworkAdmin (parent has no author)");
     }
@@ -63,15 +68,22 @@ public class RbacOnlyEndpointTests : IntegrationTestBase
     public async Task Create_PageBlock_AsManageOnly_NonAdmin_NonOwner_IsForbidden()
     {
         var parent = await ContentKindFixtures.CreateAsync(Ctx, ContentKind.CustomPage, ContentNetwork.Id, publishedAt: DateTime.UtcNow);
-        var caller = await CallerCatalog.BuildAsync(Ctx, CallerSpec.SameNetworkManageOnly, ContentKind.PageBlock, ContentNetwork, ExternalNetwork, MainNetwork);
+
+        // Built directly (not via CallerCatalog.BuildAsync) so this caller holds ManagePageBlock
+        // specifically — PageBlock is no longer a ContentKind, so PermissionNames.Manage(kind)
+        // has no PageBlock case to look that permission name up from.
+        var role = await CallerFixtures.CreateRoleAsync(Ctx, ContentNetwork, $"SameNetworkManageOnly-PageBlock-{Guid.NewGuid():N}", Constants.Permissions.ManagePageBlock);
+        var proxy = await CallerFixtures.CreateUserAsync(Ctx, "SameNetworkManageOnly");
+        var networkUser = await CallerFixtures.JoinNetworkAsync(Ctx, ContentNetwork, proxy, [role]);
+        var caller = await CallerFixtures.BuildAuthenticatedAsync("SameNetworkManageOnly", networkUser);
 
         var response = await caller.Client.PostAsync(
             $"networks/{ContentNetwork.Id}/customPages/{parent.ContentId}/pageBlocks",
-            ContentKindFixtures.BuildCreateRequestBody(ContentKind.PageBlock));
+            NewPageBlockBody());
 
         // Not the author of the parent page, not a network admin, and holding ManagePageBlock
         // (not ManageCustomPage) doesn't help here since ownership is checked against the
-        // PARENT CustomPage's ContentKind, not PageBlock's.
+        // PARENT CustomPage, not the not-yet-existing PageBlock.
         AssertStatus(response, HttpStatusCode.Forbidden, "Create PageBlock as SameNetworkManageOnly, non-owner parent");
     }
 
@@ -87,9 +99,7 @@ public class RbacOnlyEndpointTests : IntegrationTestBase
         var caller = spec == CallerSpec.Author ? author : await CallerCatalog.BuildAsync(Ctx, spec, kind, ContentNetwork, ExternalNetwork, MainNetwork);
 
         var descriptor = ContentKindCatalog.All.First(d => d.Kind == kind);
-        var route = kind == ContentKind.PageBlock
-            ? $"networks/{ContentNetwork.Id}/customPages/{content.ParentCustomPageId}/pageBlocks/{content.ContentId}"
-            : descriptor.ItemRoute(ContentNetwork.Id, content.ContentId);
+        var route = descriptor.ItemRoute(ContentNetwork.Id, content.ContentId);
 
         var response = await caller.Client.PutAsync(route, ContentKindFixtures.BuildUpdateRequestBody(kind));
 
@@ -105,9 +115,7 @@ public class RbacOnlyEndpointTests : IntegrationTestBase
         var caller = spec == CallerSpec.Author ? author : await CallerCatalog.BuildAsync(Ctx, spec, kind, ContentNetwork, ExternalNetwork, MainNetwork);
 
         var descriptor = ContentKindCatalog.All.First(d => d.Kind == kind);
-        var route = kind == ContentKind.PageBlock
-            ? $"networks/{ContentNetwork.Id}/customPages/{content.ParentCustomPageId}/pageBlocks/{content.ContentId}"
-            : descriptor.ItemRoute(ContentNetwork.Id, content.ContentId);
+        var route = descriptor.ItemRoute(ContentNetwork.Id, content.ContentId);
 
         var response = await caller.Client.DeleteAsync(route);
         var expected = ExpectedOwnershipGatedStatus(spec);
@@ -183,9 +191,7 @@ public class RbacOnlyEndpointTests : IntegrationTestBase
     private static string ModerationFlagsRoute(ContentKind kind, SeededContent content)
     {
         var descriptor = ContentKindCatalog.All.First(d => d.Kind == kind);
-        var itemRoute = kind == ContentKind.PageBlock
-            ? $"networks/{content.NetworkId}/customPages/{content.ParentCustomPageId}/pageBlocks/{content.ContentId}"
-            : descriptor.ItemRoute(content.NetworkId, content.ContentId);
+        var itemRoute = descriptor.ItemRoute(content.NetworkId, content.ContentId);
         return $"{itemRoute}/moderation-flags";
     }
 

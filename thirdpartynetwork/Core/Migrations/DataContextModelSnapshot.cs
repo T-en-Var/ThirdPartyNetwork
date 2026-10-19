@@ -561,12 +561,6 @@ namespace thirdpartynetwork.Core.Migrations
                     b.Property<DateTime>("CreatedOn")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<JsonDocument>("FeatureFlags")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("jsonb")
-                        .HasDefaultValueSql("'{}'");
-
                     b.Property<Guid>("NetworkId")
                         .HasColumnType("uuid");
 
@@ -607,6 +601,58 @@ namespace thirdpartynetwork.Core.Migrations
                     b.HasIndex("AccessId");
 
                     b.ToTable("NetworkUserAccesses");
+                });
+
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.NetworkUserFeatureFlag", b =>
+                {
+                    b.Property<Guid>("NetworkUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool?>("AllowBlogs")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool?>("AllowConfigurations")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool?>("AllowCustomPages")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool?>("AllowFiles")
+                        .HasColumnType("boolean");
+
+                    b.Property<int?>("BlogCountLimit")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("ConfigurationCountLimit")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("CustomPageBlockCountLimit")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("CustomPageBlockSizeLimit")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("CustomPageCountLimit")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("FileCountLimit")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("FileSizeLimit")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("FileStorageLimit")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("NetworkUserId");
+
+                    b.ToTable("NetworkUserFeatureFlags");
                 });
 
             modelBuilder.Entity("thirdpartynetwork.Core.Models.NetworkUserRole", b =>
@@ -731,12 +777,6 @@ namespace thirdpartynetwork.Core.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<JsonDocument>("FeatureFlags")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("jsonb")
-                        .HasDefaultValueSql("'{}'");
-
                     b.Property<bool>("IsDefault")
                         .HasColumnType("boolean");
 
@@ -758,6 +798,58 @@ namespace thirdpartynetwork.Core.Migrations
                     b.HasIndex("NetworkId");
 
                     b.ToTable("Roles");
+                });
+
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.RoleFeatureFlag", b =>
+                {
+                    b.Property<Guid>("RoleId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool?>("AllowBlogs")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool?>("AllowConfigurations")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool?>("AllowCustomPages")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool?>("AllowFiles")
+                        .HasColumnType("boolean");
+
+                    b.Property<int?>("BlogCountLimit")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("ConfigurationCountLimit")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("CustomPageBlockCountLimit")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("CustomPageBlockSizeLimit")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("CustomPageCountLimit")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("FileCountLimit")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("FileSizeLimit")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("FileStorageLimit")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("RoleId");
+
+                    b.ToTable("RoleFeatureFlags");
                 });
 
             modelBuilder.Entity("thirdpartynetwork.Core.Models.RolePermission", b =>
@@ -1071,6 +1163,15 @@ namespace thirdpartynetwork.Core.Migrations
                     b.Navigation("NetworkUser");
                 });
 
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.NetworkUserFeatureFlag", b =>
+                {
+                    b.HasOne("thirdpartynetwork.Core.Models.NetworkUser", null)
+                        .WithOne("FeatureFlags")
+                        .HasForeignKey("thirdpartynetwork.Core.Models.NetworkUserFeatureFlag", "NetworkUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("thirdpartynetwork.Core.Models.NetworkUserRole", b =>
                 {
                     b.HasOne("thirdpartynetwork.Core.Models.NetworkUser", "NetworkUser")
@@ -1134,6 +1235,15 @@ namespace thirdpartynetwork.Core.Migrations
                         .IsRequired();
 
                     b.Navigation("Network");
+                });
+
+            modelBuilder.Entity("thirdpartynetwork.Core.Models.RoleFeatureFlag", b =>
+                {
+                    b.HasOne("thirdpartynetwork.Core.Models.Role", null)
+                        .WithOne("FeatureFlags")
+                        .HasForeignKey("thirdpartynetwork.Core.Models.RoleFeatureFlag", "RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("thirdpartynetwork.Core.Models.RolePermission", b =>
@@ -1208,6 +1318,9 @@ namespace thirdpartynetwork.Core.Migrations
 
             modelBuilder.Entity("thirdpartynetwork.Core.Models.NetworkUser", b =>
                 {
+                    b.Navigation("FeatureFlags")
+                        .IsRequired();
+
                     b.Navigation("NetworkUserAccesses");
 
                     b.Navigation("NetworkUserRoles");
@@ -1220,6 +1333,9 @@ namespace thirdpartynetwork.Core.Migrations
 
             modelBuilder.Entity("thirdpartynetwork.Core.Models.Role", b =>
                 {
+                    b.Navigation("FeatureFlags")
+                        .IsRequired();
+
                     b.Navigation("NetworkUserRoles");
 
                     b.Navigation("RolePermissions");

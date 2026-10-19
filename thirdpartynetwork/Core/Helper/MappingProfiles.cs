@@ -226,7 +226,7 @@ public class MappingProfiles : Profile
         var access = src.NetworkUsers
             .FirstOrDefault(nu => nu.NetworkId == networkId)?
             .NetworkUserAccesses
-            .FirstOrDefault(a => a.Access.Name == accessName);
+            .FirstOrDefault(a => a.Access?.Name == accessName);
 
         // Console.WriteLine($"{src.Username} | {fieldSelector(src)}: {accessName} - IsAccepted: {access?.IsAccepted}\n");
 

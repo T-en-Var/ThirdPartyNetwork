@@ -93,6 +93,7 @@ namespace thirdpartynetwork.Application.Services
 
         public async Task<Network> CreateAsync(CreateNetworkDto createNetworkDto)
         {
+            var mainNetwork = await GetMainNetworkAsync();
             if (createNetworkDto.Name == Constants.Networks.Main)
                 throw new ConflictHttpException("Cannot name network as main network.");
             
@@ -107,7 +108,7 @@ namespace thirdpartynetwork.Application.Services
                 var imageFile = await fileRepository.GetByIdBypassingAccessAsync(createNetworkDto.FileLink.Id);
                 if (imageFile == null) throw new NotFoundHttpException("Image file not found");
 
-                if (!await accessLevelVerifier.CanNetworkExternallyAdoptAsync(imageFile, ContentKind.File, Guid.Empty))
+                if (!await accessLevelVerifier.CanNetworkExternallyAdoptAsync(imageFile, ContentKind.File, mainNetwork.Id))
                     throw new UnauthorizedHttpException("That file's network does not allow its files to be reused externally.");
 
                 network.ImageFileId = createNetworkDto.FileLink.Id;

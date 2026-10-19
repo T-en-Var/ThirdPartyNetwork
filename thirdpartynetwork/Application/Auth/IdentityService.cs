@@ -79,6 +79,8 @@ public class IdentityService(
         // adding more layers for this only occasion is not worth
         return await dataContext.UserProxies
             .Include(up => up.NetworkUsers)
+            .ThenInclude(nu => nu.NetworkUserAccesses)
+            .ThenInclude(nua => nua.Access)
             .Include(up => up.User)
             .FirstOrDefaultAsync(up => up.Id == userProxyId);
     }

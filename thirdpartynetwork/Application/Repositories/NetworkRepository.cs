@@ -130,10 +130,9 @@ namespace thirdpartynetwork.Application.Repositories
                 .Include(x => x.NetworkAccesses)
                 .ThenInclude(x => x.Access)
                 .Include(x => x.NetworkUsers)
-                // .ThenInclude(n => n.NetworkUserAccesses)
                 .Include(n => n.ImageFile)
-                
                 .FirstOrDefaultAsync(n => n.Id == id);
+                
             return network;
         }
 

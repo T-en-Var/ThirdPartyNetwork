@@ -15,8 +15,9 @@ namespace thirdpartynetwork.Application.Dtos.UserContent.File
         public string MediaType { get; set; }
         public string Name { get; set; }
         public required bool IsSystemProtected { get; set; }
+        public string? ViewingUrl { get; set; }
     }
-    
+
     public class FileLightDto : UserContentBaseLightDto
     {
         public string Bucket { get; set; }

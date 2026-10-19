@@ -4,6 +4,7 @@ using thirdpartynetwork.Application.Dtos.UserContent.Blog;
 using thirdpartynetwork.Application.Dtos.UserContent.Configuration;
 using thirdpartynetwork.Application.Dtos.UserContent.CustomPage;
 using thirdpartynetwork.Application.Dtos.UserContent.File;
+using thirdpartynetwork.Core.Enum;
 
 namespace thirdpartynetwork.Presentation.Controllers;
 
@@ -17,6 +18,7 @@ public class AuthorContentController(
     IConfigurationService configurationService,
     ICustomPageService customPageService,
     IFileService fileService,
+    IContentViewingLinkService viewingLinkService,
     IMapper mapper) : ControllerBase
 {
     [HttpGet("blogs")]
@@ -48,7 +50,16 @@ public class AuthorContentController(
     public async Task<IActionResult> GetFiles(Guid userProxyId)
     {
         var files = await fileService.GetByUserProxyIdAsync(userProxyId);
-        return Ok(files.Select(MapWithNetworkContext<FileDto>));
+
+        var dtos = new List<FileDto>();
+        foreach (var file in files)
+        {
+            var dto = MapWithNetworkContext<FileDto>(file);
+            dto.ViewingUrl = await viewingLinkService.ComputeViewingUrlAsync(file, ContentKind.File, Request.Scheme, Request.Host.ToString());
+            dtos.Add(dto);
+        }
+
+        return Ok(dtos);
     }
 
     // Content spans whichever networks this author belongs to, so each item is mapped with its

@@ -13,7 +13,6 @@ namespace thirdpartynetwork.Presentation.Controllers;
 public class BlogController(
     IBlogService service,
     IContentAccessGrantService accessGrantService,
-    IContentViewingLinkService viewingLinkService,
     IContentModerationFlagService moderationFlagService,
     IMapper mapper) : ControllerBase
 {
@@ -34,7 +33,7 @@ public class BlogController(
     {
         var blog = await service.GetByIdAsync(networkId, blogId);
         if (blog == null) return NotFound();
-        return Ok(await MapWithViewingUrlAsync(blog, networkId));
+        return Ok(mapper.Map<BlogDto>(blog, opts => { opts.Items["networkId"] = networkId; }));
     }
 
     [HttpGet("{slug}")]
@@ -45,14 +44,7 @@ public class BlogController(
     {
         var blog = await service.GetBySlugAsync(networkId, slug);
         if (blog == null) return NotFound();
-        return Ok(await MapWithViewingUrlAsync(blog, networkId));
-    }
-
-    private async Task<BlogDto> MapWithViewingUrlAsync(Blog blog, Guid networkId)
-    {
-        var dto = mapper.Map<BlogDto>(blog, opts => { opts.Items["networkId"] = networkId; });
-        dto.ViewingUrl = await viewingLinkService.ComputeViewingUrlAsync(blog, ContentKind.Blog, Request.Scheme, Request.Host.ToString());
-        return dto;
+        return Ok(mapper.Map<BlogDto>(blog, opts => { opts.Items["networkId"] = networkId; }));
     }
 
     [HttpPost]

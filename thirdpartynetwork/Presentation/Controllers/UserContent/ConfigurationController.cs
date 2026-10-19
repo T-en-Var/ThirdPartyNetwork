@@ -12,7 +12,6 @@ namespace thirdpartynetwork.Presentation.Controllers;
 public class ConfigurationController(
     IConfigurationService service,
     IContentAccessGrantService accessGrantService,
-    IContentViewingLinkService viewingLinkService,
     IContentModerationFlagService moderationFlagService,
     IMapper mapper) : ControllerBase
 {
@@ -34,9 +33,7 @@ public class ConfigurationController(
         var cfg = await service.GetByIdAsync(networkId, configurationId);
         if (cfg == null) return NotFound();
 
-        var dto = mapper.Map<ConfigurationDto>(cfg, opts => { opts.Items["networkId"] = networkId; });
-        dto.ViewingUrl = await viewingLinkService.ComputeViewingUrlAsync(cfg, ContentKind.Configuration, Request.Scheme, Request.Host.ToString());
-        return Ok(dto);
+        return Ok(mapper.Map<ConfigurationDto>(cfg, opts => { opts.Items["networkId"] = networkId; }));
     }
 
     [HttpPost]

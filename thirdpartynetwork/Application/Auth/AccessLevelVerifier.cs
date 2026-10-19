@@ -187,7 +187,6 @@ public class AccessLevelVerifier(
             ContentKind.Blog => ContentKindFlags.Blog,
             ContentKind.Configuration => ContentKindFlags.Configuration,
             ContentKind.CustomPage => ContentKindFlags.CustomPage,
-            ContentKind.PageBlock => ContentKindFlags.PageBlock,
             _ => ContentKindFlags.None
         };
         if (!network.ExternalContentKinds.HasFlag(requiredFlag)) return false;

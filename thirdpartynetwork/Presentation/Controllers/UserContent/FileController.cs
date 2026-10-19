@@ -21,7 +21,15 @@ public class FileController(
     public async Task<IActionResult> GetNetworkFiles(Guid networkId)
     {
         var files = await service.GetByNetworkIdAsync(networkId);
-        var result = mapper.Map<IEnumerable<FileDto>>(files, opts => { opts.Items["networkId"] = networkId; });
+
+        var result = new List<FileDto>();
+        foreach (var file in files)
+        {
+            var dto = mapper.Map<FileDto>(file, opts => { opts.Items["networkId"] = networkId; });
+            dto.ViewingUrl = await viewingLinkService.ComputeViewingUrlAsync(file, ContentKind.File, Request.Scheme, Request.Host.ToString());
+            result.Add(dto);
+        }
+
         return Ok(result);
     }
 
@@ -48,7 +56,9 @@ public class FileController(
             return BadRequest("No file provided.");
 
         var uploadedFile = await service.UploadFileAsync(networkId, file);
-        return Ok(mapper.Map<FileDto>(uploadedFile, opts => { opts.Items["networkId"] = networkId; }));
+        var dto = mapper.Map<FileDto>(uploadedFile, opts => { opts.Items["networkId"] = networkId; });
+        dto.ViewingUrl = await viewingLinkService.ComputeViewingUrlAsync(uploadedFile, ContentKind.File, Request.Scheme, Request.Host.ToString());
+        return Ok(dto);
     }
 
     [HttpPut("{fileId:guid}")]
@@ -58,7 +68,9 @@ public class FileController(
     public async Task<IActionResult> UpdateFile(Guid networkId, Guid fileId, [FromBody] UpdateFileDto updateFile)
     {
         var file = await service.UpdateAsync(networkId, fileId, updateFile);
-        return Ok(mapper.Map<FileDto>(file, opts => { opts.Items["networkId"] = networkId; }));
+        var dto = mapper.Map<FileDto>(file, opts => { opts.Items["networkId"] = networkId; });
+        dto.ViewingUrl = await viewingLinkService.ComputeViewingUrlAsync(file, ContentKind.File, Request.Scheme, Request.Host.ToString());
+        return Ok(dto);
     }
 
     [HttpDelete("{fileId:guid}")]
@@ -79,7 +91,9 @@ public class FileController(
         var file = await service.GetByIdAsync(networkId, fileId);
         if (file == null) return NotFound();
         var published = await service.PublishAsync(file);
-        return Ok(mapper.Map<FileDto>(published, opts => { opts.Items["networkId"] = networkId; }));
+        var dto = mapper.Map<FileDto>(published, opts => { opts.Items["networkId"] = networkId; });
+        dto.ViewingUrl = await viewingLinkService.ComputeViewingUrlAsync(published, ContentKind.File, Request.Scheme, Request.Host.ToString());
+        return Ok(dto);
     }
 
     [HttpPost("{fileId:guid}/unpublish")]
@@ -91,19 +105,23 @@ public class FileController(
         var file = await service.GetByIdAsync(networkId, fileId);
         if (file == null) return NotFound();
         var unpublished = await service.UnpublishAsync(file);
-        return Ok(mapper.Map<FileDto>(unpublished, opts => { opts.Items["networkId"] = networkId; }));
+        var dto = mapper.Map<FileDto>(unpublished, opts => { opts.Items["networkId"] = networkId; });
+        dto.ViewingUrl = await viewingLinkService.ComputeViewingUrlAsync(unpublished, ContentKind.File, Request.Scheme, Request.Host.ToString());
+        return Ok(dto);
     }
 
     [HttpPost("{fileId:guid}/ownership")]
     [RequirePermission(Constants.Permissions.IsContentOwner)]
     [ProducesResponseType(200, Type = typeof(FileDto))]
     [ProducesResponseType(404)]
-    public async Task<IActionResult> SetFileOwnershipMode(Guid networkId, Guid fileId, [FromBody] SetOwnershipModeDto dto)
+    public async Task<IActionResult> SetFileOwnershipMode(Guid networkId, Guid fileId, [FromBody] SetOwnershipModeDto setOwnershipModeDto)
     {
         var file = await service.GetByIdAsync(networkId, fileId);
         if (file == null) return NotFound();
-        var updated = await service.SetOwnershipModeAsync(file, dto.Mode);
-        return Ok(mapper.Map<FileDto>(updated, opts => { opts.Items["networkId"] = networkId; }));
+        var updated = await service.SetOwnershipModeAsync(file, setOwnershipModeDto.Mode);
+        var dto = mapper.Map<FileDto>(updated, opts => { opts.Items["networkId"] = networkId; });
+        dto.ViewingUrl = await viewingLinkService.ComputeViewingUrlAsync(updated, ContentKind.File, Request.Scheme, Request.Host.ToString());
+        return Ok(dto);
     }
 
     [HttpGet("{fileId:guid}/access")]

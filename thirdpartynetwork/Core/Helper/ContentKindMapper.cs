@@ -15,7 +15,6 @@ public static class ContentKindMapper
         if (type == typeof(Blog)) return ContentKind.Blog;
         if (type == typeof(Configuration)) return ContentKind.Configuration;
         if (type == typeof(CustomPage)) return ContentKind.CustomPage;
-        if (type == typeof(PageBlock)) return ContentKind.PageBlock;
 
         throw new NotSupportedException($"No ContentKind mapping for type {type.Name}");
     }
@@ -26,7 +25,6 @@ public static class ContentKindMapper
         ContentKind.Blog => Constants.Permissions.ReadBlog,
         ContentKind.Configuration => Constants.Permissions.ReadConfiguration,
         ContentKind.CustomPage => Constants.Permissions.ReadCustomPage,
-        ContentKind.PageBlock => Constants.Permissions.ReadPageBlock,
         _ => throw new NotSupportedException($"No read permission mapping for {kind}")
     };
 }

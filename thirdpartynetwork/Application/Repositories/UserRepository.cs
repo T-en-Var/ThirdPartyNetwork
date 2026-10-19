@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Npgsql;
 using thirdpartynetwork.Core.Data;
 using thirdpartynetwork.Core.Models;
 
@@ -44,71 +43,44 @@ namespace thirdpartynetwork.Application.Repositories
 
         public async Task<ICollection<UserMetricsDto>> GetWithMetricsAsync(Guid? userId = null, Guid? networkId = null)
         {
-            // fuck it we ball, time to stop fighting LINQ
-            // embrace raw SQL
-            // embrace the pain of updating it everytime with no reminders this exists after updating the model
-            // poggers
-            const string sql =
-                """
-                    WITH UserAuthors AS (
-                        SELECT 
-                            nu."Id" AS "AuthorId",
-                            up."UserId" AS "UserId"
-                        FROM public."NetworkUsers" AS nu
-                        JOIN public."UserProxies" AS up ON nu."UserProxyId" = up."Id"
-                        WHERE (CAST(@userId AS uuid) IS NULL OR up."UserId" = @userId)
-                        AND (CAST(@networkId AS uuid) IS NULL OR nu."NetworkId" = @networkId)
-                    )
-                    SELECT 
-                        ua."UserId" AS "UserId",
-                        COALESCE(SUM(f.FileCount), 0)::int AS "FileCount",
-                        COALESCE(SUM(f.FileStorage), 0)::bigint AS "FileStorage",
-                        COALESCE(SUM(b.BlogCount), 0)::int AS "BlogCount",
-                        COALESCE(SUM(c.ConfigurationCount), 0)::int AS "ConfigurationCount",
-                        COALESCE(SUM(cp.CustomPageCount), 0)::int AS "CustomPageCount",
-                        COALESCE(SUM(pb.CustomPageBlockCount), 0)::int AS "CustomPageBlockCount",
-                        COALESCE(SUM(pb.CustomPageBlockSize), 0)::int AS "CustomPageBlockSize"
-                    FROM UserAuthors AS ua
-                    LEFT JOIN (
-                        SELECT "AuthorId", COUNT(*) AS FileCount, SUM(CAST("SizeBytes" AS BIGINT)) AS FileStorage 
-                        FROM public."Files" 
-                        WHERE "AuthorId" IN (SELECT "AuthorId" FROM UserAuthors)
-                        GROUP BY "AuthorId"
-                    ) f ON ua."AuthorId" = f."AuthorId"
-                    LEFT JOIN (
-                        SELECT "AuthorId", COUNT(*) AS BlogCount 
-                        FROM public."Blogs" 
-                        WHERE "AuthorId" IN (SELECT "AuthorId" FROM UserAuthors)
-                        GROUP BY "AuthorId"
-                    ) b ON ua."AuthorId" = b."AuthorId"
-                    LEFT JOIN (
-                        SELECT "AuthorId", COUNT(*) AS ConfigurationCount 
-                        FROM public."Configurations" 
-                        WHERE "AuthorId" IN (SELECT "AuthorId" FROM UserAuthors)
-                        GROUP BY "AuthorId"
-                    ) c ON ua."AuthorId" = c."AuthorId"
-                    LEFT JOIN (
-                        SELECT "AuthorId", COUNT(*) AS CustomPageCount 
-                        FROM public."CustomPages" 
-                        WHERE "AuthorId" IN (SELECT "AuthorId" FROM UserAuthors)
-                        GROUP BY "AuthorId"
-                    ) cp ON ua."AuthorId" = cp."AuthorId"
-                    LEFT JOIN (
-                        SELECT "AuthorId", 
-                            COUNT(*) AS CustomPageBlockCount,
-                            SUM(CAST(LENGTH("Data"::text) AS BIGINT)) AS CustomPageBlockSize 
-                        FROM public."PageBlocks" 
-                        WHERE "AuthorId" IN (SELECT "AuthorId" FROM UserAuthors)
-                        GROUP BY "AuthorId"
-                    ) pb ON ua."AuthorId" = pb."AuthorId"
-                    GROUP BY ua."UserId";
-                """;
+            // Author-owned content is now keyed by AuthorUserProxyId -> UserProxies, not
+            // NetworkUsers. Each content table is correlated per proxy via a scalar subquery
+            // (EF translates this more reliably than chained GroupBy+LeftJoin), then rolled
+            // up to the owning user, since a user can have more than one proxy.
+            var perProxy = _context.UserProxies
+                .Where(p => userId == null || p.User.Id == userId)
+                .Select(p => new
+                {
+                    UserId = p.User.Id,
+                    FileCount = _context.Files.Count(f =>
+                        f.AuthorUserProxyId == p.Id && (networkId == null || f.NetworkId == networkId)),
+                    FileStorage = _context.Files
+                        .Where(f => f.AuthorUserProxyId == p.Id && (networkId == null || f.NetworkId == networkId))
+                        .Sum(f => (long?)f.SizeBytes) ?? 0,
+                    BlogCount = _context.Blogs.Count(b =>
+                        b.AuthorUserProxyId == p.Id && (networkId == null || b.NetworkId == networkId)),
+                    ConfigurationCount = _context.Configurations.Count(c =>
+                        c.AuthorUserProxyId == p.Id && (networkId == null || c.NetworkId == networkId)),
+                    CustomPageCount = _context.CustomPages.Count(cp =>
+                        cp.AuthorUserProxyId == p.Id && (networkId == null || cp.NetworkId == networkId)),
+                    CustomPageBlockCount = _context.PageBlocks.Count(pb =>
+                        pb.AuthorUserProxyId == p.Id && (networkId == null || pb.NetworkId == networkId)),
+                });
 
-            var parameter = new NpgsqlParameter("userId", (object)userId ?? DBNull.Value);
-            var parameter2 = new NpgsqlParameter("networkId", (object)networkId ?? DBNull.Value);
-
-            return await _context.Database
-                .SqlQueryRaw<UserMetricsDto>(sql, parameter, parameter2)
+            return await perProxy
+                .GroupBy(x => x.UserId)
+                .Select(g => new UserMetricsDto
+                {
+                    UserId = g.Key,
+                    FileCount = g.Sum(x => x.FileCount),
+                    FileStorage = g.Sum(x => x.FileStorage),
+                    BlogCount = g.Sum(x => x.BlogCount),
+                    ConfigurationCount = g.Sum(x => x.ConfigurationCount),
+                    CustomPageCount = g.Sum(x => x.CustomPageCount),
+                    CustomPageBlockCount = g.Sum(x => x.CustomPageBlockCount),
+                })
+                .Where(x => x.FileCount > 0 || x.BlogCount > 0 || x.ConfigurationCount > 0
+                    || x.CustomPageCount > 0 || x.CustomPageBlockCount > 0)
                 .ToListAsync();
         }
 
