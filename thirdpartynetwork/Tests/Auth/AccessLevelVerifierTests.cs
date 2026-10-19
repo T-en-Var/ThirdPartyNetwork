@@ -148,12 +148,12 @@ public class AccessLevelVerifierTests
         var role = new Role
         {
             Id = Guid.NewGuid(), Name = permissionName, Description = "", IsDefault = false, NetworkId = networkId,
-            FeatureFlags = JsonDocument.Parse("{}"),
+            FeatureFlags = new RoleFeatureFlag(),
         };
         var networkUser = new NetworkUser
         {
             Id = Guid.NewGuid(), UserProxyId = userProxyId, NetworkId = networkId,
-            FeatureFlags = JsonDocument.Parse("{}"),
+            FeatureFlags = new NetworkUserFeatureFlag(),
         };
 
         ctx.Permissions.Add(permission);
@@ -288,7 +288,7 @@ public class AccessLevelVerifierTests
         ctx.NetworkUsers.Add(new NetworkUser
         {
             Id = Guid.NewGuid(), UserProxyId = userId, NetworkId = networkId,
-            FeatureFlags = JsonDocument.Parse("{}"),
+            FeatureFlags = new NetworkUserFeatureFlag(),
         });
         await ctx.SaveChangesAsync();
 
@@ -419,7 +419,7 @@ public class AccessLevelVerifierTests
         ctx.NetworkUsers.Add(new NetworkUser
         {
             Id = Guid.NewGuid(), UserProxyId = userId, NetworkId = networkId,
-            FeatureFlags = JsonDocument.Parse("{}"),
+            FeatureFlags = new NetworkUserFeatureFlag(),
         });
         await ctx.SaveChangesAsync();
 
@@ -1235,7 +1235,7 @@ public class AccessLevelVerifierTests
         ctx.NetworkUsers.Add(new NetworkUser
         {
             Id = Guid.NewGuid(), UserProxyId = callerId, NetworkId = networkId,
-            FeatureFlags = JsonDocument.Parse("{}"),
+            FeatureFlags = new NetworkUserFeatureFlag(),
         });
         await ctx.SaveChangesAsync();
 

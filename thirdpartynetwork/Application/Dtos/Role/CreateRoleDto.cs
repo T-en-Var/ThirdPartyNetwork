@@ -1,5 +1,5 @@
 ﻿using System.Text.Json;
-
+using thirdpartynetwork.Application.Dtos.FeatureFlag;
 namespace thirdpartynetwork.Application.Dtos.Role
 {
     public class CreateRoleDto
@@ -7,6 +7,6 @@ namespace thirdpartynetwork.Application.Dtos.Role
         public required string Name { get; set; }
         public required string Description { get; set; }
         public required bool IsDefault { get; set; }
-        public required JsonElement FeatureFlags { get; set; }
+        public required FeatureFlagDto FeatureFlags { get; set; }
     }
 }

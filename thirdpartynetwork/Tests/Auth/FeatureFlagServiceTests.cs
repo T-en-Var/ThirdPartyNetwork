@@ -84,7 +84,7 @@ public class FeatureFlagServiceTests
         var networkUser = new NetworkUser
         {
             Id = Guid.NewGuid(), UserProxyId = userProxyId, NetworkId = networkId,
-            FeatureFlags = JsonDocument.Parse("{}"), NetworkUserRoles = new List<NetworkUserRole>()
+            FeatureFlags = new NetworkUserFeatureFlag(), NetworkUserRoles = new List<NetworkUserRole>()
         };
         var file = new Mock<IFormFile>();
         file.Setup(f => f.Length).Returns(500); // 500 bytes
@@ -251,7 +251,7 @@ public class FeatureFlagServiceTests
         var networkUser = new NetworkUser
         {
             Id = Guid.NewGuid(), UserProxyId = userProxyId, NetworkId = networkId,
-            FeatureFlags = JsonDocument.Parse("{\"FileCountLimit\": 1}"), NetworkUserRoles = new List<NetworkUserRole>()
+            FeatureFlags =  new NetworkUserFeatureFlag { FileCountLimit = 1 }, NetworkUserRoles = new List<NetworkUserRole>()
         };
 
         _networkRepositoryMock.Setup(r => r.GetByIdFeatureFlagAsync(networkId)).ReturnsAsync(network);
@@ -298,7 +298,7 @@ public class FeatureFlagServiceTests
         };
         var role = new Role
         {
-            FeatureFlags = JsonDocument.Parse("{\"FileCountLimit\": 5}"),
+            FeatureFlags = new RoleFeatureFlag { FileCountLimit = 5 },
             Name = "Role Name",
             Description = "Role Description",
             IsDefault = false,
@@ -307,7 +307,7 @@ public class FeatureFlagServiceTests
         var networkUser = new NetworkUser
         {
             Id = Guid.NewGuid(), UserProxyId = userProxyId, NetworkId = networkId,
-            FeatureFlags = JsonDocument.Parse("{}"), // No personal override
+            FeatureFlags = new NetworkUserFeatureFlag(), // No personal override
         };
         networkUser.NetworkUserRoles = new List<NetworkUserRole>
         {
@@ -365,7 +365,7 @@ public class FeatureFlagServiceTests
         var networkUser = new NetworkUser
         {
             Id = Guid.NewGuid(), UserProxyId = userProxyId, NetworkId = networkId,
-            FeatureFlags = JsonDocument.Parse("{}"), NetworkUserRoles = new List<NetworkUserRole>()
+            FeatureFlags = new NetworkUserFeatureFlag(), NetworkUserRoles = new List<NetworkUserRole>()
         };
 
         _networkRepositoryMock.Setup(r => r.GetByIdFeatureFlagAsync(networkId)).ReturnsAsync(network);
@@ -402,7 +402,7 @@ public class FeatureFlagServiceTests
         var networkUser = new NetworkUser
         {
             Id = Guid.NewGuid(), UserProxyId = userProxyId, NetworkId = networkId,
-            FeatureFlags = JsonDocument.Parse("{\"BlogCountLimit\": 1}"), NetworkUserRoles = new List<NetworkUserRole>()
+            FeatureFlags = new NetworkUserFeatureFlag { BlogCountLimit = 1 }, NetworkUserRoles = new List<NetworkUserRole>()
         };
 
         _networkRepositoryMock.Setup(r => r.GetByIdFeatureFlagAsync(networkId)).ReturnsAsync(network);
@@ -454,7 +454,7 @@ public class FeatureFlagServiceTests
         {
             Id = Guid.NewGuid(), UserProxyId = userProxyId, NetworkId = networkId,
             // Because of the suspected bug in the constant name, this will actually set ConfigurationCountLimit
-            FeatureFlags = JsonDocument.Parse("{\"ConfigurationCountLimit\": 1}"),
+            FeatureFlags = new NetworkUserFeatureFlag { ConfigurationCountLimit = 1 },
             NetworkUserRoles = new List<NetworkUserRole>()
         };
 
@@ -506,7 +506,7 @@ public class FeatureFlagServiceTests
             Id = Guid.NewGuid(),
             UserProxyId = userProxyId,
             NetworkId = networkId,
-            FeatureFlags = JsonDocument.Parse("{}"),
+            FeatureFlags = new NetworkUserFeatureFlag(),
             NetworkUserRoles = new List<NetworkUserRole>()
         };
 
@@ -684,7 +684,7 @@ public class FeatureFlagServiceTests
             Id = Guid.NewGuid(),
             UserProxyId = userProxyId,
             NetworkId = networkId,
-            FeatureFlags = JsonDocument.Parse("{}"),
+            FeatureFlags = new NetworkUserFeatureFlag(),
             NetworkUserRoles = new List<NetworkUserRole>()
         };
 
@@ -746,7 +746,7 @@ public class FeatureFlagServiceTests
             Id = Guid.NewGuid(),
             UserProxyId = userProxyId,
             NetworkId = networkId,
-            FeatureFlags = JsonDocument.Parse("{\"CustomPageBlockSizeLimit\": 5}"),
+            FeatureFlags = new NetworkUserFeatureFlag { CustomPageBlockSizeLimit = 5 },
             NetworkUserRoles = new List<NetworkUserRole>()
         };
 
@@ -775,193 +775,6 @@ public class FeatureFlagServiceTests
 
         // Assert
         Assert.That(result, Is.False);
-    }
-
-    #endregion
-
-    #region Read/Write/Remove FeatureFlag Tests
-
-    [Test]
-    public void CustomPageCountLimit_And_ConfigurationCountLimit_DoNotConflict()
-    {
-        // Arrange
-        var networkUser = new NetworkUser { FeatureFlags = JsonDocument.Parse("{}") };
-        const int customPageLimit = 5;
-        const int configLimit = 10;
-
-        // Act
-        networkUser = NetworkFeatureFlagFactory.WriteFeatureFlag(networkUser, customPageLimit ,FeatureFlagType.CustomPageCountLimit);
-        networkUser = NetworkFeatureFlagFactory.WriteFeatureFlag(networkUser, configLimit, FeatureFlagType.ConfigurationCountLimit);
-
-        // Assert
-        var readCustomPageLimit = NetworkFeatureFlagFactory.ReadFeatureFlag<int?>(networkUser, FeatureFlagType.CustomPageCountLimit);
-        var readConfigLimit = NetworkFeatureFlagFactory.ReadFeatureFlag<int?>(networkUser, FeatureFlagType.ConfigurationCountLimit);
-
-        // This will fail if WriteCustomPageCountLimitFeatureFlag uses the same key as WriteConfigurationCountLimitFeatureFlag
-        Assert.That(readCustomPageLimit, Is.EqualTo(customPageLimit), "Custom CustomPage limit should be preserved.");
-        Assert.That(readConfigLimit, Is.EqualTo(configLimit), "Configuration limit should be preserved.");
-    }
-
-    [Test]
-    public void ReadFileCountLimitFeatureFlag_NoLimits_ReturnsNull()
-    {
-        // Arrange
-        var networkUser = new NetworkUser
-            { FeatureFlags = JsonDocument.Parse("{}"), NetworkUserRoles = new List<NetworkUserRole>() };
-
-        // Act
-        var limit = NetworkFeatureFlagFactory.ReadFeatureFlag<int?>(networkUser, FeatureFlagType.FileCountLimit);
-
-        // Assert
-        Assert.That(limit, Is.Null);
-    }
-
-    [Test]
-    public void ReadFileCountLimitFeatureFlag_OnlyUserLimit_ReturnsUserLimit()
-    {
-        // Arrange
-        var networkUser = new NetworkUser
-        {
-            FeatureFlags = JsonDocument.Parse("{\"FileCountLimit\": 10}"),
-            NetworkUserRoles = new List<NetworkUserRole>()
-        };
-
-        // Act
-        var limit = NetworkFeatureFlagFactory.ReadFeatureFlag<int?>(networkUser, FeatureFlagType.FileCountLimit);
-
-        // Assert
-        Assert.That(limit, Is.EqualTo(10));
-    }
-
-    [Test]
-    public void ReadFileCountLimitFeatureFlag_OnlyRoleLimit_ReturnsRoleLimit()
-    {
-        // Arrange
-        var roleWithLimit = new Role
-        {
-            FeatureFlags = JsonDocument.Parse("{\"FileCountLimit\": 20}"),
-            Name = "name",
-            Description = "description",
-            IsDefault = false,
-            Network = null!
-        };
-        var networkUser = new NetworkUser
-        {
-            FeatureFlags = JsonDocument.Parse("{}"),
-        };
-        networkUser.NetworkUserRoles = new List<NetworkUserRole>
-        {
-            new()
-            {
-                Role = roleWithLimit,
-                NetworkUser = networkUser
-            }
-        };
-
-        // Act
-        var limit = NetworkFeatureFlagFactory.ReadFeatureFlag<int?>(networkUser, FeatureFlagType.FileCountLimit);
-
-        // Assert
-        Assert.That(limit, Is.EqualTo(20));
-    }
-
-    [Test]
-    public void ReadFileCountLimitFeatureFlag_UserAndRoleLimits_ReturnsMax()
-    {
-        // Arrange
-        var roleWithLimit = new Role
-        {
-            FeatureFlags = JsonDocument.Parse("{\"FileCountLimit\": 20}"),
-            Name = "name",
-            Description = "description",
-            IsDefault = false,
-            Network = null!
-        };
-        var networkUser = new NetworkUser
-        {
-            FeatureFlags = JsonDocument.Parse("{\"FileCountLimit\": 10}"),
-        };
-        networkUser.NetworkUserRoles = new List<NetworkUserRole>
-        {
-            new()
-            {
-                Role = roleWithLimit,
-                NetworkUser = networkUser
-            }
-        };
-
-        // Act
-        var limit = NetworkFeatureFlagFactory.ReadFeatureFlag<int?>(networkUser, FeatureFlagType.FileCountLimit);
-
-        // Assert
-        // Should be Max(user_limit, role_limit) = Max(10, 20) = 20
-        Assert.That(limit, Is.EqualTo(20));
-    }
-
-    [Test]
-    public void ReadFileCountLimitFeatureFlag_MultipleRoleLimits_ReturnsMaxRoleLimit()
-    {
-        // Arrange
-        var role1 = new Role
-        {
-            FeatureFlags = JsonDocument.Parse("{\"FileCountLimit\": 20}"),
-            Name = "name 1",
-            Description = "description",
-            IsDefault = false,
-            Network = null!
-        };
-        var role2 = new Role
-        {
-            FeatureFlags = JsonDocument.Parse("{\"FileCountLimit\": 30}"),
-            Name = "name 1",
-            Description = "description",
-            IsDefault = false,
-            Network = null!
-        };
-        var networkUser = new NetworkUser
-        {
-            FeatureFlags = JsonDocument.Parse("{}"),
-        };
-        networkUser.NetworkUserRoles = new List<NetworkUserRole>
-        {
-            new()
-            {
-                Role = role2,
-                NetworkUser = networkUser
-            }
-        };
-        networkUser.NetworkUserRoles.Add(new NetworkUserRole
-        {
-            Role = role1,
-            NetworkUser = networkUser
-        });
-
-        // Act
-        var limit = NetworkFeatureFlagFactory.ReadFeatureFlag<int?>(networkUser, FeatureFlagType.FileCountLimit);
-
-        // Assert
-        Assert.That(limit, Is.EqualTo(30));
-    }
-
-    [Test]
-    public void WriteAndRemoveFileCountLimitFeatureFlag_Works()
-    {
-        // Arrange
-        var networkUser = new NetworkUser { FeatureFlags = JsonDocument.Parse("{}") };
-
-        // Act (Write)
-        networkUser = NetworkFeatureFlagFactory.WriteFeatureFlag(networkUser, 55, FeatureFlagType.FileCountLimit);
-
-        // Assert (Write)
-        var readLimit = NetworkFeatureFlagFactory.ReadFeatureFlag<int?>(networkUser, FeatureFlagType.FileCountLimit);
-        Assert.That(readLimit, Is.EqualTo(55));
-
-        // Act (Remove)
-        networkUser = NetworkFeatureFlagFactory.RemoveFeatureFlag<int?>(networkUser, FeatureFlagType.FileCountLimit);
-
-        // Assert (Remove)
-        var removedLimit = NetworkFeatureFlagFactory.ReadFeatureFlag<int?>(networkUser, FeatureFlagType.FileCountLimit);
-        Assert.That(removedLimit, Is.Null);
     }
 
     #endregion

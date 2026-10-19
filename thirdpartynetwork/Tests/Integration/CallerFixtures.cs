@@ -67,7 +67,7 @@ public static class CallerFixtures
         var role = new Role
         {
             Id = Guid.NewGuid(), Name = roleName, Description = "test role", IsDefault = false,
-            Network = network, NetworkId = network.Id, FeatureFlags = JsonDocument.Parse("{}"),
+            Network = network, NetworkId = network.Id, FeatureFlags = new RoleFeatureFlag(),
         };
         ctx.Roles.Add(role);
 
@@ -101,7 +101,7 @@ public static class CallerFixtures
         var networkUser = new NetworkUser
         {
             Id = Guid.NewGuid(), NetworkId = network.Id, UserProxyId = proxy.Id, UserProxy = proxy,
-            AccessIncomplete = accessIncomplete, FeatureFlags = JsonDocument.Parse("{}"),
+            AccessIncomplete = accessIncomplete, FeatureFlags = new NetworkUserFeatureFlag(),
         };
         ctx.NetworkUsers.Add(networkUser);
         foreach (var role in roles)
