@@ -52,7 +52,7 @@ public class TokenGeneratorTests
                 }
             },
             IsDefault = false,
-            FeatureFlags = JsonDocument.Parse("{}")
+            FeatureFlags = new RoleFeatureFlag()
         };
         role.RolePermissions.Add(new RolePermission { Permission = permission, Role = role });
 
@@ -62,7 +62,7 @@ public class TokenGeneratorTests
         var networkUser = new NetworkUser
         {
             Id = Guid.NewGuid(), UserProxy = userProxy, UserProxyId = userProxy.Id,
-            FeatureFlags = JsonDocument.Parse("{}")
+            FeatureFlags = new NetworkUserFeatureFlag()
         };
         var nur = new NetworkUserRole
         {

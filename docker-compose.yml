@@ -1,32 +1,90 @@
 services:
-  # tpn:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - "9080:8080"
-  #   environment:
-  #     DB_CONNECTION_STRING: ${DB_CONNECTION_STRING}
-  #     TOKEN_SECRET: ${TOKEN_SECRET}
-  #     DOTNET_ENVIRONMENT: ${DOTNET_ENVIRONMENT:-Production}
-  #     LUCKY_PENNY_LICENSE: ${LUCKY_PENNY_LICENSE}
-  #     FRONTEND_URL: ${FRONTEND_URL}
-  #     MINIO_ROOT_USER: ${MINIO_ROOT_USER}
-  #     MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
-  #     MINIO_INTERNAL_ENDPOINT: minio:9000
-  #     MINIO_INTERNAL_USE_SSL: "false"
-  #     MINIO_EXTERNAL_ENDPOINT: ${MINIO_EXTERNAL_ENDPOINT}
-  #     MINIO_EXTERNAL_USE_SSL: ${MINIO_EXTERNAL_USE_SSL:-true}
-  #     MINIO_PUBLIC_BUCKET: public
-  #     MINIO_PRIVATE_BUCKET: private
-  #   depends_on:
-  #     - minio
-  #   networks:
-  #     - tpn-internal
+  tpn:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "9080:8080"
+    environment:
+      DB_CONNECTION_STRING: ${DB_CONNECTION_STRING}
+      TOKEN_SECRET: ${TOKEN_SECRET}
+      DOTNET_ENVIRONMENT: ${DOTNET_ENVIRONMENT:-Production}
+      LUCKY_PENNY_LICENSE: ${LUCKY_PENNY_LICENSE}
+      FRONTEND_URL: ${FRONTEND_URL}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_INTERNAL_ENDPOINT: minio:9000
+      MINIO_INTERNAL_USE_SSL: "false"
+      MINIO_EXTERNAL_ENDPOINT: ${MINIO_EXTERNAL_ENDPOINT}
+      MINIO_EXTERNAL_USE_SSL: ${MINIO_EXTERNAL_USE_SSL:-true}
+      MINIO_PUBLIC_BUCKET: public
+      MINIO_PRIVATE_BUCKET: private
+    depends_on:
+      - minio
+      - postgres
+    networks:
+      - tpn-internal
+
+  postgres:
+    image: postgres:18
+    container_name: postgres-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    networks:
+      - tpn-internal
+
+  portainer:
+    image: portainer/portainer-ce:lts
+    container_name: portainer
+    restart: unless-stopped
+    ports:
+      - "9443:9443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    networks:
+      - tpn-internal
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - "127.0.0.1:5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - tpn-internal
+    depends_on:
+      - postgres
 
   minio:
-    image: minio/minio:latest
-    command: server /data --console-address ":9001"
+    image: local-minio:latest
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM golang:1.24-alpine AS builder
+        RUN apk add --no-cache git
+        WORKDIR /src
+        RUN git clone https://github.com/minio/minio.git .
+        RUN CGO_ENABLED=0 go build -o /minio .
+
+        FROM alpine:3.22
+        RUN apk add --no-cache ca-certificates
+        COPY --from=builder /minio /usr/local/bin/minio
+        ENTRYPOINT ["minio"]
+        CMD ["server", "/data", "--console-address", ":9001"]
+
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
@@ -44,3 +102,6 @@ networks:
 
 volumes:
   minio-data:
+  postgres_data:
+  portainer_data:
+  pgadmin_data:
