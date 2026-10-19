@@ -1,7 +1,7 @@
 import api from '@/api/api';
 import { userProxyKey } from '@/lib/cacheKeys';
 import type { CreateCustomPageDto, CreatePageBlockDto, CustomPageDto, PageBlockDto, UpdatePageBlockDto } from '@/types';
-import { prependItem, useCachedApi, useMutation } from '../useApi';
+import { prependItem, useCachedApi, useMutation } from '@/composables/api/useApi';
 
 export default function useCustomPages() {
   // There is no /users/{userId}/proxies/{userProxyId}/customPages route on the backend - custom

@@ -163,8 +163,8 @@ import { useRoute, useRouter } from 'vue-router';
 import type { UserProxyDto, CreateUserProxyDto, NetworkAccessDto } from '@/types';
 import { useGlobalStore } from '@/stores/global';
 import api from '@/api/api';
-import useNetworkAuthFlow from '@/composables/useNetworkAuthFlow';
-import useAccessConsent, { type AccessConsentState } from '@/composables/useAccessConsent';
+import useNetworkAuthFlow from '@/composables/api/useNetworkAuthFlow';
+import useAccessConsent, { type AccessConsentState } from '@/composables/api/useAccessConsent';
 
 import AuthLayout from '@/components/AuthLayout.vue';
 import AuthFormCard from '@/components/AuthFormCard.vue';

@@ -91,10 +91,10 @@ import { onMounted, ref, watch } from 'vue';
 import ModalContainer from '@/components/modals/ModalContainer.vue';
 import ContentVisibilityPanel from '@/components/ContentVisibilityPanel.vue';
 import CdnFile from '@/components/cdn/CdnFile.vue';
-import useFiles from '@/composables/network/useFiles';
-import useRoles from '@/composables/useRoles';
-import usePermissions from '@/composables/usePermissions';
-import useNetworkUsers from '@/composables/useNetworkUsers';
+import useFiles from '@/composables/api/network/useFiles';
+import useRoles from '@/composables/api/useRoles';
+import usePermissions from '@/composables/api/usePermissions';
+import useNetworkUsers from '@/composables/api/useNetworkUsers';
 import type { FileDto, UpdateFileDto } from '@/types';
 
 const props = defineProps<{

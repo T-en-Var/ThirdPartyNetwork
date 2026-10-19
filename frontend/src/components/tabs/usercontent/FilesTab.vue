@@ -50,7 +50,7 @@
 </template>
 
 <script setup lang="ts">
-import useFiles from '@/composables/network/useFiles';
+import useFiles from '@/composables/api/network/useFiles';
 import type { FileDto, ConfirmForm, UpdateFileDto } from '@/types';
 import { computed, onMounted, ref, watch, type Ref } from 'vue';
 import UserContentViewer from '@/components/UserContentViewer.vue';

@@ -432,7 +432,7 @@ import SecurableField from '@/components/fields/SecurableField.vue';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import DualSlider from '@/components/DualSlider.vue';
 import ViewUserFeatureFlagsModal from '@/components/modals/admin/ViewUserFeatureFlagsModal.vue';
-import useUsers from '@/composables/useUsers';
+import useUsers from '@/composables/api/useUsers';
 import { featureFlagKeys, toFeatureFlagDto } from '@/composables/useFeatureFlags';
 import { defaultProxy } from '@/lib/user';
 import type {
@@ -445,9 +445,9 @@ import type {
   SettableFeatureFlag,
 } from '@/types';
 import { capitalize, computed, onMounted, ref } from 'vue';
-import useNetworks from '@/composables/useNetworks';
+import useNetworks from '@/composables/api/useNetworks';
 import EditUserModal from '@/components/modals/network/EditUserModal.vue';
-import useNetworkUsers from '@/composables/useNetworkUsers';
+import useNetworkUsers from '@/composables/api/useNetworkUsers';
 import TempModal from '@/components/modals/admin/TempModal.vue';
 import { extractApiErrorMessage } from '@/lib/utils';
 import { useGlobalStore } from '@/stores/global';

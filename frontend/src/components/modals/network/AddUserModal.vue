@@ -70,7 +70,7 @@ import ModalFormActions from '@/components/modals/ModalFormActions.vue';
 import CheckboxList from '@/components/CheckboxList.vue';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import type { UserProxyLightWithNetworksDto, NetworkDto } from '@/types';
-import useUsers from '@/composables/useUsers';
+import useUsers from '@/composables/api/useUsers';
 
 const props = defineProps<{
   network: NetworkDto;

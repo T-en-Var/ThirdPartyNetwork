@@ -20,7 +20,7 @@
     <AuthModal />
     <UnauthorizedModal />
 
-    <!-- <div style="position: fixed; z-index: 100000; width: 100px; height: 100px; background-color: red;" @click="debug"></div> -->
+    <div style="position: fixed; z-index: 100000; width: 100px; height: 100px; background-color: red;" @click="debug"></div>
   </main>
 </template>
 
@@ -48,13 +48,9 @@ onMounted(async () => {
   await authStore.initialize();
 });
 
-// function debug() {
-//   global.addToast({
-//     message: "testt",
-//     type: "error",
-//     duration: 5000,
-//   })
-// }
+async function debug() {
+  await authStore.refreshTokens()
+}
 
 const showNavbar = computed(() => {
   return !(route.meta.showNavbar === false || route.query.hideNavbar !== undefined);

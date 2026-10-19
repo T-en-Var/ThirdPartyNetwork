@@ -1,7 +1,7 @@
 import api from '@/api/api';
 import { networkKey } from '@/lib/cacheKeys';
 import type { ConfigurationDto, CreateConfigurationDto, UpdateConfigurationDto } from '@/types';
-import { prependItem, useCachedApi, useMutation } from '../useApi';
+import { prependItem, useCachedApi, useMutation } from '@/composables/api/useApi';
 
 // Configurations always live under a network (there is no account-scoped storage), so every
 // mutation here still needs a networkId and hits the same /networks/{networkId}/configurations

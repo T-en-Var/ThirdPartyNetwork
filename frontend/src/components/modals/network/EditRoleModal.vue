@@ -142,7 +142,7 @@ import ModalContainer from '@/components/modals/ModalContainer.vue';
 import ModalFormActions from '@/components/modals/ModalFormActions.vue';
 import CheckboxList from '@/components/CheckboxList.vue';
 import type { RoleDto, NetworkDto, RoleForm, SettableFeatureFlag } from '@/types';
-import usePermissions from '@/composables/usePermissions';
+import usePermissions from '@/composables/api/usePermissions';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import { useFeatureFlags } from '@/composables/useFeatureFlags';
 import FeatureFlagsForm from '@/components/FeatureFlagsForm.vue';

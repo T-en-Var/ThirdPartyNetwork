@@ -1,16 +1,16 @@
 import { ref, reactive, type ComputedRef, type Ref } from 'vue';
 import { useRouter } from 'vue-router';
 
-import usePermissions from '@/composables/usePermissions';
-import useFiles from '@/composables/network/useFiles';
-import useCustomPages from '@/composables/network/useCustomPages';
-import useRoles from '@/composables/useRoles';
-import useNetworks from '@/composables/useNetworks';
-import useNetworkUsers from '@/composables/useNetworkUsers';
-import useAccesses from '@/composables/useAccesses';
-import useBlogs from '@/composables/network/useBlogs';
-import useConfigurations from '@/composables/network/useConfigurations';
-import type { UseCachedApiReturn, UseMutationReturn } from '@/composables/useApi';
+import usePermissions from '@/composables/api/usePermissions';
+import useFiles from '@/composables/api/network/useFiles';
+import useCustomPages from '@/composables/api/network/useCustomPages';
+import useRoles from '@/composables/api/useRoles';
+import useNetworks from '@/composables/api/useNetworks';
+import useNetworkUsers from '@/composables/api/useNetworkUsers';
+import useAccesses from '@/composables/api/useAccesses';
+import useBlogs from '@/composables/api/network/useBlogs';
+import useConfigurations from '@/composables/api/network/useConfigurations';
+import type { UseCachedApiReturn, UseMutationReturn } from '@/composables/api/useApi';
 import { useEventStore } from '@/stores/event';
 import { getNameDisplayUserProxy } from '@/lib/user';
 import { useHistoryStore } from '@/stores/history';

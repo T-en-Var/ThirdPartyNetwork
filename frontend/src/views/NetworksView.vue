@@ -56,10 +56,10 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
-import useNetworks from '@/composables/useNetworks';
+import useNetworks from '@/composables/api/useNetworks';
 import MyNetworksTab from '@/components/tabs/network/MyNetworksTab.vue';
 import BrowseNetworksTab from '@/components/tabs/network/BrowseNetworksTab.vue';
-import useUsersNetworks from '@/composables/useUserNetworks';
+import useUsersNetworks from '@/composables/api/useUserNetworks';
 import { useRouter } from 'vue-router';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 

@@ -1,8 +1,8 @@
 import api from '@/api/api';
 import { networkKey } from '@/lib/cacheKeys';
 import type { ConfigurationDto, CreateConfigurationDto, UpdateConfigurationDto } from '@/types';
-import { prependItem, useCachedApi, useMutation } from '../useApi';
-import { useNetworkContentAccess } from '../useContentAccess';
+import { prependItem, useCachedApi, useMutation } from '@/composables/api/useApi';
+import { useNetworkContentAccess } from '@/composables/api/useContentAccess';
 
 export default function useConfigurations() {
   const fetchConfigurations = useCachedApi<ConfigurationDto[], [networkId: string]>(

@@ -1,7 +1,7 @@
 import api from '@/api/api';
 import { networkKey } from '@/lib/cacheKeys';
 import type { CreateNetworkUserDto, NetworkUserDto, UpdateNetworkUserDto } from '@/types';
-import { useCachedApi, useMutation } from './useApi';
+import { useCachedApi, useMutation } from '@/composables/api/useApi';
 
 export default function useNetworkUsers() {
   const fetchNetworkUsers = useCachedApi<NetworkUserDto[], [networkId: string]>(

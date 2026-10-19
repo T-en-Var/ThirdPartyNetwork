@@ -10,8 +10,8 @@ import type {
 } from '@/types';
 import { decodeJWT, extractApiErrorMessage, safeBtoa } from '@/lib/utils';
 import rawApi from '@/api/rawApi';
-import useNetworks from '@/composables/useNetworks';
-import useTempAuth from './useTempAuth';
+import useNetworks from '@/composables/api/useNetworks';
+import useTempAuth from '../useTempAuth';
 
 export default function useNetworkAuthFlow() {
   const route = useRoute();

@@ -80,7 +80,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useGlobalStore } from '@/stores/global';
-import useNetworkAuthFlow from '@/composables/useNetworkAuthFlow';
+import useNetworkAuthFlow from '@/composables/api/useNetworkAuthFlow';
 
 import AuthLayout from '@/components/AuthLayout.vue';
 import AuthFormCard from '@/components/AuthFormCard.vue';

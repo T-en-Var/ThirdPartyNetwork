@@ -7,12 +7,12 @@ import { useGlobalStore } from '@/stores/global';
 import { useEventStore } from '@/stores/event';
 import { DEFAULT_STORES, useHistoryStore } from '@/stores/history';
 
-import useUsers from '@/composables/useUsers';
-import useBlogs from '@/composables/account/useBlogs';
-import useCustomPages from '@/composables/account/useCustomPages';
-import useFiles from '@/composables/account/useFiles';
-import useConfigurations from '@/composables/account/useConfigurations';
-import type { UseCachedApiReturn, UseMutationReturn } from '@/composables/useApi';
+import useUsers from '@/composables/api/useUsers';
+import useBlogs from '@/composables/api/account/useBlogs';
+import useCustomPages from '@/composables/api/account/useCustomPages';
+import useFiles from '@/composables/api/account/useFiles';
+import useConfigurations from '@/composables/api/account/useConfigurations';
+import type { UseCachedApiReturn, UseMutationReturn } from '@/composables/api/useApi';
 
 import type {
   BlogDto,

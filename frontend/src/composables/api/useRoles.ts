@@ -1,6 +1,6 @@
 import api from '@/api/api';
 import type { CreateRoleDto, NetworkDto, RoleDto, UpdateRoleDto } from '@/types';
-import { globalCache, useCachedApi, useMutation } from './useApi';
+import { globalCache, useCachedApi, useMutation } from '@/composables/api/useApi';
 
 export default function useRoles() {
   const fetchRoles = useCachedApi<RoleDto[], [networkId: string]>(

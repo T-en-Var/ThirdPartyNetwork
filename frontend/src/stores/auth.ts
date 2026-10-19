@@ -4,10 +4,10 @@ import { type InternalAxiosRequestConfig } from 'axios';
 
 import { decodeJWT } from '@/lib/utils';
 import { ClaimChecker } from '@/lib/claimChecker';
-import useNetworks from '@/composables/useNetworks';
+import useNetworks from '@/composables/api/useNetworks';
 import { clearAllHistoryStores } from './history';
-import useAuthentication from '@/composables/useAuthentication';
-import useUserProxy from '@/composables/useUserProxy';
+import useAuthentication from '@/composables/api/useAuthentication';
+import useUserProxy from '@/composables/api/useUserProxy';
 import type { AccessTokenClaims, CreateUserProxyDto, LoginDto, NetworkDto, NetworkLightDto, NetworkPermissionsCollectionDto, UserProxyDto } from '@/types';
 
 const ACCESS_TOKEN_KEY = 'access_token';

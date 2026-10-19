@@ -157,8 +157,8 @@ import { useAuthStore } from '@/stores/auth';
 import UserProxyDisplay from '@/components/UserProxyDisplay.vue';
 import NetworkLogo from '@/components/NetworkLogo.vue';
 import api from '@/api/api';
-import useNetworks from '@/composables/useNetworks';
-import useAccessConsent, { type AccessConsentState } from '@/composables/useAccessConsent';
+import useNetworks from '@/composables/api/useNetworks';
+import useAccessConsent, { type AccessConsentState } from '@/composables/api/useAccessConsent';
 import { safeBtoa } from '@/lib/utils';
 
 const router = useRouter();

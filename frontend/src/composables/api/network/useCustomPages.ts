@@ -8,8 +8,8 @@ import type {
   UpdateCustomPageDto,
   UpdatePageBlockDto,
 } from '@/types';
-import { prependItem, useCachedApi, useMutation } from '../useApi';
-import { useNetworkContentAccess } from '../useContentAccess';
+import { prependItem, useCachedApi, useMutation } from '@/composables/api/useApi';
+import { useNetworkContentAccess } from '@/composables/api/useContentAccess';
 
 export default function useCustomPages() {
   const fetchCustomPages = useCachedApi<CustomPageDto[], [networkId: string]>(

@@ -1,6 +1,6 @@
 import api from '@/api/api';
 import type { PermissionDto } from '@/types';
-import { useCachedApi } from './useApi';
+import { useCachedApi } from '@/composables/api/useApi';
 
 export default function usePermissions() {
   const fetchPermissions = useCachedApi<PermissionDto[], []>(

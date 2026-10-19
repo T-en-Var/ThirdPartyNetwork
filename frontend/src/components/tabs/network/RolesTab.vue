@@ -126,7 +126,7 @@
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import LoadingSpinner from '@/components/LoadingSpinner.vue';
 import ProfileAvatar from '@/components/ProfileAvatar.vue';
-import useRoles from '@/composables/useRoles';
+import useRoles from '@/composables/api/useRoles';
 import type { NetworkDto, RoleDto } from '@/types';
 import { onMounted } from 'vue';
 

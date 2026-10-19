@@ -302,7 +302,7 @@ import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import NetworkCard from '@/components/NetworkCard.vue';
 import { useAuthStore } from '@/stores/auth';
 import AddFileModal from '@/components/modals/usercontent/AddFileModal.vue';
-import useUsers from '@/composables/useUsers';
+import useUsers from '@/composables/api/useUsers';
 import type { FileDto, NetworkDto, UpdateUserProxyDto, UpdateUserProxyForm, UserProxyDto, UserProxyLightWithNetworksDto } from '@/types';
 
 const route = useRoute();

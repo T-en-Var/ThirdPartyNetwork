@@ -137,8 +137,8 @@ import NetworkLogo from '@/components/NetworkLogo.vue';
 
 import ErrorAlert from '@/components/ErrorAlert.vue';
 import UserProxyDisplay from '@/components/UserProxyDisplay.vue';
-import useNetworks from '@/composables/useNetworks';
-import useAccessConsent, { type AccessConsentState } from '@/composables/useAccessConsent';
+import useNetworks from '@/composables/api/useNetworks';
+import useAccessConsent, { type AccessConsentState } from '@/composables/api/useAccessConsent';
 import { safeAtob } from '@/lib/utils';
 import useTempAuth from '@/composables/useTempAuth';
 

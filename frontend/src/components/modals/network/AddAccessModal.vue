@@ -83,7 +83,7 @@ import ModalContainer from '@/components/modals/ModalContainer.vue';
 import ModalFormActions from '@/components/modals/ModalFormActions.vue';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import type { CreateNetworkAccessForm, NetworkDto } from '@/types';
-import useAccesses from '@/composables/useAccesses';
+import useAccesses from '@/composables/api/useAccesses';
 
 const accessesState = useAccesses().fetchAccesses;
 

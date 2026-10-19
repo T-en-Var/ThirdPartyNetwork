@@ -25,7 +25,7 @@
 import { ref } from 'vue';
 import ConfirmationModal from '@/components/modals/ConfirmationModal.vue';
 import AdminSidebar from '@/components/sidebar/AdminSidebar.vue';
-import useNetworks from '@/composables/useNetworks';
+import useNetworks from '@/composables/api/useNetworks';
 import type { NetworkDto } from '@/types';
 
 const isSubmitting = ref(false);

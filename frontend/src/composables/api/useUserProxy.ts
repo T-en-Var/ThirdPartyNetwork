@@ -1,8 +1,8 @@
 import api from '@/api/api';
 import { userProxyKey } from '@/lib/cacheKeys';
 import type { NetworkPermissionsCollectionDto, UserProxyDto } from '@/types';
-import { useCachedApi } from './useApi';
-import { withUserProxyGuard } from './withUserProxyGuard';
+import { useCachedApi } from '@/composables/api/useApi';
+import { withUserProxyGuard } from '@/composables/withUserProxyGuard';
 
 export default function useUserProxy() {
   const fetchMe = useCachedApi<UserProxyDto, []>(

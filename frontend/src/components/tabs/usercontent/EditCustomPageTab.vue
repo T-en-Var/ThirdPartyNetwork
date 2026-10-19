@@ -189,10 +189,10 @@ import { useEventStore } from '@/stores/event';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import AddPageBlockModal from '@/components/modals/usercontent/AddPageBlockModal.vue';
 import { useEditableEntity } from '@/composables/useEditableEntity';
-import useCustomPages from '@/composables/network/useCustomPages';
-import useRoles from '@/composables/useRoles';
-import usePermissions from '@/composables/usePermissions';
-import useNetworkUsers from '@/composables/useNetworkUsers';
+import useCustomPages from '@/composables/api/network/useCustomPages';
+import useRoles from '@/composables/api/useRoles';
+import usePermissions from '@/composables/api/usePermissions';
+import useNetworkUsers from '@/composables/api/useNetworkUsers';
 
 const route = useRoute();
 const events = useEventStore();

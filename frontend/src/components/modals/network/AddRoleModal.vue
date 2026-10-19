@@ -89,7 +89,7 @@ import ModalFormActions from '@/components/modals/ModalFormActions.vue';
 import CheckboxList from '@/components/CheckboxList.vue';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import type { RoleForm } from '@/types';
-import usePermissions from '@/composables/usePermissions';
+import usePermissions from '@/composables/api/usePermissions';
 
 const emit = defineEmits(['close', 'add-role']);
 const {

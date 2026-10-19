@@ -98,8 +98,8 @@ import AccountSidebar from '@/components/sidebar/AccountSidebar.vue';
 import { useAuthStore } from '@/stores/auth';
 import AddUserProxyModal from '@/components/modals/account/AddUserProxyModal.vue';
 import AddFileModal from '@/components/modals/usercontent/AddFileModal.vue';
-import useNetworks from '@/composables/useNetworks';
-import useUsers from '@/composables/useUsers';
+import useNetworks from '@/composables/api/useNetworks';
+import useUsers from '@/composables/api/useUsers';
 import useAccountManageActions from '@/composables/useAccountManageActions';
 import type { UserProxyLightWithNetworksDto } from '@/types';
 

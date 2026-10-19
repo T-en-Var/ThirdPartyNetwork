@@ -255,8 +255,8 @@ import { computed, onMounted, ref } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import type { UserProxyLightWithNetworksDto, NetworkLightDto } from '@/types';
 import CdnFile from '@/components/cdn/CdnFile.vue';
-import useUsers from '@/composables/useUsers';
-import useAccesses from '@/composables/useAccesses';
+import useUsers from '@/composables/api/useUsers';
+import useAccesses from '@/composables/api/useAccesses';
 import ProfileAvatar from '@/components/ProfileAvatar.vue';
 import { defaultProxy } from '@/lib/user';
 

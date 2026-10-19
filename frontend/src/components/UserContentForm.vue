@@ -70,7 +70,7 @@
 <script setup lang="ts">
 import type { CreateUserContentForm, NetworkDto } from '@/types';
 import { computed, onMounted, ref, watch } from 'vue';
-import useNetworks from '@/composables/useNetworks';
+import useNetworks from '@/composables/api/useNetworks';
 
 const networkState = useNetworks();
 

@@ -4,15 +4,19 @@ import type { Ref } from 'vue';
 import type { AxiosProgressEvent } from 'axios';
 import type { FileDto, UpdateFileDto } from '@/types';
 import { networkKey } from '@/lib/cacheKeys';
-import { prependItem, useCachedApi, useMutation } from '../useApi';
-import { useNetworkContentAccess } from '../useContentAccess';
+import { prependItem, useCachedApi, useMutation } from '@/composables/api/useApi';
 
+// Files always live under a network (there is no account-scoped storage), so every mutation
+// here still needs a networkId and hits the same /networks/{networkId}/files routes as
+// composables/network/useFiles.ts. This composable's own value-add is `fetchFiles`, which
+// aggregates a user proxy's files across every network they belong to via the dedicated
+// cross-network "authors" endpoint, something the network-scoped composable can't do.
 export default function useFiles() {
   const progress: Ref<number> = ref(0);
 
-  const fetchFiles = useCachedApi<FileDto[], [networkId: string]>(
-    (networkId) => networkKey(networkId, 'files'),
-    async (networkId) => await api.get<FileDto[]>(`/networks/${networkId}/files/`),
+  const fetchFiles = useCachedApi<FileDto[], [userProxyId: string]>(
+    (userProxyId) => `authors_${userProxyId}_files`,
+    async (userProxyId) => await api.get<FileDto[]>(`/authors/${userProxyId}/files`),
   );
 
   // Only this single-item fetch resolves a `viewingUrl` - the list endpoint above deliberately
@@ -69,15 +73,6 @@ export default function useFiles() {
     },
   );
 
-  const {
-    publish: publishFile,
-    unpublish: unpublishFile,
-    setOwnership: setFileOwnership,
-    fetchAccessGrants: fetchFileAccessGrants,
-    createAccessGrant: createFileAccessGrant,
-    revokeAccessGrant: revokeFileAccessGrant,
-  } = useNetworkContentAccess<FileDto>('files');
-
   const resetProgress = () => {
     progress.value = 0;
   };
@@ -89,12 +84,6 @@ export default function useFiles() {
     uploadFile,
     updateFile,
     deleteFile,
-    publishFile,
-    unpublishFile,
-    setFileOwnership,
-    fetchFileAccessGrants,
-    createFileAccessGrant,
-    revokeFileAccessGrant,
     resetProgress,
   };
 }

@@ -278,10 +278,10 @@ import { computed, onMounted } from 'vue';
 import type { NetworkDto } from '@/types';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 
-import useFiles from '@/composables/network/useFiles';
-import useBlogs from '@/composables/network/useBlogs';
-import useConfigurations from '@/composables/network/useConfigurations';
-import useCustomPages from '@/composables/network/useCustomPages';
+import useFiles from '@/composables/api/network/useFiles';
+import useBlogs from '@/composables/api/network/useBlogs';
+import useConfigurations from '@/composables/api/network/useConfigurations';
+import useCustomPages from '@/composables/api/network/useCustomPages';
 
 const props = defineProps<{
   network: NetworkDto;

@@ -306,7 +306,7 @@ import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import ConfirmationModal from '@/components/modals/ConfirmationModal.vue';
 import api from '@/api/api';
 import NetworkLogo from '@/components/NetworkLogo.vue';
-import useNetworks from '@/composables/useNetworks';
+import useNetworks from '@/composables/api/useNetworks';
 import { extractApiErrorMessage } from '@/lib/utils';
 import { type UserProxyDto } from '@/types';
 

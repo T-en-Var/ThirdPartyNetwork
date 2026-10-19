@@ -101,7 +101,7 @@ import type { UserProxyDto } from '@/types';
 import { useAuthStore } from '@/stores/auth';
 import CdnFile from '@/components/cdn/CdnFile.vue';
 import { useRouter } from 'vue-router';
-import useUsers from '@/composables/useUsers';
+import useUsers from '@/composables/api/useUsers';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 
 const authStore = useAuthStore();

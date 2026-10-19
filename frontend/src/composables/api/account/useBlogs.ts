@@ -1,13 +1,17 @@
 import api from '@/api/api';
 import { networkKey } from '@/lib/cacheKeys';
 import type { BlogDto, CreateBlogDto, UpdateBlogDto } from '@/types';
-import { prependItem, removeById, useCachedApi, useMutation } from '../useApi';
-import { useNetworkContentAccess } from '../useContentAccess';
+import { prependItem, useCachedApi, useMutation } from '@/composables/api/useApi';
 
+// Blogs always live under a network (there is no account-scoped storage), so every mutation here
+// still needs a networkId and hits the same /networks/{networkId}/blogs routes as
+// composables/network/useBlogs.ts. This composable's own value-add is `fetchBlogs`, which
+// aggregates a user proxy's blogs across every network they belong to via the dedicated
+// cross-network "authors" endpoint, something the network-scoped composable can't do.
 export default function useBlogs() {
-  const fetchBlogs = useCachedApi<BlogDto[], [networkId: string]>(
-    (networkId) => networkKey(networkId, 'blogs'),
-    async (networkId) => await api.get<BlogDto[]>(`/networks/${networkId}/blogs`),
+  const fetchBlogs = useCachedApi<BlogDto[], [userProxyId: string]>(
+    (userProxyId) => `authors_${userProxyId}_blogs`,
+    async (userProxyId) => await api.get<BlogDto[]>(`/authors/${userProxyId}/blogs`),
   );
 
   const fetchBlog = useCachedApi<BlogDto, [networkId: string, blogId: string]>(
@@ -41,30 +45,9 @@ export default function useBlogs() {
     {
       itemKeyFactory: (_, networkId, blogId) => networkKey(networkId, 'blogs', blogId),
       listKeyFactory: (networkId) => networkKey(networkId, 'blogs'),
-      listUpdater: (currentList, _, __, blogId) => removeById(currentList, blogId),
+      listUpdater: (currentList, _, __, blogId) => currentList.filter((item) => item.id !== blogId),
     },
   );
 
-  const {
-    publish: publishBlog,
-    unpublish: unpublishBlog,
-    setOwnership: setBlogOwnership,
-    fetchAccessGrants: fetchBlogAccessGrants,
-    createAccessGrant: createBlogAccessGrant,
-    revokeAccessGrant: revokeBlogAccessGrant,
-  } = useNetworkContentAccess<BlogDto>('blogs');
-
-  return {
-    fetchBlogs,
-    fetchBlog,
-    createBlog,
-    updateBlog,
-    deleteBlog,
-    publishBlog,
-    unpublishBlog,
-    setBlogOwnership,
-    fetchBlogAccessGrants,
-    createBlogAccessGrant,
-    revokeBlogAccessGrant,
-  };
+  return { fetchBlogs, fetchBlog, createBlog, updateBlog, deleteBlog };
 }

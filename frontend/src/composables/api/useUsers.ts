@@ -1,5 +1,5 @@
 import api from '@/api/api';
-import { globalCache, useCachedApi, useMutation } from './useApi';
+import { globalCache, useCachedApi, useMutation } from '@/composables/api/useApi';
 import type { AddUserProxyDto, CreateUserDto, UpdateUserDto, UserDto, UserMetricsDto, UserProxyDto, UserWithNetworksDto } from '@/types';
 
 export default function useUsers() {

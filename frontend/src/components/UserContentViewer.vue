@@ -274,7 +274,7 @@ export default {
 import { ref, computed, reactive, watch } from 'vue';
 import type { NetworkDto, UserContentBaseDto } from '@/types';
 import ProfileAvatar from './ProfileAvatar.vue';
-import useNetworks from '@/composables/useNetworks';
+import useNetworks from '@/composables/api/useNetworks';
 
 const VISIBILITY_FILTERS = [
   { value: 'published', label: 'Published' },

@@ -152,7 +152,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import ModalContainer from '@/components/modals/ModalContainer.vue';
-import useFiles from '@/composables/account/useFiles';
+import useFiles from '@/composables/api/account/useFiles';
 import { mapMediaType, readableSize } from '@/lib/utils';
 import type { UserProxyDto, FileDto, CreateUserContentForm } from '@/types';
 import { useAuthStore } from '@/stores/auth';

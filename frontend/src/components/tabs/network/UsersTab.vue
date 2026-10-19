@@ -138,7 +138,7 @@
 import SecurableField from '@/components/fields/SecurableField.vue';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import ProfileAvatar from '@/components/ProfileAvatar.vue';
-import useNetworkUsers from '@/composables/useNetworkUsers';
+import useNetworkUsers from '@/composables/api/useNetworkUsers';
 import { getNameDisplayUserProxy } from '@/lib/user';
 import type { NetworkDto, NetworkUserDto } from '@/types';
 import { onMounted } from 'vue';

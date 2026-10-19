@@ -6,7 +6,7 @@ import type {
   SettableFeatureFlag,
 } from '@/types';
 import api from '@/api/api';
-import { globalCache, useCachedApi, useMutation } from './useApi';
+import { globalCache, useCachedApi, useMutation } from '@/composables/api/useApi';
 
 export default function useNetworks() {
   const fetchMainNetwork = useCachedApi<NetworkDto, []>(

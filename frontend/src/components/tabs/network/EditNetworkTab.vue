@@ -169,7 +169,7 @@ import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import CdnFile from '@/components/cdn/CdnFile.vue';
 import AddFileModal from '@/components/modals/usercontent/AddFileModal.vue';
 import type { FileDto, NetworkDto, UpdateNetworkDto } from '@/types';
-import useNetworks from '@/composables/useNetworks';
+import useNetworks from '@/composables/api/useNetworks';
 
 const route = useRoute();
 const router = useRouter();

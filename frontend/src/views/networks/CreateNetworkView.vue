@@ -206,7 +206,7 @@ import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import CdnFile from '@/components/cdn/CdnFile.vue';
 import ForceLoadModal from '@/components/modals/ForceWaitModal.vue';
 import { useAuthStore } from '@/stores/auth';
-import useNetworks from '@/composables/useNetworks';
+import useNetworks from '@/composables/api/useNetworks';
 import NetworkCard from '@/components/NetworkCard.vue';
 
 const router = useRouter();

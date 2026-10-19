@@ -123,10 +123,10 @@ import { useRoute, useRouter } from 'vue-router';
 import type { ConfigurationDto, UpdateConfigurationDto } from '@/types';
 import { useEventStore } from '@/stores/event';
 import { useEditableEntity } from '@/composables/useEditableEntity';
-import useConfigurations from '@/composables/network/useConfigurations';
-import useRoles from '@/composables/useRoles';
-import usePermissions from '@/composables/usePermissions';
-import useNetworkUsers from '@/composables/useNetworkUsers';
+import useConfigurations from '@/composables/api/network/useConfigurations';
+import useRoles from '@/composables/api/useRoles';
+import usePermissions from '@/composables/api/usePermissions';
+import useNetworkUsers from '@/composables/api/useNetworkUsers';
 
 const router = useRouter();
 const route = useRoute();

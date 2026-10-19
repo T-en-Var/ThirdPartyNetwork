@@ -520,7 +520,7 @@ import SecurableField from '@/components/fields/SecurableField.vue';
 import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import EditNetworkFeatureFlagsModal from '@/components/modals/admin/EditNetworkFeatureFlagsModal.vue';
 import { featureFlagKeys } from '@/composables/useFeatureFlags';
-import useNetworks from '@/composables/useNetworks';
+import useNetworks from '@/composables/api/useNetworks';
 import { DEFAULT_STORES, useHistoryStore } from '@/stores/history';
 import type {
   FeatureFlagLimits,
