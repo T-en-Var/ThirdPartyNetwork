@@ -1,5 +1,24 @@
 import { capitalize, ref } from 'vue';
-import type { NetworkDto, SettableFeatureFlagForm, SettableFeatureFlag } from '@/types';
+import type { NetworkDto, SettableFeatureFlagForm, SettableFeatureFlag, FeatureFlagDto } from '@/types';
+
+const FEATURE_FLAG_DTO_DEFAULTS: FeatureFlagDto = {
+  allowFiles: null,
+  fileCountLimit: null,
+  fileSizeLimit: null,
+  fileStorageLimit: null,
+  allowBlogs: null,
+  blogCountLimit: null,
+  allowConfigurations: null,
+  configurationCountLimit: null,
+  allowCustomPages: null,
+  customPageCountLimit: null,
+  customPageBlockCountLimit: null,
+  customPageBlockSizeLimit: null,
+};
+
+export function toFeatureFlagDto(flags: SettableFeatureFlag): FeatureFlagDto {
+  return { ...FEATURE_FLAG_DTO_DEFAULTS, ...flags };
+}
 
 export const featureFlagKeys = {
   allowFiles: ['fileCountLimit', 'fileSizeLimit', 'fileStorageLimit'],
@@ -66,7 +85,7 @@ export function useFeatureFlags(network: NetworkDto) {
 
       limitKeys.forEach((itemKey) => {
         const value = featureFlagsData.value[itemKey];
-        if (value !== undefined || value !== null) {
+        if (value !== undefined && value !== null) {
           if (featureFlagsData.value[setFlagFor(itemKey)]) {
             result[itemKey] = value;
           }

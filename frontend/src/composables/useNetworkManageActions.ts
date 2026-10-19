@@ -39,6 +39,7 @@ import type {
 } from '@/types';
 import type { RoleForm, ManageUserForm, ConfirmForm } from '@/types/forms';
 import type { UpdateFileDto, SettableFeatureFlag } from '@/types';
+import { toFeatureFlagDto } from '@/composables/useFeatureFlags';
 
 /**
  * Encapsulates all of the "manage network" action dispatch logic (blog / configuration /
@@ -507,7 +508,7 @@ export default function useNetworkManageActions(networkId: ComputedRef<string>) 
     const { execute: updateNetworkUser } = composables.networkUsers.updateNetworkUser;
 
     const payload: UpdateNetworkUserDto = {
-      featureFlags: localForm.featureFlags,
+      featureFlags: toFeatureFlagDto(localForm.featureFlags),
     };
 
     try {
@@ -538,7 +539,7 @@ export default function useNetworkManageActions(networkId: ComputedRef<string>) 
       name: localForm.value.name.trim(),
       description: localForm.value.description.trim(),
       isDefault: localForm.value.isDefault,
-      featureFlags: localForm.value.featureFlags,
+      featureFlags: toFeatureFlagDto(localForm.value.featureFlags),
     };
 
     try {
@@ -561,7 +562,7 @@ export default function useNetworkManageActions(networkId: ComputedRef<string>) 
       name: localForm.name.trim(),
       description: localForm.description.trim(),
       isDefault: localForm.isDefault,
-      featureFlags: localForm.featureFlags,
+      featureFlags: toFeatureFlagDto(localForm.featureFlags),
     };
 
     try {

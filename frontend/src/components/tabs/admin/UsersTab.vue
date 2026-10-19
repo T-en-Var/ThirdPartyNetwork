@@ -433,7 +433,7 @@ import LoadingErrorComponent from '@/components/LoadingErrorComponent.vue';
 import DualSlider from '@/components/DualSlider.vue';
 import ViewUserFeatureFlagsModal from '@/components/modals/admin/ViewUserFeatureFlagsModal.vue';
 import useUsers from '@/composables/useUsers';
-import { featureFlagKeys } from '@/composables/useFeatureFlags';
+import { featureFlagKeys, toFeatureFlagDto } from '@/composables/useFeatureFlags';
 import { defaultProxy } from '@/lib/user';
 import type {
   ManageUserForm,
@@ -520,7 +520,7 @@ async function handleUpdateNetworkUser(localForm: ManageUserForm) {
   const { execute: updateNetworkUser } = useNetworkUsers().updateNetworkUser;
 
   const payload: UpdateNetworkUserDto = {
-    featureFlags: localForm.featureFlags,
+    featureFlags: toFeatureFlagDto(localForm.featureFlags),
   };
 
   try {

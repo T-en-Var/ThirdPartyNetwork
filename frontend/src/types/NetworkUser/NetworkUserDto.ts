@@ -2,6 +2,7 @@ import type { UserProxyLightDto, UserProxyLightShortProfileDto } from '../UserPr
 import type { NetworkLightDto } from '../Network/NetworkDto';
 import type { NetworkUserAccessNtADto } from '../NetworkUserAccess/NetworkUserAccessDto';
 import type { NetworkUserRoleNtRDto } from '../NetworkUserRole/NetworkUserRoleDto';
+import type { FeatureFlagDto } from '../FeatureFlag/FeatureFlagDto';
 
 export interface NetworkUserDto {
   id: string;
@@ -13,7 +14,7 @@ export interface NetworkUserDto {
   createdOn: string;
   networkUserAccesses: NetworkUserAccessNtADto[];
   networkUserRoles: NetworkUserRoleNtRDto[];
-  featureFlags: unknown;
+  featureFlags: FeatureFlagDto;
 }
 
 export interface NetworkUserLightDto {
@@ -23,7 +24,7 @@ export interface NetworkUserLightDto {
   userProxy: UserProxyLightShortProfileDto;
   accessIncomplete: boolean;
   createdOn: string;
-  featureFlags: unknown;
+  featureFlags: FeatureFlagDto;
 }
 
 export interface NetworkUserLightUserInfoDto {
@@ -32,7 +33,7 @@ export interface NetworkUserLightUserInfoDto {
   userProxyId: string;
   accessIncomplete: boolean;
   createdOn: string;
-  featureFlags: unknown;
+  featureFlags: FeatureFlagDto;
   userProxy: UserProxyLightDto;
   networkUserAccesses: NetworkUserAccessNtADto[];
   networkUserRoles: NetworkUserRoleNtRDto[];
@@ -44,7 +45,7 @@ export interface NetworkUserLightWithNetworkDto {
   userProxyId: string;
   accessIncomplete: boolean;
   createdOn: string;
-  featureFlags: unknown;
+  featureFlags: FeatureFlagDto;
   network: NetworkLightDto;
 }
 

@@ -1,6 +1,7 @@
 import type { RolePermissionRtPDto } from '../RolePermission/RolePermissionDto';
 import type { NetworkUserRoleRtNDto } from '../NetworkUserRole/NetworkUserRoleDto';
 import type { NetworkLightDto } from '../Network/NetworkDto';
+import type { FeatureFlagDto } from '../FeatureFlag/FeatureFlagDto';
 
 export interface RoleDto {
   id: string;
@@ -9,7 +10,7 @@ export interface RoleDto {
   isDefault: boolean;
   rolePermissions: RolePermissionRtPDto[];
   networkUserRoles: NetworkUserRoleRtNDto[];
-  featureFlags: unknown;
+  featureFlags: FeatureFlagDto;
   network: NetworkLightDto;
 }
 
@@ -19,5 +20,5 @@ export interface RoleLightDto {
   description: string;
   isDefault: boolean;
   rolePermissions: RolePermissionRtPDto[];
-  featureFlags: unknown;
+  featureFlags: FeatureFlagDto;
 }
