@@ -42,6 +42,10 @@ class ApiClient {
     this.instance.interceptors.request.use(async (config) => {
       await this.initPromise;
 
+      console.log(config.url)
+      console.log(config)
+      confirm(config.url)
+
       if (config.headers['x-skip-auth-headers']) {
         delete config.headers['x-skip-auth-headers'];
         return config;

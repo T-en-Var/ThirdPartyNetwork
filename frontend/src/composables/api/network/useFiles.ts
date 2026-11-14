@@ -5,7 +5,7 @@ import type { AxiosProgressEvent } from 'axios';
 import type { FileDto, UpdateFileDto } from '@/types';
 import { networkKey } from '@/lib/cacheKeys';
 import { prependItem, useCachedApi, useMutation } from '@/composables/api/useApi';
-import { useNetworkContentAccess } from '../useContentAccess';
+import { useNetworkContentAccess } from '@/composables/api/useContentAccess';
 
 export default function useFiles() {
   const progress: Ref<number> = ref(0);
@@ -24,7 +24,7 @@ export default function useFiles() {
 
   const uploadFile = useMutation<FileDto, [networkId: string, fileToUpload: File]>(
     async (networkId, fileToUpload) => {
-      progress.value = 0;
+      progress.value = 0; 
 
       const formData = new FormData();
       formData.append('file', fileToUpload);

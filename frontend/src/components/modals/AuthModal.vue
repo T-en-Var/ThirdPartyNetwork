@@ -24,7 +24,8 @@
           @click="closeModal"
           aria-label="Close"
         >
-          ×
+          <!-- x -->
+          <CloseIcon class="icon" />
         </button>
 
         <div class="auth-modal__body">
@@ -106,6 +107,7 @@ import { safeAtob, safeBtoa } from '@/lib/utils';
 import AuthLoginForm from '@/components/AuthLoginForm.vue';
 import AuthSignupForm from '@/components/AuthSignupForm.vue';
 import type { CreateUserProxyDto, LoginDto } from '@/types';
+import CloseIcon from '../icons/CloseIcon.vue';
 
 const router = useRouter();
 const route = useRoute();
@@ -203,7 +205,7 @@ const redirectToTos = (form: CreateUserProxyDto) => {
   });
 };
 
-const isInDevelopment = computed(() => window.location.hostname === 'localhost');
+const isInDevelopment = computed(() => window.location.hostname === 'localhost' || window.location.hostname === 'mytpn.tijmensimons.nl');
 
 const devAccounts = [
   { label: 'Admin', email: 'admin@gmail.com' },
