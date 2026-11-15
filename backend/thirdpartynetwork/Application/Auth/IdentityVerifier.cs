@@ -1,36 +1,62 @@
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.EntityFrameworkCore;
 using thirdpartynetwork.Core;
 using thirdpartynetwork.Core.Data;
 using thirdpartynetwork.Core.Enum;
 using thirdpartynetwork.Core.Interfaces.Auth;
 using thirdpartynetwork.Core.Models;
-using File = thirdpartynetwork.Core.Models.File;
 
 namespace thirdpartynetwork.Application.Auth;
 
 public class IdentityVerifier(DataContext context) : IIdentityVerifier
 {
+    private class ContentRef(Guid? authorUserProxyId, OwnershipMode ownershipMode, Guid networkId)
+    {
+        public readonly Guid? AuthorUserProxyId = authorUserProxyId;
+        public readonly OwnershipMode OwnershipMode = ownershipMode;
+        public readonly Guid NetworkId = networkId;
+
+        // To quickly unpack
+        public (Guid?, OwnershipMode, Guid) ToTuple()
+        {
+            return (AuthorUserProxyId, OwnershipMode, NetworkId);
+        }
+    }
+
     public async Task<bool> IsContentOwnerAsync(Guid userProxyId, ContentKind contentKind, Guid targetContentId)
     {
         var content = await GetContentOwnershipFactsAsync(contentKind, targetContentId);
+        return await IsOwnerOfAsync(userProxyId, content);
+    }
+
+    public async Task<bool> IsPageBlockOwnerAsync(Guid userProxyId, Guid pageBlockId)
+    {
+        var x = await context.PageBlocks.Where(f => f.Id == pageBlockId)
+            .Select(f => new { f.AuthorUserProxyId, f.OwnershipMode, f.NetworkId })
+            .FirstOrDefaultAsync();
+
+        var content = x == null ? null : new ContentRef(x.AuthorUserProxyId, x.OwnershipMode, x.NetworkId);
+
+        return await IsOwnerOfAsync(userProxyId, content);
+    }
+
+    private async Task<bool> IsOwnerOfAsync(Guid userProxyId, ContentRef? content)
+    {
         if (content == null) return false;
 
-        var (authorUserProxyId, ownershipMode, networkId) = content.Value;
-
-        if (ownershipMode == OwnershipMode.AuthorOwned && authorUserProxyId.HasValue)
+        if (content.OwnershipMode == OwnershipMode.AuthorOwned
+            && content.AuthorUserProxyId.HasValue)
         {
-            if (authorUserProxyId.Value == userProxyId) return true;
+            if (content.AuthorUserProxyId.Value == userProxyId) return true;
 
             return await context.UserProxies
                 .Where(u => u.Id == userProxyId)
-                .AnyAsync(u => u.User.UserProxies.Any(n => n.Id == authorUserProxyId.Value));
+                .AnyAsync(u => u.User.UserProxies.Any(n => n.Id == content.AuthorUserProxyId.Value));
         }
 
-        return await IsNetworkAdminAsync(networkId, userProxyId);
+        return await IsNetworkAdminAsync(content.NetworkId, userProxyId);
     }
 
-    private async Task<(Guid? AuthorUserProxyId, OwnershipMode OwnershipMode, Guid NetworkId)?> GetContentOwnershipFactsAsync(
+    private async Task<ContentRef?> GetContentOwnershipFactsAsync(
         ContentKind contentKind, Guid contentId)
     {
         switch (contentKind)
@@ -40,35 +66,28 @@ public class IdentityVerifier(DataContext context) : IIdentityVerifier
                 var x = await context.Files.Where(f => f.Id == contentId)
                     .Select(f => new { f.AuthorUserProxyId, f.OwnershipMode, f.NetworkId })
                     .FirstOrDefaultAsync();
-                return x == null ? null : (x.AuthorUserProxyId, x.OwnershipMode, x.NetworkId);
+                return x == null ? null : new ContentRef(x.AuthorUserProxyId, x.OwnershipMode, x.NetworkId);
             }
             case ContentKind.Blog:
             {
                 var x = await context.Blogs.Where(f => f.Id == contentId)
                     .Select(f => new { f.AuthorUserProxyId, f.OwnershipMode, f.NetworkId })
                     .FirstOrDefaultAsync();
-                return x == null ? null : (x.AuthorUserProxyId, x.OwnershipMode, x.NetworkId);
+                return x == null ? null : new ContentRef(x.AuthorUserProxyId, x.OwnershipMode, x.NetworkId);
             }
             case ContentKind.Configuration:
             {
                 var x = await context.Configurations.Where(f => f.Id == contentId)
                     .Select(f => new { f.AuthorUserProxyId, f.OwnershipMode, f.NetworkId })
                     .FirstOrDefaultAsync();
-                return x == null ? null : (x.AuthorUserProxyId, x.OwnershipMode, x.NetworkId);
+                return x == null ? null : new ContentRef(x.AuthorUserProxyId, x.OwnershipMode, x.NetworkId);
             }
             case ContentKind.CustomPage:
             {
                 var x = await context.CustomPages.Where(f => f.Id == contentId)
                     .Select(f => new { f.AuthorUserProxyId, f.OwnershipMode, f.NetworkId })
                     .FirstOrDefaultAsync();
-                return x == null ? null : (x.AuthorUserProxyId, x.OwnershipMode, x.NetworkId);
-            }
-            case ContentKind.PageBlock:
-            {
-                var x = await context.PageBlocks.Where(f => f.Id == contentId)
-                    .Select(f => new { f.AuthorUserProxyId, f.OwnershipMode, f.NetworkId })
-                    .FirstOrDefaultAsync();
-                return x == null ? null : (x.AuthorUserProxyId, x.OwnershipMode, x.NetworkId);
+                return x == null ? null : new ContentRef(x.AuthorUserProxyId, x.OwnershipMode, x.NetworkId);
             }
             default:
                 throw new NotSupportedException($"Unknown ContentKind {contentKind}");
@@ -182,10 +201,12 @@ public class IdentityVerifier(DataContext context) : IIdentityVerifier
         bool includeMainNetwork,
         bool checkForAdmin)
     {
-        if (includeMainNetwork && await CheckQueryableAsync(GetMainNetwork(), permissionName, userProxyId, checkForAdmin))
+        if (includeMainNetwork &&
+            await CheckQueryableAsync(GetMainNetwork(), permissionName, userProxyId, checkForAdmin))
             return true;
 
-        if (includeNetworkId.HasValue && await CheckQueryableAsync(GetNetworkById(includeNetworkId.Value), permissionName, userProxyId, checkForAdmin))
+        if (includeNetworkId.HasValue && await CheckQueryableAsync(GetNetworkById(includeNetworkId.Value),
+                permissionName, userProxyId, checkForAdmin))
             return true;
 
         return false;
@@ -203,7 +224,7 @@ public class IdentityVerifier(DataContext context) : IIdentityVerifier
                 nu.UserProxyId == userProxyId &&
                 nu.NetworkUserRoles.Any(nur =>
                     (checkForAdmin && nur.Role.RolePermissions.Any(p =>
-                            p.Permission.Name == Constants.Permissions.Administrator))
+                        p.Permission.Name == Constants.Permissions.Administrator))
                     || (checkForPerm
                         && nur.Role.RolePermissions.Any(rp =>
                             rp.Permission.Name == permissionName))

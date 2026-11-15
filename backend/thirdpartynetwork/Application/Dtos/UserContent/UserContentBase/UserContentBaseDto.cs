@@ -11,7 +11,6 @@ namespace thirdpartynetwork.Application.Dtos.UserContent.UserContentBase
 
         public DateTime? PublishedAt { get; set; }
         public OwnershipMode OwnershipMode { get; set; }
-        public string? ViewingUrl { get; set; }
 
         public required DateTime CreatedOn { get; set; } = DateTime.UtcNow;
         public required DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

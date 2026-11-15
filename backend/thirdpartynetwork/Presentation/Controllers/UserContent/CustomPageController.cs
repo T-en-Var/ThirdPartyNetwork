@@ -11,7 +11,6 @@ namespace thirdpartynetwork.Presentation.Controllers;
 public class CustomPageController(
     ICustomPageService service,
     IContentAccessGrantService accessGrantService,
-    IContentViewingLinkService viewingLinkService,
     IContentModerationFlagService moderationFlagService,
     IMapper mapper) : ControllerBase
 {
@@ -33,9 +32,7 @@ public class CustomPageController(
         var customPage = await service.GetByIdAsync(networkId, customPageId);
         if (customPage == null) return NotFound();
 
-        var dto = mapper.Map<CustomPageDto>(customPage, opts => { opts.Items["networkId"] = networkId; });
-        dto.ViewingUrl = await viewingLinkService.ComputeViewingUrlAsync(customPage, ContentKind.CustomPage, Request.Scheme, Request.Host.ToString());
-        return Ok(dto);
+        return Ok(mapper.Map<CustomPageDto>(customPage, opts => { opts.Items["networkId"] = networkId; }));
     }
 
     [HttpPost]
