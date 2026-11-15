@@ -1,0 +1,338 @@
+<template>
+  <AuthLayout
+    :back-url="backUrl"
+    max-width="xl"
+    :current-step="signUpStep"
+    @go-back-step="goBackStep"
+  >
+    <div
+      v-if="networkDetails.loading.value"
+      class="network-auth-status"
+    >
+      <p class="network-auth-status__text">Loading network details...</p>
+      <div class="network-auth-status__spinner">
+        <LoadingSpinner />
+      </div>
+    </div>
+
+    <div
+      v-else-if="networkNotFound"
+      class="network-auth-status"
+    >
+      <NetworkNotFound :network-id="networkId" />
+    </div>
+
+    <div
+      v-else-if="!isValidUrl"
+      class="network-auth-status"
+    >
+      <p
+        class="alert alert--error"
+        role="alert"
+        aria-live="assertive"
+      >
+        Invalid URL. Please ensure all required parameters are present.
+      </p>
+    </div>
+
+    <!-- Step 1: Account details -->
+    <AuthFormCard
+      v-else-if="signUpStep === 1"
+      title="Create Account"
+      :subtitle="
+        networkDetails.data.value ? `Join ${networkDetails.data.value.name}` : 'Join the platform'
+      "
+      :error="error"
+      :network-details="networkDetails"
+    >
+      <AuthSignupForm
+        :initial-values="initialSignupValues"
+        @submit="completeStep1"
+        @tos="redirectToTos"
+      />
+
+      <template #footer>
+        <div class="signup-network-view__footer">
+          <p>Already have an account?</p>
+          <button
+            @click="goToLogin"
+            class="signup-network-view__login-link"
+          >
+            Sign In
+          </button>
+        </div>
+      </template>
+    </AuthFormCard>
+
+    <!-- Step 2: Access consent -->
+    <AuthFormCard
+      v-else-if="signUpStep === 2"
+      title="Confirm Access"
+      subtitle="Review the required data access for this network."
+      :error="error"
+      :network-details="networkDetails"
+    >
+      <div class="signup-network-view__network-card">
+        <h2 class="signup-network-view__network-title">{{ networkDetails.data.value?.name }}</h2>
+        <p class="signup-network-view__network-description">
+          {{ networkDetails.data.value?.description || 'No description available.' }}
+        </p>
+      </div>
+
+      <NetworkAccessList
+        :network-accesses="networkAccessesForList"
+        :initial-user-accesses="userAccesses"
+        :network-user-accesses="[]"
+        :loading="networkDetails.loading.value"
+        @access-change="onAccessChange"
+      />
+
+      <div class="signup-network-view__account-preview">
+        <h2 class="signup-network-view__account-preview-title">Your account</h2>
+        <UserProxyDisplay
+          v-if="signupForm"
+          :userProxy="{
+            firstName: signupForm.firstName,
+            createdOn: new Date().toISOString(),
+            id: '',
+            isDefault: true,
+            networkUsers: [],
+            user: { id: '', createdOn: new Date().toISOString() },
+            email: signupForm.email,
+            lastName: signupForm.lastName,
+            username: signupForm.username,
+            hasPassword: false,
+            imageFile: null,
+          }"
+          :sensitiveFields="['email', 'lastName']"
+          :fieldsToDisplay="['username', 'firstName', 'lastName', 'email']"
+          :showSwitch="false"
+        />
+      </div>
+
+      <form @submit.prevent="handleSubmit">
+        <div class="form__actions">
+          <button
+            type="submit"
+            class="btn btn--primary"
+            :disabled="!canSubmit"
+            aria-label="Create account and confirm access"
+            aria-live="polite"
+          >
+            <span
+              v-if="isSubmitting"
+              class="signup-network-view__submitting"
+            >
+              <span
+                class="spinner-border spinner-border--xs"
+                aria-hidden="true"
+              ></span>
+              Creating...
+            </span>
+            <span v-else>Create Account</span>
+          </button>
+        </div>
+      </form>
+    </AuthFormCard>
+
+    <!-- Step 3: Finalizing -->
+    <div
+      v-else
+      class="signup-network-view__finalizing"
+    >
+      <h1 class="signup-network-view__finalizing-title">Hold on, we're creating your account...</h1>
+      <p class="signup-network-view__finalizing-text">Please wait while we complete your authentication.</p>
+      <LoadingSpinner />
+    </div>
+
+    <ConfirmationModal
+      v-if="incompleteAccess"
+      title="Account Created, Additional Access Required"
+      message="This network requires additional confirmation of your data access. Please continue to confirm and complete your registration."
+      button-text="Continue to Access"
+      color="blue"
+      @close="incompleteAccess = null"
+      @confirm="confirmIncompleteAccess"
+    />
+  </AuthLayout>
+</template>
+
+<script setup lang="ts">
+import { ref, onMounted, computed } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import type { UserProxyDto, CreateUserProxyDto, NetworkAccessDto } from '@/types';
+import { useGlobalStore } from '@/stores/global';
+import api from '@/api/api';
+import useNetworkAuthFlow from '@/composables/api/useNetworkAuthFlow';
+import useAccessConsent, { type AccessConsentState } from '@/composables/api/useAccessConsent';
+
+import AuthLayout from '@/components/AuthLayout.vue';
+import AuthFormCard from '@/components/AuthFormCard.vue';
+import AuthSignupForm from '@/components/AuthSignupForm.vue';
+import LoadingSpinner from '@/components/LoadingSpinner.vue';
+import ConfirmationModal from '@/components/modals/ConfirmationModal.vue';
+import NetworkAccessList from '@/components/NetworkAccessList.vue';
+import UserProxyDisplay from '@/components/UserProxyDisplay.vue';
+import NetworkNotFound from '@/components/NetworkNotFound.vue';
+import { safeBtoa } from '@/lib/utils';
+
+const router = useRouter();
+const route = useRoute();
+const global = useGlobalStore();
+const flow = useNetworkAuthFlow();
+const { networkDetails, networkId, backUrl, isValidUrl, networkNotFound, goToLogin } = flow;
+const { buildInitialAccessState, applyAccessConsent } = useAccessConsent();
+
+// NetworkAccessList expects the full NetworkAccessDto shape (flat `accessId` + `.network`
+// back-reference); `NetworkDto.networkAccesses` only carries the lighter "NtA" variant. The list
+// only reads `.access`/`.isRequired`, so the missing fields are filled in defensively.
+const networkAccessesForList = computed<NetworkAccessDto[]>(
+  () =>
+    (networkDetails.data.value?.networkAccesses ?? []).map((na) => ({
+      ...na,
+      networkId: networkId.value,
+      accessId: na.access.id,
+      network: networkDetails.data.value!,
+    })) as unknown as NetworkAccessDto[],
+);
+
+const signUpStep = ref(1);
+const error = ref('');
+const isSubmitting = ref(false);
+const signupForm = ref<CreateUserProxyDto | null>(null);
+const userAccesses = ref<Record<string, AccessConsentState>>({});
+const incompleteAccess = ref<{ accessToken: string; redirectUrl: string } | null>(null);
+
+const initialSignupValues = computed<Partial<CreateUserProxyDto>>(
+  () =>
+    // Keep entered values when the user returns to step 1 (back button or a
+    // failed submit); otherwise prefill from the query (return from the ToS page).
+    signupForm.value ?? {
+      username: (route.query.uname as string) || '',
+      firstName: (route.query.fname as string) || '',
+      lastName: (route.query.lname as string) || '',
+      email: (route.query.email as string) || '',
+    },
+);
+
+const canSubmit = computed(() => {
+  if (!networkDetails.data.value || isSubmitting.value) return false;
+
+  return networkDetails.data.value.networkAccesses
+    .filter((na) => na.isRequired)
+    .every((na) => userAccesses.value[na.access.id]?.value);
+});
+
+onMounted(async () => {
+  await flow.loadNetwork();
+
+  userAccesses.value = buildInitialAccessState(networkDetails.data.value?.networkAccesses || []);
+});
+
+const goBackStep = () => {
+  if (signUpStep.value === 2) {
+    signUpStep.value = 1;
+  }
+};
+
+const completeStep1 = (form: CreateUserProxyDto) => {
+  error.value = '';
+  signupForm.value = form;
+  signUpStep.value = 2;
+};
+
+const onAccessChange = (accessId: string, isChecked: boolean) => {
+  userAccesses.value[accessId] = { value: isChecked, userChecked: true };
+};
+
+const redirectToTos = (form: CreateUserProxyDto) => {
+  const target = router.resolve({
+    path: route.path,
+    query: {
+      clientId: flow.clientId.value,
+      codeChallenge: flow.codeChallenge.value,
+      state: flow.state.value,
+      back: backUrl.value,
+      uname: form.username,
+      fname: form.firstName,
+      lname: form.lastName,
+      email: form.email,
+    },
+  }).fullPath;
+
+  router.push({
+    path: '/tos',
+    query: { redirect: safeBtoa(target), fromExternal: '', hideNavbar: '' },
+  });
+};
+
+async function handleSubmit() {
+  if (!canSubmit.value || !signupForm.value) {
+    error.value = 'Please accept all required accesses.';
+    return;
+  }
+
+  if (!networkDetails.data.value) {
+    error.value = 'Network details are not available yet.';
+    return;
+  }
+
+  error.value = '';
+  isSubmitting.value = true;
+  signUpStep.value = 3;
+  global.startFetching();
+
+  try {
+    const auth = await flow.authorize('register', signupForm.value);
+
+    const userResponse = await api.get<UserProxyDto>(`/me`, {
+      headers: { Authorization: `Bearer ${auth.accessToken}` },
+    });
+    const networkUserId = userResponse.data.networkUsers[0]?.id;
+    if (!networkUserId) throw new Error('Created user is not linked to this network.');
+
+    await acceptAccesses(networkUserId, auth.accessToken);
+
+    const redirectUrl = flow.buildRedirectUrl(auth.code);
+
+    if (flow.isAccessIncomplete(auth.accessToken)) {
+      incompleteAccess.value = { accessToken: auth.accessToken, redirectUrl };
+      return;
+    }
+
+    window.location.href = redirectUrl;
+  } catch (err) {
+    const { status, message } = flow.extractError(
+      err,
+      'An unexpected error occurred during account creation. Please try again.',
+    );
+
+    if (status === 409) {
+      error.value = 'An account with this username or email already exists. Please sign in.';
+      signUpStep.value = 1;
+    } else if (status === 400) {
+      error.value = message || 'Invalid registration data provided.';
+      signUpStep.value = 1;
+    } else {
+      error.value = message;
+      signUpStep.value = 2;
+    }
+  } finally {
+    isSubmitting.value = false;
+    global.stopFetching();
+  }
+}
+
+async function acceptAccesses(networkUserId: string, accessToken: string) {
+  const acceptedAccesses = (networkDetails.data.value?.networkAccesses ?? [])
+    .filter((access) => userAccesses.value[access.access.id]?.value)
+    .map((access) => access.access.id);
+
+  await applyAccessConsent(networkId.value, networkUserId, acceptedAccesses, true, accessToken);
+}
+
+function confirmIncompleteAccess() {
+  if (!incompleteAccess.value) return;
+  flow.goToCompleteAccess(incompleteAccess.value.accessToken, incompleteAccess.value.redirectUrl);
+}
+</script>

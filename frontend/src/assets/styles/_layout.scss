@@ -1,0 +1,191 @@
+// Styles for the "layout" part of the application: the app shell (App.vue),
+// navbar, footer, content layout wrapper and the profile dropdown.
+// Classes are placeholders (empty) - the visual design is added later.
+
+// --- App shell (App.vue) ---
+#app {
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-shell__header {
+  flex-shrink: 0;
+}
+
+.app-main {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  background-color: hsl(var(--muted));
+}
+
+.app-main__content {
+  flex-grow: 1;
+}
+
+// --- NavBar ---
+
+// --- AppFooter ---
+
+// --- ContentLayout ---
+.content-layout {
+  width: 100%;
+  max-width: 56rem;
+  margin: 2rem auto;
+  padding: 0 1rem 2rem;
+}
+
+// --- UserProfileDropdown ---
+.user-dropdown {
+  position: relative;
+}
+
+.user-dropdown__trigger {
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: #f0f0f0;
+  }
+}
+
+.user-dropdown__avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #e1e4e8;
+  color: #555;
+}
+
+.user-dropdown__arrow {
+  margin-left: 4px;
+  display: flex;
+  align-items: center;
+  transform: rotate(0deg);
+  transition: transform 0.2s ease;
+}
+
+.user-dropdown__arrow--open {
+  transform: rotate(180deg);
+}
+
+.user-dropdown__arrow-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.user-dropdown__menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  width: 200px;
+  background-color: white;
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  margin-top: 8px;
+  z-index: 1000;
+  overflow: hidden;
+  border: 1px solid #eaeaea;
+}
+
+.user-dropdown__header {
+  padding: 1rem;
+}
+
+.user-dropdown__user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.user-dropdown__user-name {
+  font-weight: 600;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.user-dropdown__user-email {
+  color: #666;
+  margin: 0;
+  font-size: 0.8rem;
+}
+
+.user-dropdown__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.user-dropdown__item {
+  display: block;
+  padding: 0.75rem 1rem;
+  color: #333;
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: background-color 0.2s ease;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  border: none;
+  background: none;
+
+  &:hover {
+    background-color: #f6f8fa;
+    color: #0066cc;
+  }
+}
+
+.user-dropdown__item--logout {
+  color: #d73a49;
+
+  &:hover {
+    background-color: #ffdce0;
+    color: #d73a49;
+  }
+}
+
+.user-dropdown__divider {
+  height: 1px;
+  background-color: #eaeaea;
+  margin: 4px 0;
+}
+
+.user-dropdown__skeleton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin: 0.5rem;
+  color: #999;
+}
+
+.user-dropdown__skeleton-icon {
+  width: 24px;
+  height: 24px;
+  animation: user-dropdown-skeleton-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes user-dropdown-skeleton-pulse {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
