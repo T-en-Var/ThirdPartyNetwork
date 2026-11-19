@@ -1,0 +1,114 @@
+<template>
+  <Sidebar
+    :nav-items="navItems"
+    :base-path="`/networks/${networkId}/manage`"
+    sub-label-key="name"
+  >
+    <template #header>
+      <RouterLink
+        :to="`/networks/${networkId}/`"
+        class="network-sidebar__back-link"
+      >
+        <!-- Back arrow icon -->
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+        >
+          <path
+            d="M4 10L3.64645 10.3536L3.29289 10L3.64645 9.64645L4 10ZM20.5 18C20.5 18.2761 20.2761 18.5 20 18.5C19.7239 18.5 19.5 18.2761 19.5 18L20.5 18ZM8.64645 15.3536L3.64645 10.3536L4.35355 9.64645L9.35355 14.6464L8.64645 15.3536ZM3.64645 9.64645L8.64645 4.64645L9.35355 5.35355L4.35355 10.3536L3.64645 9.64645ZM4 9.5L14 9.5L14 10.5L4 10.5L4 9.5ZM20.5 16L20.5 18L19.5 18L19.5 16L20.5 16ZM14 9.5C17.5898 9.5 20.5 12.4101 20.5 16L19.5 16C19.5 12.9624 17.0376 10.5 14 10.5L14 9.5Z"
+            fill="#222222"
+          />
+        </svg>
+        <span class="network-sidebar__back-label">Back to details</span>
+      </RouterLink>
+    </template>
+  </Sidebar>
+</template>
+
+<script setup lang="ts">
+import { computed, type ComputedRef } from 'vue';
+import { useRoute } from 'vue-router';
+import { useHistoryStore } from '@/stores/history';
+import Sidebar from '@/components/sidebar/SideBar.vue';
+import type { NavCategory, SubItem } from '@/types/sidebar';
+
+const route = useRoute();
+const networkId = computed(() => route.params?.networkId as string | undefined);
+
+const historyStore = useHistoryStore(networkId.value ?? 'no value');
+
+const navItems: ComputedRef<NavCategory[]> = computed(() => [
+  {
+    title: 'Overview',
+    items: [
+      { page: '', label: 'Dashboard', subItems: [], getURI: () => `` },
+      { page: 'edit', label: 'Edit Details', subItems: [], getURI: () => `` },
+    ],
+  },
+  {
+    title: 'Management',
+    items: [
+      { page: 'users', label: 'Users', subItems: [], getURI: () => `` },
+      { page: 'roles', label: 'Roles', subItems: [], getURI: () => `` },
+      { page: 'access', label: 'Access Requirements', subItems: [], getURI: () => `` },
+    ],
+  },
+  {
+    title: 'Content',
+    items: [
+      { page: 'files', label: 'Files', subItems: [], getURI: () => `` },
+      {
+        page: 'custom-pages',
+        label: 'Custom Pages',
+        subItems: historyStore.data.customPages
+          .map((cp) => ({ page: cp.id, label: cp.name }))
+          .slice()
+          .reverse(),
+        getURI: (sub: SubItem) => `custom-pages/${sub.page}/edit`,
+      },
+      {
+        page: 'configurations',
+        label: 'Configurations',
+        subItems: historyStore.data.configurations
+          .map((cp) => ({ page: cp.id, label: cp.key }))
+          .slice()
+          .reverse(),
+        getURI: (sub: SubItem) => `configurations/${sub.page}/edit`,
+      },
+      {
+        page: 'blogs',
+        label: 'Blogs',
+        subItems: historyStore.data.blogs
+          .map((b) => ({ page: b.id, label: b.title }))
+          .slice()
+          .reverse(),
+        getURI: (sub: SubItem) => `blogs/${sub.page}/edit`,
+      },
+    ],
+  },
+]);
+</script>
+
+<style scoped lang="scss">
+.network-sidebar__back-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-color);
+  text-decoration: none;
+  transition: color 0.2s ease;
+
+  svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  &:hover {
+    color: var(--primary-accent-color);
+  }
+}
+.network-sidebar__back-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+</style>

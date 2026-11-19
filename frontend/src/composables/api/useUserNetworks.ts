@@ -1,0 +1,19 @@
+import api from '@/api/api';
+import { userProxyKey } from '@/lib/cacheKeys';
+import type { NetworkDto } from '@/types';
+import { useCachedApi } from '@/composables/api/useApi';
+import { withUserProxyGuard } from '@/composables/withUserProxyGuard';
+
+export default function useUsersNetworks() {
+  const cachedApi = useCachedApi<NetworkDto[], [userId: string, proxyId: string]>(
+    (userId, proxyId) => userProxyKey(userId, proxyId, 'networks'),
+    async (userId, proxyId) =>
+      await api.get<NetworkDto[]>(`/users/${userId}/proxies/${proxyId}/networks`),
+  );
+
+  const fetchUserNetworks = withUserProxyGuard(cachedApi, async (userProxy) => {
+    await cachedApi.execute(userProxy.user.id, userProxy.id);
+  });
+
+  return { fetchUserNetworks };
+}
