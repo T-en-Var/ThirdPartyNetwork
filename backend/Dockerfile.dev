@@ -1,0 +1,16 @@
+FROM mcr.microsoft.com/dotnet/sdk:9.0
+WORKDIR /src
+
+# Restore separately so the restore layer is cached between rebuilds
+COPY ["thirdpartynetwork/thirdpartynetwork.csproj", "thirdpartynetwork/"]
+RUN dotnet restore "thirdpartynetwork/thirdpartynetwork.csproj"
+
+COPY . .
+WORKDIR /src/thirdpartynetwork
+
+ENV ASPNETCORE_URLS=http://+:8080
+EXPOSE 8080
+
+# docker-compose bind-mounts the source over this directory at runtime, so
+# this COPY above only seeds the image for the very first `dotnet watch` run.
+ENTRYPOINT ["dotnet", "watch", "run", "--no-launch-profile"]
