@@ -32,6 +32,10 @@ coverage
 *.tsbuildinfo
 .env
 
+# mkcert-generated local dev certificates (infra/setup.ps1)
+/infra/certs/*
+!/infra/certs/.gitkeep
+
 
 ### original backend gitignore
 
